@@ -185,7 +185,7 @@ $ cascadia engines
   ov-genai       single-stage openvino_genai.LLMPipeline; FastDraft + Prompt Lookup
   ov-runtime     multi-stage stateful KV cache; pre-exported per-stage v3+ shards
   ov-dist-spec   multi-stage spec decode (mask-based KV rewind); v5 shards
-  gemma4         Gemma 4 multi-stage (per-layer-type attn, KV-sharing, PLI); gemma4_cached_v1 shards
+  gemma4         Gemma 4 multi-stage (per-layer-type attn, KV-sharing, PLI, sliding window); gemma4_cached_v1.x shards
   sparse-moe     Kimi K2.6 (AVX-512 int4 GEMM + Rust MLA shells) or MiniMax-M2 (OV-IR shells); single-stage top-k expert dispatch
   qwen35         Qwen3.5-family staged chain (GatedDeltaNet; 3.5/3.6 MoE or 3.8 dense); qwen3_5* IR-surgery shards (alias: qwen36-moe)
 ```
