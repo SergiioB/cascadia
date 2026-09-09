@@ -901,3 +901,82 @@ def test_run_export_rejects_bidirectional_variants(
         export_gemma4.run_export(
             model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
         )
+
+
+# ---------------------------------------------------------------------------
+# _verify_stage -- the self-check that must cross the window and fail on NaN
+# ---------------------------------------------------------------------------
+
+np = pytest.importorskip("numpy")
+OUT_PORT = "output0"
+
+
+class FakeInferRequest:
+    """Records what `_verify_stage` asks the compiled model to run. No state,
+    so `query_state()` is empty and the zero-init loop is skipped."""
+
+    def __init__(self, output_for):
+        self.output_for = output_for
+        self.inputs = []
+
+    def reset_state(self):
+        pass
+
+    def query_state(self):
+        return []
+
+    def infer(self, inputs):
+        self.inputs.append(inputs)
+        return {OUT_PORT: self.output_for(inputs)}
+
+
+def patch_ov_core(monkeypatch, request):
+    """`_verify_stage` does `import openvino as ov` and then `ov.Core()`, so
+    replacing the attribute on the module intercepts the whole compile path."""
+    ov = pytest.importorskip("openvino")
+    compiled = types.SimpleNamespace(
+        create_infer_request=lambda: request, output=lambda i: OUT_PORT
+    )
+    core = types.SimpleNamespace(compile_model=lambda model, device: compiled)
+    monkeypatch.setattr(ov, "Core", lambda: core)
+
+
+def finite_output(inputs):
+    return np.zeros((1, inputs[0].shape[1], 4), dtype=np.float32)
+
+
+def verify(request, monkeypatch, sliding_window):
+    patch_ov_core(monkeypatch, request)
+    export_gemma4._verify_stage(
+        ov_model=object(),
+        stage_idx=0,
+        has_embed=True,
+        num_kv_heads=NUM_KV_HEADS,
+        pli_dim=0,
+        hidden_dim=HIDDEN,
+        num_layers=2,
+        downstream_pli_count=0,
+        external_shared_sources=[],
+        device="CPU",
+        sliding_window=sliding_window,
+    )
+
+
+def test_verify_stage_prefills_past_the_window(monkeypatch):
+    """The prefill must be `sliding_window + 4` tokens with contiguous
+    positions, then decode the next one: a 3-token prefill never reaches the
+    exported band, so a broken window would verify clean."""
+    request = FakeInferRequest(finite_output)
+    verify(request, monkeypatch, sliding_window=8)
+    prefill, decode = request.inputs
+    assert prefill[0].shape == (1, 12)
+    assert prefill[1].tolist() == [list(range(12))]
+    assert decode[0].shape == (1, 1)
+    assert decode[1].tolist() == [[12]]
+
+
+def test_verify_stage_rejects_a_non_finite_prefill(monkeypatch):
+    """A window that masks whole rows surfaces as NaN, which must abort."""
+    request = FakeInferRequest(lambda inputs: finite_output(inputs) * np.nan)
+    with pytest.raises(RuntimeError, match="non-finite prefill"):
+        verify(request, monkeypatch, sliding_window=8)
