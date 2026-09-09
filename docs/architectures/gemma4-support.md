@@ -29,7 +29,7 @@ Detected Gemma 4 — dispatching to tools/export_gemma4.py
 Loading config...
   35 layers, hidden=1536, heads=8, kv_heads=1,
   head_dim=256, global_head_dim=512, pli_dim=256,
-  num_kv_shared=20, softcap=30.0
+  num_kv_shared=20, softcap=30.0, sliding_window=512
 
 Stage plan (2 stages):
   Stage 0: layers [0, 18) + embed
@@ -46,7 +46,7 @@ STAGE 0: layers [0, 18) | embed=True | head=False
 STAGE 1: layers [18, 35) | embed=False | head=True
   KV sharing: 0 own + 17 shared, 0 cross-stage sources out, 2 external sources in
   Head stage will apply final_logit_softcapping=30.0
-  Self-verify on CPU... Prefill OK: shape=(1, 3, 262144) / Decode OK: shape=(1, 1, 262144)
+  Self-verify on CPU... Prefill OK: shape=(1, 516, 262144) (516 tokens, crosses window 512) / Decode OK: shape=(1, 1, 262144)
   Saved: /tmp/test_gemma4_e2b/stage_1 (2882 MB)
 GEMMA 4 EXPORT COMPLETE  Total: 9596 MB
 ```
