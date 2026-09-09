@@ -744,8 +744,15 @@ def fake_text_config(**overrides):
 
 def patch_autoconfig(monkeypatch, text_config):
     """`run_export` does `from transformers import AutoConfig` at call time,
-    so replacing the attribute on the module is enough."""
+    so replacing the attribute on the module is enough.
+
+    `apply_patches` runs ahead of the guards and replaces openvino's
+    `torch_tensor_to_ov_const` for the rest of the pytest process; the fake
+    config has no 0-dim buffers to patch, so stub it out rather than mutate
+    an imported module out from under every later test.
+    """
     transformers = pytest.importorskip("transformers")
+    monkeypatch.setattr(export_gemma4, "apply_patches", lambda: None)
     full = types.SimpleNamespace(
         text_config=text_config, to_json_file=lambda path: None
     )
