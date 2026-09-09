@@ -536,6 +536,183 @@ def test_wrapper_matches_hf_past_the_window():
 
 
 # ---------------------------------------------------------------------------
+# build_cached_wrapper with a fake model (no transformers needed)
+# ---------------------------------------------------------------------------
+
+VOCAB = 32
+
+
+class FakeLayer(torch.nn.Module):
+    """`make_fake_layer`'s attribute surface as a real `nn.Module`, which is
+    what `build_cached_wrapper` needs to put stage layers in an `nn.ModuleList`.
+    """
+
+    def __init__(self, seed=0):
+        super().__init__()
+        for name, value in vars(make_fake_layer(seed)).items():
+            setattr(self, name, value)
+
+
+def fake_model(layer_types, num_kv_shared_layers=0):
+    """The surface `build_cached_wrapper` reads: a text backbone at
+    `model.model` (`layers` / `embed_tokens` / `norm`) plus `model.lm_head`,
+    and the `text_config` attributes it looks up. Returns (model, config).
+
+    Both head_dims and both KV-head counts are equal so one `FakeLayer` shape
+    serves `sliding_attention` and `full_attention` alike, and both rope
+    thetas are equal so a single rotary table reproduces the wrapper's.
+    """
+    nn = torch.nn
+    layers = [FakeLayer(seed=i) for i in range(len(layer_types))]
+    tm = types.SimpleNamespace(
+        layers=layers,
+        embed_tokens=nn.Embedding(VOCAB, HIDDEN, dtype=DTYPE),
+        norm=nn.Identity(),
+    )
+    model = types.SimpleNamespace(
+        model=tm, lm_head=nn.Linear(HIDDEN, VOCAB, bias=False, dtype=DTYPE)
+    )
+    cfg = types.SimpleNamespace(
+        num_hidden_layers=len(layer_types),
+        hidden_size=HIDDEN,
+        hidden_size_per_layer_input=0,
+        layer_types=list(layer_types),
+        head_dim=HEAD_DIM,
+        global_head_dim=HEAD_DIM,
+        num_attention_heads=NUM_HEADS,
+        num_key_value_heads=NUM_KV_HEADS,
+        num_global_key_value_heads=NUM_KV_HEADS,
+        num_kv_shared_layers=num_kv_shared_layers,
+        rope_theta=10000.0,
+        rope_local_base_freq=10000.0,
+        final_logit_softcapping=0.0,
+        vocab_size=VOCAB,
+    )
+    return model, cfg
+
+
+def empty_kv():
+    return torch.zeros(1, NUM_KV_HEADS, 0, HEAD_DIM, dtype=DTYPE)
+
+
+def run_stage(model, cfg, plan, sliding_window, main_input, pos, ext_kv=()):
+    """Drive one stage through the production wrapper with an empty own-KV
+    cache. Returns the wrapper's output tuple."""
+    wrapper, _, _, share = export_gemma4.build_cached_wrapper(
+        model, cfg, plan, sliding_window=sliding_window
+    )
+    past = []
+    for shared in share["is_shared"]:
+        if not shared:
+            past.extend([empty_kv(), empty_kv()])
+    with torch.no_grad():
+        return wrapper(main_input, pos, *ext_kv, *past)
+
+
+def manual_stage_logits(model, ids, windows):
+    """The same single-stage forward written out by hand: embed, one
+    `cached_gemma4_layer_forward` per layer with the window this test dictates,
+    norm, head."""
+    layers = model.model.layers
+    pos = torch.arange(ids.shape[1]).unsqueeze(0)
+    Rotary = export_gemma4._make_traced_rotary_class()
+    cos, sin = Rotary(HEAD_DIM, 10000.0)(pos, DTYPE)
+    h = model.model.embed_tokens(ids)
+    with torch.no_grad():
+        for layer, window in zip(layers, windows):
+            h, _, _ = export_gemma4.cached_gemma4_layer_forward(
+                layer, h, cos, sin, empty_kv(), empty_kv(),
+                NUM_HEADS, NUM_KV_HEADS, HEAD_DIM, None,
+                sliding_window=window,
+            )
+        return model.lm_head(model.model.norm(h))
+
+
+def test_wrapper_windows_sliding_layers_only():
+    """`_layer_windows` + `mask_for`: the wrapper must bake the window into
+    the `sliding_attention` layers and nothing else."""
+    layer_types = [SLIDING, SLIDING, FULL, SLIDING, SLIDING, FULL]
+    model, cfg = fake_model(layer_types)
+    plan = export_gemma4.compute_stage_plan(len(layer_types), 1)[0]
+    torch.manual_seed(3)
+    ids = torch.randint(0, VOCAB, (1, 12))  # three times the window
+    pos = torch.arange(ids.shape[1]).unsqueeze(0)
+
+    ours = run_stage(model, cfg, plan, WINDOW, ids, pos)[0]
+    by_type = manual_stage_logits(
+        model, ids, [WINDOW if lt == SLIDING else None for lt in layer_types]
+    )
+    assert torch.allclose(ours, by_type, atol=1e-6)
+
+    # Teeth on both sides of the gate: windowing every layer, or none of
+    # them (the v1 behaviour), are different answers.
+    every = manual_stage_logits(model, ids, [WINDOW] * len(layer_types))
+    none = manual_stage_logits(model, ids, [None] * len(layer_types))
+    assert not torch.allclose(ours, every, atol=1e-6)
+    assert not torch.allclose(ours, none, atol=1e-6)
+    # And sliding_window=None reproduces the unwindowed export exactly.
+    unbounded = run_stage(model, cfg, plan, None, ids, pos)[0]
+    assert torch.allclose(unbounded, none, atol=1e-6)
+
+
+def test_wrapper_windows_a_shared_layer_borrowing_external_kv():
+    """Second stage of a 2-stage plan with KV sharing: one own-KV layer, one
+    sliding layer borrowing KV from the *previous stage* (the "ext" mask key,
+    whose length comes from the source cache, not from the own cache), and one
+    full layer borrowing from inside the stage."""
+    layer_types = [SLIDING, SLIDING, FULL, FULL, SLIDING, FULL]
+    model, cfg = fake_model(layer_types, num_kv_shared_layers=2)
+    plan = export_gemma4.compute_stage_plan(len(layer_types), 2)[1]
+    share = export_gemma4.resolve_kv_sharing(cfg, plan)
+    assert share["is_shared"] == [False, True, True]
+    assert share["source_local"][1] < 0  # layer 4 borrows across the stage
+    assert share["source_local"][2] == 0  # layer 5 borrows layer 3
+    assert len(share["external_shared_sources"]) == 1
+
+    seq_len, past = 3, 7
+    torch.manual_seed(5)
+    h_in = torch.randn(1, seq_len, HIDDEN, dtype=DTYPE)
+    # The borrowed cache is the full past + seq the earlier stage produced,
+    # while this stage's own KV state is still empty.
+    src_k = torch.randn(1, NUM_KV_HEADS, past + seq_len, HEAD_DIM, dtype=DTYPE)
+    src_v = torch.randn(1, NUM_KV_HEADS, past + seq_len, HEAD_DIM, dtype=DTYPE)
+    pos = torch.arange(past, past + seq_len).unsqueeze(0)
+
+    ours = run_stage(
+        model, cfg, plan, WINDOW, h_in, pos, ext_kv=(src_k, src_v)
+    )[0]
+
+    Rotary = export_gemma4._make_traced_rotary_class()
+    cos, sin = Rotary(HEAD_DIM, 10000.0)(pos, DTYPE)
+    layers = model.model.layers
+    with torch.no_grad():
+        h, own_k, own_v = export_gemma4.cached_gemma4_layer_forward(
+            layers[3], h_in, cos, sin, empty_kv(), empty_kv(),
+            NUM_HEADS, NUM_KV_HEADS, HEAD_DIM, None, sliding_window=None,
+        )
+        h = export_gemma4.cached_gemma4_shared_layer_forward(
+            layers[4], h, cos, sin, src_k, src_v,
+            NUM_HEADS, NUM_KV_HEADS, HEAD_DIM, None, sliding_window=WINDOW,
+        )
+        h = export_gemma4.cached_gemma4_shared_layer_forward(
+            layers[5], h, cos, sin, own_k, own_v,
+            NUM_HEADS, NUM_KV_HEADS, HEAD_DIM, None, sliding_window=None,
+        )
+        ref = model.lm_head(model.model.norm(h))
+    assert torch.allclose(ours, ref, atol=1e-6)
+
+    # Teeth: the borrowed cache is longer than the window, so leaving the
+    # shared sliding layer unbounded is a different answer. This call also
+    # pins the "own"/"ext" mask keys apart -- with one entry per window, the
+    # external layer would be handed the own layers' 3-key mask and the add
+    # would not even broadcast.
+    unbounded = run_stage(
+        model, cfg, plan, None, h_in, pos, ext_kv=(src_k, src_v)
+    )[0]
+    assert not torch.allclose(ours, unbounded, atol=1e-6)
+
+
+# ---------------------------------------------------------------------------
 # run_export -- the config-first guards and the metadata contract
 # ---------------------------------------------------------------------------
 
@@ -673,3 +850,54 @@ def test_run_export_full_export_overwrites_an_older_tree(monkeypatch, tmp_path):
     assert len(calls) == 2
     written = json.loads((out / "pipeline_config.json").read_text())
     assert written["export_version"] == export_gemma4.EXPORT_VERSION
+
+
+def test_run_export_records_the_window_and_hands_it_to_every_stage(
+    monkeypatch, tmp_path
+):
+    """The `run_export -> export_single_stage -> build_cached_wrapper` kwarg
+    chain and the tree metadata: the resolved window must reach every stage
+    and be readable off the tree, under the version that promises it."""
+    out = tmp_path / "tree"
+    calls = patch_run_export(monkeypatch, fake_text_config())
+    export_gemma4.run_export(model_id="fake", output_dir=str(out), num_stages=2)
+    meta = json.loads((out / "pipeline_config.json").read_text())
+    assert meta["sliding_window"] == 1024
+    assert meta["export_version"] == "gemma4_cached_v1.1"
+    assert [c["sliding_window"] for c in calls] == [1024, 1024]
+
+
+@pytest.mark.parametrize("raw", [0, None])
+def test_run_export_refuses_a_windowless_config_with_sliding_layers(
+    raw, monkeypatch, tmp_path
+):
+    """Through `run_export`, not just the resolver: such a tree would be the
+    v1 behaviour wearing the v1.1 stamp."""
+    patch_autoconfig(monkeypatch, fake_text_config(sliding_window=raw))
+    with pytest.raises(ValueError, match="sliding_attention layers but no"):
+        export_gemma4.run_export(
+            model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
+        )
+
+
+def test_run_export_rejects_unknown_layer_types(monkeypatch, tmp_path):
+    layer_types = [SLIDING, "linear_attention", FULL, SLIDING]
+    patch_autoconfig(monkeypatch, fake_text_config(layer_types=layer_types))
+    with pytest.raises(RuntimeError, match="are not supported"):
+        export_gemma4.run_export(
+            model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
+        )
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"use_bidirectional_attention": "all"}, {"is_causal": False}],
+)
+def test_run_export_rejects_bidirectional_variants(
+    overrides, monkeypatch, tmp_path
+):
+    patch_autoconfig(monkeypatch, fake_text_config(**overrides))
+    with pytest.raises(RuntimeError, match="bidirectional"):
+        export_gemma4.run_export(
+            model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
+        )
