@@ -93,8 +93,9 @@ struct StageConfig {
     #[serde(default)]
     external_shared_sources: Vec<ExternalSrc>,
     /// `gemma4_cached_v1` (no window band) or `gemma4_cached_v1.1` (sliding
-    /// layers masked to `sliding_window`). Informational except for the
-    /// load-time warning below.
+    /// layers masked to `sliding_window`). Informational: echoed by the
+    /// load-time warning, which keys off `layer_types`/`sliding_window`, not
+    /// this string.
     #[serde(default)]
     export_version: Option<String>,
     /// Per-layer attention type of this stage's layers (`sliding_attention` /
@@ -130,7 +131,8 @@ fn read_stage_config(p: &Path) -> Result<StageConfig, EngineError> {
 /// True for a stage exported before `gemma4_cached_v1.1`: its sliding layers
 /// attend to the whole prefix (correct only while the prompt is shorter than
 /// the window, 512–1024 tokens on shipped Gemma 4 checkpoints). Nothing else
-/// consumes `export_version`, so this is the one place a stale tree is named.
+/// in this engine reads `export_version` (genai.rs only prefix-matches it to
+/// name the engine), so this is the one place a stale tree is called out.
 /// `load()` reports it for the stage being loaded only — the adjacency check's
 /// read of `stage_{N-1}` would otherwise warn about the same tree twice.
 fn sliding_layers_unwindowed(cfg: &StageConfig) -> bool {
