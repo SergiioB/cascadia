@@ -189,6 +189,32 @@ def test_resolve_sliding_window_rejects_non_integers(raw):
         export_gemma4.resolve_sliding_window(cfg)
 
 
+@pytest.mark.parametrize(
+    "raw", [[512, 1024], float("nan"), float("inf"), "wide"]
+)
+def test_resolve_sliding_window_rejects_unconvertible_values(raw):
+    """`int()` raises for a per-layer list (TypeError), nan (ValueError
+    "cannot convert float NaN") and inf (OverflowError); those must surface
+    as the prefixed error naming the config key, not as a bare conversion
+    error the operator has to trace back to `sliding_window`."""
+    cfg = types.SimpleNamespace(sliding_window=raw)
+    with pytest.raises(ValueError, match="must be an integer"):
+        export_gemma4.resolve_sliding_window(cfg)
+
+
+def test_resolve_sliding_window_propagates_unrelated_read_errors():
+    """Only transformers' per-layer-override error is relabelled; anything
+    else the attribute read raises keeps its own message."""
+
+    class Cfg:
+        @property
+        def sliding_window(self):
+            raise RuntimeError("remote config backend unreachable")
+
+    with pytest.raises(RuntimeError, match="remote config backend"):
+        export_gemma4.resolve_sliding_window(Cfg())
+
+
 SF = ["sliding_attention", "sliding_attention", "full_attention"]
 
 

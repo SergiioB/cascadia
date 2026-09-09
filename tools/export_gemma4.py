@@ -243,17 +243,32 @@ def resolve_sliding_window(text_config, layer_types=None):
     configs) are rejected rather than coerced.
     """
     try:
+        from transformers.integrations.heterogeneity.configuration_utils import (
+            AmbiguousGlobalPerLayerAttributeError as _PerLayerError,
+        )
+    except ImportError:
+        # transformers < 5.5 has no per-layer overrides; `except ()` catches
+        # nothing, so every read error keeps its own message.
+        _PerLayerError = ()
+    try:
         raw = getattr(text_config, "sliding_window", None)
-    except AttributeError:
-        raw = None
-    except Exception as e:  # transformers >= 5.5 per-layer overrides
+    except _PerLayerError as e:  # transformers >= 5.5 per-layer overrides
         raise ValueError(
             "text_config.sliding_window is overridden per layer "
             f"(per_layer_config); the exporter bakes one window per stage: {e}"
         ) from e
     window = None
     if raw is not None:
-        if isinstance(raw, bool) or (not isinstance(raw, int) and int(raw) != raw):
+        try:
+            integral = not isinstance(raw, bool) and (
+                isinstance(raw, int) or int(raw) == raw
+            )
+        except (TypeError, ValueError, OverflowError):
+            # A per-layer list, nan, inf or a non-numeric string: the bare
+            # conversion error carries no hint of which config key is at
+            # fault, so report it like any other non-integer.
+            integral = False
+        if not integral:
             raise ValueError(
                 f"text_config.sliding_window must be an integer (got {raw!r})"
             )
