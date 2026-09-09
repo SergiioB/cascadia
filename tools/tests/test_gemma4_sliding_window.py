@@ -621,9 +621,7 @@ def manual_stage_logits(model, ids, windows):
     `cached_gemma4_layer_forward` per layer with the window this test dictates,
     norm, head."""
     layers = model.model.layers
-    pos = torch.arange(ids.shape[1]).unsqueeze(0)
-    Rotary = export_gemma4._make_traced_rotary_class()
-    cos, sin = Rotary(HEAD_DIM, 10000.0)(pos, DTYPE)
+    cos, sin = rope_tables(ids.shape[1], 0)
     h = model.model.embed_tokens(ids)
     with torch.no_grad():
         for layer, window in zip(layers, windows):
@@ -689,8 +687,7 @@ def test_wrapper_windows_a_shared_layer_borrowing_external_kv():
         model, cfg, plan, WINDOW, h_in, pos, ext_kv=(src_k, src_v)
     )[0]
 
-    Rotary = export_gemma4._make_traced_rotary_class()
-    cos, sin = Rotary(HEAD_DIM, 10000.0)(pos, DTYPE)
+    cos, sin = rope_tables(seq_len, past)
     layers = model.model.layers
     with torch.no_grad():
         h, own_k, own_v = export_gemma4.cached_gemma4_layer_forward(
