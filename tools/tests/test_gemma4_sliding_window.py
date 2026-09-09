@@ -32,9 +32,10 @@ Five layers of coverage:
   second stage borrowing an external cache), plus a tiny random-init HF
   `Gemma4ForCausalLM` compared with HF's own logits past the window (that one
   skips when transformers lacks Gemma 4).
-* `run_export` / `_verify_stage` -- the config-first guards, the window
-  reaching every stage and the tree metadata, and the self-check that must
-  cross the window and fail the export on a non-finite output.
+* `run_export` / `export_single_stage` / `_verify_stage` -- the config-first
+  guards, the window reaching every stage and the tree metadata, and the
+  self-check that must cross the window, reject a non-finite output and carry
+  that failure out of the stage export instead of logging it.
 """
 
 from __future__ import annotations
@@ -984,3 +985,60 @@ def test_verify_stage_rejects_a_non_finite_prefill(monkeypatch):
     request = FakeInferRequest(lambda inputs: finite_output(inputs) * np.nan)
     with pytest.raises(RuntimeError, match="non-finite prefill"):
         verify(request, monkeypatch, sliding_window=8)
+
+
+# ---------------------------------------------------------------------------
+# export_single_stage -- a failed self-verify must abort the export
+# ---------------------------------------------------------------------------
+
+
+def export_one_stage(tmp_path, device_verify):
+    """Run the real exporter over the fake model -- trace, convert, make
+    stateful, save -- as a single stage carrying both embed and head."""
+    pytest.importorskip("openvino")
+    layer_types = [SLIDING, FULL]
+    model, cfg = fake_model(layer_types)
+    for layer in model.model.layers:
+        # The projections hang off a SimpleNamespace, so they are not
+        # registered parameters and torch.jit.trace has to fold them in as
+        # constants, which it refuses to do while they require grad.
+        for module in vars(layer.self_attn).values():
+            module.requires_grad_(False)
+    export_gemma4.export_single_stage(
+        model,
+        cfg,
+        export_gemma4.compute_stage_plan(len(layer_types), 1)[0],
+        str(tmp_path),
+        "fp32",
+        device_verify=device_verify,
+        sliding_window=WINDOW,
+    )
+
+
+def test_export_single_stage_propagates_a_failed_self_verify(
+    monkeypatch, tmp_path
+):
+    """The self-verify is all that stands between a mis-built mask and a
+    v1.1-stamped NaN shard, so its failure must abort the export rather than
+    log a line and return the stage's size."""
+    def raiser(*args, **kwargs):
+        raise RuntimeError("non-finite prefill")
+
+    monkeypatch.setattr(export_gemma4, "_verify_stage", raiser)
+    with pytest.raises(RuntimeError, match="non-finite prefill"):
+        export_one_stage(tmp_path, device_verify="CPU")
+
+
+def test_export_single_stage_without_a_device_skips_the_self_verify(
+    monkeypatch, tmp_path
+):
+    """`device_verify=None` is the documented opt-out; the stage is still
+    written."""
+    calls = []
+    monkeypatch.setattr(
+        export_gemma4, "_verify_stage", lambda *a, **k: calls.append(k)
+    )
+    export_one_stage(tmp_path, device_verify=None)
+    assert calls == []
+    meta = json.loads((tmp_path / "stage_0" / "stage_config.json").read_text())
+    assert meta["sliding_window"] == WINDOW
