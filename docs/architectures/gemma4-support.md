@@ -71,7 +71,9 @@ and try INT4 once you've confirmed parity.
   `sliding_window` and stamp `export_version: gemma4_cached_v1.1`.
   **Trees exported as `gemma4_cached_v1` lack the band**: they match
   HF only while the prompt is shorter than the window and degrade past
-  it; the engine warns at load and they should be re-exported.
+  it; the engine warns at load and they should be re-exported with
+  `cascadia shard --model google/gemma-4-31B-it -o <dir> --num-stages 3
+  --quantization int4`.
 * **Per-layer-type RoPE** — two `GemmaTracedRotaryEmbedding`
   instances per stage (one local 10k-θ, one global 1M-θ with the
   Gemma-4 invention `partial_rotary_factor=0.25` for the
