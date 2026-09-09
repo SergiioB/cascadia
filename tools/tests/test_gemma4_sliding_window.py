@@ -532,3 +532,60 @@ def test_wrapper_matches_hf_past_the_window():
     # Teeth: exporting the sliding layers unbounded (the v1 behaviour) differs.
     unbounded = _wrapper_logits(cfg, model, ids, sliding_window=None)
     assert not torch.allclose(unbounded, ref, atol=1e-4)
+
+
+# ---------------------------------------------------------------------------
+# run_export -- the config-first guards and the metadata contract
+# ---------------------------------------------------------------------------
+
+
+def fake_text_config(**overrides):
+    """Just the attributes `run_export` reads off `text_config`, so a guard
+    can be driven without a checkpoint or a multi-minute model load."""
+    fields = dict(
+        layer_types=[SLIDING, SLIDING, FULL, SLIDING],
+        num_hidden_layers=4,
+        sliding_window=1024,
+        enable_moe_block=False,
+        hidden_size=32,
+        num_attention_heads=4,
+        num_key_value_heads=2,
+        head_dim=8,
+        vocab_size=64,
+        hidden_size_per_layer_input=0,
+        num_kv_shared_layers=0,
+    )
+    fields.update(overrides)
+    return types.SimpleNamespace(**fields)
+
+
+def patch_autoconfig(monkeypatch, text_config):
+    """`run_export` does `from transformers import AutoConfig` at call time,
+    so replacing the attribute on the module is enough."""
+    transformers = pytest.importorskip("transformers")
+    full = types.SimpleNamespace(text_config=text_config)
+    monkeypatch.setattr(
+        transformers,
+        "AutoConfig",
+        types.SimpleNamespace(from_pretrained=lambda *a, **k: full),
+    )
+
+
+@pytest.mark.parametrize(
+    "layer_types",
+    [
+        [SLIDING, FULL],  # short: used to IndexError inside the first stage
+        [SLIDING, SLIDING, FULL, SLIDING, FULL, FULL],  # long: tail ignored
+    ],
+)
+def test_run_export_rejects_layer_types_length_mismatch(
+    layer_types, monkeypatch, tmp_path
+):
+    """`num_hidden_layers` and `layer_types` must agree before the load: the
+    stage slices index by layer, so a short list failed minutes in and a long
+    one exported the wrong types without a word."""
+    patch_autoconfig(monkeypatch, fake_text_config(layer_types=layer_types))
+    with pytest.raises(RuntimeError, match="layer_types has"):
+        export_gemma4.run_export(
+            model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
+        )
