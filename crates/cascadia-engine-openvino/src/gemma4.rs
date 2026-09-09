@@ -4,7 +4,7 @@
 //! `tools/export_gemma4.py`) across the TCP activation transport, single-stage
 //! or pipeline-parallel. Own KV is OV internal state, reset between tasks.
 //! `gemma4_cached_v1` trees (pre `sliding_window`) still load but attend past
-//! the sliding window on long prompts; `read_stage_config` warns about them.
+//! the sliding window on long prompts; `load()` warns about them.
 //!
 //! Pipeline-dir layout:
 //! ```text
@@ -123,27 +123,18 @@ fn read_pipeline_config(p: &Path) -> Result<PipelineConfig, EngineError> {
 
 fn read_stage_config(p: &Path) -> Result<StageConfig, EngineError> {
     let bytes = std::fs::read(p.join("stage_config.json"))?;
-    let cfg: StageConfig = serde_json::from_slice(&bytes)
-        .map_err(|e| EngineError::InvalidConfig(format!("stage_config.json: {e}")))?;
-    warn_if_unwindowed(&cfg, p);
-    Ok(cfg)
+    serde_json::from_slice(&bytes)
+        .map_err(|e| EngineError::InvalidConfig(format!("stage_config.json: {e}")))
 }
 
-/// A stage exported before `gemma4_cached_v1.1` has sliding layers that attend
-/// to the whole prefix (correct only while the prompt is shorter than the
-/// window, 512–1024 tokens on shipped Gemma 4 checkpoints). Nothing else
+/// True for a stage exported before `gemma4_cached_v1.1`: its sliding layers
+/// attend to the whole prefix (correct only while the prompt is shorter than
+/// the window, 512–1024 tokens on shipped Gemma 4 checkpoints). Nothing else
 /// consumes `export_version`, so this is the one place a stale tree is named.
-fn warn_if_unwindowed(cfg: &StageConfig, p: &Path) {
-    let has_sliding = cfg.layer_types.iter().any(|t| t == "sliding_attention");
-    if has_sliding && cfg.sliding_window.is_none() {
-        warn!(
-            stage_dir = %p.display(),
-            export_version = cfg.export_version.as_deref().unwrap_or("?"),
-            "gemma4: sliding_attention layers carry no sliding_window (pre-v1.1 export): \
-             prompts longer than the model's window will degrade; re-export with \
-             `cascadia shard` to get gemma4_cached_v1.1"
-        );
-    }
+/// `load()` reports it for the stage being loaded only — the adjacency check's
+/// read of `stage_{N-1}` would otherwise warn about the same tree twice.
+fn sliding_layers_unwindowed(cfg: &StageConfig) -> bool {
+    cfg.layer_types.iter().any(|t| t == "sliding_attention") && cfg.sliding_window.is_none()
 }
 
 // -------- generation_config.json (eos_token_id lookup) --------
@@ -2063,6 +2054,25 @@ impl Builder for Gemma4Builder {
         }
         let stage_dir = self.pipeline_dir.join(format!("stage_{}", self.rank));
         let stage_cfg = read_stage_config(&stage_dir)?;
+
+        // A pre-v1.1 tree still loads (the gap only shows past the window), but
+        // it has to reach the operator: on a multi-node deployment nobody reads
+        // each node's stderr, so the same warning also rides the load stream.
+        if sliding_layers_unwindowed(&stage_cfg) {
+            warn!(
+                stage_dir = %stage_dir.display(),
+                export_version = stage_cfg.export_version.as_deref().unwrap_or("?"),
+                "gemma4: sliding_attention layers carry no sliding_window (pre-v1.1 export): \
+                 prompts longer than the model's window will degrade; re-export with \
+                 `cascadia shard` to get gemma4_cached_v1.1"
+            );
+            events.push(LoadProgress::message(format!(
+                "warning: {} has sliding_attention layers with no sliding_window (pre-v1.1 \
+                 export); prompts longer than the model's window will degrade — re-export with \
+                 `cascadia shard`",
+                stage_dir.display()
+            )));
+        }
 
         // The gemma4 engine only runs stateful shards (own KV is OV internal
         // state); there is no stateless/static-KV (NPU) path. Reject clearly.
