@@ -471,36 +471,36 @@ def _tiny_gemma4():
     cfg_mod = pytest.importorskip("transformers.models.gemma4.configuration_gemma4")
     mdl_mod = pytest.importorskip("transformers.models.gemma4.modeling_gemma4")
     layer_types = [SLIDING, SLIDING, FULL, SLIDING, SLIDING, FULL, SLIDING, FULL]
-    try:
-        cfg = cfg_mod.Gemma4TextConfig(
-            vocab_size=64,
-            hidden_size=32,
-            intermediate_size=64,
-            num_hidden_layers=len(layer_types),
-            num_attention_heads=4,
-            num_key_value_heads=2,
-            head_dim=8,
-            global_head_dim=8,
-            num_global_key_value_heads=2,
-            layer_types=layer_types,
-            sliding_window=4,
-            hidden_size_per_layer_input=0,
-            vocab_size_per_layer_input=64,
-            final_logit_softcapping=None,
-            tie_word_embeddings=False,
-            attention_k_eq_v=False,
-            num_kv_shared_layers=0,
-        )
-        cfg._attn_implementation = "eager"
-        # transformers >= 5.5 registers head_dim/num_key_value_heads as
-        # per-layer attributes and refuses global reads; this config is
-        # homogeneous, so the exporter's global reads are exact.
-        if hasattr(cfg, "allow_global_per_layer_attribute_access"):
-            cfg.allow_global_per_layer_attribute_access = True
-        torch.manual_seed(0)
-        model = mdl_mod.Gemma4ForCausalLM(cfg).eval()
-    except Exception as e:  # pragma: no cover - depends on the transformers version
-        pytest.skip(f"cannot build a tiny Gemma 4 on this transformers: {e}")
+    # Only the import is optional: a transformers that HAS Gemma 4 but cannot
+    # build this config must fail, not skip -- a swallowed TypeError here
+    # would retire the one test that checks the wrapper against HF.
+    cfg = cfg_mod.Gemma4TextConfig(
+        vocab_size=64,
+        hidden_size=32,
+        intermediate_size=64,
+        num_hidden_layers=len(layer_types),
+        num_attention_heads=4,
+        num_key_value_heads=2,
+        head_dim=8,
+        global_head_dim=8,
+        num_global_key_value_heads=2,
+        layer_types=layer_types,
+        sliding_window=4,
+        hidden_size_per_layer_input=0,
+        vocab_size_per_layer_input=64,
+        final_logit_softcapping=None,
+        tie_word_embeddings=False,
+        attention_k_eq_v=False,
+        num_kv_shared_layers=0,
+    )
+    cfg._attn_implementation = "eager"
+    # transformers >= 5.5 registers head_dim/num_key_value_heads as
+    # per-layer attributes and refuses global reads; this config is
+    # homogeneous, so the exporter's global reads are exact.
+    if hasattr(cfg, "allow_global_per_layer_attribute_access"):
+        cfg.allow_global_per_layer_attribute_access = True
+    torch.manual_seed(0)
+    model = mdl_mod.Gemma4ForCausalLM(cfg).eval()
     export_gemma4.fix_zero_dim_buffers(model)
     return cfg, model
 
