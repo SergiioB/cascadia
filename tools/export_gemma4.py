@@ -1266,7 +1266,9 @@ def export_single_stage(
     with open(os.path.join(stage_dir, "stage_config.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
-    # Self-verify on CPU (fast).
+    # Self-verify on CPU (fast). A failure means the stage on disk is broken
+    # — a non-finite output is a mis-built mask — so it aborts the export
+    # instead of leaving a v1.1-stamped NaN shard behind an exit code of 0.
     if device_verify:
         try:
             _verify_stage(
@@ -1283,7 +1285,8 @@ def export_single_stage(
                 sliding_window=sliding_window,
             )
         except Exception as e:
-            log(f"  WARNING: Self-verify failed ({str(e)[:200]})")
+            log(f"  Self-verify FAILED for stage {idx} ({str(e)[:200]})")
+            raise
 
     del ov_model
     gc.collect()
@@ -1309,7 +1312,9 @@ def _verify_stage(
     exported `tril` band (whose diagonal must stay dynamic through
     torch.jit.trace -> ov.convert_model) is actually exercised — a 3-token
     prefill never reaches it. Every output must be finite: a broken band
-    masks whole rows and surfaces as NaN.
+    masks whole rows and surfaces as NaN, and the RuntimeError raised for
+    that propagates out of `export_single_stage` and fails the export —
+    a NaN stage must not stay on disk under a v1.1 stamp.
     """
     import numpy as np
     import openvino as ov
