@@ -1486,6 +1486,23 @@ def run_export(
     # exporting the pre-v1.1 unmasked behaviour.
     sliding_window = resolve_sliding_window(text_config, text_config.layer_types)
 
+    # A --stage re-export touches one stage but rewrites pipeline_config.json,
+    # so re-exporting into a tree written by another version leaves the root
+    # claiming this version while the untouched stages keep the old behaviour
+    # (v1: sliding layers with no window). A full export rewrites everything,
+    # so it may still overwrite.
+    prev_pipeline = os.path.join(output_dir, "pipeline_config.json")
+    if stage is not None and os.path.exists(prev_pipeline):
+        with open(prev_pipeline) as f:
+            prev_version = json.load(f).get("export_version")
+        if prev_version != EXPORT_VERSION:
+            raise RuntimeError(
+                f"{prev_pipeline} was written by export_version "
+                f"{prev_version!r}, but this exporter writes "
+                f"{EXPORT_VERSION!r}; re-export every stage (drop --stage) "
+                "rather than mixing versions in one tree."
+            )
+
     log(
         f"  {text_config.num_hidden_layers} layers, "
         f"hidden={text_config.hidden_size}, "

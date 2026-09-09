@@ -33,6 +33,7 @@ Three layers of coverage:
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import types
@@ -563,12 +564,45 @@ def patch_autoconfig(monkeypatch, text_config):
     """`run_export` does `from transformers import AutoConfig` at call time,
     so replacing the attribute on the module is enough."""
     transformers = pytest.importorskip("transformers")
-    full = types.SimpleNamespace(text_config=text_config)
+    full = types.SimpleNamespace(
+        text_config=text_config, to_json_file=lambda path: None
+    )
     monkeypatch.setattr(
         transformers,
         "AutoConfig",
         types.SimpleNamespace(from_pretrained=lambda *a, **k: full),
     )
+
+
+def patch_run_export(monkeypatch, text_config):
+    """Stub every heavy step past the guards -- no checkpoint, no tokenizer,
+    no stage export -- so `run_export`'s own logic is what runs. Returns the
+    list the fake `export_single_stage` records its kwargs into."""
+    transformers = pytest.importorskip("transformers")
+    patch_autoconfig(monkeypatch, text_config)
+    model = types.SimpleNamespace(eval=lambda: None, named_buffers=lambda: [])
+    monkeypatch.setattr(
+        transformers,
+        "AutoModelForCausalLM",
+        types.SimpleNamespace(from_pretrained=lambda *a, **k: model),
+    )
+    monkeypatch.setattr(
+        transformers,
+        "AutoTokenizer",
+        types.SimpleNamespace(
+            from_pretrained=lambda *a, **k: types.SimpleNamespace(
+                save_pretrained=lambda d: None
+            )
+        ),
+    )
+    calls = []
+
+    def record_stage(*args, **kwargs):
+        calls.append(kwargs)
+        return 0.0
+
+    monkeypatch.setattr(export_gemma4, "export_single_stage", record_stage)
+    return calls
 
 
 @pytest.mark.parametrize(
@@ -589,3 +623,53 @@ def test_run_export_rejects_layer_types_length_mismatch(
         export_gemma4.run_export(
             model_id="fake", output_dir=str(tmp_path / "out"), num_stages=1
         )
+
+
+def write_pipeline_config(out_dir, export_version):
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "pipeline_config.json").write_text(
+        json.dumps({"export_version": export_version})
+    )
+
+
+def test_run_export_refuses_stage_reexport_of_another_version(
+    monkeypatch, tmp_path
+):
+    """`--stage N` rewrites pipeline_config.json but only that one stage, so
+    re-exporting into a v1 tree would stamp the root v1.1 while the stages
+    nobody touched keep attending past the window."""
+    out = tmp_path / "tree"
+    write_pipeline_config(out, "gemma4_cached_v1")
+    calls = patch_run_export(monkeypatch, fake_text_config())
+    with pytest.raises(RuntimeError, match="re-export every stage"):
+        export_gemma4.run_export(
+            model_id="fake", output_dir=str(out), num_stages=2, stage=1
+        )
+    assert calls == []  # refused before any stage ran
+
+
+@pytest.mark.parametrize("existing", [None, export_gemma4.EXPORT_VERSION])
+def test_run_export_allows_stage_reexport_of_a_matching_tree(
+    existing, monkeypatch, tmp_path
+):
+    out = tmp_path / "tree"
+    out.mkdir()
+    if existing is not None:
+        write_pipeline_config(out, existing)
+    calls = patch_run_export(monkeypatch, fake_text_config())
+    export_gemma4.run_export(
+        model_id="fake", output_dir=str(out), num_stages=2, stage=1
+    )
+    assert len(calls) == 1
+
+
+def test_run_export_full_export_overwrites_an_older_tree(monkeypatch, tmp_path):
+    """Only `--stage` is refused: a full export rewrites every stage, so it
+    may replace a v1 tree, and leaves it uniformly v1.1."""
+    out = tmp_path / "tree"
+    write_pipeline_config(out, "gemma4_cached_v1")
+    calls = patch_run_export(monkeypatch, fake_text_config())
+    export_gemma4.run_export(model_id="fake", output_dir=str(out), num_stages=2)
+    assert len(calls) == 2
+    written = json.loads((out / "pipeline_config.json").read_text())
+    assert written["export_version"] == export_gemma4.EXPORT_VERSION
