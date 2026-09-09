@@ -502,7 +502,7 @@ def _tiny_gemma4():
         num_kv_shared_layers=0,
     )
     cfg._attn_implementation = "eager"
-    # transformers >= 5.5 registers head_dim/num_key_value_heads as
+    # transformers >= 5.14 registers head_dim/num_key_value_heads as
     # per-layer attributes and refuses global reads; this config is
     # homogeneous, so the exporter's global reads are exact.
     if hasattr(cfg, "allow_global_per_layer_attribute_access"):

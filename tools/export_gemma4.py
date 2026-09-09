@@ -254,12 +254,12 @@ def resolve_sliding_window(text_config, layer_types=None):
             AmbiguousGlobalPerLayerAttributeError as _PerLayerError,
         )
     except ImportError:
-        # transformers < 5.5 has no per-layer overrides; `except ()` catches
+        # transformers < 5.14 has no per-layer overrides; `except ()` catches
         # nothing, so every read error keeps its own message.
         _PerLayerError = ()
     try:
         raw = getattr(text_config, "sliding_window", None)
-    except _PerLayerError as e:  # transformers >= 5.5 per-layer overrides
+    except _PerLayerError as e:  # transformers >= 5.14 per-layer overrides
         raise ValueError(
             "text_config.sliding_window is overridden per layer "
             f"(per_layer_config); the exporter bakes one window per stage: {e}"
@@ -1434,13 +1434,12 @@ def run_export(
     `transformers` (< 5.5) still load Gemma 4 via the model repo's
     bundled Python code.
 
-    The other direction is why tools/requirements.txt caps `transformers`
-    at < 5.5: from 5.5 a heterogeneous config (31B's `head_dim=256` /
-    `global_head_dim=512`) registers those as per-layer attributes, so the
-    exporter's global `text_config.head_dim` reads raise
-    `AmbiguousGlobalPerLayerAttributeError` unless the config sets
-    `allow_global_per_layer_attribute_access` or the bundled remote code
-    is used.
+    In the other direction, from `transformers` 5.14 a heterogeneous config
+    (31B's `head_dim=256` / `global_head_dim=512`) registers those as
+    per-layer attributes, so the exporter's global `text_config.head_dim`
+    reads raise `AmbiguousGlobalPerLayerAttributeError` unless the config
+    sets `allow_global_per_layer_attribute_access` or the bundled remote
+    code is used.
     """
     import torch
     from transformers import (
