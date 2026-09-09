@@ -87,6 +87,8 @@ def expected(seq_len, full_seq_len, window):
         (1, 9, 4),  # decode step, window bites
         (1, 9, 32),  # window wider than the cache is a no-op
         (5, 12, 3),  # chunked prefill against an existing cache
+        (1, 1, 4),  # first token, empty cache: the band must not clip it
+        (1, 1, None),  # same, unwindowed
     ],
 )
 def test_mask_matches_window_rule(seq_len, full_seq_len, window):
