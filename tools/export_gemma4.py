@@ -1479,12 +1479,13 @@ def run_export(
             f"exporter knows {sorted(KNOWN_LAYER_TYPES)} (HF would fail on "
             "these too)."
         )
+    # Every stage slices layer_types by layer index, so without this a short
+    # list raised IndexError minutes into the export and a long one dropped
+    # its tail unnoticed.
     if len(text_config.layer_types) != text_config.num_hidden_layers:
         raise RuntimeError(
             f"Gemma 4 layer_types has {len(text_config.layer_types)} entries "
-            f"for {text_config.num_hidden_layers} layers; every stage slices "
-            "it by layer index, so a short list raises IndexError after the "
-            "model load and a long one drops its tail unnoticed."
+            f"for {text_config.num_hidden_layers} layers; they must match."
         )
     if getattr(text_config, "use_bidirectional_attention", None) == "all" or (
         getattr(text_config, "is_causal", True) is False
