@@ -267,9 +267,7 @@ def resolve_sliding_window(text_config, layer_types=None):
     window = None
     if raw is not None:
         try:
-            integral = not isinstance(raw, bool) and (
-                isinstance(raw, int) or int(raw) == raw
-            )
+            integral = not isinstance(raw, bool) and int(raw) == raw
         except (TypeError, ValueError, OverflowError):
             # A per-layer list, nan, inf or a non-numeric string: the bare
             # conversion error carries no hint of which config key is at
