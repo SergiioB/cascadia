@@ -2441,6 +2441,64 @@ mod tests {
             }
         }
     }
+
+    /// A pre-v1.1 tree: sliding layers, no `sliding_window`, no
+    /// `export_version`. Both optional keys must be absent-tolerant (a stale
+    /// tree has to LOAD, warned, not fail to parse) and the predicate must
+    /// catch it — this is the shape the warning exists for.
+    #[test]
+    fn pre_v1_1_stage_config_reads_as_unwindowed() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"has_embed":true,"stateful":true,
+                "layer_types":["sliding_attention","full_attention"]}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.export_version, None);
+        assert_eq!(cfg.sliding_window, None);
+        assert!(sliding_layers_unwindowed(&cfg));
+    }
+
+    /// The shape `gemma4_cached_v1.1` writes for a stage with sliding layers:
+    /// window present, so nothing to warn about.
+    #[test]
+    fn v1_1_stage_config_carries_the_window() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"has_embed":true,"stateful":true,
+                "layer_types":["sliding_attention","full_attention"],
+                "sliding_window":1024,"export_version":"gemma4_cached_v1.1"}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.sliding_window, Some(1024));
+        assert_eq!(cfg.export_version.as_deref(), Some("gemma4_cached_v1.1"));
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
+    /// An architecture with no window: the exporter writes an explicit
+    /// `"sliding_window": null`. That must deserialise (not error) and must not
+    /// be read as a stale tree — there are no sliding layers to bound.
+    #[test]
+    fn full_attention_only_stage_with_null_window_is_not_stale() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"stateful":true,
+                "layer_types":["full_attention","full_attention"],
+                "sliding_window":null,"export_version":"gemma4_cached_v1.1"}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.sliding_window, None);
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
+    /// With no `layer_types` key at all there is no evidence of a sliding
+    /// layer, so the predicate stays quiet instead of warning on every config
+    /// written before the key existed.
+    #[test]
+    fn stage_config_without_layer_types_is_not_stale() {
+        let cfg: StageConfig =
+            serde_json::from_str(r#"{"layer_start":0,"layer_end":6,"stateful":true}"#).unwrap();
+        assert!(cfg.layer_types.is_empty());
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
     #[test]
     fn prefill_spans_without_seed_match_the_old_folding() {
         // chunk = usize::MAX (default single-pass): one span over everything.
