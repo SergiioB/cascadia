@@ -4,15 +4,15 @@ Run from the repo root with:
 
     python -m pytest tools/tests/test_gemma4_sliding_window.py -v
 
-Gemma 4 alternates five `sliding_attention` layers with one `full_attention`
-layer. The exporter originally built a plain causal mask for every layer, so a
-sliding layer could attend to the entire prefix. That agrees with HF while the
-sequence is shorter than the window (1024 for 31B-it), which is why short
-prompts look correct; past the window the exported graph and HF diverge and
-output degrades. These tests pin the window semantics so that cannot regress
-silently.
+Gemma 4 interleaves runs of `sliding_attention` layers with a `full_attention`
+layer (5:1 on E4B/31B, 4:1 on E2B). The exporter originally built a plain causal
+mask for every layer, so a sliding layer could attend to the entire prefix. That
+agrees with HF while the sequence is shorter than the window (1024 for 31B-it),
+which is why short prompts look correct; past the window the exported graph and
+HF diverge and output degrades. These tests pin the window semantics so that
+cannot regress silently.
 
-Three layers of coverage:
+Five layers of coverage:
 
 * `build_attention_mask` -- the mask is the whole contract, so membership is
   checked directly rather than against a golden tensor: key `j` is visible to
@@ -26,9 +26,15 @@ Three layers of coverage:
   a forward that stops passing the window, re-inlines a plain causal mask,
   or widens the band by one fails here rather than only in a long-context
   eval.
-* `build_cached_wrapper` -- the production call site: a tiny random-init HF
-  `Gemma4ForCausalLM` is exported through the wrapper and compared with HF's
-  own logits past the window (skipped when transformers lacks Gemma 4).
+* `build_cached_wrapper` -- the production call site, where per-layer windows
+  and the per-(window, cache source) mask cache live: a fake model checked
+  against a manual loop over the layer forwards (single stage, and a KV-shared
+  second stage borrowing an external cache), plus a tiny random-init HF
+  `Gemma4ForCausalLM` compared with HF's own logits past the window (that one
+  skips when transformers lacks Gemma 4).
+* `run_export` / `_verify_stage` -- the config-first guards, the window
+  reaching every stage and the tree metadata, and the self-check that must
+  cross the window and fail the export on a non-finite output.
 """
 
 from __future__ import annotations
@@ -246,9 +252,8 @@ def test_resolve_sliding_window_allows_windowless_full_only_models():
 
 HIDDEN, NUM_HEADS, NUM_KV_HEADS, HEAD_DIM = 16, 4, 2, 8
 WINDOW = 4
-# Explicit everywhere: another test module in this suite flips torch's default
-# dtype to float16 (as export_shards.main() does), and the exporter's rotary
-# always emits float32 tables.
+# Explicit so these tests never depend on the process-wide default dtype, and
+# because the exporter's rotary always emits float32 tables.
 DTYPE = torch.float32
 
 

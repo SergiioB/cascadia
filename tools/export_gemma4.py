@@ -23,6 +23,12 @@ quirk the generic exporter in `export_shards.py` cannot:
 * Restored `final_logit_softcapping=30.0` — Gemma 3 dropped softcap;
   Gemma 4 brought back the final variant. Applied in the head stage.
 * Q/K/V `RMSNorm` per head before rotary.
+* Sliding-window attention — `sliding_attention` layers are masked to
+  `text_config.sliding_window` (512 on E2B/E4B, 1024 on 31B) while
+  `full_attention` layers see the whole prefix. The window is recorded
+  as `sliding_window` in stage/pipeline config, under
+  `export_version = gemma4_cached_v1.1`; v1 trees lack the band and let
+  sliding layers attend past their window.
 
 Variants covered:
 
@@ -233,8 +239,9 @@ def resolve_sliding_window(text_config, layer_types=None):
     Read config-first (before the multi-minute model load) so a bad config
     fails fast. `text_config.sliding_window` absent, None or 0 means no bound
     — acceptable only when `layer_types` has no `sliding_attention` layer
-    (HF itself refuses to build a sliding mask without a window), so callers
-    pass the model's `layer_types` and a windowless config with sliding
+    (HF itself refuses to build a sliding mask without a window (None); a
+    window of 0 it does not refuse, so here the exporter is stricter), so
+    callers pass the model's `layer_types` and a windowless config with sliding
     layers is rejected instead of exporting the pre-v1.1 unmasked behaviour
     under a v1.1 stamp. A negative window is a configuration error rather
     than something to pass through: `build_attention_mask` would mask every
@@ -656,7 +663,8 @@ def resolve_kv_sharing(text_config, stage_plan):
 def build_cached_wrapper(model, text_config, stage_plan, sliding_window=None):
     """Build a CachedStageWrapper for one stage. Returns (wrapper,
     head_dims_per_layer, kv_share_info). `sliding_window` is the value
-    `run_export` resolved config-first (None = no sliding layers)."""
+    `run_export` resolved config-first (None = sliding layers stay unbounded;
+    `run_export` only passes None when the model has no sliding layers)."""
     import torch
     import torch.nn as nn
 
@@ -1427,6 +1435,14 @@ def run_export(
     `AutoModelForCausalLM` with `trust_remote_code=True` so older
     `transformers` (< 5.5) still load Gemma 4 via the model repo's
     bundled Python code.
+
+    The other direction is why tools/requirements.txt caps `transformers`
+    at < 5.5: from 5.5 a heterogeneous config (31B's `head_dim=256` /
+    `global_head_dim=512`) registers those as per-layer attributes, so the
+    exporter's global `text_config.head_dim` reads raise
+    `AmbiguousGlobalPerLayerAttributeError` unless the config sets
+    `allow_global_per_layer_attribute_access` or the bundled remote code
+    is used.
     """
     import torch
     from transformers import (
@@ -1478,8 +1494,8 @@ def run_export(
     ):
         raise RuntimeError(
             "Gemma 4 bidirectional-attention (embedding) variants are not "
-            "supported: the exporter builds causal masks, and HF halves "
-            "`sliding_window` for that mode."
+            "supported: the exporter builds causal masks, and HF rewrites "
+            "`sliding_window` to `window // 2 + 1` for that mode."
         )
     # Config-first: fails before the multi-minute model load, and a config
     # with sliding layers but no window is rejected instead of silently
