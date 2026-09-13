@@ -1,0 +1,71 @@
+{
+  "mode": "apply",
+  "before_free_bytes": 798556553216,
+  "protected": [
+    "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3.6-35B-A3B-int4-ov",
+    "C:\\cascadia\\ovms-cache",
+    "C:\\cascadia\\swe",
+    "C:\\ovms2026.3",
+    "C:\\Users\\devcloud\\inkling-autolab",
+    "C:\\Users\\devcloud\\venvs",
+    "C:\\Users\\devcloud\\.ssh",
+    "C:\\Users\\devcloud\\.rustup",
+    "C:\\Users\\devcloud\\.cargo",
+    "C:\\Windows",
+    "C:\\Program Files",
+    "C:\\Program Files (x86)"
+  ],
+  "planned": [
+    {
+      "path": "C:\\Users\\devcloud\\AppData\\Local\\cascadia\\ov-cache",
+      "bytes": 23865491776,
+      "files": 896
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target",
+      "bytes": 844134273,
+      "files": 2155
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target-msvc",
+      "bytes": 1185531493,
+      "files": 2557
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target-msvc-263",
+      "bytes": 939320241,
+      "files": 2055
+    }
+  ],
+  "planned_bytes": 26834477783,
+  "metadata_archive": "C:\\Users\\devcloud\\inkling-autolab\\cleanup-20260913-secondary\\dormant-artifact-metadata.zip",
+  "removed": [
+    {
+      "path": "C:\\Users\\devcloud\\AppData\\Local\\cascadia\\ov-cache",
+      "bytes": 23865491776,
+      "files": 896,
+      "seconds": 0.17100000008940697
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target",
+      "bytes": 844134273,
+      "files": 2155,
+      "seconds": 0.48499999986961484
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target-msvc",
+      "bytes": 1185531493,
+      "files": 2557,
+      "seconds": 0.45300000021234155
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\tahoma-qwen38\\target-msvc-263",
+      "bytes": 939320241,
+      "files": 2055,
+      "seconds": 0.375
+    }
+  ],
+  "errors": [],
+  "after_free_bytes": 825192165376,
+  "reclaimed_bytes": 26635612160
+}

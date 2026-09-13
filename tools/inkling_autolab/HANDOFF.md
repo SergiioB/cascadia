@@ -1,7 +1,8 @@
 # Restart handoff — Inkling / Panther Lake Autolab
 
-Updated 2026-09-13. Completed campaign execution; no task benchmark/controller
-is left running. All results and the full-model deployment blocker are saved. The user is offline and authorized autonomous testing on
+Updated 2026-09-13 after authorized disk cleanup. A native checkpoint transfer
+and a finite baseline job waiting for it are running on PTL. No Autolab
+controller is currently running. The user authorized autonomous testing on
 **tate-07, 100.82.253.76**, plus commit/push as t8, without coauthor trailers.
 Latest target: **25 full-model decode tokens/s for large Inkling on this one PTL
 box**. It has NOT been reached. Do not equate layer/component rates with it.
@@ -34,15 +35,29 @@ Independent f64-dot oracle passed for all eight distinct experts at two inputs.
 This is exploratory, allows summation differences, is not a production GPU
 backend and omits attention, routing, full expert-population paging and churn.
 
-Full model is blocked on deployment assets/capacity. The unchanged 975B export
-is ~512 GB; tate-07 has 64 GB RAM, one fully partitioned 1.024 TB SSD with only
-~3.4 GB free, no mapped drives, and a 1 Gb/s physical Ethernet adapter. A bounded
-scan of 20,095 directories found no Inkling manifest. The controller Mac also
-has no external volume and only ~10 GiB free. Do not delete other projects,
-prune the model, offload computation to another box, or invent throughput.
-Provisioning storage/checkpoint is a prerequisite, not proof 25 tok/s becomes
-attainable. The current batch-one engine reads tens of GB per token; reaching
-25 would need a different, validated strategy such as speculation/quantization.
+The user has now explicitly authorized clearing unused disk artifacts. This
+supersedes the earlier storage blocker: cleanup reclaimed **821,909,577,728
+bytes (822 GB)**, leaving **825,192,165,376 bytes (825 GB / 768.5 GiB)** before
+copying the export. Reports `results/013_disk_cleanup*` list every removed and
+protected path. Active Qwen3.6 OVMS and cascadia node/CA remained running with
+unchanged PIDs and HTTP 200 model listing. Source trees, toolchains, unique logs
+and current Inkling artifacts remain. Small metadata/config/recipes from removed
+exports are archived in the PTL task's two `cleanup-20260913*` folders.
+
+The complete unchanged export was found at **miner:/mnt/external_ssd/inkling/out**:
+**548,985,140,942 bytes, 16,654 files**, including 66 shells, 16,514 expert bins
+(two dense), embedding/head and tokenizer assets. Source SSH alias `miner` is
+tatef@192.168.0.235:1990 with the existing Mac identity; do not copy private keys.
+No new export is needed for the current kernels. Native verified transfer is
+underway to `C:\Users\devcloud\inkling-autolab\model`. This path currently
+contains partial data; do not run the model until `model-ready.json` exists.
+
+PTL still has 64 GB RAM and one 1.024 TB SSD, with a 1 Gb/s physical Ethernet
+adapter. Disk capacity is resolved; full-model residency is not. The current
+engine reads ~36.5 GB of weights per token. 25 tok/s would require ~0.91 TB/s of
+effective weight bandwidth even before other overhead, or a substantially
+different validated strategy. Do not claim that storage or the component gain
+establishes 25 tok/s feasibility.
 
 A new `inkling_decode_bench` example is built on PTL as `bin/full-decode.exe`.
 It loads every layer/expert/edge table and measures autoregressive decode;
@@ -51,8 +66,8 @@ reference greedy IDs. Non-975B models require `--allow-fixture` and emit a
 separate fixture metric. See README full-model instructions and
 `full-model-campaign.template.yaml`. The controller's target gate requires a
 verified full model, baseline hash, expected greedy IDs, >=32 decode steps,
->=3 repetitions, and the slowest case/repetition >=25 tok/s. No full checkpoint
-was available to run that benchmark here.
+>=3 repetitions, and the slowest case/repetition >=25 tok/s. A complete
+checkpoint is now available at the source; PTL measurement awaits transfer.
 
 ## Locations and ownership
 
@@ -133,8 +148,71 @@ The rg shim hung repeatedly; it was tried first. Use git grep/git ls-files or
 bounded Python search if it still hangs. Latest permission profile has unrestricted
 filesystem/network and approval policy never; do not pass sandbox_permissions.
 
-If the full checkpoint remains unavailable, report that specific prerequisite;
-do not rerun resident sweeps indefinitely or claim the 25 tok/s objective done.
-Continue the full-model campaign autonomously when storage/checkpoint becomes
-available. Quantization/speculation/GPU integration must be checked against real
-weights and correctness before claiming full-model gains.
+Finish deployment and inspect the queued full-model baseline before resuming
+Autolab optimization. Do not rerun resident sweeps as a substitute for real-model
+measurement. Quantization/speculation/GPU integration must be checked against
+real weights and correctness before claiming full-model gains.
+
+
+## Live deployment jobs and next steps
+
+The initial Mac-relayed rclone copy was stopped. Its logs/config (no embedded
+private keys) are in `/private/tmp/inkling-*`; do not restart it concurrently.
+Current copy runs natively on PTL with eight streams. It bypasses HTTP proxies
+and SHA-256 checks every source/destination file, resumes `.inkling-partial`,
+and atomically writes `model-ready.json` only on full success. Permanent transfer
+errors cancel pending files. Client/server code is committed alongside this file.
+
+Temporary source server on miner:
+
+- Script `/tmp/inkling-direct-transfer/server.py`, PID **199701**.
+- Binds only **100.103.4.77:18867**, permits PTL source **100.82.253.76**,
+  requires an ephemeral token from `/tmp/inkling-direct-transfer/token`.
+- No public Funnel/SSH authorization/firewall settings were changed.
+- Exits after successful copy or 96 hours; removes its token on orderly exit.
+- Inspect `/tmp/inkling-direct-transfer/server.log` and `pid` if interrupted.
+- Runtime token also exists on the controller under
+  `/private/tmp/inkling-direct-transfer/token` and target `transfer-token`.
+  Never print/commit it. Delete the local token after the server/transfer ends.
+
+PTL files under `C:\Users\devcloud\inkling-autolab`:
+
+- `transfer-client.py`, `transfer.log`, `transfer-state.json`; parent cmd PID
+  **7232** launched with Win32_Process.Create and survives SSH/controller exit.
+  Python PID **7060** is recorded in transfer-state.json. Do not duplicate it.
+- `queue-full-baseline.py`, `baseline-queue.log`, `baseline-queue-state.json`.
+  Native Python PID **3856**, parent cmd **7388**, confirmed waiting.
+  This finite job waits up to 96 hours for verified copy, checks the frozen
+  full-decode SHA-256, runs the documented Paris smoke test, then records
+  3 long prompts × 64 tokens × 3 repetitions, original adaptive rows 1/1.
+  `--prepare-only` passed with prompt lengths Paris=25, water_cycle=30,
+  binary_search=32, short_story=31. Transformers 5.2 returns BatchEncoding;
+  the script explicitly extracts input_ids. PowerShell `-Out` retains JSON.
+- Full output: `large-smoke.json`, `large-smoke-text.json`,
+  `large-baseline.json`, `large-baseline-text.json`,
+  `large-cases.baseline-reference.json`. Initial baseline has no supplied
+  reference IDs and is therefore NOT correctness-verified. The queue does not
+  promote changes or claim target attainment.
+
+After baseline completion, review the generated text and raw samples, save the
+results in this worktree, and seed the next full-model Autolab campaign with
+the baseline greedy IDs and logits hash. Compare actual paged adaptive/direct
+reads and then tiles. Keep one benchmark at a time; do not launch another full
+campaign while the native baseline is running. A finite queue is not an
+autonomous research agent continuing after the session.
+
+If stopped, resume transfer with the existing live endpoint/token and the same
+client; completed files are rechecked and temporary files resume. If the server
+expired, recreate only this task's endpoint with a fresh shared ephemeral token
+and re-upload the client token. Native jobs use the existing qwen38 Python venv.
+Do not overwrite existing baseline JSON on rerun; archive/inspect the failed
+attempt first and launch a fresh named measurement.
+
+Bulk copy measured ~2.7 MB/s with eight streams (about 57 hours remaining at
+that short-window rate). Direct PTL-to-miner transport did not improve bulk
+throughput. Endpoint expiry/queue wait were extended to 96 hours. Consider a
+faster network route before paying for more export CPU.
+
+Removed the stopped rclone copy's eight abandoned `.partial` files (573,833,216
+logical bytes); active `.inkling-partial` files were retained. The additional
+audit is `results/013_abandoned_transfer_cleanup.json`.

@@ -1,0 +1,38 @@
+{
+  "removed": [
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\embed.safetensors.98c200db.partial",
+      "Length": 253067264
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\head.safetensors.e0170576.partial",
+      "Length": 218955776
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_037.bin.c2428cfc.partial",
+      "Length": 28475392
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_038.bin.9944f747.partial",
+      "Length": 28147712
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_039.bin.de5701bc.partial",
+      "Length": 12976128
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_040.bin.1a90e372.partial",
+      "Length": 22347776
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_041.bin.5d831589.partial",
+      "Length": 9240576
+    },
+    {
+      "FullName": "C:\\Users\\devcloud\\inkling-autolab\\model\\experts\\layer_06\\expert_042.bin.94b70e84.partial",
+      "Length": 622592
+    }
+  ],
+  "reason": "Abandoned chunks from the stopped Mac rclone copy; native transfer uses distinct .inkling-partial files",
+  "logical_bytes": 573833216
+}

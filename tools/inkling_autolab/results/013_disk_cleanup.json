@@ -1,0 +1,379 @@
+{
+  "mode": "apply",
+  "before_free_bytes": 3280441344,
+  "protected": [
+    "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3.6-35B-A3B-int4-ov",
+    "C:\\cascadia\\ovms-cache",
+    "C:\\cascadia\\swe",
+    "C:\\ovms2026.3",
+    "C:\\Users\\devcloud\\inkling-autolab",
+    "C:\\Users\\devcloud\\venvs",
+    "C:\\Users\\devcloud\\.ssh",
+    "C:\\Users\\devcloud\\.rustup",
+    "C:\\Users\\devcloud\\.cargo",
+    "C:\\Windows",
+    "C:\\Program Files",
+    "C:\\Program Files (x86)"
+  ],
+  "planned": [
+    {
+      "path": "C:\\cascadia\\models\\k3",
+      "bytes": 170565424221,
+      "files": 30
+    },
+    {
+      "path": "C:\\cascadia\\models\\glm5",
+      "bytes": 71442665198,
+      "files": 3101
+    },
+    {
+      "path": "C:\\cascadia\\models\\dsv4",
+      "bytes": 43952747686,
+      "files": 2840
+    },
+    {
+      "path": "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3-8B-int4-cw-ov",
+      "bytes": 4763278446,
+      "files": 39
+    },
+    {
+      "path": "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3-Coder-30B-A3B-Instruct-int4-ov",
+      "bytes": 32679503831,
+      "files": 43
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\hf-cache",
+      "bytes": 141125080613,
+      "files": 27
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\model",
+      "bytes": 16397431693,
+      "files": 12
+    },
+    {
+      "path": "C:\\ProgramData\\bench\\hf",
+      "bytes": 19655535786,
+      "files": 30
+    },
+    {
+      "path": "C:\\cascadia\\qwen38\\ovcache",
+      "bytes": 1284303432,
+      "files": 91
+    },
+    {
+      "path": "C:\\Users\\devcloud\\tate-ov-target",
+      "bytes": 1752456853,
+      "files": 5075
+    },
+    {
+      "path": "C:\\Users\\devcloud\\AppData\\Local\\pip\\Cache",
+      "bytes": 734402568,
+      "files": 652
+    },
+    {
+      "path": "C:\\msys64\\var\\cache\\pacman\\pkg",
+      "bytes": 74233538,
+      "files": 38
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwen3.8-27B-int4-ov",
+      "bytes": 15971447128,
+      "files": 55
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwen36-2stage-legacy",
+      "bytes": 20557434759,
+      "files": 11
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwen36-2stage-regress",
+      "bytes": 20557432414,
+      "files": 11
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwopus-2stage",
+      "bytes": 15864726128,
+      "files": 11
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash",
+      "bytes": 55583162823,
+      "files": 61
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-bf16-ov",
+      "bytes": 55614816353,
+      "files": 23
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-GGUF",
+      "bytes": 16810710436,
+      "files": 4
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-int4-ov",
+      "bytes": 15971762568,
+      "files": 24
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\out\\model-q4.blob",
+      "bytes": 43302724294,
+      "files": 1
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\out\\wsb-deploy.blob",
+      "bytes": 32748080440,
+      "files": 1
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\out\\model-q4-deploy.blob",
+      "bytes": 5502968044,
+      "files": 1
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\out\\model-wsb-deploy.blob",
+      "bytes": 4649282608,
+      "files": 1
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia\\target",
+      "bytes": 3435782990,
+      "files": 10402
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-oss\\target",
+      "bytes": 1244737266,
+      "files": 3289
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-qwen38\\target",
+      "bytes": 2420211810,
+      "files": 5686
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-swe\\target",
+      "bytes": 1769859167,
+      "files": 4918
+    },
+    {
+      "path": "C:\\npu4621.zip",
+      "bytes": 32076032,
+      "files": 1
+    },
+    {
+      "path": "C:\\ovms.zip",
+      "bytes": 104648881,
+      "files": 1
+    },
+    {
+      "path": "C:\\ovsdk.zip",
+      "bytes": 207892736,
+      "files": 1
+    },
+    {
+      "path": "C:\\Users\\devcloud\\inkling-autolab-source.tar.gz",
+      "bytes": 8822765,
+      "files": 1
+    }
+  ],
+  "planned_bytes": 816785643507,
+  "metadata_archive": "C:\\Users\\devcloud\\inkling-autolab\\cleanup-20260913\\dormant-artifact-metadata.zip",
+  "removed": [
+    {
+      "path": "C:\\cascadia\\models\\k3",
+      "bytes": 170565424221,
+      "files": 30,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\models\\glm5",
+      "bytes": 71442665198,
+      "files": 3101,
+      "seconds": 0.5940000000409782
+    },
+    {
+      "path": "C:\\cascadia\\models\\dsv4",
+      "bytes": 43952747686,
+      "files": 2840,
+      "seconds": 0.5469999997876585
+    },
+    {
+      "path": "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3-8B-int4-cw-ov",
+      "bytes": 4763278446,
+      "files": 39,
+      "seconds": 0.01500000013038516
+    },
+    {
+      "path": "C:\\cascadia\\models\\ovms-repo\\OpenVINO\\Qwen3-Coder-30B-A3B-Instruct-int4-ov",
+      "bytes": 32679503831,
+      "files": 43,
+      "seconds": 0.015999999828636646
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\hf-cache",
+      "bytes": 141125080613,
+      "files": 27,
+      "seconds": 0.01500000013038516
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\model",
+      "bytes": 16397431693,
+      "files": 12,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\ProgramData\\bench\\hf",
+      "bytes": 19655535786,
+      "files": 30,
+      "seconds": 0.015999999828636646
+    },
+    {
+      "path": "C:\\cascadia\\qwen38\\ovcache",
+      "bytes": 1284303432,
+      "files": 91,
+      "seconds": 0.030999999959021807
+    },
+    {
+      "path": "C:\\Users\\devcloud\\tate-ov-target",
+      "bytes": 1752456853,
+      "files": 5075,
+      "seconds": 1.0470000002533197
+    },
+    {
+      "path": "C:\\Users\\devcloud\\AppData\\Local\\pip\\Cache",
+      "bytes": 734402568,
+      "files": 652,
+      "seconds": 2.4529999997466803
+    },
+    {
+      "path": "C:\\msys64\\var\\cache\\pacman\\pkg",
+      "bytes": 74233538,
+      "files": 38,
+      "seconds": 0.015999999828636646
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwen3.8-27B-int4-ov",
+      "bytes": 15971447128,
+      "files": 55,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwen36-2stage-legacy",
+      "bytes": 20557434759,
+      "files": 11,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwen36-2stage-regress",
+      "bytes": 20557432414,
+      "files": 11,
+      "seconds": 0.7650000001303852
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\qwopus-2stage",
+      "bytes": 15864726128,
+      "files": 11,
+      "seconds": 0.06300000008195639
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash",
+      "bytes": 55583162823,
+      "files": 61,
+      "seconds": 0.04699999978765845
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-bf16-ov",
+      "bytes": 55614816353,
+      "files": 23,
+      "seconds": 0.015999999828636646
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-GGUF",
+      "bytes": 16810710436,
+      "files": 4,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\models\\qwen38\\Qwopus3.8-27B-Flash-int4-ov",
+      "bytes": 15971762568,
+      "files": 24,
+      "seconds": 0.030999999959021807
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\out\\model-q4.blob",
+      "bytes": 43302724294,
+      "files": 1,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\ws70b\\out\\wsb-deploy.blob",
+      "bytes": 32748080440,
+      "files": 1,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\out\\model-q4-deploy.blob",
+      "bytes": 5502968044,
+      "files": 1,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\cascadia\\ws028\\out\\model-wsb-deploy.blob",
+      "bytes": 4649282608,
+      "files": 1,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia\\target",
+      "bytes": 3435782990,
+      "files": 10402,
+      "seconds": 4.609000000171363
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-oss\\target",
+      "bytes": 1244737266,
+      "files": 3289,
+      "seconds": 4.563000000081956
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-qwen38\\target",
+      "bytes": 2420211810,
+      "files": 5686,
+      "seconds": 2.3590000001713634
+    },
+    {
+      "path": "C:\\Users\\devcloud\\Workspaces\\cascadia-swe\\target",
+      "bytes": 1769859167,
+      "files": 4918,
+      "seconds": 2.3279999997466803
+    },
+    {
+      "path": "C:\\npu4621.zip",
+      "bytes": 32076032,
+      "files": 1,
+      "seconds": 0.0
+    },
+    {
+      "path": "C:\\ovms.zip",
+      "bytes": 104648881,
+      "files": 1,
+      "seconds": 0.016000000294297934
+    },
+    {
+      "path": "C:\\ovsdk.zip",
+      "bytes": 207892736,
+      "files": 1,
+      "seconds": 0.030999999959021807
+    },
+    {
+      "path": "C:\\Users\\devcloud\\inkling-autolab-source.tar.gz",
+      "bytes": 8822765,
+      "files": 1,
+      "seconds": 0.015999999828636646
+    }
+  ],
+  "errors": [],
+  "after_free_bytes": 798554406912,
+  "reclaimed_bytes": 795273965568
+}

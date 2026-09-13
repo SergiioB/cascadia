@@ -268,3 +268,82 @@ mappings before decode and thereby avoid some repeated copies already. Full
 checkpoint routing, prefill and paging must be measured before projecting this
 factor onto user-visible generation. Likewise the GPU probe omits compilation
 churn across the 16,512 MoE expert instances; it is not yet a deployment strategy.
+
+
+## 13 — authorized disk cleanup and checkpoint deployment
+
+The user explicitly authorized clearing unused disk artifacts on tate-07 and
+asked for the record and hardware requirements. Inspected current processes,
+services, scheduled tasks, source trees and recursive disk usage. Preserved the
+running Qwen3.6-35B OVMS export, its active compilation cache, cascadia services,
+source trees, experiment logs, installed toolchains and all current Inkling assets.
+Archived small model metadata/config/recipes before deleting dormant model
+exports, duplicate HF snapshots, inactive compilation caches, generated Cargo
+targets and old installer archives. Both deletion reports have zero errors.
+
+Actual filesystem space reclaimed: **821,909,577,728 bytes (822 GB)**. Free space
+after cleanup: **825,192,165,376 bytes (825 GB / 768.5 GiB)**, before deployment.
+The Qwen endpoint still returned HTTP 200 and the same model, with unchanged
+OVMS/node/CA process IDs. Raw path/byte audits are in `results/013_disk_cleanup*`.
+The archived small metadata is under the task's two `cleanup-20260913*` folders
+on PTL; these are not backups of the removed weights.
+
+Located the complete unchanged export on `miner:/mnt/external_ssd/inkling/out`:
+548,985,140,942 bytes, 66 shells, 16,514 expert bins (including two dense layers),
+plus embeddings, head and tokenizer/config. No new export is needed for the
+retained CPU kernel changes. CPU execution of the full model on PTL remains
+unmeasured; the best documented complete large-model rate is **1.5 tok/s on the
+1.5 TB Mac Pro**, not the PTL component rate.
+
+Deployment hypothesis: avoid the controller Mac relay to reduce transfer time.
+The Mac-to-PTL Tailscale route used DERP with 737–875 ms latency and copied at
+about 2.8 MiB/s. PTL-to-miner used DERP at 58–69 ms. A read-only export endpoint
+bound only to miner's Tailscale IP, restricted to PTL's source IP and an ephemeral
+Bearer token, verified a real 31,850,496-byte expert against its source SHA-256 in
+11.843 s. This single-file check does not establish bulk throughput. Full copy
+started with four independent streams, then resumed with eight streams and per-file source/destination SHA-256 checks.
+Only verified complete files get final names; interrupted copies resume and a
+permanent error cancels pending files. The server stops after successful transfer
+or expires after 96 hours. No SSH private key or public Funnel was shared.
+
+The disk prerequisite is resolved. Checkpoint transfer, full autoregressive
+baseline, and correctness-checked optimization trials remain. The transfer and
+finite benchmark jobs are distinct from the session's autonomous research loop.
+
+## 14 hypothesis — first complete PTL baseline, queued behind verified transfer
+
+Before promoting another kernel or paging policy, establish the actual complete
+model behavior. A finite native PTL job will wait for the all-files SHA-256
+marker, verify the frozen executable, reproduce the documented `Paris` answer,
+and then record three long prompts at 64 tokens and three repetitions under
+the original adaptive rows=1/1 settings. It will stop on transfer failure,
+timeout, changed executable, incorrect smoke text, incomplete sample counts or
+short completion. The initial baseline has no supplied expected IDs and is
+explicitly not correctness-verified by the benchmark; review its generated text
+and use its IDs/hash to configure the next Autolab comparison. This queued job
+collects evidence only and cannot claim the 25 tok/s target or promote a change.
+
+
+Deployment checks: localhost integration passed missing/wrong authorization,
+path traversal rejection, changed-source rejection, exact Range suffix, resume,
+repair of same-size corrupt destination, zero-byte file, full marker accounting,
+and authenticated shutdown/token deletion. The source/destination 31.85 MB PTL
+expert hash check also passed. `--prepare-only` passed on PTL with documented
+25-token Paris framing and long prompt lengths 30/32/31; corrected Transformers
+5.2's default BatchEncoding return by explicitly extracting input_ids. The
+PowerShell launcher parses successfully. Native transfer and waiting baseline
+were independently observed after their initiating SSH sessions exited. No
+full-model benchmark result or promotion is implied by these deployment checks.
+
+Bulk deployment result: bypassing the Mac did NOT improve sustained transfer.
+Eight streams gained 128,974,848 logical destination bytes over 48.297 seconds,
+**2,670,453 bytes/s (~2.7 MB/s)**. At that rate the remaining checkpoint needs
+roughly 57 hours. Extended temporary server expiry and baseline transfer wait
+to 96 hours; per-file integrity and baseline gates are unchanged. The immediate
+deployment constraint is the network route, not export CPU time.
+
+The native transfer recovered from the scoped server restart and SHA-256
+verified a 270,929,340-byte full shell file. The finite baseline queue is waiting
+as PID 3856 (parent cmd 7388); transfer PID 7060 (parent 7232); temporary source
+server PID 199701. Removed eight unused rclone chunks, another 573,833,216 logical
+bytes, with a separate audit; active native partials were retained.

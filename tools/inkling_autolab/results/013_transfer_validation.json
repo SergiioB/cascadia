@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "checks": [
+    "/manifest: HTTP 403",
+    "/file/../server/token: HTTP 404",
+    "/file/changed.bin: HTTP 409",
+    "Range resume returns exact suffix and HTTP 206",
+    "Interrupted file resumes exactly",
+    "Same-size corrupted destination is replaced",
+    "Zero-byte file verifies",
+    "Ready marker covers every file and byte",
+    "Authenticated completion stops server and removes both endpoint tokens"
+  ],
+  "real_ptl_probe_bytes": 31850496,
+  "real_ptl_probe_sha256_verified": true,
+  "real_ptl_probe_elapsed_seconds": 11.842999999877065,
+  "native_queue_preparation": {
+    "status": "passed",
+    "prompt_lengths": {
+      "paris": 25,
+      "water_cycle": 30,
+      "binary_search": 32,
+      "short_story": 31
+    },
+    "powershell_launcher_parse": "passed",
+    "queue_status": "waiting_for_verified_transfer",
+    "queue_pid": 3856
+  },
+  "bulk_copy_rate": {
+    "bytes_before": 3112940614,
+    "bytes_after": 3241915462,
+    "elapsed_seconds": 48.29699999978766,
+    "bytes_per_second": 2670452.5747058215,
+    "workers": 8,
+    "interpretation": "Direct endpoint did not improve bulk throughput; approximately 57 hours remaining at this short-window rate."
+  },
+  "native_transfer_observed": {
+    "status": "copying",
+    "pid": 7060,
+    "parent_cmd_pid": 7232,
+    "workers": 8,
+    "files_verified": 1,
+    "bytes_verified": 270929340,
+    "errors": [],
+    "source_server_pid": 199701,
+    "server_expiry_hours": 96,
+    "baseline_queue_pid": 3856,
+    "baseline_parent_cmd_pid": 7388
+  }
+}

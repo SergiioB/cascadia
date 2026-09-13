@@ -139,8 +139,9 @@ accounted to prefill. Decode includes complete model calls, argmax, and correctn
 hash overhead. The primary rate is the **slowest case/repetition**, including the
 first decode run, so no hot-cache trial can hide a slow one.
 
-1. Provision the complete unchanged export locally, preserving existing projects.
-   Current physical storage is insufficient; a model path alone cannot fix this.
+1. Finish the all-files SHA-256 transfer from `miner:/mnt/external_ssd/inkling/out`.
+   The authorized cleanup reclaimed 822 GB; the complete 549 GB export now fits.
+   `model-ready.json` is written only after every file matches its source digest.
 2. Prepare `large-cases.json`: an array of `{name, prompt_ids}` for at least three
    representative long completions, tokenized with the checkpoint's tokenizer.
    Run `bin/full-decode.exe --export MODEL --cases CASES --tokens 64 --samples 3
@@ -159,8 +160,38 @@ hash, expected greedy IDs, >=32 measured decode steps per case, and >=3 repetiti
 Its selected rate must be >=25 tok/s. The synthetic layer and GPU component rates
 cannot satisfy that gate. **No such full-model measurement exists in this session.**
 
-The current limiter is deployment: the export is ~512 GB, RAM is 64 GB, and the
-only disk is almost full. Even after storage is provisioned, the present batch-one
+The complete export is 549 GB (511 GiB); RAM is 64 GB. Cleanup resolved disk
+capacity and checkpoint transfer is underway. The present batch-one
 engine streams tens of GB per token; 25 tok/s requires a substantially different
 strategy such as validated speculation/quantization. The measured component gains
 do not establish that strategy or an achievable full-model target.
+
+
+## Deployment and queued baseline (2026-09-13)
+
+The user authorized removal of unused tate-07 disk artifacts. The two
+`results/013_disk_cleanup*` reports record exactly what was removed and protected.
+822 GB was reclaimed; 825 GB was free before the new model copy. Active Qwen3.6
+OVMS, its model/cache, source trees, installed tools and unique logs were retained.
+
+`transfer-server.py` on miner exposes only the export, binds to its Tailscale IP,
+checks PTL's source IP plus an ephemeral token, and expires after 96 hours.
+`transfer-client.py --workers 8` runs natively on PTL, resumes temporary files,
+checks source/destination SHA-256 and atomically publishes the all-files marker.
+It stops pending files on permanent errors. HTTP bypasses environment proxies;
+Tailscale encrypts the transport. Token files are runtime-only, never committed.
+No SSH private key was copied and no public Funnel was configured.
+
+`queue-full-baseline.py` waits for verified deployment, checks the frozen binary,
+uses the checkpoint tokenizer/template (thinking off), verifies the documented
+Paris smoke answer, then runs 3 prompts × 64 tokens × 3 repetitions with original
+adaptive/row settings. It saves logs, raw generated IDs, decoded text and baseline
+reference cases. It cannot claim correctness verification or the 25 tok/s target.
+Review its output before configuring the next Autolab campaign. `run-full.ps1`
+now accepts `-Out` to retain the benchmark's structured report.
+
+The transfer and this finite baseline job run independently of the controller
+Mac. They do not make new research decisions after the session ends. Inspect
+`transfer-state.json`, `baseline-queue-state.json`, `transfer.log` and
+`large-baseline.log` under the PTL task root. See HANDOFF for live process IDs,
+resumption and cleanup of the temporary transfer service.

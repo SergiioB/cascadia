@@ -1,7 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$Model,
       [Parameter(Mandatory=$true)][string]$Cases,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
-      [int]$Tokens=64, [int]$Samples=3)
+      [int]$Tokens=64, [int]$Samples=3, [string]$Out='')
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
 if (!(Test-Path (Join-Path $Model 'manifest.json'))) {
@@ -16,6 +16,7 @@ $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
 $benchArgs = @('--export', "`"$Model`"", '--cases', "`"$Cases`"", '--tokens', "$Tokens", '--samples', "$Samples")
+if ($Out) { $benchArgs += @('--out', "`"$Out`"") }
 $p = Start-Process -FilePath "$root\bin\full-decode.exe" -ArgumentList $benchArgs -PassThru -NoNewWindow
 try {
     $p.PriorityClass = 'High'

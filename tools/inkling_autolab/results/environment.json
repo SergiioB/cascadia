@@ -26,5 +26,9 @@
   "ethernet_bits_per_second": 1000000000,
   "mapped_network_drives": 0,
   "compiler_metadata_correction": "Earlier 1.95 metadata did not query the explicit MSVC toolchain; superseded by rustc +stable-x86_64-pc-windows-msvc -vV. Final profile confirmation uses one binary for all arms.",
-  "free_disk_bytes_final": 3415846912
+  "free_disk_bytes_before_cleanup": 3415846912,
+  "updated_at": "2026-09-13",
+  "free_disk_bytes_after_cleanup": 825192165376,
+  "disk_cleanup_report": "013_disk_cleanup.json + 013_disk_cleanup_secondary.json",
+  "full_checkpoint_state": "source_complete_target_copying"
 }

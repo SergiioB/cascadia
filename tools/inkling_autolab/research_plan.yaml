@@ -24,9 +24,10 @@ questions:
   answer: Concurrent projections regress performance; production change removed.
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
-  status: blocked
-  reason: No full 975B checkpoint; only ~3.5 GB disk free versus 512 GB export. Full
-    decode harness prepared; 25 tok/s not measured.
+  status: active
+  reason: Disk cleanup reclaimed 822 GB. Complete 549 GB export found on miner;
+    resumable SHA-256 transfer is running. Native smoke and full baseline queued
+    behind verified transfer. PTL full-model rate and 25 tok/s remain unmeasured.
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?
