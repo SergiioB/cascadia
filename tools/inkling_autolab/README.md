@@ -15,10 +15,14 @@ routing, the full expert population, disk paging, embeddings, the head, and the
 66-layer chain. `layer_tokens_per_s` is **not model tokens/s**. It must never be
 reported as full-model throughput or multiplied into a model speed claim.
 
-Inspection on 2026-09-12/13: Core Ultra X7 358H (16 cores/16 threads), 64 GB RAM,
-Windows 11 Pro; ~3.5 GB disk free, no Inkling checkpoint in a bounded scan of 20,095 directories.
-The current 512 GB export cannot be deployed with that storage capacity.
-Full-model tokens/s remains an explicit blocked research question.
+Hardware: Core Ultra X7 358H (16 cores/16 threads), 64 GB RAM, Windows 11 Pro.
+The complete **548,985,140,942-byte export is now SHA-256 verified on PTL**;
+about 276 GB disk remains free after deployment. The full-model Paris smoke
+passed at 0.109008 tok/s over three decode steps. Longer baseline measurements
+are active; this smoke is not the >=32-step/three-repeat target measurement.
+See `HANDOFF.md` for current jobs and `EXPORT_HOST.md` for rental restoration
+and billing release readiness. The resident component scope above describes
+the earlier campaigns only.
 
 ## Setup
 

@@ -1,0 +1,41 @@
+{
+  "collected_unix": 1789333537.8271239,
+  "hostname": "129-146-170-51",
+  "platform": "Linux-6.8.0-1046-nvidia-x86_64-with-glibc2.35",
+  "python": "Python 3.12.14",
+  "gpu": [
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB",
+    "NVIDIA A100-SXM4-40GB, 580.105.08, 40960 MiB"
+  ],
+  "compute_processes": [],
+  "root": "/home/ubuntu/inkling-export",
+  "source_files": [
+    {
+      "path": "source/config.json",
+      "bytes": 2415
+    }
+  ],
+  "export_files": [],
+  "provider": "Lambda.ai",
+  "attached_persistent_filesystem": false,
+  "backup_path": "/Users/tatef/Workspaces/inkling-export-backups/20260913/inkling-export-release-20260913.tar.gz",
+  "backup_bytes": 345278,
+  "backup_sha256": "743ebc8229913500e5eda01bea4994128503e7ea2eaf819cb633b913d7b2a5f2",
+  "backup_sha256_matches_source": true,
+  "backup_contents": [
+    "repo",
+    "logs",
+    "source/config.json",
+    "release-metadata"
+  ],
+  "ptl_depends_on_rental": false,
+  "instance_terminated": false,
+  "provider_account_access_available": false,
+  "billing_stop_action": "Terminate instance 129.146.170.51 through Lambda console; guest shutdown does not stop billing."
+}

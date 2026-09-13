@@ -682,3 +682,22 @@ The longer baseline started: launcher 10976, full-decode.exe PID 7340, same
 queue 3856. Its load took 29.913 s. Sampler observed available RAM below 1 GB
 during prefill and model working-set peaks above 43 GB. Preserve existing
 services; collect longer decode samples before selecting changes.
+
+## 27 rental release readiness
+
+User identified Lambda.ai, with no attached persistent filesystem. All A100 jobs
+ended, no GPU compute processes; raw checkpoint absent and exports empty.
+Backed up deployed code, all task logs, config and package freeze to the
+controller (345,278 bytes), source/destination SHA-256 identical. Committed
+restoration recipe and exact requirements; existing-environment install dry run
+checked 56 packages and would make no changes. No fresh environment rebuild
+is claimed. PTL model and baseline are independent of the rental.
+
+Lambda documents termination as the billing stop; guest shutdown still bills
+and suspend is unsupported. No provider account access found and no termination
+performed. User can release 129.146.170.51 through the Lambda console.
+
+First long baseline sample arrived while preparing this handoff: water_cycle,
+repetition 0, prefill 100.131945 s, decode 443.772822 s / 63 steps = 0.141965
+tok/s. The other repetitions/cases remain active. No complete repeatability gate
+or baseline hash yet; do not promote this partial observation as a final record.
