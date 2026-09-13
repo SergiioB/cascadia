@@ -67,3 +67,10 @@ hours / $30–45** including the first download. These are extrapolations, not
 timed full exports. Cold I/O, shell conversion and network variance remain.
 The per-expert rate is 4.62x miner CUDA / 10.93x miner CPU across different batch
 sizes; this is not a matched full-export comparison. See results 017, 018, 021.
+
+Delivery is a separate stage. At the observed miner-to-PTL rate of 103.70 MB/s,
+copying a fresh 548.99 GB export would take about **88 minutes**. The rental's
+direct path has not been timed, so this is a PTL-link planning estimate. If
+the A100 must stay running solely to serve that copy, budget roughly **$22
+more** at $15/hour. The current model is already fully on PTL and incurs no
+such dependency. Do not keep the rental waiting for PTL inference experiments.
