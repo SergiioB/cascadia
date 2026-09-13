@@ -96,8 +96,9 @@ bulk rate was 2.67 MB/s. Source is an actual SanDisk Extreme Pro USB SSD.
 See JOURNAL hypothesis 17 and results 019 for integrity gates and measurements.
 Baseline/OVMS/node/CA remained running with unchanged PIDs.
 
-The old source server **PID 199701** and old Tailscale token/endpoint still exist
-as fallback; retire just that task endpoint after the new path is stable.
+The retired source Tailscale server **PID 199701** was stopped after the direct
+path was stable, with an exact /proc command identity check. Its old token files
+remain historical task state; the endpoint is no longer serving.
 Old copy logs/state on PTL are `transfer-derp.log`, `transfer-state-derp.json`,
 `transfer-jump8.log`, `transfer-state-jump8.json`, `transfer-jump32.log`, and
 `transfer-state-jump32.json`. Do not restart any archived copy concurrently.
@@ -132,6 +133,24 @@ Routing diagnostics are now prepared for the next real-model experiment:
   same transfer PID 4740 and waiting queue 3856. Existing OVMS PID 6728 has
   a ~20,023,873,536-byte working set; account for it in cache budgets and do
   not stop it. Analyzer budgets include 8/12 GiB for constrained memory.
+
+## Additional active diagnostics and latest rejected experiment
+
+Native host sampler **PID 2208**, parent cmd **8336**, runs `sample-host.py`
+from `host-sampler.cmd`, writes `host-resources.jsonl` and `host-sampler.log`.
+It samples every 10 s, identifies full binaries by task bin directory, never
+stops any process, and exits on terminal baseline state/no full process or 96 h.
+Working-set/commit/page-fault/CPU counters are per process; physical disk counts
+are machine-wide. Initial available memory ~39.6 GB, no full model yet.
+Keep sampling overhead included when interpreting baseline timings. q13 active.
+
+Experiment 023 rejected batched/parallel Windows prefetch. Eight real experts,
+six rotating disjoint cohorts: no prefetch 65.021 ms, existing serial calls
+66.508 ms, parallel 96.951 ms, one range batch 86.745 ms (page-in plus native
+copy). About 254 MB disk reads per 255 MB cohort, all copy hashes exact. No
+cache flush; concurrent transfer is a confounder. No production change made.
+`results/023_windows_prefetch_sets.json`, native `prefetch-set-probe.log/json`.
+Probe exited successfully; q14 answered. The full baseline is still queued.
 
 ## Current outcome and blocker
 

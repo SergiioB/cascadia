@@ -573,3 +573,53 @@ passed in 39.34 s. Remote profile selects eight processes/one worker; default
 CPU behavior remains one process. All GPU jobs ended and eight GPUs were idle.
 Keep the overall local-source export budget at 15–30 minutes until cold I/O
 and a real full export are measured; download remains the expensive first use.
+
+## 22 hypothesis — full-model paging may dominate the resident kernel gains
+
+PTL has 64 GB RAM, while fixed export tables occupy about 23 GB and the existing
+OVMS service has a 20 GB working set. The routed expert population is 522 GB.
+Observe the queued full baseline from a separate low-frequency sampler to
+measure available RAM, process CPU/working set/commit/page-fault counters and
+physical-disk I/O. Scope process counters to binaries in this task's bin folder,
+retain the protected service, and label machine-wide disk activity as such.
+This diagnostic may distinguish CPU work from paging without changing model
+math or restarting the frozen baseline queue. Wait for actual decode evidence
+before selecting the next cache/I/O experiment.
+
+## 23 hypothesis — one Windows prefetch call per selected expert set
+
+Code review found that Inkling calls PrefetchVirtualMemory separately for every
+selected expert, before the parallel buffered-read path. Microsoft documents
+that the API accepts discontiguous ranges and can issue concurrent I/O across
+them; it does not promise those pages join the process working set:
+https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-prefetchvirtualmemory
+
+Hypothesis: a single call with eight ranges reduces I/O latency relative to
+eight serial calls. Compare no prefetch, serial, parallel calls and one range
+batch on disjoint existing expert files, in rotating order. Measure call time,
+subsequent page-touch time and machine disk-read deltas. Do not flush shared
+caches, modify checkpoint bytes or label naturally mixed-cache samples as cold.
+Stop this component probe if full-model deployment becomes ready, so it cannot
+overlap the queued baseline. Only implement a production change if measured.
+
+Hypothesis refuted on this device: median page-in plus native-copy time for
+eight 31.85 MB experts was **65.021 ms no prefetch, 66.508 ms serial calls,
+96.951 ms parallel calls, 86.745 ms one multi-range call** (six rotating
+cohorts each). Every native copy SHA matches its mapping. Physical disk-read
+counters show about 254 MB per 255 MB cohort, so the tests observed substantial
+real I/O despite not flushing shared caches. Concurrent checkpoint transfer
+continues and is a stated confounder. Serial prefetch is already effective;
+parallel/batched variants lose, so make no production prefetch change. No
+prefetch is only a 2.3% component difference and needs a full-model test before
+promotion. Prefetch calls took nontrivial time, so existing comments should
+not be read as a guarantee that a hint returns immediately.
+
+Host sampler validation passed with installed psutil 7.2.2. Native sampler
+PID 2208, parent cmd 8336, records host-resources.jsonl every 10 seconds under
+a task lock. It exits when the baseline queue is terminal and no task full
+binary remains, or after 96 hours. Initial available RAM was ~39.6 GB; no
+full-model process yet. It records only task-owned full binaries' process
+counters and labels disk counters as machine-wide.
+
+Retired unused Tailscale source server PID 199701 after checking its exact
+/proc command. The current jump-path source server/client/tunnels are unchanged.

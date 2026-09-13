@@ -83,3 +83,17 @@ questions:
     staged resume, truncated-output repair and worker-failure gates pass; all
     48 exporter tests pass. Default remote profile now uses eight processes and
     one worker each. Full export and cold-source I/O remain unmeasured.
+- id: q13
+  question: Does the full-model PTL baseline spend most time on compute or paging?
+  status: active
+  priority: 6
+  reason: Sample process CPU, memory and page faults plus machine-wide disk activity
+    during the queued smoke and baseline; preserve existing services and model math.
+- id: q14
+  question: Does batching Windows prefetch ranges improve expert page-in latency?
+  status: answered
+  priority: 7
+  answer: Refuted. Serial prefetch+copy is 66.51 ms for eight real experts,
+    versus 86.75 ms batched and 96.95 ms parallel. No-prefetch 65.02 ms differs
+    only 2.3%; keep production unchanged pending actual full-model evidence.
+    About 254 MB physical reads per 255 MB cohort; concurrent transfer noted.
