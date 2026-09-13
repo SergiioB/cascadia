@@ -1,0 +1,81 @@
+{
+  "repo": "thinkingmachines/Inkling",
+  "revision": "828496eeae4c243ff1a22f7f28ff83694f2f7bc9",
+  "layer": 2,
+  "expert": 0,
+  "source_dtype": "BF16",
+  "source_bytes": 113246208,
+  "scope": "one_original_real_expert_quantization_including_host_device_copies",
+  "matches_current_frozen_export": true,
+  "output_bytes": 31850496,
+  "samples": [
+    {
+      "device": "cpu",
+      "repetition": 0,
+      "seconds": 0.2720292769372463,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cuda",
+      "repetition": 0,
+      "seconds": 0.07008950994350016,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cuda",
+      "repetition": 1,
+      "seconds": 0.06388385384343565,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cpu",
+      "repetition": 1,
+      "seconds": 0.2714839589316398,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cpu",
+      "repetition": 2,
+      "seconds": 0.2695132791996002,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cuda",
+      "repetition": 2,
+      "seconds": 0.06375865917652845,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cuda",
+      "repetition": 3,
+      "seconds": 0.06280642398633063,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cpu",
+      "repetition": 3,
+      "seconds": 0.27041420596651733,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cpu",
+      "repetition": 4,
+      "seconds": 0.2581227160990238,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    },
+    {
+      "device": "cuda",
+      "repetition": 4,
+      "seconds": 0.06925432896241546,
+      "sha256": "98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da"
+    }
+  ],
+  "torch": "2.14.0+cu130",
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "cpu_threads": 6,
+  "median_seconds": {
+    "cpu": 0.27041420596651733,
+    "cuda": 0.06388385384343565
+  },
+  "speedup": 4.232903772982124
+}

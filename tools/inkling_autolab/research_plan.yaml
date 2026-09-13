@@ -42,3 +42,12 @@ questions:
   answer: Working-set sample stays 0/64 after buffered reads/prefetch, becomes 64/64
     after mapped page walk. Direct-read resident profile avoids repeated copies; cold
     paging policy remains unvalidated.
+- id: q8
+  question: Can optional NVIDIA CUDA quantization accelerate portable Inkling exports?
+  status: answered
+  priority: 8
+  answer: RTX 4060 Ti 8 GB passes all 43 exporter tests and reproduces an original
+    expert bin byte for byte. Real expert quantization including copies improves
+    4.23x; eight-expert warm-source conversion including fsynced writes improves
+    2.37x with CPU eight workers versus CUDA four workers. Full 975B export time
+    remains unmeasured. Keep CPU default; use CUDA 64 MiB chunks when requested.

@@ -18,6 +18,9 @@ Modes:
                                   model.safetensors.index.json, so ONE pass over a shard consumes it no
                                   matter which other shards have arrived
       [--workers N]               conversion threads (default min(8, cpus))
+      [--device cpu|cuda:N]        int4 quantization device (default cpu); shells remain on CPU
+      [--cuda-chunk-mib N]         f32-equivalent input MiB per GPU chunk (default 64)
+      [--verify-cuda]             compare every CUDA-packed matrix to the CPU bytes (qualification)
   --layers-done-check --out OUT [--model DIR]
                                   assert embed, head and every layer are complete; print the manifest;
                                   exit 1 (listing what is missing) otherwise
@@ -123,13 +126,24 @@ def pack_int4(w):
     return packed.numpy().tobytes(), bf.numpy().tobytes()
 
 
-def pack_sections(*ws):
+def pack_sections(*ws, packer=pack_int4):
     """int4 sections (packed nibbles then bf16 scales, per matrix), concatenated in order."""
     chunks = []
     for w in ws:
-        p, s = pack_int4(w)
+        p, s = packer(w)
         chunks += [p, s]
     return chunks
+
+
+def make_packer(device="cpu", cuda_chunk_mib=64, verify_cuda=False):
+    """Keep CUDA imports/context creation out of the default CPU/config-check path."""
+    if device == "cpu":
+        if verify_cuda:
+            raise ValueError("--verify-cuda requires --device cuda or cuda:N")
+        return pack_int4
+    from inkling_cuda import CudaInt4Packer
+
+    return CudaInt4Packer(device, chunk_mib=cuda_chunk_mib, verify=verify_cuda)
 
 
 def _section_bytes(o: int, i: int) -> int:
@@ -678,11 +692,12 @@ def _shape_check(name, got, want):
 
 class Exporter:
     def __init__(self, src, man: dict, out: Path, *, layers=None, shards_only=False, skip_missing=False,
-                 delete_consumed=False, workers=4):
+                 delete_consumed=False, workers=4, packer=pack_int4):
         self.src, self.man, self.out = src, man, Path(out)
         self.layers = layers
         self.shards_only, self.skip_missing, self.delete_consumed = shards_only, skip_missing, delete_consumed
         self.workers = max(1, workers)
+        self.packer = packer
         self.units, self.per_layer, self.by_tensor = build_plan(man, self.out)
         self._udone: dict[int, bool] = {}
         self._pdone: dict[int, bool] = {}
@@ -750,10 +765,13 @@ class Exporter:
             _shape_check(p.source, self.src.shape(p.source), p.parent_shape)  # header read only
             w = self.src.get_row(p.source, p.row)
         _shape_check(p.source if p.row is None else f"{p.source}[{p.row}]", w.shape, p.shape)
-        w = w.to(torch.float32)
+        # CUDA receives the original bf16 source and promotes one bounded chunk at a time.
+        if self.packer is pack_int4:
+            w = w.to(torch.float32)
         t1 = time.perf_counter()
         # transformers Interleave(dim=1): gate = rows 0::2, up = rows 1::2
-        chunks = pack_sections(w[0::2], w[1::2]) if p.kind == "gateup" else pack_sections(w)
+        chunks = (pack_sections(w[0::2], w[1::2], packer=self.packer) if p.kind == "gateup"
+                  else pack_sections(w, packer=self.packer))
         t2 = time.perf_counter()
         n = sum(len(c) for c in chunks)
         if n != p.size:
@@ -977,17 +995,19 @@ def _set_threads(workers: int) -> None:
 
 
 def export_real(model_dir: Path, out: Path, *, layers=None, shards_only=False, skip_missing=False,
-                delete_consumed=False, workers=4, strict=False) -> dict:
+                delete_consumed=False, workers=4, strict=False, device="cpu", cuda_chunk_mib=64,
+                verify_cuda=False) -> dict:
     model_dir, out = Path(model_dir), Path(out)
     man = load_and_validate_config(model_dir / "config.json", strict=strict)
+    _set_threads(workers)
+    packer = make_packer(device, cuda_chunk_mib, verify_cuda)
     out.mkdir(parents=True, exist_ok=True)
     src_cfg = out / "source_config.json"
     if not src_cfg.exists():
         shutil.copy(model_dir / "config.json", src_cfg)
-    _set_threads(workers)
     src = ShardSource(model_dir)
     ex = Exporter(src, man, out, layers=layers, shards_only=shards_only, skip_missing=skip_missing,
-                  delete_consumed=delete_consumed, workers=workers)
+                  delete_consumed=delete_consumed, workers=workers, packer=packer)
     summary = ex.run()
     if summary["complete"] and not shards_only:
         for fn in SIDECARS:
@@ -1014,7 +1034,8 @@ def is_tiny_export_dir(out: Path) -> bool:
     return (out / "source_config.json").is_file() and isinstance(man, dict) and man.get("arch") == "inkling"
 
 
-def export_tiny(out: Path, workers: int = 2, force: bool = False) -> dict:
+def export_tiny(out: Path, workers: int = 2, force: bool = False, *, device="cpu", cuda_chunk_mib=64,
+                verify_cuda=False) -> dict:
     """Deterministic tiny model (PORT_SPEC §4) through the real export path + reference.json.
     `out` is REPLACED (a fixture generator never resumes onto stale weights), but only when it is
     absent, empty or a previous export of ours (`is_tiny_export_dir`); anything else needs `force`."""
@@ -1025,6 +1046,7 @@ def export_tiny(out: Path, workers: int = 2, force: bool = False) -> dict:
     if not force and not is_tiny_export_dir(out):
         raise SystemExit(f"[tiny] refusing to replace {out}: not empty and not a previous inkling export "
                          "(no source_config.json + manifest.json with arch 'inkling'). Pass --force to wipe it.")
+    packer = make_packer(device, cuda_chunk_mib, verify_cuda)
     man = load_and_validate_config(TINY_CONFIG)
     model = build_tiny_model(man)
     ckpt = hf_state_to_checkpoint(model.state_dict())
@@ -1035,7 +1057,7 @@ def export_tiny(out: Path, workers: int = 2, force: bool = False) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     (out / "source_config.json").write_text(json.dumps(TINY_CONFIG, indent=2))
     _set_threads(workers)
-    summary = Exporter(DictSource(ckpt), man, out, workers=workers).run()
+    summary = Exporter(DictSource(ckpt), man, out, workers=workers, packer=packer).run()
     if not summary["complete"]:
         raise SystemExit("[tiny] export incomplete")
     # reference.json from HF on the DEQUANTIZED weights (what the Rust loader will see); the prompt
@@ -1102,6 +1124,11 @@ def main():
     ap.add_argument("--delete-consumed-shards", action="store_true",
                     help="delete a source shard once every tensor it holds is converted and fsynced")
     ap.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
+    ap.add_argument("--device", default="cpu", help="int4 quantization: cpu (default), cuda or cuda:N")
+    ap.add_argument("--cuda-chunk-mib", type=int, default=64,
+                    help="f32-equivalent input MiB per CUDA chunk; intermediates use additional VRAM")
+    ap.add_argument("--verify-cuda", action="store_true",
+                    help="qualification mode: compare every CUDA-packed matrix with CPU bytes")
     ap.add_argument("--layers-done-check", action="store_true",
                     help="assert the export at --out is complete and print the manifest (exit 1 otherwise)")
     args = ap.parse_args()
@@ -1117,12 +1144,14 @@ def main():
             ap.error("--layers-done-check needs --out")
         sys.exit(0 if layers_done_check(args.out, args.model) else 1)
     if args.tiny:
-        export_tiny(args.tiny, workers=args.workers, force=args.force)
+        export_tiny(args.tiny, workers=args.workers, force=args.force, device=args.device,
+                    cuda_chunk_mib=args.cuda_chunk_mib, verify_cuda=args.verify_cuda)
         return
     if args.model and args.out:
         export_real(args.model, args.out, layers=args.layers, shards_only=args.shards_only,
                     skip_missing=args.skip_missing_shards, delete_consumed=args.delete_consumed_shards,
-                    workers=args.workers, strict=args.strict)
+                    workers=args.workers, strict=args.strict, device=args.device,
+                    cuda_chunk_mib=args.cuda_chunk_mib, verify_cuda=args.verify_cuda)
         return
     ap.error("one of --validate, --tiny, --model/--out, or --layers-done-check is required")
 

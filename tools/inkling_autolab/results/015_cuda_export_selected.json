@@ -1,0 +1,231 @@
+{
+  "scope": "warm_source_expert_subset_conversion_with_fsync",
+  "full_model_export": false,
+  "torch": "2.14.0+cu130",
+  "cuda_runtime": "13.0",
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "cpu_threads": 48,
+  "cpu_workers": 8,
+  "cuda_workers": 4,
+  "cuda_chunk_mib": 64,
+  "hidden": 6144,
+  "intermediate": 3072,
+  "experts": 8,
+  "samples": [
+    {
+      "device": "cpu",
+      "repetition": 0,
+      "seconds": 1.709397624945268,
+      "workers": 8,
+      "torch_threads_per_worker": 6,
+      "experts_per_second": 4.6800111824515644,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.6759459017775953,
+        "quant": 10.764479117235169,
+        "write": 1.1031560699921101,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 0,
+      "seconds": 0.6368252839893103,
+      "workers": 4,
+      "torch_threads_per_worker": 12,
+      "experts_per_second": 12.562315286674906,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 205521408,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.04305094690062106,
+        "quant": 1.6947431741282344,
+        "write": 0.487086053006351,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 1,
+      "seconds": 0.6201993748545647,
+      "workers": 4,
+      "torch_threads_per_worker": 12,
+      "experts_per_second": 12.899077819734956,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 205521408,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.029890321427956223,
+        "quant": 1.7234915031585842,
+        "write": 0.45532097131945193,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 1,
+      "seconds": 1.532812908058986,
+      "workers": 8,
+      "torch_threads_per_worker": 6,
+      "experts_per_second": 5.219162728822833,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.7000238967593759,
+        "quant": 9.436148956883699,
+        "write": 1.0042123349849135,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 2,
+      "seconds": 1.483069865964353,
+      "workers": 8,
+      "torch_threads_per_worker": 6,
+      "experts_per_second": 5.394216539352359,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.7707050528842956,
+        "quant": 8.924919330514967,
+        "write": 1.2291872617788613,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 2,
+      "seconds": 0.6101569849997759,
+      "workers": 4,
+      "torch_threads_per_worker": 12,
+      "experts_per_second": 13.11137985251933,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 205521408,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.01257010200060904,
+        "quant": 1.6764786671847105,
+        "write": 0.4362349023576826,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 3,
+      "seconds": 0.6269246761221439,
+      "workers": 4,
+      "torch_threads_per_worker": 12,
+      "experts_per_second": 12.760703645427029,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 205521408,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.03336510853841901,
+        "quant": 1.7377354819327593,
+        "write": 0.5234838214237243,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 3,
+      "seconds": 1.4704826220404357,
+      "workers": 8,
+      "torch_threads_per_worker": 6,
+      "experts_per_second": 5.440390712607833,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.7040642648935318,
+        "quant": 8.8167319286149,
+        "write": 1.23534195125103,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 4,
+      "seconds": 1.4503120069857687,
+      "workers": 8,
+      "torch_threads_per_worker": 6,
+      "experts_per_second": 5.516054449984638,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.7416000822558999,
+        "quant": 8.718217096757144,
+        "write": 1.0424317782744765,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 4,
+      "seconds": 0.6280864060390741,
+      "workers": 4,
+      "torch_threads_per_worker": 12,
+      "experts_per_second": 12.737101015210174,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 205521408,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.02362929657101631,
+        "quant": 1.6558389791753143,
+        "write": 0.6035745996050537,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    }
+  ],
+  "median_seconds": {
+    "cpu": 1.483069865964353,
+    "cuda": 0.6269246761221439
+  },
+  "speedup": 2.3656268806292866,
+  "output_sha256": {
+    "expert_000.bin": "962adb3ffbcfabac1a46d534fd12477528acb88722c1f1774bb5c1fc5b634286",
+    "expert_001.bin": "d043318aef59c96fac1e6d8d3600f4c17dc97ecc941ad59c4a33cf5ce9606d20",
+    "expert_002.bin": "933f965ced0f7438a531ccc1c81c73d6b48265ff583c5f1be04c626470f70294",
+    "expert_003.bin": "e19e4574414643e0d668c9bd04e4917ca893080d83f9dc4c6e8191ae75bf4c0b",
+    "expert_004.bin": "51a253d581da9622e25e833934e8544af4d85301cafe5a08eb3fdddb6ffc3f9e",
+    "expert_005.bin": "2eabd8b31274016011bcf984001477882d8fbb1359fa4e7f16451f974a7967f0",
+    "expert_006.bin": "4577fab7d4fef8606aab88818c968825b901b74d625bcb45558c159c531bc986",
+    "expert_007.bin": "a51542dbaba9a16ea3d14b288ee0570397866707f67bc4c8f866593f16e1f087"
+  }
+}

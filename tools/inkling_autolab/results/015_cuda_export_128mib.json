@@ -1,0 +1,139 @@
+{
+  "scope": "warm_source_expert_subset_conversion_with_fsync",
+  "full_model_export": false,
+  "torch": "2.14.0+cu130",
+  "cuda_runtime": "13.0",
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "cpu_threads": 48,
+  "workers": 8,
+  "torch_threads_per_worker": 6,
+  "cuda_chunk_mib": 128,
+  "hidden": 6144,
+  "intermediate": 3072,
+  "experts": 8,
+  "samples": [
+    {
+      "device": "cpu",
+      "repetition": 0,
+      "seconds": 1.6397314509376884,
+      "experts_per_second": 4.878847689007344,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.8611486561130732,
+        "quant": 9.726005130680278,
+        "write": 1.2619024000596255,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 0,
+      "seconds": 0.8654132310766727,
+      "experts_per_second": 9.244138768305042,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 231211520,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.06497671524994075,
+        "quant": 5.286331694805995,
+        "write": 0.8601912155281752,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 1,
+      "seconds": 0.8004129601176828,
+      "experts_per_second": 9.994840661780113,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 231211520,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.03819132619537413,
+        "quant": 4.706358893075958,
+        "write": 0.5490025451872498,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 1,
+      "seconds": 1.4875025220680982,
+      "experts_per_second": 5.378142141821362,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.708341633901,
+        "quant": 9.225339066935703,
+        "write": 0.9974741251207888,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cpu",
+      "repetition": 2,
+      "seconds": 1.4450778898317367,
+      "experts_per_second": 5.536033771114933,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 512,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.7744892407208681,
+        "quant": 8.857253073714674,
+        "write": 0.7518034062813967,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    },
+    {
+      "device": "cuda",
+      "repetition": 2,
+      "seconds": 0.8487955920863897,
+      "experts_per_second": 9.425119633733638,
+      "source_bytes": 905969664,
+      "output_bytes": 254803968,
+      "cuda_peak_allocated_bytes": 231211520,
+      "worker_times_sum": {
+        "direct": 8.0,
+        "read": 0.052686581620946527,
+        "quant": 4.8698998626787215,
+        "write": 0.6381586641073227,
+        "assemble": 0.0,
+        "bytes": 254803968.0
+      },
+      "sha256_verified": true
+    }
+  ],
+  "median_seconds": {
+    "cpu": 1.4875025220680982,
+    "cuda": 0.8487955920863897
+  },
+  "speedup": 1.752486153246542,
+  "output_sha256": {
+    "expert_000.bin": "962adb3ffbcfabac1a46d534fd12477528acb88722c1f1774bb5c1fc5b634286",
+    "expert_001.bin": "d043318aef59c96fac1e6d8d3600f4c17dc97ecc941ad59c4a33cf5ce9606d20",
+    "expert_002.bin": "933f965ced0f7438a531ccc1c81c73d6b48265ff583c5f1be04c626470f70294",
+    "expert_003.bin": "e19e4574414643e0d668c9bd04e4917ca893080d83f9dc4c6e8191ae75bf4c0b",
+    "expert_004.bin": "51a253d581da9622e25e833934e8544af4d85301cafe5a08eb3fdddb6ffc3f9e",
+    "expert_005.bin": "2eabd8b31274016011bcf984001477882d8fbb1359fa4e7f16451f974a7967f0",
+    "expert_006.bin": "4577fab7d4fef8606aab88818c968825b901b74d625bcb45558c159c531bc986",
+    "expert_007.bin": "a51542dbaba9a16ea3d14b288ee0570397866707f67bc4c8f866593f16e1f087"
+  }
+}

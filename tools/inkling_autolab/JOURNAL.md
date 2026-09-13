@@ -347,3 +347,65 @@ verified a 270,929,340-byte full shell file. The finite baseline queue is waitin
 as PID 3856 (parent cmd 7388); transfer PID 7060 (parent 7232); temporary source
 server PID 199701. Removed eight unused rclone chunks, another 573,833,216 logical
 bytes, with a separate audit; active native partials were retained.
+
+
+## 15 hypothesis — optional CUDA acceleration for export quantization
+
+The user requested CUDA export acceleration. Current export is 548,985,140,942
+bytes (549 GB / 511.3 GiB). The CPU packer expands bf16 matrices to f32 and
+materializes several quantization intermediates per expert; moving group-32
+quantization and nibble packing to CUDA could reduce conversion time while
+leaving source streaming, staging, atomic writes and the PTL layout unchanged.
+Implement an explicit opt-in device and bounded GPU working set, retain CPU
+defaults, and require byte-level parity on boundary inputs and complete tiny
+exports before measuring speed, including transfers. An idle RTX 4060 Ti 8 GB
+on miner is available for validation; no rental is needed for this phase.
+Record component and conversion/write timings separately; do not extrapolate a
+quantization speedup into a measured whole-975B export improvement.
+
+CUDA parity diagnosis: the first eager implementation failed before writing
+exports. PyTorch's CUDA division by a Python scalar uses reciprocal multiply,
+whereas CPU f32 division uses true division. On bf16 random inputs this changed
+13 quantized values in the startup probe. Replaced the divisor 7.0 with a scalar
+tensor on the selected CUDA device to retain true division. Reference source:
+https://github.com/pytorch/pytorch/blob/main/aten/src/ATen/native/cuda/BinaryDivTrueKernel.cu
+All 42 CPU/CUDA exporter tests then passed, including float32/bf16/float64,
+strided/chunked inputs, half-integer and scale rounding, concurrent workers,
+complete tiny model/HF token parity and all streaming/deletion/resume paths.
+
+Initial timed conversion: eight distinct synthetic production-sized experts
+(6144 hidden, 3072 intermediate), source safetensors in the warm file cache,
+three repetitions in alternating CPU/CUDA order, eight export workers. Includes
+source slice reads, CPU/GPU copies, quantization, byte serialization and atomic
+fsynced output writes. CPU median 1.584464 s, CUDA 0.738039 s: **2.147x**. Every
+output SHA-256 matches CPU; peak CUDA allocation about 206 MB. This is a subset
+conversion measurement, not a measured full-975B export or inference speedup.
+
+Follow-up worker/chunk experiments retained 64 MiB chunks and four CUDA I/O
+workers; 128 MiB regressed. Final comparison uses the faster tested CPU pool
+(eight workers) against CUDA four workers, five repetitions with alternating
+order: CPU median **1.483070 s**, CUDA **0.626925 s**, **2.366x**. All 80 output
+files across ten attempts match their CPU SHA-256. Peak PyTorch allocation is
+205,521,408 bytes; CUDA context and allocator reservations are additional.
+Results include the initial, four-worker, rejected 128 MiB and selected trials.
+
+Real-weight qualification fetched only layer 2 expert 0's original bf16 tensors
+(113,246,208 bytes) using HTTP Range at the source revision
+`828496eeae4c243ff1a22f7f28ff83694f2f7bc9`. Both CPU and CUDA reproduce the frozen
+31,850,496-byte `expert_000.bin` exactly: SHA-256
+`98792b4c2db0369cab8da5d8f12d8acf794e8b1b248b40c3dcb368b535bec8da`.
+Five alternating repetitions, including transfers and byte serialization but
+excluding file reads/writes: CPU median **0.270414 s**, CUDA **0.063884 s**,
+**4.233x**. This is one real expert, not a whole export timing.
+
+Final exporter validation: **43 passed in 17.43 s** on RTX 4060 Ti 8 GB,
+PyTorch 2.14.0+cu130, Transformers 5.16.1. Added a failure-before-output test for
+unavailable CUDA. The GPU returned to idle (32 MiB, 0% utilization). No rented
+hardware was provisioned, no complete checkpoint was re-exported, and the
+original CPU environment/export are unchanged. The new isolated miner venv
+and real source sample remain available for subsequent exporter work.
+
+PTL deployment remains independent: transfer PID 7060 has SHA-256 verified
+19 files / 5,147,657,460 bytes with no errors; finite baseline PID 3856 is still
+waiting. Existing OVMS/node/CA PIDs are unchanged. CUDA export acceleration
+does not change the recorded full-model inference rate or establish 25 tok/s.

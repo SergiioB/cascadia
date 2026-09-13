@@ -427,7 +427,9 @@ def _write_sharded_checkpoint(model_dir: Path, ckpt: dict, layout: str = "by_lay
     return names
 
 
-def test_streaming_export_over_sharded_checkpoint(tmp_path, tiny_export):
+@pytest.mark.parametrize("device", ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required"))])
+def test_streaming_export_over_sharded_checkpoint(tmp_path, tiny_export, device):
     tiny_out, _ = tiny_export
     man = export_inkling.load_and_validate_config(TINY_CONFIG)
     ckpt = hf_state_to_checkpoint(build_tiny_model(man).state_dict())
@@ -439,11 +441,11 @@ def test_streaming_export_over_sharded_checkpoint(tmp_path, tiny_export):
     (model_dir / names[2]).rename(parked)
 
     with pytest.raises(SystemExit, match="not on disk"):
-        export_inkling.export_real(model_dir, out, workers=2)  # without --skip-missing-shards: loud
+        export_inkling.export_real(model_dir, out, workers=2, device=device, verify_cuda=device != "cpu")  # without --skip-missing-shards: loud
     # ... but embed, head and layers 0-2 were whole and got written directly before it died on layer 3
     assert (out / "embed.safetensors").is_file() and (out / "shells" / "layer_02.safetensors").is_file()
     assert (out / ".layer_02.done").exists() and not (out / ".staging").exists()
-    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert not s1["complete"] and s1["layers_done"] == 3 and s1["embed_done"] and s1["head_done"]
     assert s1["pending_shards"] == [names[2]] and s1["staged_parts"] == 0
     # layer 3 (17 shell + 10 x 2 bin parts) waits; nothing of it can be staged, so no .staging dir
@@ -456,7 +458,7 @@ def test_streaming_export_over_sharded_checkpoint(tmp_path, tiny_export):
     assert export_inkling.layers_done_check(out, model_dir) is False
 
     parked.rename(model_dir / names[2])
-    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s2["complete"] and s2["layers_done"] == 4 and s2["pending_shards"] == []
     assert s2["shards_deleted"] == [names[2]] and s2["shards_consumed"] == 3
     assert s2["counts"]["skipped"] == 2 + (1 + 1) + 2 * (1 + 10)  # embed, head, layer 0, layers 1-2
@@ -497,7 +499,9 @@ def _assert_final(u):
     assert not any(p.path.exists() for p in u.parts), u.output
 
 
-def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
+@pytest.mark.parametrize("device", ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required"))])
+def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export, device):
     """The real index scatters a layer's tensors over the whole shard range: a shard must become
     consumable after ONE pass regardless of what else has downloaded (per-tensor staging), while a
     unit whose sources are all readable goes straight to its final file (no .staging entry) and a
@@ -531,7 +535,7 @@ def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
     # is staged, so the shard is consumed and deleted in this very pass
     direct1 = whole_in(n0)
     split = [u for u in units if u not in direct1]  # need a shard that is not here yet
-    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s1["shards_deleted"] == [n0] and s1["shards_consumed"] == 1
     assert s1["pending_shards"] == [n1, n2]
     assert s1["layers_done"] == 0 and not s1["complete"]
@@ -548,7 +552,7 @@ def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
     assert not (out / "manifest.json").exists()
 
     # idempotent re-run with nothing new: everything already staged is skipped, no assembly
-    s1b = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s1b = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s1b["counts"]["staged"] == 0 and s1b["counts"]["assembled"] == 0 and s1b["counts"]["direct"] == 0
     assert s1b["staged_parts"] == s1["staged_parts"] and s1b["shards_deleted"] == []
     assert here.path.stat().st_size == here.size and not there.path.exists()
@@ -559,7 +563,7 @@ def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
     direct2 = whole_in(n1)
     assembled2 = [u for u in whole_in(n0, n1) if u not in direct1 and u not in direct2]
     assert assembled2  # the stage-then-complete path is exercised
-    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s2["shards_deleted"] == [n1] and s2["shards_consumed"] == 2 and s2["pending_shards"] == [n2]
     assert not s2["complete"]
     assert s2["counts"]["direct"] == len(direct2) and s2["counts"]["assembled"] == len(assembled2)
@@ -576,7 +580,7 @@ def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
     # shard 2 arrives: remaining parts staged, every unit assembled, parts gone, manifest written
     parked[2].rename(model_dir / n2)
     direct3 = whole_in(n2)
-    s3 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s3 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s3["complete"] and s3["layers_done"] == 4 and s3["pending_shards"] == []
     assert s3["shards_deleted"] == [n2] and s3["shards_consumed"] == 3
     assert s3["counts"]["direct"] == len(direct3) and s3["counts"]["staged"] > 0
@@ -589,7 +593,9 @@ def test_streaming_spread_shards_consumed_one_at_a_time(tmp_path, tiny_export):
     _assert_same_export(tiny_out, out)
 
 
-def test_streaming_spread_direct_when_every_source_is_present(tmp_path, tiny_export):
+@pytest.mark.parametrize("device", ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required"))])
+def test_streaming_spread_direct_when_every_source_is_present(tmp_path, tiny_export, device):
     """Spread layout, but shards 1 and 2 arrive first: units whose sources all sit in {1, 2} are
     written directly (no .staging entry), units straddling shard 0 stage their present rows and
     complete when shard 0 lands; the result is byte-identical to the one-shot --tiny export."""
@@ -608,7 +614,7 @@ def test_streaming_spread_direct_when_every_source_is_present(tmp_path, tiny_exp
     parked = tmp_path / n0
     (model_dir / n0).rename(parked)
 
-    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s1 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert sorted(s1["shards_deleted"]) == [n1, n2] and s1["pending_shards"] == [n0] and not s1["complete"]
     assert s1["counts"]["direct"] == len(direct1) and s1["counts"]["assembled"] == 0
     assert s1["counts"]["staged"] == sum(1 for u in rest for p in u.parts if wm[p.source] != n0) > 0
@@ -623,7 +629,7 @@ def test_streaming_spread_direct_when_every_source_is_present(tmp_path, tiny_exp
             assert p.path.exists() == (wm[p.source] != n0), p.path
 
     parked.rename(model_dir / n0)
-    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2)
+    s2 = export_inkling.export_real(model_dir, out, skip_missing=True, delete_consumed=True, workers=2, device=device, verify_cuda=device != "cpu")
     assert s2["complete"] and s2["shards_deleted"] == [n0] and s2["shards_consumed"] == 3
     assert s2["counts"]["direct"] == 0 and s2["counts"]["assembled"] == len(rest)
     assert s2["counts"]["staged"] == sum(1 for u in rest for p in u.parts if wm[p.source] == n0)
@@ -715,3 +721,13 @@ def test_gen_fixtures_writes_spec_tensor_set(tmp_path):
     ratios = meta["relpos_bias_to_score_rms"]["per_layer"]
     assert sorted(ratios) == ["0", "1", "2", "3"]
     assert all(r["ratio"] >= gen_fixtures.MIN_BIAS_TO_SCORE >= 0.5 for r in ratios.values()), ratios
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required")
+def test_cuda_tiny_roundtrip_matches_cpu_and_hf(tmp_path, tiny_export):
+    cpu_out, _ = tiny_export
+    gpu_out = tmp_path / "cuda-export"
+    summary = export_inkling.export_tiny(gpu_out, workers=4, device="cuda", verify_cuda=True)
+    assert summary["complete"]
+    _assert_same_export(cpu_out, gpu_out)
+    assert json.loads((cpu_out / "reference.json").read_text()) == json.loads((gpu_out / "reference.json").read_text())

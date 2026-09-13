@@ -1,6 +1,6 @@
 # Restart handoff — Inkling / Panther Lake Autolab
 
-Updated 2026-09-13 after authorized disk cleanup. A native checkpoint transfer
+Updated 2026-09-13 after CUDA export implementation and validation. A native checkpoint transfer
 and a finite baseline job waiting for it are running on PTL. No Autolab
 controller is currently running. The user authorized autonomous testing on
 **tate-07, 100.82.253.76**, plus commit/push as t8, without coauthor trailers.
@@ -216,3 +216,43 @@ faster network route before paying for more export CPU.
 Removed the stopped rclone copy's eight abandoned `.partial` files (573,833,216
 logical bytes); active `.inkling-partial` files were retained. The additional
 audit is `results/013_abandoned_transfer_cleanup.json`.
+
+## CUDA exporter work completed in this session
+
+The user explicitly requested CUDA acceleration for future exports. Added
+`tools/inkling_cuda.py` and opt-in `--device cuda[:N]`, `--cuda-chunk-mib 64`,
+`--verify-cuda` to `tools/export_inkling.py`. CPU defaults and the artifact
+format are unchanged. Startup byte parity runs before output creation; a shared
+lock bounds GPU work across I/O workers. The CUDA scale divisor must stay a
+device tensor: Python scalar division takes PyTorch's reciprocal-multiply
+shortcut and changes quantization rounding. See JOURNAL hypothesis 15.
+
+Validation used the existing idle **RTX 4060 Ti 8 GB on miner**, not rented
+hardware. Isolated venv `/home/tatef/inkling-cuda-export/venv` has Python 3.12,
+PyTorch 2.14.0+cu130, Transformers 5.16.1, numpy, safetensors and pytest.
+Source copy `/home/tatef/inkling-cuda-export/repo/tools`; final test log
+`/home/tatef/inkling-cuda-export/tests-final.log`: **43 passed in 17.43 s**.
+Existing CPU export venvs and `/mnt/external_ssd/inkling/out` were untouched.
+All CUDA test/benchmark processes ended; GPU observed idle (32 MiB, 0%).
+
+Selected warm-source eight-expert conversion/write measurement: CPU eight
+workers median **1.483070 s**, CUDA four workers **0.626925 s**, **2.366x**,
+five alternating repetitions; every output file SHA-256 exact. Keep 64 MiB
+chunks; 128 MiB lost. Peak PyTorch allocation about 206 MB, excluding context
+and reserved allocator memory. `cuda-export-bench.py` reproduces the trial.
+
+One original layer 2 expert 0 (113 MB bf16 source, fetched by HTTP Range at
+revision `828496eeae4c243ff1a22f7f28ff83694f2f7bc9`) quantizes **4.233x** faster
+including copies and matches the existing exported bin byte for byte. Source
+`/home/tatef/inkling-cuda-export/real-expert-0.safetensors`, provenance
+`real-expert-source.json`, helpers `fetch-real-sample.py` and `real-check.py` in
+the same directory remain for reproduction. Reports `results/015_cuda_*.json`
+are committed. Temporary synthetic sources/outputs were removed automatically.
+The isolated GPU venv and real sample are retained for ongoing exporter work;
+miner OS disk had about 43 GiB free after installation.
+
+No whole-975B export timing or PTL inference gain is implied. No re-export is
+needed for existing inference kernels. Resume the pending PTL baseline first.
+Latest deployment observation: transfer PID 7060 copying with no errors,
+**19 / 16,654 files, 5,147,657,460 / 548,985,140,942 bytes SHA-256 verified**;
+queue PID 3856 waiting. OVMS 6728, node 8356 and CA 6344 remain running.

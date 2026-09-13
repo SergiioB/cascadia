@@ -195,3 +195,27 @@ Mac. They do not make new research decisions after the session ends. Inspect
 `transfer-state.json`, `baseline-queue-state.json`, `transfer.log` and
 `large-baseline.log` under the PTL task root. See HANDOFF for live process IDs,
 resumption and cleanup of the temporary transfer service.
+
+## Optional CUDA export (2026-09-13)
+
+`tools/export_inkling.py --device cuda:0 --workers 4` accelerates int4 conversion
+with bounded 64 MiB input chunks. The portable artifact format is unchanged;
+CPU remains the default. See `docs/architectures/inkling.md` for dependencies,
+streaming export and `--verify-cuda` qualification instructions.
+
+On miner's existing RTX 4060 Ti 8 GB, all 43 exporter tests passed. One original
+975B expert exactly reproduces the frozen export and quantizes 4.23x faster,
+including host/device copies. Eight synthetic production-sized experts convert
+and fsync 2.37x faster (five repetitions; CPU eight workers, CUDA four workers).
+These are subset measurements; a full 975B re-export has not been timed.
+Raw reports are `results/015_cuda_*.json`. Reproduce the selected subset trial:
+
+```sh
+python tools/inkling_autolab/cuda-export-bench.py \
+  --config /data/inkling-int4/source_config.json --work-dir /data/scratch \
+  --out /data/cuda-export-result.json --workers 8 --cuda-workers 4 --samples 5
+```
+
+The benchmark creates and removes its own temporary source/output directory,
+checks every output SHA-256 against CPU and refuses to overwrite its report.
+No CUDA exporter process remains running. PTL transfer/baseline jobs are separate.

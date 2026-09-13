@@ -131,6 +131,48 @@ a shard once every tensor it holds is converted, re-runs are idempotent
 That is how the 1.9 TB checkpoint is converted on a box with 900 GB of
 scratch.
 
+### Optional NVIDIA CUDA export acceleration
+
+The exporter can quantize and pack int4 experts on an NVIDIA GPU. It still reads
+checkpoint shards and writes the portable export on the CPU; no Intel GPU or
+OpenVINO installation is required. CPU export remains the default.
+
+```sh
+python tools/export_inkling.py --model /data/Inkling --out /data/inkling-int4 \
+  --device cuda:0 --workers 4 --cuda-chunk-mib 64
+```
+
+This requires a CUDA-enabled PyTorch build plus `numpy` and `safetensors`.
+The real-checkpoint conversion does not require Transformers; `--tiny` and the
+HF parity tests require Transformers with native Inkling support (>=5.16).
+The implementation was validated with PyTorch 2.14.0+cu130, Transformers 5.16.1
+and an RTX 4060 Ti 8 GB. No model-sized GPU allocation is needed: conversion
+works in row chunks, with one GPU operation sequence at a time shared by the
+export I/O workers. `--cuda-chunk-mib` bounds the f32-equivalent input per chunk;
+temporary GPU allocations are additional. `cuda:N` selects a device explicitly.
+
+`--skip-missing-shards`, `--delete-consumed-shards`, staged assembly, resumption
+and `--layers-done-check` work with either quantization device. Packed nibbles,
+bf16 scales, shell tensors and the manifest retain their existing format.
+CUDA startup runs a byte-parity check before creating output; unavailable GPUs
+or failed checks stop the export. `--verify-cuda` additionally compares every
+newly converted matrix with CPU bytes before writing it, at the cost of also
+doing the CPU quantization. Use that mode when qualifying another GPU/toolchain.
+Already completed files are skipped by the existing resume rules; use a fresh
+output directory to qualify every weight. A normal `--device cuda:0` run omits
+the per-matrix CPU comparison after the startup check.
+
+Measurements on the miner: **4.23x** faster quantization of one original
+975B expert including host/device transfers; its output exactly matches the
+current exported bin. Eight distinct production-sized synthetic experts, with
+source reads from warm cache and atomic fsynced output writes, improve **2.37x**
+(CPU eight workers: median 1.483 s; CUDA four workers: 0.627 s; five repetitions).
+Eight workers in both arms improve 2.15x; increasing chunks to 128 MiB was slower.
+These measure conversion work, not full-model
+inference or a complete 975B re-export. Raw results and the benchmark script are
+under `tools/inkling_autolab/results/015_cuda_*` and
+`tools/inkling_autolab/cuda-export-bench.py`.
+
 ## Validation
 
 Tier 1–4 of the family test ladder (all synthetic, no downloads, `cargo test
