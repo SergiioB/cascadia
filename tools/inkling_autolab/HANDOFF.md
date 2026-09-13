@@ -59,7 +59,9 @@ Source remains independently at **miner:/mnt/external_ssd/inkling/out**.
 Miner SSH: tatef@192.168.0.235:1990, cascadia key.
 
 **All transfer clients, source servers and tunnel supervisors ended.** Do not
-restart archived transfers. Eight direct-jump transports reached103.70 MB/s
+restart archived transfers. Four retired task tokens were removed; all six
+controller/source/target token paths are absent (report031). Eight direct-jump
+transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
@@ -88,7 +90,8 @@ prefill81.483s, decode27.521s /3 steps = **0.109008 tok/s**. Short smoke only.
 First full-length pass,63 decode steps each: water_cycle **0.141965**,
 binary_search **0.135469**, short_story **0.138188** tok/s. Water_cycle rep1
 **0.140173**, binary_search rep1 **0.139875**, both with identical greedy IDs.
-Five of nine samples complete. Other repeats still pending at last check.
+Seven of nine samples complete at last check; all repeated greedy IDs match.
+The final binary_search and short_story repetitions remain pending.
 No final repeatability hash/qualifying throughput result yet.
 
 The queue will write `large-baseline.json`, `large-baseline-text.json`,
@@ -138,8 +141,10 @@ Do not sacrifice protected services to free memory.
    Keep all3 cases and64 tokens; Samples1 diagnostic retains the same aggregate
    baseline hash but cannot satisfy the3-repetition25tok/s target gate.
    `analyze-routing.py --require-full` and `analyze-layer-profile.py --require-full`
-   are prepared; no real full routing/timing trace yet. Restart sampler with a
-   NEW output filename after its original baseline sampler exits.
+   are prepared; no real full routing/timing trace yet. Restart sampler after the original exits, with a NEW output filename plus
+   `--follow-trials --stop-file C:/Users/devcloud/inkling-autolab/stop-trial-sampler
+   --hours 6`. This mode survives idle gaps between trials. Create its unique
+   stop marker when the campaign ends. Native isolated canary passed; report032.
 6. Use Autolab run_campaign.py with actual reference cases/hash. Full target
    gate requires exact baseline hash, full975B scope, expected greedy IDs,
    >=32 decode steps, >=3 reps, slowest case/repetition >=25tok/s.

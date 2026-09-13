@@ -1,0 +1,44 @@
+{
+  "scope": "retired_task_transfer_tokens",
+  "unix": 1789336621.4812968,
+  "model_transfer_verified": true,
+  "token_contents_recorded": false,
+  "hosts": {
+    "controller": [
+      {
+        "path": "/private/tmp/inkling-direct-transfer/token",
+        "removed": true,
+        "exists_after": false
+      },
+      {
+        "path": "/private/tmp/inkling-jump-transfer/token",
+        "removed": true,
+        "exists_after": false
+      }
+    ],
+    "miner": [
+      {
+        "path": "/tmp/inkling-direct-transfer/token",
+        "removed": true,
+        "exists_after": false
+      },
+      {
+        "path": "/tmp/inkling-jump-transfer/token",
+        "removed": false,
+        "exists_after": false
+      }
+    ],
+    "PTL": [
+      {
+        "path": "C:\\Users\\devcloud\\inkling-autolab\\transfer-token",
+        "removed": true,
+        "exists_after": false
+      },
+      {
+        "path": "C:\\Users\\devcloud\\inkling-autolab\\transfer-jump-token",
+        "removed": false,
+        "exists_after": false
+      }
+    ]
+  }
+}

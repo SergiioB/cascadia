@@ -790,3 +790,26 @@ full-mmap-embed.exe; only the intended read/row/embedding knobs vary. Template
 parses as four experiments. The baseline hash remains an explicit placeholder,
 so no full campaign is launched prematurely. The first actual campaign can
 select only the candidates justified by the component/diagnostic measurements.
+
+## 31 retired transfer credentials removed
+
+All transfer endpoints/supervisors had ended and PTL's full copy was verified.
+Removed four obsolete task tokens across controller, miner and PTL; the other
+two token paths were already absent. Verified all six paths absent afterward.
+No token contents were read into reports; model files and live baseline were
+untouched. Result031 records only paths/removal status.
+
+## 32 resource sampler must survive between campaign trials
+
+The original sampler exits when the baseline queue is terminal and no full
+process is currently alive. Reusing that behavior for a sequential campaign
+would stop sampling in the gaps between candidate runs. Add explicit bounded
+follow-trials mode with a task stop marker; retain the original default for
+the already running baseline sampler. Validate terminal-baseline behavior
+without running another inference workload. No speedup claim.
+
+Native isolated canary passed: default mode stopped after one sample with a
+terminal baseline/no model process; follow-trials remained active for two
+idle samples and exited cleanly on its stop marker. No inference workload
+was started. Existing baseline sampler2208 continues its original in-memory
+code; use a new output/stop marker when starting the campaign sampler.

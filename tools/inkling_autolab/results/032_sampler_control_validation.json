@@ -1,0 +1,8 @@
+{
+  "scope": "native_sampler_control_validation",
+  "default_terminal_baseline_samples": 1,
+  "follow_trials_idle_samples": 2,
+  "stop_marker_exited_cleanly": true,
+  "no_inference_job_started": true,
+  "isolated_temporary_task_root": true
+}

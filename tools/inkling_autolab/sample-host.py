@@ -60,6 +60,10 @@ def main():
     parser.add_argument("--interval", type=float, default=10)
     parser.add_argument("--hours", type=float, default=96)
     parser.add_argument("--once", action="store_true")
+    parser.add_argument("--follow-trials", action="store_true",
+                        help="continue across gaps between candidates after the baseline ends")
+    parser.add_argument("--stop-file", type=Path,
+                        help="stop when this new marker under the task root is created")
     args = parser.parse_args()
     if not args.root.is_dir() or args.interval < 5 or not 0 < args.hours <= 96:
         parser.error("existing root, interval >=5 seconds and 0<hours<=96 required")
@@ -68,6 +72,11 @@ def main():
         return
     if not args.out:
         parser.error("--out is required; existing reports are never overwritten")
+    if args.follow_trials and not args.stop_file:
+        parser.error("--follow-trials requires --stop-file for explicit campaign cleanup")
+    if args.stop_file and (args.stop_file.parent.resolve() != args.root.resolve()
+                          or args.stop_file.exists() or args.stop_file.resolve() == args.out.resolve()):
+        parser.error("--stop-file must be a new, distinct marker directly under --root")
     import msvcrt
     with (args.root / "host-sampler.lock").open("a+b") as lock:
         lock.seek(0)
@@ -75,10 +84,13 @@ def main():
         with args.out.open("x", encoding="utf-8", buffering=1) as output:
             deadline = time.monotonic() + args.hours * 3600
             while time.monotonic() < deadline:
+                if args.stop_file and args.stop_file.exists():
+                    break
                 sample = snapshot(args.root)
+                sample["follow_trials"] = args.follow_trials
                 output.write(json.dumps(sample) + "\n")
                 queue = sample["baseline_queue"] or {}
-                if not sample["processes"] and queue.get("status") in (
+                if not args.follow_trials and not sample["processes"] and queue.get("status") in (
                         "failed", "baseline_recorded_needs_review"):
                     break
                 time.sleep(args.interval)
