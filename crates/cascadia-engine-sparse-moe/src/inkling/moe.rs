@@ -123,6 +123,11 @@ pub struct MoeLayer {
 }
 
 impl MoeLayer {
+    /// Owned packed shared-expert bytes, excluding routed experts and scratch.
+    pub fn owned_shared_bytes(&self) -> usize {
+        self.w.shared.iter().map(AnyExpert::owned_int4_bytes).sum()
+    }
+
     /// Rows per batch-union block (bounds the per-block expert-output scratch
     /// `ROW_BLOCK · top_k · hidden` f32; correctness is independent of it).
     const ROW_BLOCK: usize = 128;

@@ -200,6 +200,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("load_seconds={}", load.elapsed().as_secs_f64());
     let embedding_mapped = model.embedding_is_mapped();
     println!("embedding_mapped={}", u8::from(embedding_mapped));
+    let owned_shared_bytes = model.owned_shared_bytes();
+    println!("owned_shared_bytes={owned_shared_bytes}");
     println!("full_model={}", u8::from(full_model));
     let mut captures = Vec::new();
     if route_trace.is_some() {
@@ -326,6 +328,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "hidden":manifest.hidden_size, "experts":manifest.num_experts},
                 "output_hash":hash, "correctness_verified":correctness_verified,
                 "embedding_mapped":embedding_mapped,
+                "owned_shared_bytes":owned_shared_bytes,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;

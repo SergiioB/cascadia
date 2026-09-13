@@ -468,6 +468,14 @@ impl Model {
         matches!(self.embed, WideTable::MappedBf16(_))
     }
 
+    pub fn owned_shared_bytes(&self) -> usize {
+        self.layers
+            .iter()
+            .filter_map(Layer::moe)
+            .map(MoeLayer::owned_shared_bytes)
+            .sum()
+    }
+
     /// Cached positions (every layer agrees).
     pub fn len(&self) -> usize {
         self.layers.first().map_or(0, Layer::len)

@@ -942,3 +942,22 @@ small disposable file, missing/short inputs and misalignment, then measure12
 disjoint255MB cohorts with SHA checks. It shares the native task lock while
 probing. No component measurement has run yet. Repeated036 remains active;
 its second case is0.198590tok/s with exact tokens, not yet a repeated record.
+
+## 39 hypothesis — retain only the always-used shared experts as packed bytes
+
+A036 two-minute window issues3.278GB/s explicit reads while machine disk reads
+3.046GB/s; this is consistent with limited reuse, not exclusive model I/O
+attribution. The shared experts are4.077GB and used every decode step. Prepare
+opt-in owned int4 storage for just those experts, using identical packed bytes
+and kernels. Routed experts retain current behavior. This deliberately trades
+~4.077GB private memory for avoiding shared-file reads; OS paging can still
+occur and full performance/memory must be measured. No physical pinning or
+protected-service changes. Prepare/test locally while036 runs; no native build
+until036 and the queued038 probe are terminal.
+
+039 local validation:227 tests passed across the library, eight Inkling targets
+and four GLM targets affected by the common expert storage enum. Owned versus
+mapped fixture storage preserves the prior5122e042f9b1fb30 ARM-debug full-logits
+hash over3 reps, with actual owned-shared bytes0/20736 respectively. The new
+variant bypasses prefetch/explicit rereads and uses the existing swiglu_from
+kernel. Native qualification and full memory/performance remain pending.

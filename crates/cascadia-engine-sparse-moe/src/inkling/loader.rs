@@ -75,6 +75,14 @@ pub(crate) fn pin_experts() -> bool {
     *E.get_or_init(|| super::env_flag("CASCADIA_INKLING_PIN_EXPERTS"))
 }
 
+/// Keep only shared experts as owned packed int4 bytes. Default off; this is
+/// separate from physical page locking and does not alter routed-expert I/O.
+fn own_shared() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| super::env_flag("CASCADIA_INKLING_OWN_SHARED"))
+}
+
 /// [`pin_experts`] for one just-opened expert; returns the bytes wired.
 fn maybe_pin(x: &AnyExpert, what: &str) -> usize {
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -147,6 +155,11 @@ pub fn load_moe_experts(
                 inter,
                 mode,
             )?;
+            let x = if own_shared() {
+                x.into_owned_int4()?
+            } else {
+                x
+            };
             wired += maybe_pin(&x, &format!("layer {li} shared expert {s}"));
             out.push((id, x));
         }

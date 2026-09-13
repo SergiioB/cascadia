@@ -227,3 +227,17 @@ have not run yet. Sources consulted are linked in the probe/JOURNAL.
 
 036 first two case rates0.199603 and0.198590tok/s, exact IDs. All repetitions
 remain pending; primary repeated record is still0.1353339381tok/s.
+
+## Shared-expert candidate39 under preparation
+
+CASCADIA_INKLING_OWN_SHARED=1 retains just the shared expert bins as owned
+packed int4 bytes (4.077GB for this model), with the same kernel/arithmetic.
+Routed experts and default behavior are unchanged.227 local tests pass,
+including affected GLM tests; fixture hash5122e042f9b1fb30 and actual owned
+bytes0/20736 match expected plain/owned modes. This is not physical page locking.
+
+Native full-owned-shared.exe is NOT YET QUALIFIED. Scripts
+qualify-owned-shared.py/test-owned-shared.bat wait for036 plus038 completion
+before building/testing once, preserving all three frozen binaries. No native
+full trial is launched by that qualifier. Source must be deployed with prior-SHA
+checks; refresh native state before taking action. No performance gain claimed.

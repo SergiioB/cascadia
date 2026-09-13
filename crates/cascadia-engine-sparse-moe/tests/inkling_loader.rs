@@ -68,6 +68,34 @@ fn loader_greedy_matches_hf_reference() {
 }
 
 #[test]
+fn owned_packed_shared_expert_matches_mapping_without_file_read_dispatch() {
+    use cascadia_engine_sparse_moe::dsv4::expert_mmap::MmapExpert;
+    use cascadia_engine_sparse_moe::glm::moe::AnyExpert;
+    let path = export_dir().join("experts/layer_01/expert_shared0.bin");
+    let mapped = AnyExpert::Mmap(MmapExpert::open(&path, 64, 32).unwrap());
+    let owned = AnyExpert::Mmap(MmapExpert::open(&path, 64, 32).unwrap())
+        .into_owned_int4()
+        .unwrap();
+    assert!(owned.as_mmap().is_none());
+    assert_eq!(owned.int4_bytes(), 0);
+    assert_eq!(
+        owned.owned_int4_bytes(),
+        std::fs::metadata(path).unwrap().len() as usize
+    );
+    for offset in [0.0, 0.25, -0.5] {
+        let x: Vec<f32> = (0..64)
+            .map(|i| (i as f32 - 7.0) * 0.03125 + offset)
+            .collect();
+        let expected = mapped.forward(&x, 64, 32);
+        let actual = owned.forward(&x, 64, 32);
+        assert_eq!(
+            actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+            expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+        );
+    }
+}
+
+#[test]
 fn mapped_embedding_rows_and_head_math_match_owned_bits() {
     use cascadia_engine_sparse_moe::inkling::model::WideTable;
 

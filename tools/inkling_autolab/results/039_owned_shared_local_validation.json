@@ -1,0 +1,20 @@
+{
+  "scope": "ARM_debug_fixture_only",
+  "profiles": [
+    {
+      "owned": "0",
+      "owned_shared_bytes": 0,
+      "hash": "5122e042f9b1fb30",
+      "verified": true
+    },
+    {
+      "owned": "1",
+      "owned_shared_bytes": 20736,
+      "hash": "5122e042f9b1fb30",
+      "verified": true
+    }
+  ],
+  "native_qualified": false,
+  "full_model_speedup_measured": false,
+  "tests_passed": 227
+}
