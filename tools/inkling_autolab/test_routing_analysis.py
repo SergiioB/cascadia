@@ -54,3 +54,63 @@ def test_partial_trace_cannot_be_labeled_full_model():
     trace['full_model'] = True
     with pytest.raises(ValueError, match='Incomplete large-model'):
         module.analyze(trace, {'none': 0})
+
+
+def test_partition_bound_adds_only_disjoint_windows():
+    accesses = [[0], [1], [0], [2]]
+    assert module.partition_read_bound(accesses, 0, 1)['offline_partition_minimum_decode_read_bytes'] == 4
+    bound = module.partition_read_bound(accesses, 1, 1)
+    assert bound['offline_partition_minimum_decode_read_bytes'] == 2
+    assert bound['offline_partition_minimum_read_bytes_per_token'] == 0.5
+    assert module.partition_read_bound(accesses, 3, 1)['offline_partition_minimum_decode_read_bytes'] == 0
+
+
+def test_layer_quota_prevents_global_scan_thrashing():
+    # One recurring expert per layer plus one-use experts: local LFU keeps the
+    # two recurring experts, while a two-slot global LRU continually evicts them.
+    groups = [(True, [(layer, 0), (layer, step + 1)])
+              for step in range(4) for layer in range(2)]
+    global_lru = module.simulate_group_cache(groups, 2, [0, 1])
+    local_lfu = module.simulate_group_cache(groups, 2, [0, 1], True, True)
+    assert global_lru['decode_misses'] == 16
+    assert local_lfu['decode_misses'] == 10
+    assert local_lfu['allocated_expert_slots'] == 2
+    assert not local_lfu['uses_future_routes']
+
+
+def test_atomic_route_group_counts_hits_before_admitting_misses():
+    groups = [(False, [(0, 0), (0, 1)]), (True, [(0, 2), (0, 0), (0, 1)])]
+    result = module.simulate_group_cache(groups, 2, [0])
+    assert result['decode_accesses'] == 3 and result['decode_misses'] == 1
+
+
+def test_offline_bound_never_exceeds_online_policy_reads():
+    report = module.analyze(sample_trace(), {'none': 0, 'one': 1728, 'all': 4 * 1728},
+                            compare_policies=True)
+    for cache in report['cases'][0]['cache_models'].values():
+        for policy in cache['online_policy_models'].values():
+            assert policy['simulated_read_bytes_per_token'] >= cache['offline_partition_minimum_read_bytes_per_token']
+
+
+def test_partition_bound_against_exhaustive_optimal_paging():
+    from itertools import combinations, product
+
+    universe = range(3)
+    for trace in product(universe, repeat=4):
+        for capacity in range(4):
+            # An independent exhaustive oracle permits any initial cache and
+            # every legal post-read retained set, including bypass admission.
+            states = {frozenset(c): 0 for n in range(capacity + 1)
+                      for c in combinations(universe, n)}
+            for key in trace:
+                following = {}
+                for cache, cost in states.items():
+                    cost += key not in cache
+                    choices = cache | {key}
+                    for n in range(min(capacity, len(choices)) + 1):
+                        for kept in combinations(choices, n):
+                            kept = frozenset(kept)
+                            following[kept] = min(following.get(kept, cost), cost)
+                states = following
+            bound = module.partition_read_bound([[key] for key in trace], capacity, 1)
+            assert bound['offline_partition_minimum_decode_read_bytes'] <= min(states.values())

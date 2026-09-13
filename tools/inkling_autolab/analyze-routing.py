@@ -13,7 +13,68 @@ from pathlib import Path
 import statistics
 
 
-def analyze(trace, budgets, fixed_bytes=None):
+def partition_read_bound(accesses, budget, expert_bytes, max_segment=64):
+    """Offline lower bound for the WHOLE trace, allowing any initial cache.
+
+    Each disjoint segment must fetch at least union_bytes - budget. Maximize
+    the sum over partitions; future routes are used only for this lower bound.
+    Unlike a worst-window average, this bounds total decode traffic.
+    """
+    best = [0] * (len(accesses) + 1)
+    previous = [None] * len(best)
+    for end in range(1, len(best)):
+        union = set()
+        for start in range(end - 1, max(-1, end - max_segment - 1), -1):
+            union.update(accesses[start])
+            missing = max(0, len(union) * expert_bytes - budget)
+            candidate = best[start] + missing
+            if previous[end] is None or candidate > best[end]:
+                best[end] = candidate
+                previous[end] = (start, missing)
+    segments = []
+    end = len(accesses)
+    while end:
+        start, missing = previous[end]
+        segments.append({'start': start, 'end': end, 'minimum_read_bytes': missing})
+        end = start
+    return {'offline_partition_minimum_decode_read_bytes': best[-1],
+            'offline_partition_minimum_read_bytes_per_token': best[-1] / len(accesses),
+            'offline_partition_max_segment_tokens': max_segment,
+            'offline_partition_segments': list(reversed(segments))}
+
+
+def simulate_group_cache(groups, capacity, layer_ids, per_layer=False, frequency=False):
+    """Online admission from completed/current route groups, with no future IDs.
+
+    Hits are checked for the complete selected set before admission/eviction.
+    Ties prefer the current group's supplied order. Prefill uses per-layer
+    unique-expert visits, matching the existing LRU warming approximation.
+    """
+    local_capacity = capacity // len(layer_ids) if per_layer else capacity
+    caches, counts, recency = {}, Counter(), {}
+    misses = accesses = 0
+    for tick, (decode, keys) in enumerate(groups):
+        scope = keys[0][0] if per_layer else None
+        cache = caches.setdefault(scope, set())
+        if decode:
+            accesses += len(keys)
+            misses += sum(key not in cache for key in keys)
+        if not local_capacity:
+            continue
+        counts.update(keys)
+        recency.update({key: (tick, -rank) for rank, key in enumerate(keys)})
+        candidates = cache.union(keys)
+        order = lambda key: ((counts[key],) if frequency else ()) + recency[key]
+        caches[scope] = set(sorted(candidates, key=order, reverse=True)[:local_capacity])
+    return {'decode_accesses': accesses, 'decode_misses': misses,
+            'decode_hit_fraction': 1 - misses / accesses,
+            'allocated_expert_slots': local_capacity * (len(layer_ids) if per_layer else 1),
+            'uses_future_routes': False,
+            'admission': 'completed_or_current_route_group',
+            'prefill_warming': 'per_layer_unique_expert_visits'}
+
+
+def analyze(trace, budgets, fixed_bytes=None, compare_policies=False):
     if trace['scope'] != 'routing_diagnostics' or not trace['samples']:
         raise ValueError('Expected a nonempty routing trace')
     if fixed_bytes is not None and (type(fixed_bytes) is not int or fixed_bytes < 0):
@@ -57,6 +118,16 @@ def analyze(trace, budgets, fixed_bytes=None):
         accesses = [[(layer['layer'], expert) for layer in layers
                      for expert in layer['routed_experts_per_position'][prefill + position]]
                     for position in range(decode)]
+        groups = []
+        if compare_policies:
+            for layer in layers:
+                rows = layer['routed_experts_per_position']
+                for lo in range(0, prefill, 128):
+                    keys = sorted({e for row in rows[lo:min(lo + 128, prefill)] for e in row})
+                    groups.append((False, [(layer['layer'], expert) for expert in keys]))
+            for selection in accesses:
+                k = manifest['top_k']
+                groups.extend((True, selection[lo:lo + k]) for lo in range(0, len(selection), k))
         window_reports = {}
         for window in (1, 2, 4, 8, 16, 32, 64):
             if window > decode:
@@ -111,6 +182,18 @@ def analyze(trace, budgets, fixed_bytes=None):
                                     'simulated_lru_decode_misses': misses,
                                     'simulated_lru_miss_bytes_per_decode_token': misses * expert_bytes / decode,
                                     'max_window_miss_lower_bound_bytes_per_token': window_bound}
+            if compare_policies:
+                cache_reports[label].update(partition_read_bound(accesses, budget, expert_bytes))
+                policies = {}
+                for name, local, frequency in [('global_group_lru', False, False),
+                                                ('global_group_lfu', False, True),
+                                                ('per_layer_group_lru', True, False),
+                                                ('per_layer_group_lfu', True, True)]:
+                    policy = simulate_group_cache(groups, capacity, layer_ids, local, frequency)
+                    policy['simulated_read_bytes_per_token'] = policy['decode_misses'] * expert_bytes / decode
+                    policy['allocated_routed_bytes'] = policy['allocated_expert_slots'] * expert_bytes
+                    policies[name] = policy
+                cache_reports[label]['online_policy_models'] = policies
         reports.append({'case': sample['case'], 'decode_positions': decode,
                         'windows': window_reports, 'cache_models': cache_reports})
     return {'scope': 'routing_storage_analysis', 'full_model': trace['full_model'],
@@ -128,6 +211,7 @@ def main():
     parser.add_argument('--routed-cache-gib', type=float, nargs='+', default=[8, 12, 16, 24, 32])
     parser.add_argument('--fixed-model-bytes', type=int)
     parser.add_argument('--require-full', action='store_true')
+    parser.add_argument('--compare-policies', action='store_true')
     args = parser.parse_args()
     if args.out.exists():
         parser.error('refusing to overwrite report')
@@ -137,7 +221,7 @@ def main():
     if args.require_full and (not trace['full_model'] or not trace['correctness_verified']):
         parser.error('a correctness-verified full-model trace is required')
     report = analyze(trace, {f'{gib:g}GiB': int(gib * 1024**3) for gib in args.routed_cache_gib},
-                     args.fixed_model_bytes)
+                     args.fixed_model_bytes, args.compare_policies)
     args.out.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'cases': report['distinct_cases'], 'full_model': report['full_model'],
                       'routed_expert_bytes': report['routed_expert_bytes']}))

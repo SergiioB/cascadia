@@ -1,0 +1,2647 @@
+{
+  "scope": "routing_storage_analysis",
+  "full_model": true,
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "routed_expert_bytes": 31850496,
+  "fixed_nonexpert_file_bytes": 23041852040,
+  "shared_expert_bytes": 4076863488,
+  "source_samples": 3,
+  "distinct_cases": 3,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22932357120,
+          "median_routed_bytes": 19110297600.0,
+          "max_model_file_working_set_bytes": 50051072648
+        },
+        "4": {
+          "max_routed_bytes": 36596219904,
+          "median_routed_bytes": 30210195456.0,
+          "max_model_file_working_set_bytes": 63714935432
+        },
+        "8": {
+          "max_routed_bytes": 54719152128,
+          "median_routed_bytes": 46868004864.0,
+          "max_model_file_working_set_bytes": 81837867656
+        },
+        "16": {
+          "max_routed_bytes": 80008445952,
+          "median_routed_bytes": 73717972992.0,
+          "max_model_file_working_set_bytes": 107127161480
+        },
+        "32": {
+          "max_routed_bytes": 114343280640,
+          "median_routed_bytes": 108148359168.0,
+          "max_model_file_working_set_bytes": 141461996168
+        }
+      },
+      "cache_models": {
+        "4GiB": {
+          "routed_budget_bytes": 4294967296,
+          "whole_expert_capacity": 134,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 9318694912.0,
+          "offline_partition_minimum_decode_read_bytes": 509259808768,
+          "offline_partition_minimum_read_bytes_per_token": 8083489028.063492,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 1,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 1,
+              "end": 3,
+              "minimum_read_bytes": 16153051136
+            },
+            {
+              "start": 3,
+              "end": 5,
+              "minimum_read_bytes": 17395220480
+            },
+            {
+              "start": 5,
+              "end": 6,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 6,
+              "end": 7,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 7,
+              "end": 9,
+              "minimum_read_bytes": 16184901632
+            },
+            {
+              "start": 9,
+              "end": 10,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 10,
+              "end": 11,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 11,
+              "end": 12,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 12,
+              "end": 13,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 13,
+              "end": 14,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 14,
+              "end": 16,
+              "minimum_read_bytes": 16089350144
+            },
+            {
+              "start": 16,
+              "end": 17,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 17,
+              "end": 18,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 18,
+              "end": 19,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 19,
+              "end": 20,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 20,
+              "end": 21,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 21,
+              "end": 22,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 22,
+              "end": 23,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 23,
+              "end": 24,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 24,
+              "end": 25,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 25,
+              "end": 27,
+              "minimum_read_bytes": 16758210560
+            },
+            {
+              "start": 27,
+              "end": 29,
+              "minimum_read_bytes": 15898247168
+            },
+            {
+              "start": 29,
+              "end": 30,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 30,
+              "end": 32,
+              "minimum_read_bytes": 17140416512
+            },
+            {
+              "start": 32,
+              "end": 33,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 33,
+              "end": 34,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 34,
+              "end": 35,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 35,
+              "end": 36,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 36,
+              "end": 37,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 37,
+              "end": 38,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 38,
+              "end": 40,
+              "minimum_read_bytes": 17363369984
+            },
+            {
+              "start": 40,
+              "end": 42,
+              "minimum_read_bytes": 18637389824
+            },
+            {
+              "start": 42,
+              "end": 43,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 43,
+              "end": 44,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 44,
+              "end": 45,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 45,
+              "end": 46,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 46,
+              "end": 47,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 47,
+              "end": 48,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 48,
+              "end": 49,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 49,
+              "end": 50,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 50,
+              "end": 51,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 51,
+              "end": 53,
+              "minimum_read_bytes": 16407855104
+            },
+            {
+              "start": 53,
+              "end": 54,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 54,
+              "end": 55,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 55,
+              "end": 56,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 56,
+              "end": 57,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 57,
+              "end": 58,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 58,
+              "end": 59,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 59,
+              "end": 60,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 60,
+              "end": 61,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 61,
+              "end": 62,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 62,
+              "end": 63,
+              "minimum_read_bytes": 7935623168
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 4267966464
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 18807,
+              "decode_hit_fraction": 0.22259424603174605,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 9508131401.142857,
+              "allocated_routed_bytes": 4267966464
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 19491,
+              "decode_hit_fraction": 0.1943204365079365,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 9853936786.285715,
+              "allocated_routed_bytes": 4076863488
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 19006,
+              "decode_hit_fraction": 0.21436838624338628,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 9608738523.428572,
+              "allocated_routed_bytes": 4076863488
+            }
+          }
+        },
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7171211264.0,
+          "offline_partition_minimum_decode_read_bytes": 355919724544,
+          "offline_partition_minimum_read_bytes_per_token": 5649519437.206349,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 3,
+              "minimum_read_bytes": 18164482048
+            },
+            {
+              "start": 3,
+              "end": 7,
+              "minimum_read_bytes": 24757534720
+            },
+            {
+              "start": 7,
+              "end": 10,
+              "minimum_read_bytes": 17814126592
+            },
+            {
+              "start": 10,
+              "end": 12,
+              "minimum_read_bytes": 9341894656
+            },
+            {
+              "start": 12,
+              "end": 14,
+              "minimum_read_bytes": 10679615488
+            },
+            {
+              "start": 14,
+              "end": 17,
+              "minimum_read_bytes": 17877827584
+            },
+            {
+              "start": 17,
+              "end": 20,
+              "minimum_read_bytes": 16285302784
+            },
+            {
+              "start": 20,
+              "end": 22,
+              "minimum_read_bytes": 10138157056
+            },
+            {
+              "start": 22,
+              "end": 24,
+              "minimum_read_bytes": 9373745152
+            },
+            {
+              "start": 24,
+              "end": 28,
+              "minimum_read_bytes": 25012338688
+            },
+            {
+              "start": 28,
+              "end": 30,
+              "minimum_read_bytes": 11380326400
+            },
+            {
+              "start": 30,
+              "end": 33,
+              "minimum_read_bytes": 18769641472
+            },
+            {
+              "start": 33,
+              "end": 37,
+              "minimum_read_bytes": 22241345536
+            },
+            {
+              "start": 37,
+              "end": 40,
+              "minimum_read_bytes": 18705940480
+            },
+            {
+              "start": 40,
+              "end": 43,
+              "minimum_read_bytes": 21572485120
+            },
+            {
+              "start": 43,
+              "end": 45,
+              "minimum_read_bytes": 9755951104
+            },
+            {
+              "start": 45,
+              "end": 47,
+              "minimum_read_bytes": 10106306560
+            },
+            {
+              "start": 47,
+              "end": 49,
+              "minimum_read_bytes": 10807017472
+            },
+            {
+              "start": 49,
+              "end": 52,
+              "minimum_read_bytes": 16667508736
+            },
+            {
+              "start": 52,
+              "end": 56,
+              "minimum_read_bytes": 22496149504
+            },
+            {
+              "start": 56,
+              "end": 59,
+              "minimum_read_bytes": 14947581952
+            },
+            {
+              "start": 59,
+              "end": 63,
+              "minimum_read_bytes": 19024445440
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 8567783424
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15751,
+              "decode_hit_fraction": 0.3489169973544973,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7963129563.428572,
+              "allocated_routed_bytes": 8567783424
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 16166,
+              "decode_hit_fraction": 0.33176256613756616,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8172938386.285714,
+              "allocated_routed_bytes": 8153726976
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15879,
+              "decode_hit_fraction": 0.3436259920634921,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8027841682.285714,
+              "allocated_routed_bytes": 8153726976
+            }
+          }
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 14024,
+          "simulated_lru_miss_bytes_per_decode_token": 7090021522.285714,
+          "max_window_miss_lower_bound_bytes_per_token": 5927829504.0,
+          "offline_partition_minimum_decode_read_bytes": 289950400512,
+          "offline_partition_minimum_read_bytes_per_token": 4602387309.714286,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 7,
+              "minimum_read_bytes": 37598134272
+            },
+            {
+              "start": 7,
+              "end": 11,
+              "minimum_read_bytes": 17341218816
+            },
+            {
+              "start": 11,
+              "end": 14,
+              "minimum_read_bytes": 10525212672
+            },
+            {
+              "start": 14,
+              "end": 19,
+              "minimum_read_bytes": 23679467520
+            },
+            {
+              "start": 19,
+              "end": 24,
+              "minimum_read_bytes": 19443351552
+            },
+            {
+              "start": 24,
+              "end": 29,
+              "minimum_read_bytes": 25909002240
+            },
+            {
+              "start": 29,
+              "end": 33,
+              "minimum_read_bytes": 20016660480
+            },
+            {
+              "start": 33,
+              "end": 40,
+              "minimum_read_bytes": 33584971776
+            },
+            {
+              "start": 40,
+              "end": 45,
+              "minimum_read_bytes": 26195656704
+            },
+            {
+              "start": 45,
+              "end": 50,
+              "minimum_read_bytes": 21035876352
+            },
+            {
+              "start": 50,
+              "end": 56,
+              "minimum_read_bytes": 27820032000
+            },
+            {
+              "start": 56,
+              "end": 63,
+              "minimum_read_bytes": 26800816128
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 14028,
+              "decode_hit_fraction": 0.42013888888888884,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7092043776.0,
+              "allocated_routed_bytes": 12867600384
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 13774,
+              "decode_hit_fraction": 0.43063822751322756,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6963630665.142858,
+              "allocated_routed_bytes": 12867600384
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 14008,
+              "decode_hit_fraction": 0.4209656084656085,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7081932507.428572,
+              "allocated_routed_bytes": 12230590464
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 13919,
+              "decode_hit_fraction": 0.4246445105820106,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7036937362.285714,
+              "allocated_routed_bytes": 12230590464
+            }
+          }
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 14002,
+          "simulated_lru_miss_bytes_per_decode_token": 7078899126.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 4854087680.0,
+          "offline_partition_minimum_decode_read_bytes": 248958812160,
+          "offline_partition_minimum_read_bytes_per_token": 3951727177.142857,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 7,
+              "minimum_read_bytes": 33303166976
+            },
+            {
+              "start": 7,
+              "end": 14,
+              "minimum_read_bytes": 23174709248
+            },
+            {
+              "start": 14,
+              "end": 21,
+              "minimum_read_bytes": 26550861824
+            },
+            {
+              "start": 21,
+              "end": 29,
+              "minimum_read_bytes": 33080213504
+            },
+            {
+              "start": 29,
+              "end": 34,
+              "minimum_read_bytes": 20340015104
+            },
+            {
+              "start": 34,
+              "end": 41,
+              "minimum_read_bytes": 28907798528
+            },
+            {
+              "start": 41,
+              "end": 50,
+              "minimum_read_bytes": 37571133440
+            },
+            {
+              "start": 50,
+              "end": 56,
+              "minimum_read_bytes": 23525064704
+            },
+            {
+              "start": 56,
+              "end": 63,
+              "minimum_read_bytes": 22505848832
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 13999,
+              "decode_hit_fraction": 0.4213376322751323,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7077382436.571428,
+              "allocated_routed_bytes": 17167417344
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12343,
+              "decode_hit_fraction": 0.48979001322751325,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6240169398.857142,
+              "allocated_routed_bytes": 17167417344
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 12516,
+              "decode_hit_fraction": 0.48263888888888884,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6327631872.0,
+              "allocated_routed_bytes": 16307453952
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12491,
+              "decode_hit_fraction": 0.48367228835978837,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6314992786.285714,
+              "allocated_routed_bytes": 16307453952
+            }
+          }
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 10966,
+          "simulated_lru_miss_bytes_per_decode_token": 5544008557.714286,
+          "max_window_miss_lower_bound_bytes_per_token": 3618668544.0,
+          "offline_partition_minimum_decode_read_bytes": 195994189824,
+          "offline_partition_minimum_read_bytes_per_token": 3111018886.095238,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 14,
+              "minimum_read_bytes": 46753775616
+            },
+            {
+              "start": 14,
+              "end": 30,
+              "minimum_read_bytes": 48378150912
+            },
+            {
+              "start": 30,
+              "end": 40,
+              "minimum_read_bytes": 33058062336
+            },
+            {
+              "start": 40,
+              "end": 51,
+              "minimum_read_bytes": 35765354496
+            },
+            {
+              "start": 51,
+              "end": 63,
+              "minimum_read_bytes": 32038846464
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 10948,
+              "decode_hit_fraction": 0.5474537037037037,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5534908416.0,
+              "allocated_routed_bytes": 25767051264
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 10507,
+              "decode_hit_fraction": 0.5656828703703703,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5311954944.0,
+              "allocated_routed_bytes": 25767051264
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 10538,
+              "decode_hit_fraction": 0.564401455026455,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5327627410.285714,
+              "allocated_routed_bytes": 24461180928
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 10642,
+              "decode_hit_fraction": 0.5601025132275133,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5380206006.857142,
+              "allocated_routed_bytes": 24461180928
+            }
+          }
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 9444,
+          "simulated_lru_miss_bytes_per_decode_token": 4774541019.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 2853044224.0,
+          "offline_partition_minimum_decode_read_bytes": 160419938304,
+          "offline_partition_minimum_read_bytes_per_token": 2546348227.047619,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 24,
+              "minimum_read_bytes": 61828759552
+            },
+            {
+              "start": 24,
+              "end": 41,
+              "minimum_read_bytes": 45266501632
+            },
+            {
+              "start": 41,
+              "end": 63,
+              "minimum_read_bytes": 53324677120
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 9443,
+              "decode_hit_fraction": 0.6096643518518519,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 4774035456.0,
+              "allocated_routed_bytes": 34334834688
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 9281,
+              "decode_hit_fraction": 0.6163607804232805,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 4692134180.571428,
+              "allocated_routed_bytes": 34334834688
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 9314,
+              "decode_hit_fraction": 0.6149966931216931,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 4708817773.714286,
+              "allocated_routed_bytes": 32614907904
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 9351,
+              "decode_hit_fraction": 0.6134672619047619,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 4727523620.571428,
+              "allocated_routed_bytes": 32614907904
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "binary_search",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22709403648,
+          "median_routed_bytes": 19763232768.0,
+          "max_model_file_working_set_bytes": 49828119176
+        },
+        "4": {
+          "max_routed_bytes": 37105827840,
+          "median_routed_bytes": 32344178688.0,
+          "max_model_file_working_set_bytes": 64224543368
+        },
+        "8": {
+          "max_routed_bytes": 59241922560,
+          "median_routed_bytes": 53269954560.0,
+          "max_model_file_working_set_bytes": 86360638088
+        },
+        "16": {
+          "max_routed_bytes": 89499893760,
+          "median_routed_bytes": 84515291136.0,
+          "max_model_file_working_set_bytes": 116618609288
+        },
+        "32": {
+          "max_routed_bytes": 133453578240,
+          "median_routed_bytes": 127656787968.0,
+          "max_model_file_working_set_bytes": 160572293768
+        }
+      },
+      "cache_models": {
+        "4GiB": {
+          "routed_budget_bytes": 4294967296,
+          "whole_expert_capacity": 134,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 9207218176.0,
+          "offline_partition_minimum_decode_read_bytes": 517634392064,
+          "offline_partition_minimum_read_bytes_per_token": 8216418921.650794,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 1,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 1,
+              "end": 3,
+              "minimum_read_bytes": 17235968000
+            },
+            {
+              "start": 3,
+              "end": 5,
+              "minimum_read_bytes": 15961948160
+            },
+            {
+              "start": 5,
+              "end": 6,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 6,
+              "end": 7,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 7,
+              "end": 8,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 8,
+              "end": 9,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 9,
+              "end": 10,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 10,
+              "end": 11,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 11,
+              "end": 12,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 12,
+              "end": 13,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 13,
+              "end": 14,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 14,
+              "end": 15,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 15,
+              "end": 16,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 16,
+              "end": 18,
+              "minimum_read_bytes": 16853762048
+            },
+            {
+              "start": 18,
+              "end": 19,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 19,
+              "end": 20,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 20,
+              "end": 21,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 21,
+              "end": 22,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 22,
+              "end": 25,
+              "minimum_read_bytes": 25867452416
+            },
+            {
+              "start": 25,
+              "end": 26,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 26,
+              "end": 27,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 27,
+              "end": 28,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 28,
+              "end": 29,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 29,
+              "end": 31,
+              "minimum_read_bytes": 17586323456
+            },
+            {
+              "start": 31,
+              "end": 33,
+              "minimum_read_bytes": 16121200640
+            },
+            {
+              "start": 33,
+              "end": 34,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 34,
+              "end": 35,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 35,
+              "end": 36,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 36,
+              "end": 37,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 37,
+              "end": 38,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 38,
+              "end": 40,
+              "minimum_read_bytes": 15898247168
+            },
+            {
+              "start": 40,
+              "end": 42,
+              "minimum_read_bytes": 18414436352
+            },
+            {
+              "start": 42,
+              "end": 43,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 43,
+              "end": 44,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 44,
+              "end": 46,
+              "minimum_read_bytes": 17841127424
+            },
+            {
+              "start": 46,
+              "end": 47,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 47,
+              "end": 49,
+              "minimum_read_bytes": 18032230400
+            },
+            {
+              "start": 49,
+              "end": 51,
+              "minimum_read_bytes": 17044865024
+            },
+            {
+              "start": 51,
+              "end": 54,
+              "minimum_read_bytes": 26090405888
+            },
+            {
+              "start": 54,
+              "end": 55,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 55,
+              "end": 57,
+              "minimum_read_bytes": 16216752128
+            },
+            {
+              "start": 57,
+              "end": 59,
+              "minimum_read_bytes": 16121200640
+            },
+            {
+              "start": 59,
+              "end": 61,
+              "minimum_read_bytes": 16344154112
+            },
+            {
+              "start": 61,
+              "end": 62,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 62,
+              "end": 63,
+              "minimum_read_bytes": 7935623168
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 4267966464
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 19914,
+              "decode_hit_fraction": 0.17683531746031744,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 10067790116.571428,
+              "allocated_routed_bytes": 4267966464
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 20167,
+              "decode_hit_fraction": 0.16637731481481477,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 10195697664.0,
+              "allocated_routed_bytes": 4076863488
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 20036,
+              "decode_hit_fraction": 0.17179232804232802,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 10129468854.857143,
+              "allocated_routed_bytes": 4076863488
+            }
+          }
+        },
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7128973312.0,
+          "offline_partition_minimum_decode_read_bytes": 387677421568,
+          "offline_partition_minimum_read_bytes_per_token": 6153609866.1587305,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 4,
+              "minimum_read_bytes": 25999704064
+            },
+            {
+              "start": 4,
+              "end": 7,
+              "minimum_read_bytes": 16285302784
+            },
+            {
+              "start": 7,
+              "end": 9,
+              "minimum_read_bytes": 11157372928
+            },
+            {
+              "start": 9,
+              "end": 12,
+              "minimum_read_bytes": 16189751296
+            },
+            {
+              "start": 12,
+              "end": 16,
+              "minimum_read_bytes": 20425867264
+            },
+            {
+              "start": 16,
+              "end": 20,
+              "minimum_read_bytes": 24884936704
+            },
+            {
+              "start": 20,
+              "end": 25,
+              "minimum_read_bytes": 33548271616
+            },
+            {
+              "start": 25,
+              "end": 27,
+              "minimum_read_bytes": 11093671936
+            },
+            {
+              "start": 27,
+              "end": 31,
+              "minimum_read_bytes": 25872302080
+            },
+            {
+              "start": 31,
+              "end": 34,
+              "minimum_read_bytes": 17750425600
+            },
+            {
+              "start": 34,
+              "end": 36,
+              "minimum_read_bytes": 10743316480
+            },
+            {
+              "start": 36,
+              "end": 39,
+              "minimum_read_bytes": 17177116672
+            },
+            {
+              "start": 39,
+              "end": 42,
+              "minimum_read_bytes": 21222129664
+            },
+            {
+              "start": 42,
+              "end": 45,
+              "minimum_read_bytes": 19342950400
+            },
+            {
+              "start": 45,
+              "end": 49,
+              "minimum_read_bytes": 25776750592
+            },
+            {
+              "start": 49,
+              "end": 54,
+              "minimum_read_bytes": 35554852864
+            },
+            {
+              "start": 54,
+              "end": 57,
+              "minimum_read_bytes": 17909678080
+            },
+            {
+              "start": 57,
+              "end": 61,
+              "minimum_read_bytes": 25904152576
+            },
+            {
+              "start": 61,
+              "end": 63,
+              "minimum_read_bytes": 10838867968
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 8567783424
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 17414,
+              "decode_hit_fraction": 0.28017526455026454,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8803881545.142857,
+              "allocated_routed_bytes": 8567783424
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 17342,
+              "decode_hit_fraction": 0.283151455026455,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8767480978.285715,
+              "allocated_routed_bytes": 8153726976
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 17619,
+              "decode_hit_fraction": 0.27170138888888884,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8907522048.0,
+              "allocated_routed_bytes": 8153726976
+            }
+          }
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 15379,
+          "simulated_lru_miss_bytes_per_decode_token": 7775059968.0,
+          "max_window_miss_lower_bound_bytes_per_token": 6055231488.0,
+          "offline_partition_minimum_decode_read_bytes": 325226201088,
+          "offline_partition_minimum_read_bytes_per_token": 5162320652.190476,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 7,
+              "minimum_read_bytes": 35304898560
+            },
+            {
+              "start": 7,
+              "end": 12,
+              "minimum_read_bytes": 22373597184
+            },
+            {
+              "start": 12,
+              "end": 16,
+              "minimum_read_bytes": 16130899968
+            },
+            {
+              "start": 16,
+              "end": 20,
+              "minimum_read_bytes": 20589969408
+            },
+            {
+              "start": 20,
+              "end": 25,
+              "minimum_read_bytes": 29253304320
+            },
+            {
+              "start": 25,
+              "end": 31,
+              "minimum_read_bytes": 31610241024
+            },
+            {
+              "start": 31,
+              "end": 38,
+              "minimum_read_bytes": 33266466816
+            },
+            {
+              "start": 38,
+              "end": 45,
+              "minimum_read_bytes": 39095107584
+            },
+            {
+              "start": 45,
+              "end": 49,
+              "minimum_read_bytes": 21481783296
+            },
+            {
+              "start": 49,
+              "end": 57,
+              "minimum_read_bytes": 46134067200
+            },
+            {
+              "start": 57,
+              "end": 63,
+              "minimum_read_bytes": 29985865728
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15382,
+              "decode_hit_fraction": 0.3641699735449735,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7776576658.285714,
+              "allocated_routed_bytes": 12867600384
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15701,
+              "decode_hit_fraction": 0.3509837962962963,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7937851392.0,
+              "allocated_routed_bytes": 12867600384
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15356,
+              "decode_hit_fraction": 0.36524470899470896,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7763432009.142858,
+              "allocated_routed_bytes": 12230590464
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15899,
+              "decode_hit_fraction": 0.34279927248677244,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8037952950.857142,
+              "allocated_routed_bytes": 12230590464
+            }
+          }
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 15368,
+          "simulated_lru_miss_bytes_per_decode_token": 7769498770.285714,
+          "max_window_miss_lower_bound_bytes_per_token": 5257756672.0,
+          "offline_partition_minimum_decode_read_bytes": 284548268032,
+          "offline_partition_minimum_read_bytes_per_token": 4516639175.111111,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 8,
+              "minimum_read_bytes": 35500851200
+            },
+            {
+              "start": 8,
+              "end": 16,
+              "minimum_read_bytes": 29067051008
+            },
+            {
+              "start": 16,
+              "end": 28,
+              "minimum_read_bytes": 54547447808
+            },
+            {
+              "start": 28,
+              "end": 36,
+              "minimum_read_bytes": 37029675008
+            },
+            {
+              "start": 36,
+              "end": 44,
+              "minimum_read_bytes": 38208143360
+            },
+            {
+              "start": 44,
+              "end": 49,
+              "minimum_read_bytes": 22665101312
+            },
+            {
+              "start": 49,
+              "end": 57,
+              "minimum_read_bytes": 41839099904
+            },
+            {
+              "start": 57,
+              "end": 63,
+              "minimum_read_bytes": 25690898432
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15372,
+              "decode_hit_fraction": 0.36458333333333337,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7771521024.0,
+              "allocated_routed_bytes": 17167417344
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 14448,
+              "decode_hit_fraction": 0.4027777777777778,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7304380416.0,
+              "allocated_routed_bytes": 17167417344
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 14096,
+              "decode_hit_fraction": 0.4173280423280423,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7126422089.142858,
+              "allocated_routed_bytes": 16307453952
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 14650,
+              "decode_hit_fraction": 0.39442791005291,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7406504228.571428,
+              "allocated_routed_bytes": 16307453952
+            }
+          }
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 12868,
+          "simulated_lru_miss_bytes_per_decode_token": 6505590198.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 4184014848.0,
+          "offline_partition_minimum_decode_read_bytes": 234090135552,
+          "offline_partition_minimum_read_bytes_per_token": 3715716437.3333335,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 16,
+              "minimum_read_bytes": 53697183744
+            },
+            {
+              "start": 16,
+              "end": 31,
+              "minimum_read_bytes": 58793263104
+            },
+            {
+              "start": 31,
+              "end": 45,
+              "minimum_read_bytes": 53665333248
+            },
+            {
+              "start": 45,
+              "end": 63,
+              "minimum_read_bytes": 67934355456
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 12864,
+              "decode_hit_fraction": 0.46825396825396826,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6503567945.142858,
+              "allocated_routed_bytes": 25767051264
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12666,
+              "decode_hit_fraction": 0.4764384920634921,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6403466386.285714,
+              "allocated_routed_bytes": 25767051264
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 12319,
+              "decode_hit_fraction": 0.49078207671957674,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6228035876.571428,
+              "allocated_routed_bytes": 24461180928
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12804,
+              "decode_hit_fraction": 0.470734126984127,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6473234139.428572,
+              "allocated_routed_bytes": 24461180928
+            }
+          }
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 11257,
+          "simulated_lru_miss_bytes_per_decode_token": 5691127515.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 3446259712.0,
+          "offline_partition_minimum_decode_read_bytes": 199730397184,
+          "offline_partition_minimum_read_bytes_per_token": 3170323764.825397,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 16,
+              "minimum_read_bytes": 45107249152
+            },
+            {
+              "start": 16,
+              "end": 31,
+              "minimum_read_bytes": 50203328512
+            },
+            {
+              "start": 31,
+              "end": 45,
+              "minimum_read_bytes": 45075398656
+            },
+            {
+              "start": 45,
+              "end": 63,
+              "minimum_read_bytes": 59344420864
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 11250,
+              "decode_hit_fraction": 0.5349702380952381,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5687588571.428572,
+              "allocated_routed_bytes": 34334834688
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 11344,
+              "decode_hit_fraction": 0.531084656084656,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5735111533.714286,
+              "allocated_routed_bytes": 34334834688
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 11040,
+              "decode_hit_fraction": 0.5436507936507937,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5581420251.428572,
+              "allocated_routed_bytes": 32614907904
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 11463,
+              "decode_hit_fraction": 0.5261656746031746,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5795273581.714286,
+              "allocated_routed_bytes": 32614907904
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "short_story",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22964207616,
+          "median_routed_bytes": 19588055040.0,
+          "max_model_file_working_set_bytes": 50082923144
+        },
+        "4": {
+          "max_routed_bytes": 37870239744,
+          "median_routed_bytes": 31516065792.0,
+          "max_model_file_working_set_bytes": 64988955272
+        },
+        "8": {
+          "max_routed_bytes": 54751002624,
+          "median_routed_bytes": 50339708928.0,
+          "max_model_file_working_set_bytes": 81869718152
+        },
+        "16": {
+          "max_routed_bytes": 84626767872,
+          "median_routed_bytes": 78463696896.0,
+          "max_model_file_working_set_bytes": 111745483400
+        },
+        "32": {
+          "max_routed_bytes": 123516223488,
+          "median_routed_bytes": 118913826816.0,
+          "max_model_file_working_set_bytes": 150634939016
+        }
+      },
+      "cache_models": {
+        "4GiB": {
+          "routed_budget_bytes": 4294967296,
+          "whole_expert_capacity": 134,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 9334620160.0,
+          "offline_partition_minimum_decode_read_bytes": 514564292608,
+          "offline_partition_minimum_read_bytes_per_token": 8167687184.253968,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 1,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 1,
+              "end": 3,
+              "minimum_read_bytes": 17204117504
+            },
+            {
+              "start": 3,
+              "end": 4,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 4,
+              "end": 5,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 5,
+              "end": 7,
+              "minimum_read_bytes": 15993798656
+            },
+            {
+              "start": 7,
+              "end": 9,
+              "minimum_read_bytes": 17395220480
+            },
+            {
+              "start": 9,
+              "end": 10,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 10,
+              "end": 12,
+              "minimum_read_bytes": 16662659072
+            },
+            {
+              "start": 12,
+              "end": 13,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 13,
+              "end": 14,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 14,
+              "end": 15,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 15,
+              "end": 16,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 16,
+              "end": 17,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 17,
+              "end": 18,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 18,
+              "end": 20,
+              "minimum_read_bytes": 16598958080
+            },
+            {
+              "start": 20,
+              "end": 22,
+              "minimum_read_bytes": 16630808576
+            },
+            {
+              "start": 22,
+              "end": 24,
+              "minimum_read_bytes": 15961948160
+            },
+            {
+              "start": 24,
+              "end": 25,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 25,
+              "end": 26,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 26,
+              "end": 28,
+              "minimum_read_bytes": 16280453120
+            },
+            {
+              "start": 28,
+              "end": 29,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 29,
+              "end": 30,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 30,
+              "end": 31,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 31,
+              "end": 32,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 32,
+              "end": 33,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 33,
+              "end": 35,
+              "minimum_read_bytes": 16280453120
+            },
+            {
+              "start": 35,
+              "end": 36,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 36,
+              "end": 37,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 37,
+              "end": 38,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 38,
+              "end": 40,
+              "minimum_read_bytes": 18669240320
+            },
+            {
+              "start": 40,
+              "end": 41,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 41,
+              "end": 42,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 42,
+              "end": 43,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 43,
+              "end": 44,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 44,
+              "end": 45,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 45,
+              "end": 46,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 46,
+              "end": 47,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 47,
+              "end": 48,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 48,
+              "end": 49,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 49,
+              "end": 51,
+              "minimum_read_bytes": 17076715520
+            },
+            {
+              "start": 51,
+              "end": 52,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 52,
+              "end": 53,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 53,
+              "end": 54,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 54,
+              "end": 55,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 55,
+              "end": 56,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 56,
+              "end": 57,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 57,
+              "end": 59,
+              "minimum_read_bytes": 17554472960
+            },
+            {
+              "start": 59,
+              "end": 61,
+              "minimum_read_bytes": 18637389824
+            },
+            {
+              "start": 61,
+              "end": 62,
+              "minimum_read_bytes": 7935623168
+            },
+            {
+              "start": 62,
+              "end": 63,
+              "minimum_read_bytes": 7935623168
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 4267966464
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 19608,
+              "decode_hit_fraction": 0.18948412698412698,
+              "allocated_expert_slots": 134,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 9913087707.428572,
+              "allocated_routed_bytes": 4267966464
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 20041,
+              "decode_hit_fraction": 0.17158564814814814,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 10131996672.0,
+              "allocated_routed_bytes": 4076863488
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 19923,
+              "decode_hit_fraction": 0.1764632936507936,
+              "allocated_expert_slots": 128,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 10072340187.428572,
+              "allocated_routed_bytes": 4076863488
+            }
+          }
+        },
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7320076288.0,
+          "offline_partition_minimum_decode_read_bytes": 381539975168,
+          "offline_partition_minimum_read_bytes_per_token": 6056190082.031746,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 4,
+              "minimum_read_bytes": 26477461504
+            },
+            {
+              "start": 4,
+              "end": 7,
+              "minimum_read_bytes": 16922312704
+            },
+            {
+              "start": 7,
+              "end": 10,
+              "minimum_read_bytes": 19311099904
+            },
+            {
+              "start": 10,
+              "end": 12,
+              "minimum_read_bytes": 12367691776
+            },
+            {
+              "start": 12,
+              "end": 15,
+              "minimum_read_bytes": 17368219648
+            },
+            {
+              "start": 15,
+              "end": 18,
+              "minimum_read_bytes": 15903096832
+            },
+            {
+              "start": 18,
+              "end": 22,
+              "minimum_read_bytes": 25585647616
+            },
+            {
+              "start": 22,
+              "end": 26,
+              "minimum_read_bytes": 24279777280
+            },
+            {
+              "start": 26,
+              "end": 29,
+              "minimum_read_bytes": 19311099904
+            },
+            {
+              "start": 29,
+              "end": 32,
+              "minimum_read_bytes": 16380854272
+            },
+            {
+              "start": 32,
+              "end": 36,
+              "minimum_read_bytes": 24247926784
+            },
+            {
+              "start": 36,
+              "end": 39,
+              "minimum_read_bytes": 20616970240
+            },
+            {
+              "start": 39,
+              "end": 42,
+              "minimum_read_bytes": 16603807744
+            },
+            {
+              "start": 42,
+              "end": 45,
+              "minimum_read_bytes": 16731209728
+            },
+            {
+              "start": 45,
+              "end": 48,
+              "minimum_read_bytes": 16189751296
+            },
+            {
+              "start": 48,
+              "end": 52,
+              "minimum_read_bytes": 25681199104
+            },
+            {
+              "start": 52,
+              "end": 55,
+              "minimum_read_bytes": 15457189888
+            },
+            {
+              "start": 55,
+              "end": 57,
+              "minimum_read_bytes": 11284774912
+            },
+            {
+              "start": 57,
+              "end": 60,
+              "minimum_read_bytes": 22719102976
+            },
+            {
+              "start": 60,
+              "end": 63,
+              "minimum_read_bytes": 18100781056
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 24192,
+              "decode_hit_fraction": 0.0,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 12230590464.0,
+              "allocated_routed_bytes": 8567783424
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 17084,
+              "decode_hit_fraction": 0.29381613756613756,
+              "allocated_expert_slots": 269,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8637045613.714285,
+              "allocated_routed_bytes": 8567783424
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 17087,
+              "decode_hit_fraction": 0.29369212962962965,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8638562304.0,
+              "allocated_routed_bytes": 8153726976
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 17237,
+              "decode_hit_fraction": 0.2874917328042328,
+              "allocated_expert_slots": 256,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 8714396818.285715,
+              "allocated_routed_bytes": 8153726976
+            }
+          }
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 15105,
+          "simulated_lru_miss_bytes_per_decode_token": 7636535588.571428,
+          "max_window_miss_lower_bound_bytes_per_token": 6246334464.0,
+          "offline_partition_minimum_decode_read_bytes": 316722118656,
+          "offline_partition_minimum_read_bytes_per_token": 5027335216.761905,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 5,
+              "minimum_read_bytes": 26864517120
+            },
+            {
+              "start": 5,
+              "end": 12,
+              "minimum_read_bytes": 36005609472
+            },
+            {
+              "start": 12,
+              "end": 18,
+              "minimum_read_bytes": 28138536960
+            },
+            {
+              "start": 18,
+              "end": 25,
+              "minimum_read_bytes": 36674469888
+            },
+            {
+              "start": 25,
+              "end": 31,
+              "minimum_read_bytes": 31132483584
+            },
+            {
+              "start": 31,
+              "end": 36,
+              "minimum_read_bytes": 24794234880
+            },
+            {
+              "start": 36,
+              "end": 40,
+              "minimum_read_bytes": 22118793216
+            },
+            {
+              "start": 40,
+              "end": 45,
+              "minimum_read_bytes": 21004025856
+            },
+            {
+              "start": 45,
+              "end": 53,
+              "minimum_read_bytes": 37725536256
+            },
+            {
+              "start": 53,
+              "end": 57,
+              "minimum_read_bytes": 18137481216
+            },
+            {
+              "start": 57,
+              "end": 63,
+              "minimum_read_bytes": 34126430208
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15105,
+              "decode_hit_fraction": 0.37562003968253965,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7636535588.571428,
+              "allocated_routed_bytes": 12867600384
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15173,
+              "decode_hit_fraction": 0.37280919312169314,
+              "allocated_expert_slots": 404,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7670913901.714286,
+              "allocated_routed_bytes": 12867600384
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15076,
+              "decode_hit_fraction": 0.376818783068783,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7621874249.142858,
+              "allocated_routed_bytes": 12230590464
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 15412,
+              "decode_hit_fraction": 0.3629298941798942,
+              "allocated_expert_slots": 384,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7791743561.142858,
+              "allocated_routed_bytes": 12230590464
+            }
+          }
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 15100,
+          "simulated_lru_miss_bytes_per_decode_token": 7634007771.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 5172592640.0,
+          "offline_partition_minimum_decode_read_bytes": 274184404992,
+          "offline_partition_minimum_read_bytes_per_token": 4352133412.571428,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 5,
+              "minimum_read_bytes": 22569549824
+            },
+            {
+              "start": 5,
+              "end": 12,
+              "minimum_read_bytes": 31710642176
+            },
+            {
+              "start": 12,
+              "end": 18,
+              "minimum_read_bytes": 23843569664
+            },
+            {
+              "start": 18,
+              "end": 25,
+              "minimum_read_bytes": 32379502592
+            },
+            {
+              "start": 25,
+              "end": 32,
+              "minimum_read_bytes": 31073632256
+            },
+            {
+              "start": 32,
+              "end": 38,
+              "minimum_read_bytes": 24385028096
+            },
+            {
+              "start": 38,
+              "end": 45,
+              "minimum_read_bytes": 29958864896
+            },
+            {
+              "start": 45,
+              "end": 54,
+              "minimum_read_bytes": 37125226496
+            },
+            {
+              "start": 54,
+              "end": 63,
+              "minimum_read_bytes": 41138388992
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 15101,
+              "decode_hit_fraction": 0.3757853835978836,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7634513334.857142,
+              "allocated_routed_bytes": 17167417344
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 13861,
+              "decode_hit_fraction": 0.4270419973544973,
+              "allocated_expert_slots": 539,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7007614683.428572,
+              "allocated_routed_bytes": 17167417344
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 13687,
+              "decode_hit_fraction": 0.4342344576719577,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6919646646.857142,
+              "allocated_routed_bytes": 16307453952
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 14075,
+              "decode_hit_fraction": 0.4181960978835979,
+              "allocated_expert_slots": 512,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 7115805257.142858,
+              "allocated_routed_bytes": 16307453952
+            }
+          }
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 12182,
+          "simulated_lru_miss_bytes_per_decode_token": 6158773686.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 3678560256.0,
+          "offline_partition_minimum_decode_read_bytes": 216665161728,
+          "offline_partition_minimum_read_bytes_per_token": 3439129551.2380953,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 12,
+              "minimum_read_bytes": 43377623040
+            },
+            {
+              "start": 12,
+              "end": 26,
+              "minimum_read_bytes": 48919609344
+            },
+            {
+              "start": 26,
+              "end": 40,
+              "minimum_read_bytes": 50448433152
+            },
+            {
+              "start": 40,
+              "end": 54,
+              "minimum_read_bytes": 41371041792
+            },
+            {
+              "start": 54,
+              "end": 63,
+              "minimum_read_bytes": 32548454400
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 12181,
+              "decode_hit_fraction": 0.49648644179894175,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6158268123.428572,
+              "allocated_routed_bytes": 25767051264
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12000,
+              "decode_hit_fraction": 0.503968253968254,
+              "allocated_expert_slots": 809,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6066761142.857142,
+              "allocated_routed_bytes": 25767051264
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 11742,
+              "decode_hit_fraction": 0.5146329365079365,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5936325778.285714,
+              "allocated_routed_bytes": 24461180928
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 12123,
+              "decode_hit_fraction": 0.4988839285714286,
+              "allocated_expert_slots": 768,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 6128945444.571428,
+              "allocated_routed_bytes": 24461180928
+            }
+          }
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 10495,
+          "simulated_lru_miss_bytes_per_decode_token": 5305888182.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 3141689344.0,
+          "offline_partition_minimum_decode_read_bytes": 180301594624,
+          "offline_partition_minimum_read_bytes_per_token": 2861930073.3968253,
+          "offline_partition_max_segment_tokens": 64,
+          "offline_partition_segments": [
+            {
+              "start": 0,
+              "end": 12,
+              "minimum_read_bytes": 34787688448
+            },
+            {
+              "start": 12,
+              "end": 26,
+              "minimum_read_bytes": 40329674752
+            },
+            {
+              "start": 26,
+              "end": 45,
+              "minimum_read_bytes": 53579481088
+            },
+            {
+              "start": 45,
+              "end": 63,
+              "minimum_read_bytes": 51604750336
+            }
+          ],
+          "online_policy_models": {
+            "global_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 10487,
+              "decode_hit_fraction": 0.56650958994709,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5301843675.428572,
+              "allocated_routed_bytes": 34334834688
+            },
+            "global_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 10533,
+              "decode_hit_fraction": 0.5646081349206349,
+              "allocated_expert_slots": 1078,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5325099593.142858,
+              "allocated_routed_bytes": 34334834688
+            },
+            "per_layer_group_lru": {
+              "decode_accesses": 24192,
+              "decode_misses": 10327,
+              "decode_hit_fraction": 0.5731233465608465,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5220953526.857142,
+              "allocated_routed_bytes": 32614907904
+            },
+            "per_layer_group_lfu": {
+              "decode_accesses": 24192,
+              "decode_misses": 10639,
+              "decode_hit_fraction": 0.5602265211640212,
+              "allocated_expert_slots": 1024,
+              "uses_future_routes": false,
+              "admission": "completed_or_current_route_group",
+              "prefill_warming": "per_layer_unique_expert_visits",
+              "simulated_read_bytes_per_token": 5378689316.571428,
+              "allocated_routed_bytes": 32614907904
+            }
+          }
+        }
+      }
+    }
+  ],
+  "measured_decode_throughput": false
+}

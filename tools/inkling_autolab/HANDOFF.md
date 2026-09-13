@@ -205,3 +205,25 @@ is not held during either. Full successful reads overwrite all bytes; errors
 cannot expose stale contents. Direct mapped execution takes precedence and
 prefill retains its prior hints.218 local tests and220 MSVC tests passed.
 Native full-read-buffers.exe is QUALIFIED and currently running036.
+
+## Pending disk probe and cache analysis
+
+037 online cache models and whole-trace offline bounds are saved. Eight tests
+passed, including an exhaustive tiny optimal-paging oracle. Global LFU4GiB
+simulates9.51–10.07GB routed reads/token; best8GiB policies7.96–8.77GB/token.
+This is not evidence that adding private cache outperforms the OS cache.
+Offline16GiB bound3.95–4.52GB/token excludes shared/fixed work. Use whole-trace
+partition bounds for average throughput; worst-window bounds alone do not
+bound a whole-generation average.
+
+**038 uncached-read probe is QUEUED**, parent2348. State
+`uncached-probe-state.json`, log`uncached-read-probe.log`, output
+`uncached-read-probe.json`. Waits at most2hours for036's nine verified samples
+and all task full processes to exit, then runs a small canary and12 SHA-checked
+component cohorts. Do NOT start another full run/build before this probe is
+terminal. It holds baseline-queue.lock only while probing, and never changes
+model files or flushes caches. Native overlap refusal passed; data/canary tests
+have not run yet. Sources consulted are linked in the probe/JOURNAL.
+
+036 first two case rates0.199603 and0.198590tok/s, exact IDs. All repetitions
+remain pending; primary repeated record is still0.1353339381tok/s.

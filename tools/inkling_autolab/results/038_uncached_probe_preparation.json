@@ -1,0 +1,17 @@
+{
+  "scope": "uncached_read_probe_preparation",
+  "component_measurement_run": false,
+  "full_model_speedup_measured": false,
+  "native_overlap_guard_passed": true,
+  "probe_parent_pid": 2348,
+  "waits_for": "nine verified036 samples and no live full task processes",
+  "logical_sector_bytes": 512,
+  "physical_sector_bytes": 4096,
+  "sector_info_source": "fsutil fsinfo sectorinfo C:",
+  "validation_before_measurement": [
+    "exact65536-byte cached/uncached reads",
+    "missing/short file rejection",
+    "misaligned destination rejection"
+  ],
+  "production_uncached_read_path_implemented": false
+}

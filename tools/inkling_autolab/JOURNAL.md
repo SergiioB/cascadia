@@ -897,3 +897,48 @@ three prompts x3 repetitions,64 generatedtokens (63 decode), same full reference
 hash/IDs. Capture routes/layer times/resources. Timeout7200s. Campaign launched;
 controller log/private/tmp/inkling-full-buffered-campaign.log, tool session88421.
 No other benchmark/build may run concurrently.25tok/s remains unmet.
+
+## 37 hypothesis — avoid whole-model cache scan thrashing
+
+Compare causal, group-aware global/per-layer LRU and LFU using the actual034
+routes; no future IDs enter admission. Uniform layer quotas leave remainder
+slots unused and report their actual allocation. Selected-set hits are checked
+before admission; temporary read workspace is additional to cache capacity.
+Also derive a separate OFFLINE whole-trace read lower bound by summing disjoint
+segment (union minus cache) bounds. A worst-window average alone must not be
+misreported as a whole-generation average. Eight analytical tests pass, including
+exhaustive optimal paging checks for all81 four-step traces over three experts.
+
+Results037: global LFU4GiB simulates9.51–10.07GB routed reads/token versus12.23GB
+for global LRU. At8GiB the tested best policies read7.96–8.77GB/token; at16GiB
+6.24–7.13GB/token. No measured inference gain; OS caching can overlap these gains,
+and extra private cache would compete for RAM with fixed weights/other services.
+The optimistic whole-trace bound at16GiB is3.95–4.52GB/token (routed experts only).
+25tok/s would need99–113GB/s of routed reads under that cache budget, before
+shared/fixed work. Policy tuning alone cannot plausibly close the target gap.
+
+036 first water_cycle sample:63 steps in315.6259865s =0.19960333tok/s, exact IDs;
+26.28% above034's same case. Early resource window has~257 process faults/s,
+private22.063GB and6.84 CPU core-equivalents,89.7% kernel. Window timing is not
+whole-run attribution; repetitions are still active and target remains unmet.
+
+## 38 hypothesis — avoid Windows cache-manager overhead for cold experts
+
+With allocation faults removed, kernel CPU remains high. Prepare a guarded
+byte-verified comparison of cached and FILE_FLAG_NO_BUFFERING ReadFile calls
+using identical aligned reusable buffers and otherwise identical native APIs.
+Use disjoint experts outside prior component cohorts and observed034 routes;
+record actual sector alignment, CPU/disk counters and natural cache conditions.
+Do not run until036's nine verified samples finish and its process exits.
+No production uncached path or full-model benefit claimed in advance.
+Microsoft references: https://learn.microsoft.com/en-us/windows/win32/fileio/file-buffering
+and https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_storage_info .
+
+038 preparation: PTL reports logical sectors512B,physical4096B, aligned device
+and partition. The native overlap guard refused while036 was active, before
+buffer allocation or expert reads. A bounded waiting probe is queued under
+parent2348; uncached-probe-state.json records its state. It will validate a
+small disposable file, missing/short inputs and misalignment, then measure12
+disjoint255MB cohorts with SHA checks. It shares the native task lock while
+probing. No component measurement has run yet. Repeated036 remains active;
+its second case is0.198590tok/s with exact tokens, not yet a repeated record.
