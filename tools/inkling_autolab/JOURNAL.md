@@ -783,3 +783,10 @@ Preparation checks passed: exact reusable bytes, short reads, premature EOF
 and trailing bytes. The deployed Windows script rejected --after-baseline
 while the full run was active, before allocating the pool or reading experts.
 No component measurement or production pool implementation has run yet.
+
+Prepared four explicit full-model profiles (baseline, direct, tiles, mapped)
+instead of the old eight-way Cartesian template. All use the same qualified
+full-mmap-embed.exe; only the intended read/row/embedding knobs vary. Template
+parses as four experiments. The baseline hash remains an explicit placeholder,
+so no full campaign is launched prematurely. The first actual campaign can
+select only the candidates justified by the component/diagnostic measurements.

@@ -74,6 +74,17 @@ The new mode requires BOTH baseline success and native qualification success,
 and refuses active full binaries. Local readinto short/truncated/extra-data
 checks passed. This is a component hypothesis, not a production change.
 
+## Full campaign preparation
+
+`compare-full.ps1` names four exact profiles: baseline (reads0/rows1/1), direct
+(reads1/rows1/1), tiles (reads1/rows2/4), mapped (tiles + mapped embedding).
+All use full-mmap-embed.exe from the same build. The template parses as four
+experiments; baseline hash is still a placeholder. Do not launch until baseline
+review and qualification complete. Validate wrapper fixture output before the
+first actual campaign; select only justified candidate arms to avoid redundant
+80-minute controls. Capture routes/timings with the qualified profiling binary
+and retain correctness/step/repetition gates for any target claim.
+
 ## Lambda rental release readiness
 
 Provider confirmed **Lambda.ai**, **no persistent filesystem attached**. All

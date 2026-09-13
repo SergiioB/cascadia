@@ -10,23 +10,18 @@ runner:
   host: inkling-ptl-direct
   user: devcloud
   timeout_seconds: 14400
-  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1
-    -Model "{model}" -Cases "{cases}" -Reads {reads} -Bf16Rows {bf16_rows} -Int4Rows
-    {int4_rows} -Tokens 64 -Samples 3
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/compare-full.ps1
+    -Model "{model}" -Cases "{cases}" -Arm {arm} -Tokens 64 -Samples 3
 defaults:
   model: C:/Users/devcloud/inkling-autolab/model
   cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
   expected_hash: REPLACE_WITH_REAL_BASELINE_HASH
 grid:
-  reads:
-  - 0
-  - 1
-  bf16_rows:
-  - 1
-  - 2
-  int4_rows:
-  - 1
-  - 4
+  arm:
+  - baseline
+  - direct
+  - tiles
+  - mapped
 metrics:
   primary: decode_tokens_per_s
   direction: maximize
@@ -47,6 +42,12 @@ metrics:
     type: int
   - name: repetitions
     pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: actual_arm
+    pattern: (?m)^arm=([a-z]+)
+    type: str
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
     type: int
 stopping:
   window: 100000
