@@ -3,7 +3,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
       [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
       [string]$Binary='full-decode.exe', [string]$RouteTrace='',
-      [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0,
+      [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0, [string]$Log='',
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
@@ -28,12 +28,22 @@ if ($Out) { $benchArgs += @('--out', "`"$Out`"") }
 if ($RouteTrace) { $benchArgs += @('--route-trace', "`"$RouteTrace`"") }
 if ($LayerProfile) { $benchArgs += @('--layer-profile', "`"$LayerProfile`"") }
 if ($AllowFixture) { $benchArgs += '--allow-fixture' }
-$p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassThru -NoNewWindow
+$startOptions = @{}
+if ($Log) {
+    if ((Test-Path $Log) -or (Test-Path "$Log.stderr")) { throw "Refusing to overwrite benchmark log: $Log" }
+    $startOptions.RedirectStandardOutput = $Log
+    $startOptions.RedirectStandardError = "$Log.stderr"
+}
+$p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassThru -NoNewWindow @startOptions
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
     "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed"
     $p.WaitForExit()
+    if ($Log) {
+        Get-Content -LiteralPath $Log -Encoding UTF8
+        Get-Content -LiteralPath "$Log.stderr" -Encoding UTF8 | ForEach-Object { [Console]::Error.WriteLine($_) }
+    }
     exit $p.ExitCode
 } finally {
     if (!$p.HasExited) { $p.Kill(); $p.WaitForExit() }

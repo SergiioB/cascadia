@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "baseline",
+    "hash": "1f7cd0eb14a22662",
+    "embedding_mapped": false,
+    "verified": true
+  },
+  {
+    "arm": "direct",
+    "hash": "1f7cd0eb14a22662",
+    "embedding_mapped": false,
+    "verified": true
+  },
+  {
+    "arm": "tiles",
+    "hash": "1f7cd0eb14a22662",
+    "embedding_mapped": false,
+    "verified": true
+  },
+  {
+    "arm": "mapped",
+    "hash": "1f7cd0eb14a22662",
+    "embedding_mapped": true,
+    "verified": true
+  }
+]

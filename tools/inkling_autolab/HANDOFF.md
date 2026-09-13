@@ -7,7 +7,7 @@ PTL machine**, not a component rate, aggregate throughput or remote inference.
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `b1b87a4f` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `3576be3f` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,90 +65,68 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Active native jobs (refresh before any action):
+Current state (refresh native processes before any new benchmark):
 
-- **Baseline queue Python3856**, original parentcmd7388.
-- **Long baseline full-decode.exe7340**, launcher10976, created1789332956.0200448.
-- **Host sampler Python2208**, parentcmd8336, every10s to `host-resources.jsonl`.
-- **Mapped embedding qualification Python7892**, parentcmd596, currently waiting
-  for successful baseline completion AND its task lock. Read
-  `mmap-qualification-state.json` before ANY competing full run/build.
-- No Autolab controller campaign currently running. ResultsDB has90 experiments
-  across13 completed campaigns. Later numbered reports are manual bounded
-  experiments, not falsely inserted into that database.
+- Baseline queue3856/full-decode7340 and sampler2208 have ended.
+- Native mapped qualification7892 ended successfully:216 MSVC tests passed.
+- Buffer reuse probe completed30 byte-verified samples. No production pool yet.
+- First diagnostic campaign034 is being launched; see `.autolab/state.json`
+  and controller log `/private/tmp/inkling-full-direct-campaign.log`.
+- New bounded sampler uses `host-trials-resources.jsonl`, follow-trials mode,
+ 6 hours, stop marker `stop-trials-sampler`. Record PIDs after launch.
 
-Baseline status: `baseline-queue-state.json`; log `large-baseline.log` emits
-one `sample_json=` per completed case. Three prompts ×64 generated tokens ×3
-repetitions, roughly80–90 minutes total at current speed. Initial load29.913s.
-Frozen `full-decode.exe` SHA256:
+## Baseline and qualified candidates
+
+Full baseline: **0.13533393807754676 tok/s**, the slowest of nine samples,
+three prompts x three repetitions,63 decode steps each. Hash
+**ce0fbb9a116d3d09**; repeated logits and greedy IDs match. All three generated
+texts reviewed and coherent; fixed64-token cap truncates longer responses.
+Initial baseline has no supplied reference IDs, so correctness_verified=false;
+subsequent candidates must match its saved IDs and full-logits hash.
+Artifacts033 are copied locally; native reference:
+`large-cases.baseline-reference.json`. Frozen full-decode.exe SHA:
 `f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a`.
-Original profile reads0, BF16rows1, int4rows1, Rayon16, parallel experts,
-affinity65535, High priority. Do not change this active process.
+Baseline reads0, rows1/1, unmapped embedding, Rayon16, affinity65535, High.
+Load29.913s. Smoke was only0.109008tok/s over3 steps, not the long record.
 
-Smoke passed: exact **Paris**, hash8d8398585d6ee7ea, load37.309s,
-prefill81.483s, decode27.521s /3 steps = **0.109008 tok/s**. Short smoke only.
-First full-length pass,63 decode steps each: water_cycle **0.141965**,
-binary_search **0.135469**, short_story **0.138188** tok/s. Water_cycle rep1
-**0.140173**, binary_search rep1 **0.139875**, both with identical greedy IDs.
-Seven of nine samples complete at last check; all repeated greedy IDs match.
-The final binary_search and short_story repetitions remain pending.
-No final repeatability hash/qualifying throughput result yet.
+New **full-mmap-embed.exe** qualified with216 native tests and all8 HF greedy
+IDs x3 repetitions; fixture hash1f7cd0eb14a22662 in all four wrapper arms.
+SHA **95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d**.
+Mapped embedding is opt-in/defaultoff. It avoids the private ~2.47GB copy;
+head remains resident. No full-model memory/speed result yet.217 local tests
+passed separately (ARM fixture hash5122e042f9b1fb30).
 
-The queue will write `large-baseline.json`, `large-baseline-text.json`,
-`large-cases.baseline-reference.json` and terminal
-`baseline_recorded_needs_review`. Review text, exact repeated IDs/hash and
->=32 steps before configuring the full campaign. Initial baseline has no
-supplied greedy IDs and therefore reports correctness_verified=false.
+Resource baseline window(result028): ~5.29 CPU core-equivalents,84.7% kernel,
+2.108GB/s machine disk reads,518k process faults/s including soft faults;
+RAM available briefly7.58MB. Machine I/O is not exclusively attributed to model.
+Do not stop protected services to free RAM.
 
-Resource sample (result028): ~5.29 CPU core-equivalents,84.7% in kernel,
-2.108 GB/s machine-wide disk reads,518k process faults/s including soft faults.
-Available RAM briefly7.58 MB, working-set peak43GB, pagefile use~3.54GB.
-Machine I/O is not attributed exclusively to model; not all faults hit disk.
-Do not sacrifice protected services to free memory.
+Buffer probe030: fresh reads36.872ms versus reused33.714ms for255MB batches,
+~9.4% throughput improvement; process faults62,390.5 versus53 median. Both
+read~253.755MB from machine disk. Setup46.930ms separately; no full inference
+speedup established. Fresh+prefetch48.550ms, reused+prefetch43.566ms,
+prefetch+mapped-copy55.973ms. Conditions differ from transfer-active023/024.
 
-## Prepared next tests
+## Next full trials
 
-1. Let the baseline finish. Qualification7892 then builds/tests separate
-   **full-mmap-embed.exe**, verifies frozen binary SHA and fixture hashes,
-   writes `mmap-qualification-state.json`, then exits. It does not launch a
-   full performance trial. Logs: `test-mmap-embed.log`, `mmap-qualification.log`.
-   Failure stops the sequence; inspect it. Never overwrite a frozen binary.
-2. Mapped embedding candidate (`4e9a427a`) is opt-in
-   `CASCADIA_INKLING_MMAP_EMBED=1`, defaultoff. It maps the sparse ~2.47GB BF16
-   embedding and keeps the head resident. Shape/range/alignment/lifetime checks;
-   non-BF16/unaligned tensors use existing copied conversion. **217 local tests
-   passed**, all8 HF greedy IDs ×3 reps match, full-logits hash5122e042f9b1fb30
-   (ARM debug fixture only). Native MSVC qualification still pending.
-   Frozen Windows fixture hash is **1f7cd0eb14a22662**. No measured full speedup.
-3. `prefetch-set-probe.py --buffered --reuse-buffered --after-baseline --out FILE`
-   compares fresh/reused bulk-read buffers and mapped-copy controls. Its guard
-   requires baseline+qualification success and no active full binary. Eight
-   31.85MB reusable buffers, setup outside steady-state timing, SHA checks and
-   process fault counters. Use repeated --exclude-report for prior023/024
-   cohorts. Local exact/short/truncated/trailing-byte checks and native overlap
-   refusal passed. Source is deployed. **New component measurement not run.**
-4. Validate the deployed `compare-full.ps1` against the fixture after native
-   qualification. PowerShell syntax checks already passed. It uses the same
-   full-mmap-embed.exe for named profiles: baseline(reads0/rows1/1),
-   direct(reads1/rows1/1), tiles(reads1/rows2/4), mapped(tiles+mapped embed).
-   The full-model campaign template parses as four experiments but still has
-   a placeholder expected hash. Select only justified candidates in the actual
-   new campaign, avoiding redundant80-minute controls.
-5. Collect real **routing + layer timings** with a full model and reference IDs.
-   `run-full.ps1 -Binary full-mmap-embed.exe -RouteTrace FILE -LayerProfile FILE`
-   supports both; explicit -MmapEmbed0/1. Older qualified full-profile.exe also
-   supports both (SHA437c7134198fd99b167e45ab76e4cd1c963bc7af8d17e43215de985c13ea6386).
-   Keep all3 cases and64 tokens; Samples1 diagnostic retains the same aggregate
-   baseline hash but cannot satisfy the3-repetition25tok/s target gate.
-   `analyze-routing.py --require-full` and `analyze-layer-profile.py --require-full`
-   are prepared; no real full routing/timing trace yet. Restart sampler after the original exits, with a NEW output filename plus
-   `--follow-trials --stop-file C:/Users/devcloud/inkling-autolab/stop-trial-sampler
-   --hours 6`. This mode survives idle gaps between trials. Create its unique
-   stop marker when the campaign ends. Native isolated canary passed; report032.
-6. Use Autolab run_campaign.py with actual reference cases/hash. Full target
-   gate requires exact baseline hash, full975B scope, expected greedy IDs,
-   >=32 decode steps, >=3 reps, slowest case/repetition >=25tok/s.
-   Wrapper saves raw results and refuses failed/invalid/incomplete promotion.
+`campaigns/034_full_direct_diagnostics.yaml` tests direct mapped execution,
+rows1/1, embedding mapping off. Same three reference cases,64 tokens,1 rep;
+expected full hashce0fbb9a116d3d09. Routing, layer timings, result and persistent
+stdout log use034-direct* under the native root. One rep is diagnostic and
+cannot satisfy the3-repetition target. Timeout3600s. Autolab runner saves
+portable results and rejects hash/ID failures. Only one campaign at a time.
+
+`compare-full.ps1` uses the same qualified binary for baseline(reads0/rows1/1),
+direct(reads1/rows1/1), tiles(reads1/rows2/4), mapped(tiles+mapped embedding).
+All four fixture wrapper arms passed. Optional -Log refuses existing logs,
+saves native progress and replays stdout for Autolab metric parsing.
+
+When034 ends, copy JSON/routes/layers, analyze via analyze-routing.py and
+analyze-layer-profile.py --require-full, then choose the next candidate from
+measured bottlenecks. Do not invent cache/speculative speedups. Confirm the
+winning candidate over3 reps before promoting a full record. Stop the sampler
+by creating its marker when the campaign sequence ends; it never stops jobs.
+No Lambda/new export needed for current tests. Target remains unmet.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads

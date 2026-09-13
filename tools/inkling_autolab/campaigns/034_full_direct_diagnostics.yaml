@@ -1,0 +1,54 @@
+version: 1
+name: 034_full_direct_diagnostics
+hypothesis: Direct mapped expert execution removes repeated bulk-read allocations
+  under real paging while preserving full-model logits.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q13
+moonshot: false
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 3600
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/compare-full.ps1
+    -Model "{model}" -Cases "{cases}" -Arm {arm} -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/034-direct.json
+    -RouteTrace C:/Users/devcloud/inkling-autolab/034-direct-routes.json -LayerProfile
+    C:/Users/devcloud/inkling-autolab/034-direct-layers.json -Log C:/Users/devcloud/inkling-autolab/034-direct.log
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  arm:
+  - direct
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: actual_arm
+    pattern: (?m)^arm=([a-z]+)
+    type: str
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2

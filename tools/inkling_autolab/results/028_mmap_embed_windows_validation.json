@@ -1,0 +1,169 @@
+{
+  "scope": "mapped_embedding_windows_qualification",
+  "tests_passed": 216,
+  "test_target_counts": [
+    139,
+    15,
+    15,
+    5,
+    7,
+    17,
+    11,
+    6,
+    1
+  ],
+  "state": {
+    "status": "qualified_needs_full_trial",
+    "pid": 7892,
+    "unix": 1789338107.8568046,
+    "fixture_hash": "1f7cd0eb14a22662",
+    "binary_sha256": "95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d",
+    "full_model_speedup_measured": false
+  },
+  "plain": {
+    "correctness_verified": true,
+    "embedding_mapped": false,
+    "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+    "manifest": {
+      "experts": 8,
+      "hidden": 64,
+      "layers": 4
+    },
+    "output_hash": "1f7cd0eb14a22662",
+    "samples": [
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0090256,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0139723,
+        "repetition": 0
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0078205,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0112104,
+        "repetition": 1
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0076028,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0117652,
+        "repetition": 2
+      }
+    ],
+    "scope": "fixture_model_decode",
+    "slowest_case_decode_tokens_per_s": 775.5717071441234
+  },
+  "mapped": {
+    "correctness_verified": true,
+    "embedding_mapped": true,
+    "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+    "manifest": {
+      "experts": 8,
+      "hidden": 64,
+      "layers": 4
+    },
+    "output_hash": "1f7cd0eb14a22662",
+    "samples": [
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0054268,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0108555,
+        "repetition": 0
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0047585,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0080275,
+        "repetition": 1
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_seconds": 0.0049924,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_seconds": 0.0092374,
+        "repetition": 2
+      }
+    ],
+    "scope": "fixture_model_decode",
+    "slowest_case_decode_tokens_per_s": 1289.8945971843443
+  },
+  "compiler_log": [
+    "**********************************************************************",
+    "** Visual Studio 2022 Developer Command Prompt v17.14.37",
+    "** Copyright (c) 2025 Microsoft Corporation",
+    "**********************************************************************",
+    "[vcvarsall.bat] Environment initialized for: 'x64'",
+    "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "binary: rustc",
+    "commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985",
+    "commit-date: 2026-09-01",
+    "host: x86_64-pc-windows-msvc",
+    "release: 1.98.1",
+    "LLVM version: 22.1.8"
+  ]
+}

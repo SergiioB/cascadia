@@ -817,3 +817,31 @@ code; use a new output/stop marker when starting the campaign sampler.
 Buffer probe timing refinement before measurement: both fresh and reusable
 read paths open/close the file inside the timer. Only destination storage is
 reused; preopened mapping handles are not an extra advantage for the candidate.
+
+## 33 full baseline complete and reviewed
+
+All nine samples completed,63 decode steps each, three prompts x three repeats.
+Slowest rate **0.1353339381 tok/s**, full-logits hash **ce0fbb9a116d3d09**.
+Repeated logits and greedy IDs match. All three texts were reviewed and are
+coherent; fixed64-token generation intentionally truncates these longer answers.
+Initial baseline has no supplied greedy IDs and reports correctness_verified=false;
+its saved reference cases/hash now gate subsequent changes.25tok/s remains unmet.
+
+## 34 hypothesis — direct reads remove repeated buffer allocation during decode
+
+First full candidate uses the qualified new binary, direct reads, rows1/1,
+mapped embedding off. Keep all three reference cases and64 generated tokens,
+with one repetition for initial diagnosis. Capture routing and layer timing;
+require the exact full baseline hash and reference IDs. One repetition cannot
+satisfy the25tok/s target gate. Promote only after full repeated validation.
+
+Native qualification completed:216 tests passed, plain/mapped fixture hash
+1f7cd0eb14a22662 and all expected IDs match. All four comparison-wrapper arms
+also match; actual embedding_mapped agrees with the selected arm (result033).
+
+Buffer probe030 completed30 samples, all SHA verified. Reused buffers reduce
+median faults from62,390.5 to53 per255MB batch, while time improves36.872ms to
+33.714ms (~9.4% throughput). Machine disk bytes remain253.755MB median. Setup
+46.930ms excluded/reported. Prefetch hurts these buffered reads. This supports
+allocation-churn reduction but no full-model speedup yet; earlier transfer-active
+component timings are not a controlled cross-run comparison.

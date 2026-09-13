@@ -1,0 +1,14 @@
+[
+  {
+    "case": "water_cycle",
+    "text": "1. The sun heats bodies of water like oceans, lakes, and rivers, causing liquid water to turn into invisible water vapor. This process is called evaporation, and it sends moisture rising into the atmosphere.\n\n2. As the water vapor rises higher into the sky, it cools and transforms back into tiny liquid droplets"
+  },
+  {
+    "case": "binary_search",
+    "text": "**Binary search** is an efficient algorithm for finding a specific value (the *target*) within a sorted collection. Instead of checking every element one-by-one, it repeatedly divides the search space in half.\n\n---\n\n### 1. Core Assumptions\nFor binary search to work correctly, the data must be:\n"
+  },
+  {
+    "case": "short_story",
+    "text": "The bottle arrived with the tide, wedged between barnacled rocks at the lighthouse\u2019s base. Elias, keeper for thirty years, recognized the green glass immediately\u2014antique, thick-lipped, sealed with wax blackened by salt and time.\n\nInside, the paper was dry, miraculously. The ink"
+  }
+]
