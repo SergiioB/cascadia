@@ -864,3 +864,9 @@ reuse and reuse-without-hints fixture modes all match the prior ARM-debug hash
 5122e042f9b1fb30 and all expected greedy IDs over3 repetitions. Native results
 remain pending. The optional no-hint mode changes only bulk decode reads;
 prefill/direct-mapped hints remain intact. Existing full trial5044 is untouched.
+
+035 native qualifier queued after source prior-SHA deployment checks. It waits
+for034's full correctness/hash and process exit, locks the task slot, preserves
+both frozen binaries, then runs the native tests and four fixture modes once.
+The first034 sample water_cycle is0.158070tok/s,63 steps in398.557s with exact
+baseline greedy IDs; preliminary only until all cases/hash and repetitions pass.

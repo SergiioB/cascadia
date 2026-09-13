@@ -1,0 +1,21 @@
+{
+  "scope": "full_baseline_process_lifetime_sampled_resources",
+  "includes_load_prefill_decode": true,
+  "source_sha256": "25d55e9eb95426bc067d0eeddac3fe75dae43ec7ef967a90c027bf78c536a00c",
+  "pid": 7340,
+  "intervals": 505,
+  "sampled_seconds": 5053.844000000041,
+  "cpu_core_equivalents": 5.409242697241896,
+  "kernel_fraction": 0.7874448873398346,
+  "faults_per_second_includes_soft": 494347.7072105866,
+  "machine_disk_read_bytes_per_second": 2218116951.9850454,
+  "process_read_bytes_per_second": 1691734480.9178777,
+  "min_available_RAM_bytes": 7581696,
+  "max_private_bytes": 24536231936,
+  "max_rss_bytes": 42810626048,
+  "caveats": [
+    "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+    "Page faults include soft faults; they are not all storage reads.",
+    "The sampled process lifetime includes loading and prefills; this is not decode-only."
+  ]
+}

@@ -7,7 +7,7 @@ PTL machine**, not a component rate, aggregate throughput or remote inference.
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `3576be3f` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `ffa23e6f` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -183,4 +183,9 @@ remainoff. Direct-mapped execution takes precedence; prefill unchanged.
 218 local tests passed plus byte/greedy/full-logits fixture checks. Test results
 and source in035. Native **full-read-buffers.exe NOT YET BUILT/QUALIFIED**;
 `test-read-buffers.bat` is prepared. No competing native build during034.
-After034 ends, deploy/build/qualify then measure only if bottlenecks justify it.
+Source deployed after verifying every replaced file's previous SHA. A finite
+native qualifier is queued: read-buffers-qualification-state.json, parent4288;
+it waits for a correctness-verified034 report and all task full processes to
+exit, then tests/builds once. Never start a competing build/full trial before
+that state is terminal. Logs test-read-buffers.log/read-buffers-qualification.log.
+After qualification, measure only if observed bottlenecks justify the candidate.
