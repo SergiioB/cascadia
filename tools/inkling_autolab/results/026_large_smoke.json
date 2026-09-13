@@ -1,0 +1,27 @@
+{
+  "correctness_verified": false,
+  "export": "C:\\Users\\devcloud\\inkling-autolab\\model",
+  "manifest": {
+    "experts": 256,
+    "hidden": 6144,
+    "layers": 66
+  },
+  "output_hash": "8d8398585d6ee7ea",
+  "samples": [
+    {
+      "case": "paris",
+      "decode_seconds": 27.5208215,
+      "decode_steps": 3,
+      "generated_ids": [
+        200004,
+        72782,
+        200010,
+        200006
+      ],
+      "prefill_seconds": 81.4827291,
+      "repetition": 0
+    }
+  ],
+  "scope": "full_large_model_decode",
+  "slowest_case_decode_tokens_per_s": 0.10900837389610626
+}

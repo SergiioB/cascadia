@@ -3,13 +3,13 @@
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": null,
-  "status": "checkpoint_transferring",
-  "checkpoint_available": false,
+  "status": "full_model_long_baseline_running",
+  "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Finish all-file SHA-256 transfer; queued native smoke and baseline record actual full-model performance. Review baseline text and seed the next Autolab campaign with its greedy IDs/hash. Target remains unmeasured.",
+  "next_action": "Review queued full-model smoke and baseline; then run correctness-gated profile comparison with baseline IDs/hash. Target not reached.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -20,5 +20,25 @@
   "prior_deployment_launcher_check": {
     "exit_code": 1,
     "error": "Full Inkling checkpoint unavailable at C:/Users/devcloud/inkling-autolab/model; cannot measure full-model throughput."
-  }
+  },
+  "full_model_loaded": true,
+  "full_model_load_seconds": 37.3094144,
+  "verified_export_bytes": 548985140942,
+  "verified_export_files": 16654,
+  "transfer_errors": [],
+  "model_ready_sha256": "9e7f11b6131131e8c3db879a814e121cd6a4fde9c6987fa6de7e86a80cb46a20",
+  "free_disk_bytes_after_deployment": 276129026048,
+  "smoke": {
+    "passed": true,
+    "decoded_text": "Paris",
+    "decode_tokens_per_s": 0.10900837389610626,
+    "decode_steps": 3,
+    "repetitions": 1,
+    "prefill_seconds": 81.4827291,
+    "decode_seconds": 27.5208215,
+    "qualifies_for_25tok_s_gate": false
+  },
+  "baseline_binary_pid": 7340,
+  "baseline_queue_pid": 3856,
+  "baseline_launcher_pid": 10976
 }

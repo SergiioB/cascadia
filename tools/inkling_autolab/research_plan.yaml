@@ -25,9 +25,9 @@ questions:
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
   status: active
-  reason: Disk cleanup reclaimed 822 GB. Complete 549 GB export found on miner;
-    resumable SHA-256 transfer is running. Native smoke and full baseline queued
-    behind verified transfer. PTL full-model rate and 25 tok/s remain unmeasured.
+  reason: Complete 549 GB export is SHA-256 verified on PTL. The frozen full
+    model smoke answered Paris correctly at 0.109 tok/s over three decode steps.
+    The longer baseline is running; 25 tok/s remains unmet.
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?

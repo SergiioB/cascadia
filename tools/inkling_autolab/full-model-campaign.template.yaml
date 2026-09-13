@@ -15,7 +15,7 @@ runner:
     {int4_rows} -Tokens 64 -Samples 3
 defaults:
   model: C:/Users/devcloud/inkling-autolab/model
-  cases: C:/Users/devcloud/inkling-autolab/large-cases.json
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
   expected_hash: REPLACE_WITH_REAL_BASELINE_HASH
 grid:
   reads:

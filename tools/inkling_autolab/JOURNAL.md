@@ -664,3 +664,21 @@ Diagnostic binary SHA-256:
 437c7134198fd99b167e45ab76e4cd1c963bc7af8d17e43215de985c13ea6386.
 Use run-full.ps1 -Binary full-profile.exe -RouteTrace FILE -LayerProfile FILE
 for the next correctness-checked full run; no change to the queued baseline.
+
+## 26 deployment completed — first complete PTL model is running
+
+All 16,654 files / 548,985,140,942 bytes passed SHA-256 verification, no transfer
+errors. The final resumed copy took 4,851.64 s. Native source endpoint and
+three controller tunnel supervisors exited automatically. The frozen model
+loaded in **37.309 s**, full_model=1, and is running the queued smoke test.
+Initial working set 25.7 GB/private commit 24.3 GB; available RAM ~15.7 GB.
+Do not start a competing full run; the queue will run the longer baseline
+if the Paris smoke passes. No full-model token-rate result exists yet.
+
+The full-model smoke answered **Paris** exactly. Initial throughput is
+**0.109008 tok/s over three decode steps** (27.521 s); prefill 81.483 s.
+This is a short smoke, not a qualifying >=32-step/repeated throughput record.
+The longer baseline started: launcher 10976, full-decode.exe PID 7340, same
+queue 3856. Its load took 29.913 s. Sampler observed available RAM below 1 GB
+during prefill and model working-set peaks above 43 GB. Preserve existing
+services; collect longer decode samples before selecting changes.

@@ -1,11 +1,48 @@
 # Restart handoff — Inkling / Panther Lake Autolab
 
-Updated 2026-09-13 after A100 qualification and direct-route transfer work. A native checkpoint transfer
-and a finite baseline job waiting for it are running on PTL. No Autolab
-controller is currently running. The user authorized autonomous testing on
-**tate-07, 100.82.253.76**, plus commit/push as t8, without coauthor trailers.
-Latest target: **25 full-model decode tokens/s for large Inkling on this one PTL
-box**. It has NOT been reached. Do not equate layer/component rates with it.
+Updated 2026-09-13 after full PTL deployment. **All 16,654 files /
+548,985,140,942 bytes are SHA-256 verified on PTL.** The frozen full-model
+smoke test is running. Native baseline queue PID 3856 will follow with the
+longer baseline if the smoke is correct. Host sampler PID 2208 is active.
+Transfer client/source server and all three tunnel supervisors have ended.
+No Autolab controller is currently running. The user authorized autonomous
+testing on tate-07 plus commit/push as t8, without coauthor trailers.
+Target remains **25 full-model decode tokens/s for large Inkling on one PTL
+box**. It has NOT been reached. Do not equate component rates with it.
+
+## Current phase (supersedes all historical copy progress below)
+
+- Deployment completed in 4,851.64 s of the final resumed native copy, errors [].
+  See `results/026_verified_transfer.json`; native `model-ready.json` holds all
+  per-file hashes. The complete model is `C:\Users\devcloud\inkling-autolab\model`.
+- Smoke launcher PID 11152 / **full-decode.exe PID 7544**, queue PID 3856.
+  **Full model loaded in 37.309 s**, full_model=1. Initial model working set
+  25.7 GB, private commit 24.3 GB; available RAM fell from ~39.7 to ~15.7 GB.
+  No model tokens/s yet; wait for/review `large-smoke.log/json/text.json`.
+- Native `host-resources.jsonl` captures resource use every 10 s. Existing
+  OVMS/node/CA remain protected. No competing full benchmark.
+- Source PID 203817 and retired source PID 199701 are stopped. All controller
+  tunnel state files report stopped; no need to restart the transfer tunnels.
+- After the baseline queue writes `large-cases.baseline-reference.json`, review
+  decoded text and exact repeatability before configuring the next Autolab
+  campaign. Use reference cases plus its output hash, not the initial cases
+  without greedy IDs. `full-profile.exe` can collect both routing and timings.
+
+## Smoke passed; longer baseline is active
+
+Smoke text **Paris**, exact expected answer. Initial **0.109008 tok/s over
+three decode steps** (27.521 s), prefill 81.483 s, hash `8d8398585d6ee7ea`.
+This does not meet the >=32-step/three-repeat target gate. `results/026_large_smoke*`
+retains the raw measurement/text check. Smoke process ended normally.
+
+Current **long-baseline full-decode.exe PID 7340**, launcher **10976**, queue
+**3856**, sampler **2208**. Load 29.913 s. `large-baseline.log` emits one
+`sample_json=` per completed case, then final output/hash once all 3 prompts ×
+3 repetitions finish. Each case requests 64 generated tokens; at the smoke
+rate this can take 1–2 hours. Do not start another full benchmark concurrently.
+Available RAM fell below 1 GB during prefill; working-set peaks exceeded 43 GB.
+Read `host-resources.jsonl` with process creation time to separate smoke and
+baseline samples. Full-model long throughput/route/timing data remain pending.
 
 ## Latest steering and live state (supersedes older deployment sections)
 
