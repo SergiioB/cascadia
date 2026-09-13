@@ -12,10 +12,12 @@ controller = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(controller)
 
 
-def run(tmp_path, monkeypatch, metrics, *, interrupted=False, scope='layer'):
+def run(tmp_path, monkeypatch, metrics, *, interrupted=False, scope='layer', expected_metrics=None):
     campaign = tmp_path/'campaigns/test.yaml'
     campaign.parent.mkdir()
     config = {'name': 'test', 'grid': {'setting': [1]}, 'metrics': {'primary': 'rate', 'direction': 'maximize'}}
+    if expected_metrics is not None:
+        config['expected_metrics'] = expected_metrics
     if scope == 'layer':
         config['defaults'] = {'expected_hash': 'abcdef'}
     else:
@@ -74,6 +76,22 @@ def test_failed_numerical_oracle_rejects_fast_component(tmp_path, monkeypatch):
         run(tmp_path, monkeypatch, {'rate': 100, 'validation_passed': 0}, scope='expert')
 
 
+@pytest.mark.parametrize('reported_bytes', [None, 0])
+def test_disabled_or_unreported_candidate_cannot_be_promoted(tmp_path, monkeypatch, reported_bytes):
+    metrics = {'rate': 999, 'output_hash': 'abcdef'}
+    if reported_bytes is not None:
+        metrics['owned_shared_bytes'] = reported_bytes
+    with pytest.raises(SystemExit, match='Configuration gate failed'):
+        run(tmp_path, monkeypatch, metrics, expected_metrics={'owned_shared_bytes': 4076863488})
+    assert json.loads((tmp_path/'.autolab/state.json').read_text())['campaign_status'] != 'verified'
+
+
+def test_reported_candidate_configuration_can_pass(tmp_path, monkeypatch):
+    run(tmp_path, monkeypatch, {'rate': 10, 'output_hash': 'abcdef', 'owned_shared_bytes': 4076863488},
+        expected_metrics={'owned_shared_bytes': 4076863488})
+    assert json.loads((tmp_path/'.autolab/state.json').read_text())['campaign_status'] == 'verified'
+
+
 def test_target_requires_full_model_proof(tmp_path):
     path = tmp_path/'full.yaml'
     path.write_text(yaml.safe_dump({
@@ -93,3 +111,7 @@ def test_target_requires_full_model_proof(tmp_path):
                        ('decode_tokens_per_s', 24.9), ('decode_tokens_per_s', float('inf')),
                        ('output_hash', 'wrong')]:
         assert not controller.full_model_target_met(campaign, dict(valid, **{key: value}))
+    campaign.config['expected_metrics'] = {'owned_shared_bytes': 4076863488}
+    assert not controller.full_model_target_met(campaign, valid)
+    assert not controller.full_model_target_met(campaign, dict(valid, owned_shared_bytes=0))
+    assert controller.full_model_target_met(campaign, dict(valid, owned_shared_bytes=4076863488))

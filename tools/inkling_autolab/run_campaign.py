@@ -16,6 +16,13 @@ from autolab.core.campaign import Campaign
 from autolab.core.loop import ResearchLoop
 
 
+def expected_metrics_match(campaign: Campaign, metrics: dict) -> bool:
+    expected = campaign.config.get('expected_metrics', {})
+    return isinstance(expected, dict) and all(
+        name in metrics and metrics[name] == value for name, value in expected.items()
+    )
+
+
 def full_model_target_met(campaign: Campaign, metrics: dict) -> bool:
     """Only a repeated, verified full large-model decode may satisfy 25 tok/s."""
     return (
@@ -24,6 +31,7 @@ def full_model_target_met(campaign: Campaign, metrics: dict) -> bool:
         and campaign.metric_direction == 'maximize'
         and bool(campaign.defaults.get('expected_hash'))
         and metrics.get('output_hash') == campaign.defaults['expected_hash']
+        and expected_metrics_match(campaign, metrics)
         and metrics.get('full_model') == 1
         and metrics.get('correctness_verified') == 1
         and metrics.get('decode_steps_min', 0) >= 32
@@ -88,6 +96,8 @@ def main() -> None:
                 raise SystemExit(f"Numerical oracle failed: {result['experiment_name']}")
             if expected and m['output_hash'] != expected:
                 raise SystemExit(f"Correctness gate failed: {result['experiment_name']}")
+            if not expected_metrics_match(campaign, m):
+                raise SystemExit(f"Configuration gate failed: {result['experiment_name']}")
         if len(history) != campaign.experiment_count():
             raise SystemExit('Incomplete sweep: do not promote a winner')
         choose = min if campaign.metric_direction == 'minimize' else max

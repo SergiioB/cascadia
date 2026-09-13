@@ -961,3 +961,27 @@ mapped fixture storage preserves the prior5122e042f9b1fb30 ARM-debug full-logits
 hash over3 reps, with actual owned-shared bytes0/20736 respectively. The new
 variant bypasses prefetch/explicit rereads and uses the existing swiglu_from
 kernel. Native qualification and full memory/performance remain pending.
+
+039 source deployed after six prior-SHA checks; native qualifier10264,parent10844
+waits for036 and038, then builds/tests once. Updated PowerShell wrapper parses
+natively; source commit4788a43d.040 single-pass shared-storage campaign is prepared
+and parsed but not launched. Its full reference hash and actual owned-byte
+metric prevent confusing a fixture/disabled feature with the intended test.
+
+Controller now supports expected_metrics gates.040 requires actual owned shared
+bytes4076863488,mapped embedding,full model and one repetition; missing/disabled
+features cannot be promoted even with matching logits.19 controller/routing
+checks pass; the target-gate case also passes with these constraints.
+
+Whole-span bound supplement037 allows perfect reuse across all63 continuation
+positions regardless of execution order, rather than assuming token-by-token
+window scheduling. Actual unique routed bytes150.62/175.91/165.85GB. Even with
+an ideal initial32GiB routed cache,25tok/s requires46.14/56.17/52.18GB/s reads.
+PTL's NVMe controller reports current/max PCIe link speed code5,width4. Microsoft
+maps5 to32GT/s; PCI-SIG specifies128b/130b encoding. Thus the link ceiling is
+15.754GB/s before packet overhead. The extremely optimistic disk-only throughput
+bound is8.54/7.01/7.55tok/s, excluding compute/shared/fixed/draft work. This applies
+to the current packed-matrix representation, not hypothetical new compression.
+It establishes why25tok/s cannot be reached by ordinary tuning of this export
+on the current SSD, even though further practical gains remain worth testing.
+References and native properties are retained in037_full_span_traffic_bound.json.

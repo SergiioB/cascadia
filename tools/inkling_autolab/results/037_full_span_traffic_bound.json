@@ -1,0 +1,94 @@
+{
+  "scope": "offline_full_span_unique_weight_bound",
+  "assumptions": [
+    "Every observed routed expert uses its full current packed matrix.",
+    "Allow ideal reuse across the entire continuation, regardless of execution order.",
+    "Allow any initial cache content up to the stated routed cache budget.",
+    "Exclude fixed/shared weights, compute, drafting and control overhead.",
+    "Cache budgets do not include other model data, scratch or protected services.",
+    "Current packed expert-file bytes are read without additional compression or a changed representation."
+  ],
+  "full_model_throughput_measured": false,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "decode_positions": 63,
+      "distinct_routed_experts": 4729,
+      "union_bytes": 150620995584,
+      "ideal_whole_generation_reuse": {
+        "16GiB": {
+          "initial_routed_cache_bytes": 17179869184,
+          "minimum_routed_read_bytes": 133441126400,
+          "minimum_average_read_GB_per_token": 2.118113117460317,
+          "minimum_read_GB_per_second_at_25tok_s": 52.95282793650793,
+          "ideal_disk_only_tokens_per_s_upper_bound": 7.437679330712751
+        },
+        "32GiB": {
+          "initial_routed_cache_bytes": 34359738368,
+          "minimum_routed_read_bytes": 116261257216,
+          "minimum_average_read_GB_per_token": 1.845416781206349,
+          "minimum_read_GB_per_second_at_25tok_s": 46.13541953015873,
+          "ideal_disk_only_tokens_per_s_upper_bound": 8.536741572030065
+        }
+      }
+    },
+    {
+      "case": "binary_search",
+      "decode_positions": 63,
+      "distinct_routed_experts": 5523,
+      "union_bytes": 175910289408,
+      "ideal_whole_generation_reuse": {
+        "16GiB": {
+          "initial_routed_cache_bytes": 17179869184,
+          "minimum_routed_read_bytes": 158730420224,
+          "minimum_average_read_GB_per_token": 2.519530479746032,
+          "minimum_read_GB_per_second_at_25tok_s": 62.988261993650795,
+          "ideal_disk_only_tokens_per_s_upper_bound": 6.252691237707963
+        },
+        "32GiB": {
+          "initial_routed_cache_bytes": 34359738368,
+          "minimum_routed_read_bytes": 141550551040,
+          "minimum_average_read_GB_per_token": 2.2468341434920633,
+          "minimum_read_GB_per_second_at_25tok_s": 56.170853587301586,
+          "ideal_disk_only_tokens_per_s_upper_bound": 7.011575019668024
+        }
+      }
+    },
+    {
+      "case": "short_story",
+      "decode_positions": 63,
+      "distinct_routed_experts": 5207,
+      "union_bytes": 165845532672,
+      "ideal_whole_generation_reuse": {
+        "16GiB": {
+          "initial_routed_cache_bytes": 17179869184,
+          "minimum_routed_read_bytes": 148665663488,
+          "minimum_average_read_GB_per_token": 2.3597724363174604,
+          "minimum_read_GB_per_second_at_25tok_s": 58.99431090793651,
+          "ideal_disk_only_tokens_per_s_upper_bound": 6.676002275215485
+        },
+        "32GiB": {
+          "initial_routed_cache_bytes": 34359738368,
+          "minimum_routed_read_bytes": 131485794304,
+          "minimum_average_read_GB_per_token": 2.087076100063492,
+          "minimum_read_GB_per_second_at_25tok_s": 52.1769025015873,
+          "ideal_disk_only_tokens_per_s_upper_bound": 7.54828544745776
+        }
+      }
+    }
+  ],
+  "observed_nvme_link": {
+    "source": "PTL Get-PnpDeviceProperty, Standard NVM Express Controller",
+    "current_link_speed_code": 5,
+    "maximum_link_speed_code": 5,
+    "current_link_width": 4,
+    "maximum_link_width": 4,
+    "GT_per_second_per_lane": 32,
+    "encoding": "128b/130b",
+    "data_bandwidth_upper_bytes_per_second_before_packet_overhead": 15753846153.846153,
+    "references": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/ns-ntddk-_pci_express_link_status_register",
+      "https://pcisig.com/sites/default/files/files/PCI-SIG%20Cabling%20Webinar_FINAL.pdf"
+    ]
+  }
+}

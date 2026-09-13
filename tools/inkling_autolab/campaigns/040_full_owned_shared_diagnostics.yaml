@@ -1,0 +1,64 @@
+version: 1
+name: 040_full_owned_shared_diagnostics
+hypothesis: Keeping always-used shared experts as owned packed bytes reduces repeated
+  file reads while preserving logits; measure the private-memory tradeoff.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q39
+moonshot: false
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 3600
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1
+    -Model "{model}" -Cases "{cases}" -Binary full-owned-shared.exe -Reads 0 -Bf16Rows
+    2 -Int4Rows 4 -MmapEmbed 1 -ReuseBuffers 1 -OwnShared {own_shared} -SkipBulkPrefetch
+    1 -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/040-owned-shared.json
+    -RouteTrace C:/Users/devcloud/inkling-autolab/040-owned-shared-routes.json -LayerProfile
+    C:/Users/devcloud/inkling-autolab/040-owned-shared-layers.json -Log C:/Users/devcloud/inkling-autolab/040-owned-shared.log
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  own_shared:
+  - 1
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+  - name: reuse_buffers
+    pattern: (?m)^bf16_rows=.* reuse_buffers=(\d+)
+    type: int
+  - name: owned_shared_bytes
+    pattern: (?m)^owned_shared_bytes=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2
+expected_metrics:
+  owned_shared_bytes: 4076863488
+  embedding_mapped: 1
+  full_model: 1
+  repetitions: 1

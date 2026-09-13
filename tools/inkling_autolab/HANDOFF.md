@@ -239,5 +239,23 @@ bytes0/20736 match expected plain/owned modes. This is not physical page locking
 Native full-owned-shared.exe is NOT YET QUALIFIED. Scripts
 qualify-owned-shared.py/test-owned-shared.bat wait for036 plus038 completion
 before building/testing once, preserving all three frozen binaries. No native
-full trial is launched by that qualifier. Source must be deployed with prior-SHA
-checks; refresh native state before taking action. No performance gain claimed.
+full trial is launched by that qualifier. Source deployed after all six prior-SHA checks. Qualifier **10264**,parent10844
+is waiting_for_uncached_probe; state owned-shared-qualification-state.json.
+Refresh native state before taking action. No performance gain claimed.
+
+Campaign040_full_owned_shared_diagnostics is prepared and parsed, NOT launched.
+It tests OwnShared1 on the same036 knobs over all3 cases,1rep, expectedfullhash.
+Wait for039 qualification before considering it; retain the repeated036 result.
+
+037_full_span_traffic_bound.json adds a bound allowing perfect reuse across the
+whole63-token continuation (valid even if execution is reordered). At an
+optimistic initial32GiB routed cache,25tok/s needs46–56GB/s. Native NVMe PCIe5x4
+properties imply15.754GB/s maximum before packet overhead. Disk-only ceilings
+are8.54/7.01/7.55tok/s, excluding all compute/fixed/shared/draft work, for the
+current packed representation. Do not imply current measured speed is near this
+ideal bound or that ordinary tuning can attain25tok/s on this SSD.
+
+040 now has automatic expected_metrics gates for owned_shared_bytes4076863488,
+embedding_mapped1,full_model1,repetitions1. Controller/routing checks pass.
+036 has completed six of nine samples at last check,0.196934–0.199989tok/s,
+all exact IDs; final repeated hash/rate remains pending.
