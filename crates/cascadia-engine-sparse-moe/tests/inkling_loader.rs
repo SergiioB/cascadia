@@ -68,6 +68,32 @@ fn loader_greedy_matches_hf_reference() {
 }
 
 #[test]
+fn mapped_embedding_rows_and_head_math_match_owned_bits() {
+    use cascadia_engine_sparse_moe::inkling::model::WideTable;
+
+    let path = export_dir().join("embed.safetensors");
+    let owned_st = StFile::open(&path).unwrap();
+    let (shape, bits) = owned_st.bf16_bits("embed.weight").unwrap();
+    let mapped_st = StFile::open_mmap(&path).unwrap();
+    let mapped = WideTable::MappedBf16(mapped_st.mapped_bf16("embed.weight").unwrap().unwrap());
+    let owned = WideTable::Bf16(bits);
+    drop(mapped_st);
+    assert_eq!(mapped.len(), owned.len());
+    for row in 0..shape[0] {
+        assert_eq!(mapped.row(row, shape[1]), owned.row(row, shape[1]));
+    }
+    let x: Vec<f32> = (0..shape[1]).map(|i| (i as f32 - 7.0) * 0.03125).collect();
+    let mut expected = vec![0.0; shape[0]];
+    let mut actual = expected.clone();
+    owned.matvec_f32(&x, shape[1], &mut expected);
+    mapped.matvec_f32(&x, shape[1], &mut actual);
+    assert_eq!(
+        actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+        expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn routing_observer_preserves_prefill_and_decode_logits() {
     use std::sync::{Arc, Mutex};
 

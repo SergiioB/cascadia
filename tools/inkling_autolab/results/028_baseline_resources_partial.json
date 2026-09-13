@@ -1,0 +1,22 @@
+{
+  "scope": "partial_full_baseline_host_resources",
+  "process_pid": 7340,
+  "created_unix": 1789332956.0200448,
+  "measurement_seconds": 290.25,
+  "first_unix": 1789333833.6433237,
+  "last_unix": 1789334123.8988824,
+  "cpu_core_equivalents": 5.289351851851852,
+  "system_fraction_of_process_cpu": 0.8466439366953336,
+  "page_faults_per_second_includes_soft_faults": 518081.2816537468,
+  "machine_wide_disk_read_GB_per_second": 2.1079598798828596,
+  "process_read_syscall_GB_per_second_excludes_some_mapped_IO": 2.035359172465116,
+  "last_private_bytes": 24283820032,
+  "last_working_set_bytes": 34237104128,
+  "min_available_RAM_bytes_during_run": 7581696,
+  "last_swap_used_bytes": 3541159936,
+  "caveats": [
+    "Baseline still running; interval can include prefill and decode.",
+    "Disk counters are machine-wide, not attributed exclusively to model.",
+    "Page faults include soft faults; not all require storage I/O."
+  ]
+}

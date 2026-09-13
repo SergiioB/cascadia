@@ -1,0 +1,26 @@
+{
+  "platform": "macOS ARM64",
+  "build_profile": "debug",
+  "tests_passed": 217,
+  "test_target_counts": [
+    137,
+    1,
+    1,
+    1,
+    15,
+    15,
+    5,
+    7,
+    17,
+    11,
+    6,
+    1
+  ],
+  "fixture_repetitions_per_mode": 3,
+  "fixture_output_hash": "5122e042f9b1fb30",
+  "HF_greedy_tokens_exact": true,
+  "mapped_vs_owned_logits_bit_exact": true,
+  "MSVC_qualification": "pending after baseline",
+  "full_model_performance": "unmeasured",
+  "clippy": "completed with existing warnings; new alignment suggestion corrected"
+}

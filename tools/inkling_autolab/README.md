@@ -334,3 +334,17 @@ reports attention and MLP branch time (including their norms, convolutions and
 residuals), plus time outside layers. The latter includes head, embeddings,
 argmax and validation; it is not a pure head measurement. The tiny fixture
 reports in `results/025_*` validate the instrumentation, not full-model speed.
+
+## Optional mapped embedding candidate
+
+`CASCADIA_INKLING_MMAP_EMBED=1` retains the BF16 embedding table as a read-only
+file mapping. It accesses only the rows used by token lookups and avoids the
+full private copy; the output head remains resident. The export files must
+remain immutable while loaded, as with existing expert mappings. Default is
+off pending full PTL validation. Non-BF16 or unaligned payloads fall back to
+the existing BF16 copy/conversion path.
+
+`run-full.ps1 -Binary full-mmap-embed.exe -MmapEmbed 1` selects the candidate
+after running `test-mmap-embed.bat`. The benchmark emits `embedding_mapped`
+for the actual loaded representation. Native qualification and full-model
+benefit remain pending; local fixture logits and greedy IDs match exactly.

@@ -109,3 +109,9 @@ questions:
   priority: 6
   reason: Add opt-in layer timing with bitwise fixture parity, then collect it with
     routing traces after the frozen full baseline is reviewed.
+- id: q17
+  question: Does mapping the sparse embedding table reduce private memory and paging?
+  status: active
+  priority: 7
+  reason: Prepare opt-in read-only BF16 embedding mapping with exact fixture parity;
+    measure private commit and full-model throughput after the frozen baseline.

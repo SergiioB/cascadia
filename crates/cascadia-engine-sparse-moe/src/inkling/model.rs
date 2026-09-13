@@ -270,10 +270,12 @@ impl Layer {
 
 /// A `vocab × hidden` edge table (embedding or unembed) held as exact f32 or
 /// bf16 bits (the checkpoint dtype — lossless for bf16 weights and half the
-/// RAM). Only the edge ranks hold one.
+/// RAM), or a read-only mapped BF16 table for sparse embedding lookups.
+/// Only the edge ranks hold one.
 pub enum WideTable {
     F32(Vec<f32>),
     Bf16(Vec<u16>),
+    MappedBf16(crate::dsv4::st::MappedBf16),
 }
 
 impl WideTable {
@@ -281,6 +283,7 @@ impl WideTable {
         match self {
             WideTable::F32(v) => v.len(),
             WideTable::Bf16(v) => v.len(),
+            WideTable::MappedBf16(v) => v.as_slice().len(),
         }
     }
 
@@ -294,6 +297,10 @@ impl WideTable {
         match self {
             WideTable::F32(v) => v[r].to_vec(),
             WideTable::Bf16(v) => v[r]
+                .iter()
+                .map(|&b| f32::from_bits((b as u32) << 16))
+                .collect(),
+            WideTable::MappedBf16(v) => v.as_slice()[r]
                 .iter()
                 .map(|&b| f32::from_bits((b as u32) << 16))
                 .collect(),
@@ -317,6 +324,12 @@ impl WideTable {
             WideTable::Bf16(w) => out.par_iter_mut().enumerate().for_each(|(o, y)| {
                 *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
             }),
+            WideTable::MappedBf16(w) => {
+                let w = w.as_slice();
+                out.par_iter_mut().enumerate().for_each(|(o, y)| {
+                    *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
+                });
+            }
         }
     }
 }
@@ -448,6 +461,11 @@ impl Model {
 
     pub fn layers_mut(&mut self) -> &mut [Layer] {
         &mut self.layers
+    }
+
+    /// Whether sparse embedding lookups use file-backed BF16 rows.
+    pub fn embedding_is_mapped(&self) -> bool {
+        matches!(self.embed, WideTable::MappedBf16(_))
     }
 
     /// Cached positions (every layer agrees).

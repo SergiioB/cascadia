@@ -701,3 +701,32 @@ First long baseline sample arrived while preparing this handoff: water_cycle,
 repetition 0, prefill 100.131945 s, decode 443.772822 s / 63 steps = 0.141965
 tok/s. The other repetitions/cases remain active. No complete repeatability gate
 or baseline hash yet; do not promote this partial observation as a final record.
+
+## 28 hypothesis — map the sparse embedding table to reduce private memory
+
+The full loader copies the entire roughly 2.47 GB embedding table into a
+private bf16 vector even though inference reads only one 12 KiB row per token.
+The PTL sampler already observed available memory below 1 GB and substantial
+pagefile use with the existing services present. Hypothesis: opt-in read-only
+mapping of the embedding table reduces private commit and paging without
+changing any weight or arithmetic. Keep the output head resident since every
+logit evaluation reads it. No checkpoint conversion or rental is needed.
+
+Prepare locally while the frozen baseline runs; do not compile/benchmark on
+PTL concurrently. Validate mapping bounds, dtype/shape/alignment, mapping
+lifetime and exact fixture logits/greedy IDs before any full-model trial.
+Measure actual private-memory savings and full throughput before promotion.
+
+Local qualification: 217 tests passed across library, eight Inkling targets,
+DSV4 model and GLM5 loaders. Both complete tiny model runs produce all eight
+HF greedy IDs over three repetitions and the same full-logits hash
+5122e042f9b1fb30 (ARM debug fixture, not the Windows hash). Mapped mode reports
+embedding_mapped=true; the control reports false. Clippy completed with
+existing warnings; the new alignment style suggestion was corrected. MSVC
+qualification is prepared but waits for the active baseline to finish.
+
+Partial baseline counters over 290.25 s: 5.29 core-equivalents, 84.7% of
+process CPU in kernel, 2.108 GB/s machine-wide disk reads, 518k page faults/s
+including soft faults. Minimum available RAM during this run was 7.58 MB.
+These support a direct-read experiment but do not establish exclusive I/O
+attribution, exact phase timing or a speedup for the new embedding option.

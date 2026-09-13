@@ -3,7 +3,8 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
       [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
       [string]$Binary='full-decode.exe', [string]$RouteTrace='',
-      [string]$LayerProfile='', [switch]$AllowFixture)
+      [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0,
+      [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
 if (!(Test-Path (Join-Path $Model 'manifest.json'))) {
@@ -13,10 +14,12 @@ if (!(Test-Path $Cases)) { throw "Missing benchmark cases: $Cases" }
 if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be a filename under the task bin directory' }
 if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 if ($LayerProfile -and $Binary -in @('full-decode.exe', 'full-routing.exe')) { throw 'Select full-profile.exe for layer timing' }
+if ($MmapEmbed -and $Binary -in @('full-decode.exe', 'full-routing.exe', 'full-profile.exe')) { throw 'Select full-mmap-embed.exe for mapped embedding' }
 $env:RAYON_NUM_THREADS = '16'
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
 $env:CASCADIA_INKLING_PIN_EXPERTS = '0'
+$env:CASCADIA_INKLING_MMAP_EMBED = "$MmapEmbed"
 $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
@@ -29,7 +32,7 @@ $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassT
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed"
     $p.WaitForExit()
     exit $p.ExitCode
 } finally {

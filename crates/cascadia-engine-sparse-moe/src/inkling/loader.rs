@@ -477,6 +477,15 @@ fn wide_table(
     vocab: usize,
     hidden: usize,
 ) -> Result<WideTable, LoadError> {
+    if st.info(name)?.shape != [vocab, hidden] {
+        return Err(LoadError::Manifest(format!(
+            "{name}: shape {:?} != [{vocab}, {hidden}]",
+            st.info(name)?.shape
+        )));
+    }
+    if let Some(view) = st.mapped_bf16(name)? {
+        return Ok(WideTable::MappedBf16(view));
+    }
     let (shape, v) = st.bf16_bits(name)?;
     if v.len() != vocab * hidden {
         return Err(LoadError::Manifest(format!(
@@ -504,7 +513,15 @@ pub fn load_stage(
     let m = read_manifest(dir)?;
     let (vocab, hidden) = (m.vocab_size, m.hidden_size);
     let embed = if first {
-        let e = StFile::open(&dir.join("embed.safetensors"))?;
+        let path = dir.join("embed.safetensors");
+        // Optional sparse embedding lookup: retain file-backed rows instead
+        // of copying the whole 2.47 GB table into private memory. Keep the head
+        // resident because every decode step reads all of its rows.
+        let e = if super::env_flag("CASCADIA_INKLING_MMAP_EMBED") {
+            StFile::open_mmap(&path)?
+        } else {
+            StFile::open(&path)?
+        };
         Some((
             wide_table(&e, "embed.weight", vocab, hidden)?,
             e.f32("embed_norm.weight")?.1,

@@ -26,6 +26,26 @@ box**. It has NOT been reached. Do not equate component rates with it.
 - Transfer client/source endpoints and all three tunnel supervisors ended.
   Do not restart transfer. Source miner export is retained independently.
 
+## Next candidate prepared locally: mapped embedding
+
+Unpromoted opt-in `CASCADIA_INKLING_MMAP_EMBED=1`: read-only BF16 embedding
+mapping keeps sparse token rows file-backed rather than allocating the full
+~2.47 GB table privately. Head remains resident. Checked metadata/range/shape,
+alignment and lifetime; non-BF16/unaligned payloads use the existing copy path.
+Mac fixture: mapped/unmapped hash `5122e042f9b1fb30`, all 8 HF IDs ×3 reps exact.
+This is an ARM debug fixture hash, not the MSVC frozen hash or PTL throughput.
+`test-mmap-embed.bat` is prepared for MSVC qualification AFTER baseline ends;
+`full-mmap-embed.exe` has not been built on PTL. `run-full.ps1 -MmapEmbed 1`
+selects the knob and requires the new binary. Do not overwrite frozen binaries.
+
+First long baseline sample: water_cycle rep 0, 63 decode steps /443.773 s =
+0.141965 tok/s; decoded text coherently describes the water cycle. Other cases
+and repeats pending. Five-minute partial sample: 5.29 CPU core-equivalents,
+84.7% of process CPU in kernel, machine-wide disk reads 2.108 GB/s, 518k page
+faults/s including soft faults. Available RAM briefly fell to 7.58 MB; pagefile
+use ~3.54 GB. Counters support testing direct reads; do not attribute every disk
+read or page fault exclusively to the model. See result 028 partial reports.
+
 ## Lambda rental release readiness
 
 Provider confirmed **Lambda.ai**, **no persistent filesystem attached**. All
