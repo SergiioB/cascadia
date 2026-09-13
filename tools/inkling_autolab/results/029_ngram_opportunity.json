@@ -1,0 +1,400 @@
+{
+  "scope": "offline_ngram_opportunity",
+  "measured_tokens_per_s": null,
+  "prefix_only_drafter": true,
+  "results": [
+    {
+      "minimum_ngram": 1,
+      "maximum_ngram": 6,
+      "draft_budget": 2,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 21,
+          "drafted_tokens": 42,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 104,
+          "draft_acceptance": 0.023809523809523808,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 1.6507936507936507
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 13,
+          "drafted_tokens": 26,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 88,
+          "draft_acceptance": 0.038461538461538464,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 1.3968253968253967
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 16,
+          "drafted_tokens": 31,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 94,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.492063492063492
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 1,
+      "maximum_ngram": 6,
+      "draft_budget": 4,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 21,
+          "drafted_tokens": 82,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 144,
+          "draft_acceptance": 0.012195121951219513,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 2.2857142857142856
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 13,
+          "drafted_tokens": 51,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 113,
+          "draft_acceptance": 0.0196078431372549,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 1.7936507936507937
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 16,
+          "drafted_tokens": 61,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 124,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.9682539682539681
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 1,
+      "maximum_ngram": 6,
+      "draft_budget": 8,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 21,
+          "drafted_tokens": 159,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 221,
+          "draft_acceptance": 0.006289308176100629,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 3.507936507936508
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 62,
+          "speculative_calls": 13,
+          "drafted_tokens": 95,
+          "accepted_draft_tokens": 1,
+          "target_input_rows": 157,
+          "draft_acceptance": 0.010526315789473684,
+          "optimistic_call_reduction_factor": 1.0161290322580645,
+          "target_input_row_ratio": 2.492063492063492
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 16,
+          "drafted_tokens": 118,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 181,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 2.873015873015873
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 2,
+      "maximum_ngram": 6,
+      "draft_budget": 2,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 4,
+          "drafted_tokens": 8,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 71,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.126984126984127
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 1,
+          "drafted_tokens": 2,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 65,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0317460317460319
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 2,
+      "maximum_ngram": 6,
+      "draft_budget": 4,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 4,
+          "drafted_tokens": 16,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 79,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.253968253968254
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 1,
+          "drafted_tokens": 4,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 67,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0634920634920635
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 2,
+      "maximum_ngram": 6,
+      "draft_budget": 8,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 4,
+          "drafted_tokens": 32,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 95,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.507936507936508
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 1,
+          "drafted_tokens": 8,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 71,
+          "draft_acceptance": 0.0,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.126984126984127
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 3,
+      "maximum_ngram": 6,
+      "draft_budget": 2,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 3,
+      "maximum_ngram": 6,
+      "draft_budget": 4,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    },
+    {
+      "minimum_ngram": 3,
+      "maximum_ngram": 6,
+      "draft_budget": 8,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "binary_search",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        },
+        {
+          "case": "short_story",
+          "decode_tokens": 63,
+          "target_calls": 63,
+          "speculative_calls": 0,
+          "drafted_tokens": 0,
+          "accepted_draft_tokens": 0,
+          "target_input_rows": 63,
+          "draft_acceptance": null,
+          "optimistic_call_reduction_factor": 1.0,
+          "target_input_row_ratio": 1.0
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Short first-repetition text samples only.",
+    "Call reduction assumes a free drafter and equally costly target calls.",
+    "Actual multi-row verification, rejected work, snapshots and paging can erase the benefit.",
+    "No full-model performance run or target attainment is claimed."
+  ]
+}

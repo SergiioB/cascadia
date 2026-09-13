@@ -738,3 +738,28 @@ builds/tests a separate full-mmap-embed.exe and verifies the MSVC fixture hash
 and existing candidate binaries, preserves the frozen hash, and never launches
 a full-model trial or promotes a result. Waiting state was observed; source
 parse and deployment/frozen-hash checks passed. Native results remain pending.
+
+## 29 hypothesis — estimate n-gram speculation opportunity from observed text
+
+At 36.5 GB/token in the current layout, 25 tok/s would require about 0.91 TB/s
+of weight traffic unless multiple tokens reuse weights. The existing scaling
+note already identifies this limit and expects limited routed-expert reuse.
+Before implementing an n-gram verifier, use only each recorded prompt plus
+already generated prefix as the drafter's input; compare proposed tokens to
+the saved continuation only as an offline oracle. Report accepted drafts and
+optimistic target-call reduction, not measured tokens/s or a target result.
+Short first-repetition samples are indicative only. This needs no rental.
+
+Observed all three first-pass cases (63 decode steps each): water_cycle
+0.141965, binary_search 0.135469, short_story 0.138188 tok/s. Repeats remain
+active; final full-model hash/slowest repeated metric are still pending.
+
+Offline n-gram result: minimum suffix length 1 accepts one draft token in each
+of the first two cases and none in the story. Optimistic call reduction is
+only 1.016x / 1.016x / 1.000x, with 1.40–3.51x target-input rows depending on
+budget/case. Minimum length >=2 accepts zero drafts. This rejects implementing
+this n-gram path for these short prompts now; it does not rule out other
+drafters or more repetitive/longer workloads. No inference speedup claimed.
+No-repeat, periodic exact-match, prefix-continuation and zero-budget analytical
+checks passed. The implementation recursively extends only the observed prefix
+and its own proposals; saved future tokens are used only by the offline verifier.

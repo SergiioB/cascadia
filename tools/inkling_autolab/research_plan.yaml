@@ -115,3 +115,11 @@ questions:
   priority: 7
   reason: Prepare opt-in read-only BF16 embedding mapping with exact fixture parity;
     measure private commit and full-model throughput after the frozen baseline.
+- id: q18
+  question: Does prefix-only n-gram speculation have useful acceptance on the baseline text?
+  status: answered
+  priority: 8
+  answer: Three short first-pass continuations yield at most 1.016x optimistic
+    target-call reduction and substantially more verification rows. Minimum
+    suffix length >=2 accepts zero drafts. Defer this drafter on these prompts;
+    no measured inference speedup or conclusion about other drafters is implied.

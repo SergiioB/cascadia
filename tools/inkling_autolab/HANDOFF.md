@@ -51,6 +51,17 @@ faults/s including soft faults. Available RAM briefly fell to 7.58 MB; pagefile
 use ~3.54 GB. Counters support testing direct reads; do not attribute every disk
 read or page fault exclusively to the model. See result 028 partial reports.
 
+## First-pass baseline and n-gram feasibility
+
+All three first-pass prompts completed with 63 decode steps each: water_cycle
+0.141965, binary_search 0.135469, short_story 0.138188 tok/s. Repeated baseline
+still active; no final hash/target gate yet. Offline prefix-only n-gram analysis
+(result 029) finds at most 1.016x call reduction and 1.40–3.51x verification rows
+for minimum n=1; n>=2 accepts zero drafts. Defer that path on these short prompts.
+This is analytical opportunity, not an inference timing or a conclusion about
+other draft models. Direct reads, real routing/timing and mapped embedding
+remain the next tests once baseline and native qualification finish.
+
 ## Lambda rental release readiness
 
 Provider confirmed **Lambda.ai**, **no persistent filesystem attached**. All
