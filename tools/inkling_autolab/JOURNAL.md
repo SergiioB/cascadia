@@ -870,3 +870,30 @@ for034's full correctness/hash and process exit, locks the task slot, preserves
 both frozen binaries, then runs the native tests and four fixture modes once.
 The first034 sample water_cycle is0.158070tok/s,63 steps in398.557s with exact
 baseline greedy IDs; preliminary only until all cases/hash and repetitions pass.
+
+034 completed and Autolab verified all three reference cases,63 steps each,
+full-logits hashce0fbb9a116d3d09 and exact greedy IDs. Rates0.158070/0.154189/
+0.163196tok/s; slowest0.1541889212,13.93% above the baseline's slowest9-sample
+metric. One repetition is not the final repeated record. Native runtime1566.96s.
+
+Median decode seconds/token: attention0.6735445,MLP5.567433,outside layers0.085328,
+wall6.326305. About88% is in MLP blocks; outside-layers time is not head-only.
+Real routes touch12.231GB routed experts pertoken;32-token window unions reach
+114–133GB. Whole-expert globalLRU8GiB scans badly (zero simulated hits),12–16GiB
+still misses7.08–7.78GB/token. These are simulations, not measured cache/disk
+attribution. Compressed raw traces and SHA manifests are retained with analyses.
+
+035 native qualification completed:220 MSVC tests pass; all four fixture modes
+and the production wrapper match1f7cd0eb14a22662. Binary full-read-buffers.exe
+SHA497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861.
+Both frozen binary hashes remain unchanged; qualifier9788 has ended.
+
+## 36 hypothesis — combine measured read-path improvements and repeat fully
+
+The real88% MLP share justifies testing the bounded reuse pool without serial
+bulk-read hints. Combine with qualified rows2/4 and mapped sparse embedding;
+this measures the combination, not independent causal contributions. Run all
+three prompts x3 repetitions,64 generatedtokens (63 decode), same full reference
+hash/IDs. Capture routes/layer times/resources. Timeout7200s. Campaign launched;
+controller log/private/tmp/inkling-full-buffered-campaign.log, tool session88421.
+No other benchmark/build may run concurrently.25tok/s remains unmet.

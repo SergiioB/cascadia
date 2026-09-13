@@ -3,13 +3,13 @@
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.13533393807754676,
-  "status": "baseline_complete_candidates_qualified",
+  "status": "036_repeated_buffered_candidate_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Run guarded reusable-buffer probe, then full direct-read diagnostics and correctness-gated candidates.",
+  "next_action": "Finish nine-sample036 trial; verify full hash/IDs and compare layer/resource profiles.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -45,5 +45,9 @@
   "full_baseline_samples": 9,
   "full_baseline_decode_steps_min": 63,
   "full_baseline_repeated_ids_and_logits_match": true,
-  "full_baseline_text_reviewed": true
+  "full_baseline_text_reviewed": true,
+  "best_single_pass_full_model_decode_tokens_per_s": 0.15418892116462488,
+  "best_repeated_full_model_decode_tokens_per_s": 0.13533393807754676,
+  "last_verified_campaign": "034_full_direct_diagnostics",
+  "active_campaign": "036_full_reused_buffers_diagnostics"
 }

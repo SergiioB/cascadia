@@ -7,7 +7,7 @@ PTL machine**, not a component rate, aggregate throughput or remote inference.
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `ffa23e6f` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `f40f4385` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,16 +65,22 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Current state (refresh native processes before any new benchmark):
+Current live state (2026-09-13 23:10 UTC; refresh before any action):
 
-- Baseline queue3856/full-decode7340 and sampler2208 have ended.
-- Native mapped qualification7892 ended successfully:216 MSVC tests passed.
-- Buffer reuse probe completed30 byte-verified samples. No production pool yet.
-- First diagnostic campaign034 is being launched; see `.autolab/state.json`
-  and controller log `/private/tmp/inkling-full-direct-campaign.log`.
-- New bounded sampler uses `host-trials-resources.jsonl`, follow-trials mode,
- 6 hours, stop marker `stop-trials-sampler`. Sampler4208,parent1420.
-  Full trial PID5044,created1789339116.8486328; controller tool session87212.
+- **Campaign 036_full_reused_buffers_diagnostics is RUNNING.**
+- Native **full-read-buffers.exe PID 9472**, created1789340940.291343.
+- Controller tool session **88421**; log
+  `/private/tmp/inkling-full-buffered-campaign.log`.
+- Nine samples: three cases x three repetitions,64 tokens /63 decode steps.
+  Reads0, rows2/4, MmapEmbed1, ReuseBuffers1, SkipBulkPrefetch1.
+- Native `036-buffered.log` saves each completed sample. JSON, routes and layer
+  timings use `036-buffered*.json`. Expected full hashce0fbb9a116d3d09.
+- Sampler4208,parent1420 remains active with `host-trials-resources.jsonl`,
+  six-hour limit from22:38 UTC, stop marker `stop-trials-sampler`.
+- Baseline,034 direct trial, both native qualifiers and all component probes
+  have ended. Qualifier9788 is complete, not waiting. No competing builds/runs.
+- 034 verified slowest case0.1541889212 tok/s over one repetition. Repeated
+  baseline record remains0.1353339381 until036 completes and passes all checks.
 
 ## Baseline and qualified candidates
 
@@ -108,26 +114,42 @@ read~253.755MB from machine disk. Setup46.930ms separately; no full inference
 speedup established. Fresh+prefetch48.550ms, reused+prefetch43.566ms,
 prefetch+mapped-copy55.973ms. Conditions differ from transfer-active023/024.
 
-## Next full trials
+## Full diagnostic findings and next decisions
 
-`campaigns/034_full_direct_diagnostics.yaml` tests direct mapped execution,
-rows1/1, embedding mapping off. Same three reference cases,64 tokens,1 rep;
-expected full hashce0fbb9a116d3d09. Routing, layer timings, result and persistent
-stdout log use034-direct* under the native root. One rep is diagnostic and
-cannot satisfy the3-repetition target. Timeout3600s. Autolab runner saves
-portable results and rejects hash/ID failures. Only one campaign at a time.
+034 passed all three cases with exact reference IDs and full logits hash.
+Rates0.158070,0.154189,0.163196 tok/s; the slowest is13.93% above the repeated
+baseline's slowest rate, but034 itself has only one repetition.
+Median seconds/token: attention0.673545,MLP5.567433,outside layers0.085328,
+wall6.326305. About88% in MLP; outside layers is not head-only.
 
-`compare-full.ps1` uses the same qualified binary for baseline(reads0/rows1/1),
-direct(reads1/rows1/1), tiles(reads1/rows2/4), mapped(tiles+mapped embedding).
-All four fixture wrapper arms passed. Optional -Log refuses existing logs,
-saves native progress and replays stdout for Autolab metric parsing.
+Actual routed-expert working set12.231GB/token;32-token unions114–133GB.
+Global whole-expert LRU8GiB simulates zero hits;12–16GiB misses7.08–7.78GB/token.
+These are cache models, not measured physical I/O or inference speedups.
+Raw traces are committed as034-direct-{routes,layers}.json.gz, with source and
+compressed SHA hashes in034_trace_artifacts.json. Original JSON copies remain
+under `/private/tmp/inkling-full-direct-artifacts` and on PTL. Layer/routing
+analysis reports are committed. Run analyzers on decompressed JSON.
 
-When034 ends, copy JSON/routes/layers, analyze via analyze-routing.py and
-analyze-layer-profile.py --require-full, then choose the next candidate from
-measured bottlenecks. Do not invent cache/speculative speedups. Confirm the
-winning candidate over3 reps before promoting a full record. Stop the sampler
-by creating its marker when the campaign sequence ends; it never stops jobs.
-No Lambda/new export needed for current tests. Target remains unmet.
+036 measures combined reusable reads, omitted bulk-read hints, row tiles and
+mapped embedding over three repetitions. All220 Windows tests and all four
+fixture modes plus the production wrapper passed beforehand. Candidate SHA:
+**497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861**.
+Source revisionffa23e6f; both previous frozen binaries remain unchanged.
+
+When036 finishes, verify all samples/hash/IDs, copy artifacts and analyze
+performance plus private memory/page faults. Do not promote a partial result.
+The controller's target gate requires full975B scope, expected IDs/hash,
+>=32 decode steps,>=3 repetitions and slowest rate>=25tok/s. Target is unmet.
+
+While036 runs, evaluate online cache policies against the real trace. A global
+LRU can thrash across64 layers; compare a per-layer quota/frequency policy using
+only past/current routes. Do not train on future benchmark answers. Account for
+shared/fixed weights, scratch and other services beyond any routed-cache budget.
+A future-information oracle is acceptable ONLY as an explicitly labeled offline
+lower bound, never as a production cache or token-throughput measurement.
+
+Stop sampler by creating its marker when the campaign sequence ends. Do not
+stop protected services. No new export or A100 job is needed for current work.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads
@@ -174,18 +196,12 @@ Cross-batch per-expert4.62x minerCUDA/10.93x minerCPU is not matched full speedu
 Fresh549GB PTL delivery at103.7MB/s adds~88min/~$22 if rental serves it; rental
 route unmeasured. Current model is already on PTL and has no such dependency.
 
-## Read-buffer candidate under preparation
+## Reusable-buffer implementation
 
-Local opt-in CASCADIA_INKLING_REUSE_READ_BUFFERS and
-CASCADIA_INKLING_SKIP_BULK_PREFETCH prepared while034 runs. Pool caches only
-allocations, never expert contents, capped256MiB idle process-wide. Defaults
-remainoff. Direct-mapped execution takes precedence; prefill unchanged.
-218 local tests passed plus byte/greedy/full-logits fixture checks. Test results
-and source in035. Native **full-read-buffers.exe NOT YET BUILT/QUALIFIED**;
-`test-read-buffers.bat` is prepared. No competing native build during034.
-Source deployed after verifying every replaced file's previous SHA. A finite
-native qualifier is queued: read-buffers-qualification-state.json, parent4288;
-it waits for a correctness-verified034 report and all task full processes to
-exit, then tests/builds once. Never start a competing build/full trial before
-that state is terminal. Logs test-read-buffers.log/read-buffers-qualification.log.
-After qualification, measure only if observed bottlenecks justify the candidate.
+CASCADIA_INKLING_REUSE_READ_BUFFERS and CASCADIA_INKLING_SKIP_BULK_PREFETCH
+are opt-in/defaultoff. Pool retains allocations, not expert contents, capped at
+256MiB idle process-wide. Leases own buffers across Rayon I/O/compute; the mutex
+is not held during either. Full successful reads overwrite all bytes; errors
+cannot expose stale contents. Direct mapped execution takes precedence and
+prefill retains its prior hints.218 local tests and220 MSVC tests passed.
+Native full-read-buffers.exe is QUALIFIED and currently running036.

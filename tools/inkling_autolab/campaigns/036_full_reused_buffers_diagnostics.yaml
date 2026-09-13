@@ -1,0 +1,57 @@
+version: 1
+name: 036_full_reused_buffers_diagnostics
+hypothesis: Combine reusable bulk-read buffers and omitted serial hints with qualified
+  row tiles and mapped embedding to reduce paging overhead while preserving full-model
+  logits.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q19
+moonshot: false
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 7200
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1
+    -Model "{model}" -Cases "{cases}" -Binary full-read-buffers.exe -Reads 0 -Bf16Rows
+    2 -Int4Rows 4 -MmapEmbed 1 -ReuseBuffers {reuse} -SkipBulkPrefetch 1 -Tokens 64
+    -Samples 3 -Out C:/Users/devcloud/inkling-autolab/036-buffered.json -RouteTrace
+    C:/Users/devcloud/inkling-autolab/036-buffered-routes.json -LayerProfile C:/Users/devcloud/inkling-autolab/036-buffered-layers.json
+    -Log C:/Users/devcloud/inkling-autolab/036-buffered.log
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  reuse:
+  - 1
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+  - name: reuse_buffers
+    pattern: (?m)^bf16_rows=.* reuse_buffers=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2

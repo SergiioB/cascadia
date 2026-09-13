@@ -1,0 +1,14 @@
+{
+  "034-direct-routes.json": {
+    "source_bytes": 2536036,
+    "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+    "gzip_bytes": 182220,
+    "gzip_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+  },
+  "034-direct-layers.json": {
+    "source_bytes": 2711594,
+    "source_sha256": "883a9c9c08aab6cde4b8d907c922c9afe295c5ccfb896abb6c1b8394973cedfc",
+    "gzip_bytes": 172504,
+    "gzip_sha256": "3ec570fd5662a52fcef8251b18d2c30b0f697a33ff73b3c14b566370b807d7a7"
+  }
+}

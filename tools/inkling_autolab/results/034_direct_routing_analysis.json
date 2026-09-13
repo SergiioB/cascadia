@@ -1,0 +1,233 @@
+{
+  "scope": "routing_storage_analysis",
+  "full_model": true,
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "routed_expert_bytes": 31850496,
+  "fixed_nonexpert_file_bytes": 23041852040,
+  "shared_expert_bytes": 4076863488,
+  "source_samples": 3,
+  "distinct_cases": 3,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22932357120,
+          "median_routed_bytes": 19110297600.0,
+          "max_model_file_working_set_bytes": 50051072648
+        },
+        "4": {
+          "max_routed_bytes": 36596219904,
+          "median_routed_bytes": 30210195456.0,
+          "max_model_file_working_set_bytes": 63714935432
+        },
+        "8": {
+          "max_routed_bytes": 54719152128,
+          "median_routed_bytes": 46868004864.0,
+          "max_model_file_working_set_bytes": 81837867656
+        },
+        "16": {
+          "max_routed_bytes": 80008445952,
+          "median_routed_bytes": 73717972992.0,
+          "max_model_file_working_set_bytes": 107127161480
+        },
+        "32": {
+          "max_routed_bytes": 114343280640,
+          "median_routed_bytes": 108148359168.0,
+          "max_model_file_working_set_bytes": 141461996168
+        }
+      },
+      "cache_models": {
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7171211264.0
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 14024,
+          "simulated_lru_miss_bytes_per_decode_token": 7090021522.285714,
+          "max_window_miss_lower_bound_bytes_per_token": 5927829504.0
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 14002,
+          "simulated_lru_miss_bytes_per_decode_token": 7078899126.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 4854087680.0
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 10966,
+          "simulated_lru_miss_bytes_per_decode_token": 5544008557.714286,
+          "max_window_miss_lower_bound_bytes_per_token": 3618668544.0
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 9444,
+          "simulated_lru_miss_bytes_per_decode_token": 4774541019.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 2853044224.0
+        }
+      }
+    },
+    {
+      "case": "binary_search",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22709403648,
+          "median_routed_bytes": 19763232768.0,
+          "max_model_file_working_set_bytes": 49828119176
+        },
+        "4": {
+          "max_routed_bytes": 37105827840,
+          "median_routed_bytes": 32344178688.0,
+          "max_model_file_working_set_bytes": 64224543368
+        },
+        "8": {
+          "max_routed_bytes": 59241922560,
+          "median_routed_bytes": 53269954560.0,
+          "max_model_file_working_set_bytes": 86360638088
+        },
+        "16": {
+          "max_routed_bytes": 89499893760,
+          "median_routed_bytes": 84515291136.0,
+          "max_model_file_working_set_bytes": 116618609288
+        },
+        "32": {
+          "max_routed_bytes": 133453578240,
+          "median_routed_bytes": 127656787968.0,
+          "max_model_file_working_set_bytes": 160572293768
+        }
+      },
+      "cache_models": {
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7128973312.0
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 15379,
+          "simulated_lru_miss_bytes_per_decode_token": 7775059968.0,
+          "max_window_miss_lower_bound_bytes_per_token": 6055231488.0
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 15368,
+          "simulated_lru_miss_bytes_per_decode_token": 7769498770.285714,
+          "max_window_miss_lower_bound_bytes_per_token": 5257756672.0
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 12868,
+          "simulated_lru_miss_bytes_per_decode_token": 6505590198.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 4184014848.0
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 11257,
+          "simulated_lru_miss_bytes_per_decode_token": 5691127515.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 3446259712.0
+        }
+      }
+    },
+    {
+      "case": "short_story",
+      "decode_positions": 63,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 12230590464,
+          "median_routed_bytes": 12230590464,
+          "max_model_file_working_set_bytes": 39349305992
+        },
+        "2": {
+          "max_routed_bytes": 22964207616,
+          "median_routed_bytes": 19588055040.0,
+          "max_model_file_working_set_bytes": 50082923144
+        },
+        "4": {
+          "max_routed_bytes": 37870239744,
+          "median_routed_bytes": 31516065792.0,
+          "max_model_file_working_set_bytes": 64988955272
+        },
+        "8": {
+          "max_routed_bytes": 54751002624,
+          "median_routed_bytes": 50339708928.0,
+          "max_model_file_working_set_bytes": 81869718152
+        },
+        "16": {
+          "max_routed_bytes": 84626767872,
+          "median_routed_bytes": 78463696896.0,
+          "max_model_file_working_set_bytes": 111745483400
+        },
+        "32": {
+          "max_routed_bytes": 123516223488,
+          "median_routed_bytes": 118913826816.0,
+          "max_model_file_working_set_bytes": 150634939016
+        }
+      },
+      "cache_models": {
+        "8GiB": {
+          "routed_budget_bytes": 8589934592,
+          "whole_expert_capacity": 269,
+          "simulated_lru_decode_misses": 24192,
+          "simulated_lru_miss_bytes_per_decode_token": 12230590464.0,
+          "max_window_miss_lower_bound_bytes_per_token": 7320076288.0
+        },
+        "12GiB": {
+          "routed_budget_bytes": 12884901888,
+          "whole_expert_capacity": 404,
+          "simulated_lru_decode_misses": 15105,
+          "simulated_lru_miss_bytes_per_decode_token": 7636535588.571428,
+          "max_window_miss_lower_bound_bytes_per_token": 6246334464.0
+        },
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 539,
+          "simulated_lru_decode_misses": 15100,
+          "simulated_lru_miss_bytes_per_decode_token": 7634007771.428572,
+          "max_window_miss_lower_bound_bytes_per_token": 5172592640.0
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 809,
+          "simulated_lru_decode_misses": 12182,
+          "simulated_lru_miss_bytes_per_decode_token": 6158773686.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 3678560256.0
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 1078,
+          "simulated_lru_decode_misses": 10495,
+          "simulated_lru_miss_bytes_per_decode_token": 5305888182.857142,
+          "max_window_miss_lower_bound_bytes_per_token": 3141689344.0
+        }
+      }
+    }
+  ],
+  "measured_decode_throughput": false
+}
