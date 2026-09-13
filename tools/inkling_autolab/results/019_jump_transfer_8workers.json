@@ -1,0 +1,22 @@
+{
+  "start": {
+    "observed_unix": 1789326656.6598961,
+    "query_seconds": 1.6468199169030413,
+    "files": {
+      "Count": 156,
+      "Sum": 15927694546
+    }
+  },
+  "end": {
+    "observed_unix": 1789326774.233827,
+    "files": {
+      "Count": 164,
+      "Sum": 18338602930
+    }
+  },
+  "elapsed_seconds": 117.57393097877502,
+  "bytes_added": 2410908384,
+  "bytes_per_second": 20505467.189280488,
+  "remaining_hours_at_observed_rate": 7.188415399357531,
+  "scope": "logical_destination_growth_including_active_partials"
+}

@@ -1,13 +1,22 @@
 """Temporary read-only Inkling export transfer, restricted to tate-07 on Tailscale."""
-import hashlib, hmac, json, os, threading, time
+import argparse, hashlib, hmac, json, os, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-ROOT=Path('/mnt/external_ssd/inkling/out').resolve()
-STATE=Path('/tmp/inkling-direct-transfer')
+ap=argparse.ArgumentParser(description=__doc__)
+ap.add_argument('--root',type=Path,default=Path('/mnt/external_ssd/inkling/out'))
+ap.add_argument('--state-dir',type=Path,default=Path('/tmp/inkling-direct-transfer'))
+ap.add_argument('--bind',default='100.103.4.77')
+ap.add_argument('--port',type=int,default=18867)
+ap.add_argument('--client',default='100.82.253.76')
+ap.add_argument('--expire-hours',type=float,default=96)
+args=ap.parse_args()
+if args.expire_hours<=0:ap.error('expire-hours must be positive')
+ROOT=args.root.resolve()
+STATE=args.state_dir
 TOKEN=(STATE/'token').read_text().strip()
-CLIENT='100.82.253.76'
+CLIENT=args.client
 records=[]
 for p in sorted(ROOT.rglob('*')):
  if p.is_file() and not p.is_symlink():
@@ -57,12 +66,12 @@ class Handler(BaseHTTPRequestHandler):
   self.reply(200,b'Stopping');threading.Thread(target=self.server.shutdown,daemon=True).start()
  def log_message(self,*args):pass
 
-server=ThreadingHTTPServer(('100.103.4.77',18867),Handler)
+server=ThreadingHTTPServer((args.bind,args.port),Handler)
 server.daemon_threads=True
 (STATE/'pid').write_text(str(os.getpid()))
 # Automatic expiry avoids leaving a transfer endpoint behind after interruption.
-timer=threading.Timer(96*3600,server.shutdown);timer.daemon=True;timer.start()
-print('Serving only the Inkling export to tate-07; bound to Tailscale; expires in 96h.',flush=True)
+timer=threading.Timer(args.expire_hours*3600,server.shutdown);timer.daemon=True;timer.start()
+print(f'Serving only the Inkling export on {args.bind}:{args.port}; client={CLIENT}; expires in {args.expire_hours}h.',flush=True)
 try:server.serve_forever()
 finally:
  server.server_close();(STATE/'token').unlink(missing_ok=True)

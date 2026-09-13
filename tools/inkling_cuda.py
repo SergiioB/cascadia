@@ -2,6 +2,29 @@
 from __future__ import annotations
 
 import threading
+from queue import SimpleQueue
+
+
+class CudaInt4PackerPool:
+    """Use every visible NVIDIA GPU, assigning matrices to the next available one."""
+
+    def __init__(self, *, chunk_mib=64, verify=False):
+        import torch
+
+        if not torch.cuda.is_available() or torch.version.hip is not None:
+            raise ValueError("CUDA export needs an accessible NVIDIA GPU and a CUDA-enabled PyTorch build")
+        self.packers = [CudaInt4Packer(f"cuda:{index}", chunk_mib=chunk_mib, verify=verify)
+                        for index in range(torch.cuda.device_count())]
+        self.available = SimpleQueue()
+        for packer in self.packers:
+            self.available.put(packer)
+
+    def __call__(self, w):
+        packer = self.available.get()
+        try:
+            return packer(w)
+        finally:
+            self.available.put(packer)
 
 
 class CudaInt4Packer:

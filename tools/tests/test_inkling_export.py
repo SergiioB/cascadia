@@ -724,10 +724,11 @@ def test_gen_fixtures_writes_spec_tensor_set(tmp_path):
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required")
-def test_cuda_tiny_roundtrip_matches_cpu_and_hf(tmp_path, tiny_export):
+@pytest.mark.parametrize("device", ["cuda", "cuda:all"])
+def test_cuda_tiny_roundtrip_matches_cpu_and_hf(tmp_path, tiny_export, device):
     cpu_out, _ = tiny_export
     gpu_out = tmp_path / "cuda-export"
-    summary = export_inkling.export_tiny(gpu_out, workers=4, device="cuda", verify_cuda=True)
+    summary = export_inkling.export_tiny(gpu_out, workers=8, device=device, verify_cuda=True)
     assert summary["complete"]
     _assert_same_export(cpu_out, gpu_out)
     assert json.loads((cpu_out / "reference.json").read_text()) == json.loads((gpu_out / "reference.json").read_text())

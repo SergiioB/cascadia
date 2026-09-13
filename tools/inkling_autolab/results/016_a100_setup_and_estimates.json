@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-13",
+  "host": "ubuntu@129.146.170.51",
+  "gpu_count": 8,
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "driver": "580.105.08",
+  "ram_approx_tib": 1.7,
+  "free_disk_at_setup_approx_tib": 5.7,
+  "python": "3.12.14",
+  "torch": "2.14.0+cu130",
+  "transformers": "5.16.1",
+  "tests": "45 passed in 27.13s",
+  "controller_and_transfer_tests": "9 passed in 0.76s",
+  "selected_device": "cuda:all",
+  "selected_workers": 4,
+  "cuda_chunk_mib": 64,
+  "source_bytes": 1904604285204,
+  "current_export_bytes": 548985140942,
+  "hourly_cost_usd_user_supplied": 15,
+  "expert_stage_estimate_minutes": 12.148292792186458,
+  "planning_local_raw_export_minutes": [
+    15,
+    30
+  ],
+  "planning_local_raw_export_cost_usd": [
+    3.75,
+    7.5
+  ],
+  "planning_first_download_and_export_hours": [
+    2,
+    3
+  ],
+  "planning_first_download_and_export_cost_usd": [
+    30,
+    45
+  ],
+  "full_export_measured": false,
+  "full_download_measured": false,
+  "raw_weights_downloaded": false,
+  "gpu_idle_after_validation": true
+}

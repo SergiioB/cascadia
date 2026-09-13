@@ -409,3 +409,109 @@ PTL deployment remains independent: transfer PID 7060 has SHA-256 verified
 19 files / 5,147,657,460 bytes with no errors; finite baseline PID 3856 is still
 waiting. Existing OVMS/node/CA PIDs are unchanged. CUDA export acceleration
 does not change the recorded full-model inference rate or establish 25 tok/s.
+
+## 16 deployment — make the user's 8xA100 host the default exporter
+
+The user designated `ubuntu@129.146.170.51` for all future exports. Existing
+`~/.ssh/amx-bench_ed25519` authenticates; the default and cascadia identities do
+not. Added controller SSH alias `inkling-export` with the working identity.
+Read-only inventory confirmed eight idle A100-SXM4-40GB GPUs, driver 580.105.08,
+about 1.7 TiB RAM, 124 visible CPUs and 5.7 TiB free root disk. Preserve the
+host's existing Jupyter/container/monitoring services.
+
+Prepare an isolated `/home/ubuntu/inkling-export` environment, deploy the
+committed exporter, and qualify byte parity on A100 before future conversions.
+Record the host in `export-host.json` and use `export-remote.py` by default.
+The current packer uses one selected GPU; this setup does not imply eight-GPU
+scaling. No new full export is necessary for the existing PTL kernel changes.
+
+## 17 hypothesis — use the eight GPUs only if measured scaling justifies cost
+
+The user requested export ETA/cost at about $15/hour and resumed the PTL loop.
+Single-A100 qualification passed all 43 tests. Five alternating eight-expert
+trials: CUDA median 0.478556 s, versus miner CUDA 0.626925 s (1.310x).
+Scaling that warm-source expert stage to 16,514 bins is about 16.5 minutes
+versus 21.6 minutes, excluding dense-size differences, shells, cold I/O and
+downloads. It does not establish a full-export ETA. Test one process with an
+available-device queue so independent matrices can use all eight GPUs while
+the existing exporter remains the only owner of staging and output files.
+Require multi-GPU byte parity and tiny HF parity before timing.
+
+Deployment hypothesis: the user-supplied direct SSH jump route can shorten
+PTL deployment. Existing cascadia key works for both guest@192.55.48.214 and
+devcloud@192.168.22.2. A random 32 MiB scp took 4.618 s (7.265 MB/s including
+SSH startup), with matching SHA-256. Check sustained traffic with the current
+verified-copy machinery before replacing the working Tailscale transfer.
+
+Campaign 017 completed eight configurations; all output hashes match the
+miner reference. Best eight-expert result is cuda:all with four workers,
+20.143 experts/s, about 1.58x miner CUDA. More workers did not help this short
+batch. Test 64 experts next: a larger queue might sustain eight GPUs better
+and will expose whether extrapolating eight experts understates I/O cost.
+
+The direct-route native client copied and SHA-256 verified a real 31,850,496-byte
+expert in 2.235 s. Replaced only transfer PID 7060 after this gate passed;
+the new native transfer was launched by parent cmd PID 10884. Existing data and
+partials resume, and the baseline queue remains unchanged. The source endpoint
+is restricted to miner localhost and reached through two SSH loopback forwards
+on the controller; no SSH private key leaves this device. Supervisor PID 85720
+restarts those forwards and expires after 96 hours or verified deployment.
+
+Direct-route sustained result: destination grew 2,410,908,384 bytes in
+117.574 seconds, **20.51 MB/s**, about 7.7x the prior 2.67 MB/s bulk rate.
+No transfer errors; baseline is still waiting. At that sample rate about
+7.2 hours remain. Hypothesis: 32 independent HTTP/SSH channels can better fill
+the path than eight. Raise only the transfer worker cap (bounded 1 MiB buffers),
+resume existing partials and measure logical growth again. Preserve services
+and revert the worker count if sustained throughput regresses.
+
+Campaign 018 completed all four 64-expert configurations, with identical hashes
+and per-file CPU parity. Best remains cuda:all/four workers, 22.656 experts/s
+(2.824842 s for 64), versus 18.054 on one A100. More workers lost. The selected
+remote launcher now uses cuda:all/four workers. About 12.1 minutes/$3.04 for
+16,514 expert bins is only a scaled warm-source stage estimate.
+
+The pinned raw checkpoint is 1,904,604,285,204 bytes. A four-worker 1 GiB guest
+O_DIRECT probe measured 3.82 GB/s writes and 13.79 GB/s reads; the latter can
+reflect lower-level cache and must not be assumed for the full source. Serial
+256 MiB HTTP ranges measured median 39.3 MB/s, implying roughly 13.5 hours if
+naively downloaded serially. Test parallel ranges before using that pessimistic
+download/cost estimate; downloaded probe bytes are discarded, not full shards.
+
+Parallel download probes: eight streams measured 196 and 323 MB/s (median
+259.5 MB/s); sixteen streams varied widely and did not improve the median.
+At eight-stream observed rates, 1.9 TB takes about 1.6–2.7 hours before export.
+Planning estimate: 15–30 minutes/$4–8 with raw weights local; roughly 2–3 hours/
+$30–45 for the first download plus export at the user-supplied $15/hour rate.
+These are extrapolations, not a measured full-model export or sustained 1.9 TB
+download. The current PTL loop needs no re-export and no A100 rental during copy.
+
+32 transfer workers on one SSH jump transport regressed to 18.13 MB/s. Source
+storage is an actual SanDisk Extreme Pro USB SSD and source CPU use is modest.
+Hypothesis: the nested jump channel's flow-control window limits a single
+transport; more HTTP workers cannot enlarge that outer channel. OpenSSH's
+current default TCP channel window is 64 * 32 KiB:
+https://github.com/openssh/openssh-portable/blob/master/channels.h
+Test four independent SSH transports with 16 HTTP workers to the same loopback
+source. Preserve per-file source/destination SHA checks and resume semantics.
+
+Four independent transports confirmed the hypothesis: 8,727,035,904 logical
+destination bytes added in 188.161 seconds, **46.38 MB/s**, versus 20.51 MB/s
+with one transport/eight HTTP workers and 18.13 with one/32. Approximately
+three hours remain at the observed four-transport rate. All per-file checks
+continue and the full baseline remains queued. Test eight transports next to
+approach PTL's 1 Gb/s link. This optimizes deployment, not model token throughput.
+
+A100 work is complete and GPUs idle. The remote launcher selected cuda:all/four
+workers, 45 GPU exporter tests passed, and nine controller/transfer tests passed.
+The configurable transfer CLI test exercises denied auth/traversal, partial
+resume, same-size corruption repair, repeated endpoints, zero-byte files,
+the all-files marker and authenticated shutdown/token cleanup.
+
+Eight jump transports confirmed further scaling: 20,670,971,904 logical bytes
+added in 199.334 seconds, **103.70 MB/s**, near the 1 Gb/s Ethernet limit and
+38.8x the original 2.67 MB/s DERP bulk transfer. Retain eight transports with
+32 HTTP workers. Remaining copy estimate at that sample: 1.26 hours. New native
+client PID 4740 (parent cmd 9040), baseline queue PID 3856 still waiting, no
+transfer errors. Additional supervisor PID 89290 owns ports 18872–18875.
+Full-model inference is still unmeasured; no 25 tok/s claim is implied.

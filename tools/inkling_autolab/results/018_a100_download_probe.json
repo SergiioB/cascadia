@@ -1,0 +1,55 @@
+{
+  "scope": "parallel_bounded_http_ranges_discarded",
+  "full_download_measured": false,
+  "revision": "828496eeae4c243ff1a22f7f28ff83694f2f7bc9",
+  "source_bytes": 1904604285204,
+  "samples": [
+    {
+      "workers": 4,
+      "repetition": 0,
+      "bytes": 536870912,
+      "seconds": 4.455207836999989,
+      "bytes_per_second": 120504122.73504926
+    },
+    {
+      "workers": 8,
+      "repetition": 0,
+      "bytes": 1073741824,
+      "seconds": 5.46989434000011,
+      "bytes_per_second": 196300286.12215906
+    },
+    {
+      "workers": 16,
+      "repetition": 0,
+      "bytes": 2147483648,
+      "seconds": 26.17044735000013,
+      "bytes_per_second": 82057582.71075138
+    },
+    {
+      "workers": 16,
+      "repetition": 1,
+      "bytes": 2147483648,
+      "seconds": 9.501016020999941,
+      "bytes_per_second": 226026736.85145375
+    },
+    {
+      "workers": 8,
+      "repetition": 1,
+      "bytes": 1073741824,
+      "seconds": 3.326841558000069,
+      "bytes_per_second": 322751115.51915324
+    },
+    {
+      "workers": 4,
+      "repetition": 1,
+      "bytes": 536870912,
+      "seconds": 2.39879484700009,
+      "bytes_per_second": 223808598.16811997
+    }
+  ],
+  "median_bytes_per_second": {
+    "4": 172156360.4515846,
+    "8": 259525700.82065615,
+    "16": 154042159.78110257
+  }
+}

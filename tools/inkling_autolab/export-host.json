@@ -1,0 +1,8 @@
+{
+  "host": "ubuntu@129.146.170.51",
+  "identity_file": "~/.ssh/amx-bench_ed25519",
+  "remote_root": "/home/ubuntu/inkling-export",
+  "device": "cuda:all",
+  "workers": 4,
+  "cuda_chunk_mib": 64
+}

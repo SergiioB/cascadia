@@ -219,3 +219,58 @@ python tools/inkling_autolab/cuda-export-bench.py \
 The benchmark creates and removes its own temporary source/output directory,
 checks every output SHA-256 against CPU and refuses to overwrite its report.
 No CUDA exporter process remains running. PTL transfer/baseline jobs are separate.
+
+## Default export host and direct PTL access
+
+The user designated **ubuntu@129.146.170.51** for all future exports in this
+loop. It has eight A100-SXM4-40GB GPUs, about 1.7 TiB RAM, and 5.7 TiB free disk
+at setup. SSH uses the controller's existing `~/.ssh/amx-bench_ed25519`; alias
+`inkling-export` is configured on this controller. No private key was copied.
+
+The isolated root is `/home/ubuntu/inkling-export`, with `venv`, `repo`, `source`,
+`exports`, `scratch` and `logs`. Python 3.12.14, PyTorch 2.14.0+cu130 and
+Transformers 5.16.1 are installed; the initial 43 tests and subsequent 45 tests
+including the multi-GPU pool passed on this host. Existing host services remain.
+The general exporter still defaults to CPU; this task's remote launcher selects
+CUDA from `export-host.json`:
+
+```sh
+python tools/inkling_autolab/export-remote.py -- \
+  --model /home/ubuntu/inkling-export/source/Inkling \
+  --out /home/ubuntu/inkling-export/exports/Inkling-int4
+```
+
+Paths are remote. `--print-command` shows the invocation, and forwarded
+`--device cuda:all` selects the available-device pool. The remote `flock` permits
+one launcher invocation at a time. Raw source weights have not been downloaded;
+the current frozen export is still on miner and does not need regeneration for
+PTL kernel tests. Do not keep this $15/hour host running solely for PTL transfer.
+
+The user also authorized direct PTL SSH through `guest@192.55.48.214` to
+`devcloud@192.168.22.2`, using `~/.ssh/cascadia_ed25519` for both hops. Controller
+aliases `inkling-ptl-jump` and `inkling-ptl-direct` implement that route.
+`jump-tunnels.py` maintains two loopback forwards: miner localhost:18868 to
+controller localhost:18868, then PTL localhost:18868 through the jump host.
+The read-only source endpoint requires a separate ephemeral token and binds
+only to miner localhost. The native client retains SHA-256 verification and
+resume semantics. This faster route depends on the controller remaining awake;
+the supervisor reconnects and exits after verified deployment or 96 hours.
+
+See HANDOFF for current process IDs and endpoint/token cleanup. A 32 MiB scp
+probe and a real expert copy passed exact SHA checks; a two-minute bulk window
+measured 20.5 MB/s with eight streams, versus the prior 2.67 MB/s Tailscale copy.
+
+The selected A100 export profile is `cuda:all` with four workers: 22.656 experts/s
+in a 64-expert warm-source trial. Matched eight-expert conversion is 1.58x faster
+than miner CUDA and 3.73x faster than the original miner CPU path. At ~$15/hour,
+plan **15–30 minutes / $4–8** when raw weights are local, or roughly **2–3 hours /
+$30–45** for a first download plus export. The pinned checkpoint is 1.905 TB;
+eight download streams measured 196–323 MB/s in short range probes. These are
+estimates, not full-model export/download timings. Retaining source storage
+between exports avoids paying again for the initial download.
+
+Final transfer profile: **eight independent jump transports, 32 HTTP workers**,
+round-robin PTL loopback ports 18868–18875, all to the same authenticated source.
+This sustained **103.70 MB/s**, versus 46.38 MB/s with four transports. More HTTP
+workers within one outer SSH transport did not help. Three detached supervisors
+maintain the selected forwards; current PIDs and restart arguments are in HANDOFF.

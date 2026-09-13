@@ -1,11 +1,94 @@
 # Restart handoff — Inkling / Panther Lake Autolab
 
-Updated 2026-09-13 after CUDA export implementation and validation. A native checkpoint transfer
+Updated 2026-09-13 after A100 qualification and direct-route transfer work. A native checkpoint transfer
 and a finite baseline job waiting for it are running on PTL. No Autolab
 controller is currently running. The user authorized autonomous testing on
 **tate-07, 100.82.253.76**, plus commit/push as t8, without coauthor trailers.
 Latest target: **25 full-model decode tokens/s for large Inkling on this one PTL
 box**. It has NOT been reached. Do not equate layer/component rates with it.
+
+## Latest steering and live state (supersedes older deployment sections)
+
+The user designated **ubuntu@129.146.170.51, 8x A100-SXM4-40GB**, for all future
+exports and requested cost estimates at ~$15/hour. Use `export-remote.py` and
+`export-host.json`, default **cuda:all / four workers / 64 MiB chunks**.
+The working controller identity is `~/.ssh/amx-bench_ed25519`; alias
+`inkling-export` is installed. About 1.7 TiB RAM and 5.7 TiB free disk at setup.
+The isolated root `/home/ubuntu/inkling-export` holds `repo`, `venv`, `source`,
+`exports`, `scratch`, `logs`. Python 3.12.14, Torch 2.14.0+cu130, Transformers
+5.16.1; all **45 exporter tests passed in 27.13 s** across the eight GPUs.
+The GPU pool preserves per-device byte parity and staging ownership. Existing
+host Jupyter/container/monitoring services were retained. No private keys copied.
+
+Autolab campaigns 017 (eight experts) and 018 (64 experts) completed, all CPU
+byte checks passed and hashes match across arms. Best 64-expert rate is
+**22.656 experts/s**, or a scaled 12.1-minute expert stage. Matched eight-expert
+conversion is **1.58x miner CUDA / 3.73x original miner CPU**. Planning estimate:
+**15–30 minutes / $4–8** with raw weights local; **2–3 hours / $30–45** for first
+download plus export. Raw checkpoint size 1,904,604,285,204 bytes. Eight HTTP
+streams measured 196–323 MB/s in bounded probes. Full export/download have NOT
+been timed, and cold I/O or download variance can change these estimates.
+
+All A100 test/benchmark jobs have ended and all eight GPUs were observed idle
+(0 MiB). Raw checkpoint weights were NOT downloaded; synthetic test sources and
+outputs were removed automatically. The venv is 5.4 GiB; config is 8 KiB. The
+current PTL loop needs the already-exported miner checkpoint, so it does not
+need this rental kept running between future exports. Provider billing controls
+have not been accessed; do not assume guest shutdown stops charges.
+
+The user authorized direct PTL access with the **cascadia** key for both hops:
+`ssh -J guest@192.55.48.214 devcloud@192.168.22.2`.
+Controller aliases `inkling-ptl-jump` and `inkling-ptl-direct` use
+`~/.ssh/cascadia_ed25519`. Hostname confirmed `pdx88-pa0794`.
+
+Direct transfer is live. The old Tailscale native client PID 7060 and subsequent
+one-tunnel clients 11176 / 10512 were stopped with path/PID checks; partials were
+preserved. Current native Python **PID 4740**, parent cmd **9040**, has **32 workers**
+and cycles `http://127.0.0.1:18868` through `18875`. Latest observed state:
+1,070 files / 54,892,348,040 bytes verified, no errors; a later logical files/partials
+snapshot totaled 79,731,783,374 bytes. The baseline queue **PID 3856** still waits for the
+all-files marker. Do not run a competing full benchmark.
+
+Source endpoint on miner: `/tmp/inkling-jump-transfer/transfer-server.py`,
+**PID 203817**, binds **127.0.0.1:18868**, permits localhost plus an ephemeral
+token from `/tmp/inkling-jump-transfer/token`; expires in 96 hours or success.
+Token also exists on controller `/private/tmp/inkling-jump-transfer/token` and
+PTL task root `transfer-jump-token`. Never print/commit tokens.
+
+Three detached controller supervisors maintain the SSH forwards:
+
+- **PID 85720**, `/private/tmp/inkling-jump-transfer`: original miner local
+  forward and PTL port 18868. It was launched with the default one-PTL-tunnel
+  arguments. Source SSH is LAN; PTL SSH uses the direct jump route.
+- **PID 88185**, `/private/tmp/inkling-jump-extra-tunnels`: three extra PTL
+  reverse forwards on ports 18869–18871; arguments `--port 18869 --ptl-tunnels 3
+  --no-source-tunnel --state-dir /private/tmp/inkling-jump-extra-tunnels`.
+- **PID 89290**, `/private/tmp/inkling-jump-eight-tunnels`: four further PTL
+  reverse forwards on ports 18872–18875; arguments `--port 18872 --ptl-tunnels 4
+  --no-source-tunnel --state-dir /private/tmp/inkling-jump-eight-tunnels`.
+
+`jump-tunnels.py` reconnects its own SSH children, uses flock to prevent duplicate
+supervisors, and exits on the verified marker or after 96 hours. These forwards
+depend on the controller being awake. Status/child PIDs are in each directory's
+`tunnels-state.json`; logs are alongside. No private key leaves the controller.
+
+Single jump transport measured 20.51 MB/s with eight HTTP workers; 32 workers
+regressed to 18.13 MB/s. Four transports reached 46.38 MB/s; **eight reached
+103.70 MB/s**, near the Ethernet limit. Retain eight/32 workers. About 1.26 hours
+remained at the final short-window rate. The prior DERP
+bulk rate was 2.67 MB/s. Source is an actual SanDisk Extreme Pro USB SSD.
+See JOURNAL hypothesis 17 and results 019 for integrity gates and measurements.
+Baseline/OVMS/node/CA remained running with unchanged PIDs.
+
+The old source server **PID 199701** and old Tailscale token/endpoint still exist
+as fallback; retire just that task endpoint after the new path is stable.
+Old copy logs/state on PTL are `transfer-derp.log`, `transfer-state-derp.json`,
+`transfer-jump8.log`, `transfer-state-jump8.json`, `transfer-jump32.log`, and
+`transfer-state-jump32.json`. Do not restart any archived copy concurrently.
+
+Next: let the verified copy finish, collect
+the full PTL baseline once deployment completes, and resume correctness-gated
+full-model experiments. CUDA export timing is not PTL tokens/s.
 
 ## Current outcome and blocker
 

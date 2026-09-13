@@ -1,0 +1,36 @@
+{
+  "revision": "828496eeae4c243ff1a22f7f28ff83694f2f7bc9",
+  "source_bytes": 1904604285204,
+  "scope": "short_direct_io_and_http_range_probes",
+  "full_export_measured": false,
+  "direct_write": {
+    "bytes": 1073741824,
+    "seconds": 0.2811309450000863,
+    "bytes_per_second": 3819365470.4204493,
+    "workers": 4
+  },
+  "direct_read": {
+    "bytes": 1073741824,
+    "seconds": 0.07787327200003347,
+    "bytes_per_second": 13788322956.296719,
+    "workers": 4
+  },
+  "http_range_samples": [
+    {
+      "bytes": 268435456,
+      "seconds": 6.332819104999999,
+      "bytes_per_second": 42387987.33222304
+    },
+    {
+      "bytes": 268435456,
+      "seconds": 6.829873778000092,
+      "bytes_per_second": 39303135.71308819
+    },
+    {
+      "bytes": 268435456,
+      "seconds": 7.519215575000089,
+      "bytes_per_second": 35699928.18034038
+    }
+  ],
+  "http_range_median_bytes_per_second": 39303135.71308819
+}

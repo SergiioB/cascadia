@@ -1,19 +1,30 @@
 """Resume and SHA256-verify the exact Inkling export from the miner to tate-07."""
-import argparse, concurrent.futures, hashlib, json, os, threading, time
+import argparse, concurrent.futures, hashlib, itertools, json, os, threading, time
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request,build_opener,ProxyHandler
 opener=build_opener(ProxyHandler({}))
 
-ap=argparse.ArgumentParser();ap.add_argument('--probe',action='store_true');ap.add_argument('--workers',type=int,default=4);args=ap.parse_args()
-if not 1 <= args.workers <= 8:ap.error('--workers must be between 1 and 8')
-ROOT=Path('C:/Users/devcloud/inkling-autolab')
-DEST=ROOT/'model';DEST.mkdir(exist_ok=True)
-TOKEN=(ROOT/'transfer-token').read_text().strip()
-BASE='http://100.103.4.77:18867'
+ap=argparse.ArgumentParser();ap.add_argument('--probe',action='store_true');ap.add_argument('--workers',type=int,default=4)
+ap.add_argument('--root',type=Path,default=Path('C:/Users/devcloud/inkling-autolab'))
+ap.add_argument('--dest',type=Path)
+ap.add_argument('--token-file',type=Path)
+ap.add_argument('--state-file',type=Path)
+ap.add_argument('--base-url',action='append',help='repeat for independent tunnels to the same source endpoint')
+args=ap.parse_args()
+if not 1 <= args.workers <= 32:ap.error('--workers must be between 1 and 32')
+ROOT=args.root
+if args.dest is not None and not args.probe:
+ ap.error('--dest is only supported for isolated --probe runs; full copies use ROOT/model')
+DEST=args.dest or ROOT/'model';DEST.mkdir(parents=True,exist_ok=True)
+token_file=args.token_file or ROOT/'transfer-token'
+TOKEN=token_file.read_text().strip()
+BASES=[url.rstrip('/') for url in (args.base_url or ['http://100.103.4.77:18867'])]
+routes=itertools.cycle(BASES);route_lock=threading.Lock()
 
 def request(path,headers=None,method='GET'):
- return opener.open(Request(BASE+path,headers={'Authorization':'Bearer '+TOKEN,**(headers or {})},method=method),timeout=120)
+ with route_lock:base=next(routes)
+ return opener.open(Request(base+path,headers={'Authorization':'Bearer '+TOKEN,**(headers or {})},method=method),timeout=120)
 
 def digest(path):
  h=hashlib.sha256()
@@ -25,14 +36,14 @@ with request('/manifest') as r:manifest=json.load(r)
 records=manifest['files']
 if args.probe:records=[next(r for r in records if r['path']=='experts/layer_02/expert_000.bin')]
 verified={};errors=[];lock=threading.Lock();start=time.monotonic()
-state_path=ROOT/'transfer-state.json'
+state_path=args.state_file or ROOT/'transfer-state.json'
 
 def checkpoint(status):
  with lock:
   state={'status':status,'files_verified':len(verified),'files_total':len(records),
          'bytes_verified':sum(v['size'] for v in verified.values()),'bytes_total':sum(r['size'] for r in records),
          'elapsed_seconds':time.monotonic()-start,'errors':list(errors),'probe':args.probe,
-         'pid':os.getpid(),'workers':args.workers}
+         'pid':os.getpid(),'workers':args.workers,'base_urls':BASES}
   temp=state_path.with_suffix('.tmp');temp.write_text(json.dumps(state,indent=2));temp.replace(state_path)
 
 # Periodic status updates do not alter the data-transfer schedule.
@@ -102,6 +113,6 @@ try:
   ready.replace(ROOT/'model-ready.json')
   try:
    with request('/shutdown',method='POST') as response:response.read()
-  finally:(ROOT/'transfer-token').unlink(missing_ok=True)
+  finally:token_file.unlink(missing_ok=True)
  print('TRANSFER_VERIFIED_SECONDS='+str(time.monotonic()-start),flush=True)
 finally:stop.set();progress_thread.join()

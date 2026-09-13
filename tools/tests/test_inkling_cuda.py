@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 torch = pytest.importorskip("torch")
 import export_inkling
-from inkling_cuda import CudaInt4Packer
+from inkling_cuda import CudaInt4Packer, CudaInt4PackerPool
 
 cuda = pytest.mark.skipif(not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required")
 
@@ -27,6 +27,8 @@ def test_missing_cuda_fails_explicitly(monkeypatch):
         export_inkling.make_packer("cuda")
     with pytest.raises(ValueError, match="requires --device"):
         export_inkling.make_packer("cpu", verify_cuda=True)
+    with pytest.raises(ValueError, match="accessible NVIDIA"):
+        export_inkling.make_packer("cuda:all")
 
 
 def test_missing_cuda_does_not_create_export_output(tmp_path, monkeypatch):
@@ -90,3 +92,19 @@ def test_verification_rejects_wrong_bytes(monkeypatch):
     monkeypatch.setattr(packer, "_pack_chunks", lambda w: (b"wrong", b"wrong"))
     with pytest.raises(RuntimeError, match="output was not written"):
         packer(torch.ones(1, 32))
+
+
+@cuda
+def test_gpu_pool_parity_and_recovery_after_failure():
+    pool = CudaInt4PackerPool(chunk_mib=1, verify=True)
+    assert len(pool.packers) == torch.cuda.device_count()
+    generator = torch.Generator().manual_seed(790)
+    matrices = [torch.randn(513, 1024, generator=generator).bfloat16()
+                for _ in range(2 * len(pool.packers))]
+    with ThreadPoolExecutor(max_workers=len(pool.packers)) as workers:
+        assert list(workers.map(pool, matrices)) == [export_inkling.pack_int4(w) for w in matrices]
+    # A failed matrix must return its device, otherwise a future export can deadlock.
+    for _ in pool.packers:
+        with pytest.raises(ValueError, match="CPU matrix"):
+            pool(torch.ones(1, 31))
+    assert pool(matrices[0]) == export_inkling.pack_int4(matrices[0])

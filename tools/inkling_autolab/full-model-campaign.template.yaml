@@ -7,7 +7,7 @@ question: q5
 moonshot: false
 runner:
   backend: ssh
-  host: cascadia-tate-07-ts
+  host: inkling-ptl-direct
   user: devcloud
   timeout_seconds: 14400
   command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1

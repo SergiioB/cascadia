@@ -1,0 +1,31 @@
+version: 1
+name: 018_a100_sustained_export
+hypothesis: A queue of 64 experts sustains multiple A100s better than an eight-expert batch.
+question: q9
+moonshot: false
+measurement_scope: synthetic_export_subset
+validation_metric: bytes_verified
+runner:
+  backend: ssh
+  host: inkling-export
+  user: ubuntu
+  timeout_seconds: 600
+  command: /home/ubuntu/inkling-export/venv/bin/python /home/ubuntu/inkling-export/repo/tools/inkling_autolab/cuda-export-bench.py --config /home/ubuntu/inkling-export/source/config.json --work-dir /home/ubuntu/inkling-export/scratch --out /home/ubuntu/inkling-export/logs/sustained-{device}-{cuda_workers}.json --device {device} --workers 8 --cuda-workers {cuda_workers} --experts 64 --samples 3
+defaults: {}
+grid:
+  device: [cuda:0, cuda:all]
+  cuda_workers: [4, 16]
+metrics:
+  primary: export_experts_per_s
+  direction: maximize
+  collect:
+    - name: export_experts_per_s
+      pattern: '(?m)^export_experts_per_s=([\d.]+)'
+    - name: output_hash
+      pattern: '(?m)^output_hash=([0-9a-f]+)'
+      type: str
+    - name: bytes_verified
+      pattern: '(?m)^bytes_verified=(\d+)'
+stopping:
+  window: 100000
+  max_failures: 2

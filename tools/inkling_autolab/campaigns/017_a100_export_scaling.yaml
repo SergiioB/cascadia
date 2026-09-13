@@ -1,0 +1,32 @@
+version: 1
+name: 017_a100_export_scaling
+hypothesis: Concurrent independent matrices across eight A100s reduce conversion cost while preserving every output byte.
+question: q9
+moonshot: false
+measurement_scope: synthetic_export_subset
+validation_metric: bytes_verified
+runner:
+  backend: ssh
+  host: inkling-export
+  user: ubuntu
+  timeout_seconds: 300
+  command: /home/ubuntu/inkling-export/venv/bin/python /home/ubuntu/inkling-export/repo/tools/inkling_autolab/cuda-export-bench.py --config /home/ubuntu/inkling-export/source/config.json --work-dir /home/ubuntu/inkling-export/scratch --out /home/ubuntu/inkling-export/logs/scale-{device}-{cuda_workers}.json --device {device} --workers 8 --cuda-workers {cuda_workers} --samples 3
+defaults:
+  expected_hash: d4ac278a47519031d5fd59be481672d24b2d5739dd7f2b2a9c1a8ea20bc79391
+grid:
+  device: [cuda:0, cuda:all]
+  cuda_workers: [4, 8, 16, 32]
+metrics:
+  primary: export_experts_per_s
+  direction: maximize
+  collect:
+    - name: export_experts_per_s
+      pattern: '(?m)^export_experts_per_s=([\d.]+)'
+    - name: output_hash
+      pattern: '(?m)^output_hash=([0-9a-f]+)'
+      type: str
+    - name: bytes_verified
+      pattern: '(?m)^bytes_verified=(\d+)'
+stopping:
+  window: 100000
+  max_failures: 2

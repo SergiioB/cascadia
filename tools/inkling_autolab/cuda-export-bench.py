@@ -30,6 +30,7 @@ def main():
     parser.add_argument('--samples', type=int, default=3)
     parser.add_argument('--workers', type=int, default=8)
     parser.add_argument('--cuda-workers', type=int, help='CUDA I/O workers; defaults to --workers')
+    parser.add_argument('--device', default='cuda', help='cuda, cuda:N or cuda:all')
     parser.add_argument('--chunk-mib', type=int, default=64)
     args = parser.parse_args()
     if min(args.experts, args.samples, args.workers) < 1:
@@ -42,7 +43,9 @@ def main():
     man['num_experts'] = args.experts
     hidden, inter = man['hidden_size'], man['moe_intermediate']
     exporter._set_threads(args.workers)
-    cuda = exporter.make_packer('cuda', args.chunk_mib)
+    cuda = exporter.make_packer(args.device, args.chunk_mib)
+    device_indices = ([p.device.index for p in cuda.packers] if args.device == 'cuda:all'
+                      else [cuda.device.index])
     args.work_dir.mkdir(parents=True, exist_ok=True)
     samples = []
     expected = None
@@ -75,8 +78,9 @@ def main():
                     selected = [u for u in run.per_layer[2] if u.kind == 'expert'][:args.experts]
                     assert len(selected) == args.experts
                     run.stats = defaultdict(float)
-                    torch.cuda.synchronize()
-                    torch.cuda.reset_peak_memory_stats()
+                    for index in device_indices:
+                        torch.cuda.synchronize(index)
+                        torch.cuda.reset_peak_memory_stats(index)
                     started = time.perf_counter()
                     with ThreadPoolExecutor(max_workers=workers) as pool:
                         counts = run.process(selected, pool)
@@ -91,7 +95,7 @@ def main():
                               'experts_per_second': args.experts / elapsed,
                               'source_bytes': source_bytes,
                               'output_bytes': sum(u.output.stat().st_size for u in selected),
-                              'cuda_peak_allocated_bytes': torch.cuda.max_memory_allocated(),
+                              'cuda_peak_allocated_bytes': sum(torch.cuda.max_memory_allocated(i) for i in device_indices),
                               'worker_times_sum': dict(run.stats), 'sha256_verified': True}
                     samples.append(sample)
                     print('sample_json=' + json.dumps(sample), flush=True)
@@ -106,10 +110,14 @@ def main():
               'gpu': torch.cuda.get_device_name(0), 'cpu_threads': os.cpu_count(),
               'cpu_workers': args.workers, 'cuda_workers': args.cuda_workers or args.workers,
               'cuda_chunk_mib': args.chunk_mib, 'hidden': hidden, 'intermediate': inter,
+              'cuda_device': args.device, 'cuda_device_indices': device_indices,
               'experts': args.experts, 'samples': samples, 'median_seconds': medians,
               'speedup': medians['cpu'] / medians['cuda'], 'output_sha256': expected}
     args.out.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'median_seconds': medians, 'speedup': report['speedup']}), flush=True)
+    print(f"export_experts_per_s={args.experts / medians['cuda']:.9f}")
+    print('output_hash=' + hashlib.sha256(json.dumps(expected, sort_keys=True).encode()).hexdigest())
+    print('bytes_verified=1')
 
 
 if __name__ == '__main__':

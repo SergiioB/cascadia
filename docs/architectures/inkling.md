@@ -150,6 +150,11 @@ and an RTX 4060 Ti 8 GB. No model-sized GPU allocation is needed: conversion
 works in row chunks, with one GPU operation sequence at a time shared by the
 export I/O workers. `--cuda-chunk-mib` bounds the f32-equivalent input per chunk;
 temporary GPU allocations are additional. `cuda:N` selects a device explicitly.
+`--device cuda:all` assigns independent matrices to available GPUs in one
+exporter process, preserving the existing ownership of staging and final files.
+Each GPU runs its own startup parity check; only one matrix uses a given GPU at
+a time. `CUDA_VISIBLE_DEVICES` can restrict the pool. Eight A100s passed all
+45 exporter tests, including concurrent pool recovery and full tiny HF parity.
 
 `--skip-missing-shards`, `--delete-consumed-shards`, staged assembly, resumption
 and `--layers-done-check` work with either quantization device. Packed nibbles,
@@ -172,6 +177,12 @@ These measure conversion work, not full-model
 inference or a complete 975B re-export. Raw results and the benchmark script are
 under `tools/inkling_autolab/results/015_cuda_*` and
 `tools/inkling_autolab/cuda-export-bench.py`.
+
+For this research loop, the user designated `ubuntu@129.146.170.51` (8x A100
+40 GB) for all future exports. Use `tools/inkling_autolab/export-remote.py`;
+its model/output arguments refer to that host's disk. The host selection and
+controller identity path live in `tools/inkling_autolab/export-host.json`.
+See the Autolab README for environment and cost measurements.
 
 ## Validation
 

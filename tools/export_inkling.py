@@ -18,7 +18,7 @@ Modes:
                                   model.safetensors.index.json, so ONE pass over a shard consumes it no
                                   matter which other shards have arrived
       [--workers N]               conversion threads (default min(8, cpus))
-      [--device cpu|cuda:N]        int4 quantization device (default cpu); shells remain on CPU
+      [--device cpu|cuda:N|cuda:all] int4 quantization device (default cpu); shells remain on CPU
       [--cuda-chunk-mib N]         f32-equivalent input MiB per GPU chunk (default 64)
       [--verify-cuda]             compare every CUDA-packed matrix to the CPU bytes (qualification)
   --layers-done-check --out OUT [--model DIR]
@@ -141,8 +141,10 @@ def make_packer(device="cpu", cuda_chunk_mib=64, verify_cuda=False):
         if verify_cuda:
             raise ValueError("--verify-cuda requires --device cuda or cuda:N")
         return pack_int4
-    from inkling_cuda import CudaInt4Packer
+    from inkling_cuda import CudaInt4Packer, CudaInt4PackerPool
 
+    if device == "cuda:all":
+        return CudaInt4PackerPool(chunk_mib=cuda_chunk_mib, verify=verify_cuda)
     return CudaInt4Packer(device, chunk_mib=cuda_chunk_mib, verify=verify_cuda)
 
 
@@ -1124,7 +1126,7 @@ def main():
     ap.add_argument("--delete-consumed-shards", action="store_true",
                     help="delete a source shard once every tensor it holds is converted and fsynced")
     ap.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
-    ap.add_argument("--device", default="cpu", help="int4 quantization: cpu (default), cuda or cuda:N")
+    ap.add_argument("--device", default="cpu", help="int4 quantization: cpu (default), cuda, cuda:N or cuda:all")
     ap.add_argument("--cuda-chunk-mib", type=int, default=64,
                     help="f32-equivalent input MiB per CUDA chunk; intermediates use additional VRAM")
     ap.add_argument("--verify-cuda", action="store_true",

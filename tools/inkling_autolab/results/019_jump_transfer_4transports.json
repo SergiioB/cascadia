@@ -1,0 +1,23 @@
+{
+  "start": {
+    "observed_unix": 1789327569.161237,
+    "files": {
+      "Count": 570,
+      "Sum": 36224005838
+    }
+  },
+  "end": {
+    "observed_unix": 1789327757.321748,
+    "files": {
+      "Count": 845,
+      "Sum": 44951041742
+    }
+  },
+  "elapsed_seconds": 188.1605110168457,
+  "bytes_added": 8727035904,
+  "bytes_per_second": 46380804.64831796,
+  "remaining_hours_at_observed_rate": 3.0186943297258546,
+  "scope": "logical_destination_growth_including_active_partials",
+  "workers": 16,
+  "ssh_transports": 4
+}

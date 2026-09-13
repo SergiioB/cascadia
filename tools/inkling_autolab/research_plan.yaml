@@ -51,3 +51,20 @@ questions:
     4.23x; eight-expert warm-source conversion including fsynced writes improves
     2.37x with CPU eight workers versus CUDA four workers. Full 975B export time
     remains unmeasured. Keep CPU default; use CUDA 64 MiB chunks when requested.
+- id: q9
+  question: How much time and cost does the designated 8xA100 export host save?
+  status: answered
+  priority: 9
+  answer: cuda:all with four workers wins both batch sizes; 22.656 experts/s for
+    64 experts, 1.58x miner CUDA on matched eight-expert batches. Estimate 15–30
+    minutes per export with local raw weights ($4–8); first download plus export
+    roughly 2–3 hours ($30–45), using measured parallel download ranges. No full
+    export was timed. A100 capacity is not needed while PTL copies or benchmarks.
+- id: q10
+  question: Can independent SSH jump transports fill PTL Ethernet better than one?
+  status: answered
+  priority: 5
+  answer: Eight independent SSH jump transports with 32 HTTP workers sustain
+    103.70 MB/s, versus 46.38 with four and 20.51 with one/eight workers. Retain
+    eight transports, near the PTL 1 Gb/s Ethernet limit; every file remains
+    SHA-256 verified. This is deployment throughput, not model tokens/s.
