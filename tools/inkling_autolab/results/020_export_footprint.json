@@ -1,0 +1,9 @@
+{
+  "export_bytes": 548985140942,
+  "fixed_nonexpert_file_bytes": 23041852040,
+  "shared_expert_bytes": 4076863488,
+  "routed_expert_bytes": 31850496,
+  "routed_expert_count": 16384,
+  "shared_expert_count": 128,
+  "scope": "export_file_sizes_not_process_resident_memory"
+}

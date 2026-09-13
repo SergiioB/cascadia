@@ -68,6 +68,59 @@ fn loader_greedy_matches_hf_reference() {
 }
 
 #[test]
+fn routing_observer_preserves_prefill_and_decode_logits() {
+    use std::sync::{Arc, Mutex};
+
+    let r = reference().expect("routing observer test requires the checked-in tiny fixture");
+    let mut plain = load_model(&export_dir(), 64).unwrap();
+    let mut traced = load_model(&export_dir(), 64).unwrap();
+    let mut captured = Vec::new();
+    for layer in traced.layers_mut() {
+        if let Some(moe) = layer.moe_mut() {
+            let routes = Arc::new(Mutex::new(Vec::new()));
+            let target = Arc::clone(&routes);
+            moe.set_route_observer(Some(Arc::new(move |gate| {
+                target.lock().unwrap().push(gate.idx.clone());
+            })));
+            captured.push((moe.top_k, moe.n_routed, routes));
+        }
+    }
+    let bits = |values: Vec<f32>| values.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&r.prompt)),
+        bits(traced.prefill(&r.prompt))
+    );
+    for &token in r.greedy.iter().take(4) {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(traced.forward_token(token))
+        );
+    }
+    for (top_k, n_routed, routes) in &captured {
+        let routes = routes.lock().unwrap();
+        assert_eq!(routes.len(), r.prompt.len() + r.greedy.len().min(4));
+        assert!(routes
+            .iter()
+            .all(|row| row.len() == *top_k && row.iter().all(|e| *e < *n_routed)));
+    }
+    for layer in traced.layers_mut() {
+        if let Some(moe) = layer.moe_mut() {
+            moe.set_route_observer(None);
+        }
+    }
+    assert_eq!(
+        bits(plain.forward_token(r.greedy[0])),
+        bits(traced.forward_token(r.greedy[0]))
+    );
+    for (_, _, routes) in captured {
+        assert_eq!(
+            routes.lock().unwrap().len(),
+            r.prompt.len() + r.greedy.len().min(4)
+        );
+    }
+}
+
+#[test]
 fn staged_runner_single_rank_matches_model() {
     let Some(r) = reference() else { return };
     let mut runner =

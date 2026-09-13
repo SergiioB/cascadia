@@ -90,6 +90,33 @@ Next: let the verified copy finish, collect
 the full PTL baseline once deployment completes, and resume correctness-gated
 full-model experiments. CUDA export timing is not PTL tokens/s.
 
+Routing diagnostics are now prepared for the next real-model experiment:
+
+- `MoeLayer::set_route_observer` is opt-in and defaults off. The benchmark's
+  `--route-trace FILE` records routed IDs per layer/position and rejects an
+  existing trace path. Captures include prefill/decode boundaries and hash.
+- PTL **`bin/full-routing.exe`**, SHA-256
+  `c97b3dca07da990c8dddbd809857ec38d1c42f32d22723412077b873531aff49`.
+  The canonical `full-decode.exe` is unchanged. `run-full.ps1` defaults to it;
+  select diagnostics with `-Binary full-routing.exe -RouteTrace PATH`.
+- **75 Inkling tests passed**, all eight MSVC test targets. Traced/untraced
+  diagnostic and frozen baseline match eight HF fixture IDs and logits hash
+  `1f7cd0eb14a22662`. Wrapper fixture invocation passed as well. Raw validation
+  is in `results/020_*`, remote `test-routing.log` and `routing-validation.json`.
+- `analyze-routing.py` reports routed working sets, whole-expert LRU estimates
+  and window-union miss lower bounds. Three analytical tests passed. Use
+  `--require-full` for real conclusions; checked-in traces are tiny fixtures.
+- Export file metadata: fixed shell/edge/dense 23,041,852,040 bytes; shared
+  experts 4,076,863,488; each routed bin 31,850,496 (16,384 routed bins total).
+  These are storage sizes, not actual resident RAM. KV/other services need RAM.
+- q11 remains active: no real route trace yet. Wait for/review baseline, use
+  reference IDs and hash for the next run, then inspect reuse before choosing
+  a new cache/prefetch policy. Keep one full benchmark at a time.
+- Later copy status: **5,646 files / 200,640,217,736 bytes verified**, no errors,
+  same transfer PID 4740 and waiting queue 3856. Existing OVMS PID 6728 has
+  a ~20,023,873,536-byte working set; account for it in cache budgets and do
+  not stop it. Analyzer budgets include 8/12 GiB for constrained memory.
+
 ## Current outcome and blocker
 
 The autonomous research loop is operational in this Codex session. Autolab is

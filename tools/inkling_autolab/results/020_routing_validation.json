@@ -1,0 +1,29 @@
+{
+  "inkling_tests_passed": 75,
+  "test_targets": 8,
+  "fixture_hash": "1f7cd0eb14a22662",
+  "fixture_greedy_ids": [
+    28,
+    48,
+    106,
+    84,
+    28,
+    48,
+    106,
+    84
+  ],
+  "traced_samples": 3,
+  "trace_and_untraced_logits_match": true,
+  "frozen_baseline_sha256": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a",
+  "diagnostic_binary_sha256": "c97b3dca07da990c8dddbd809857ec38d1c42f32d22723412077b873531aff49",
+  "compiler": [
+    "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "binary: rustc",
+    "commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985",
+    "commit-date: 2026-09-01",
+    "host: x86_64-pc-windows-msvc",
+    "release: 1.98.1",
+    "LLVM version: 22.1.8"
+  ],
+  "full_model_run": false
+}

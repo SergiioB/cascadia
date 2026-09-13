@@ -1,6 +1,7 @@
 //! Complete autoregressive Inkling decode, separate from the synthetic layer probe.
 //!
 //! --export DIR --cases cases.json [--tokens 64] [--samples 3] [--out result.json]
+//! [--route-trace routes.json] captures routed expert IDs without changing logits.
 //! cases.json: [{"name":"case", "prompt_ids":[...], "greedy_ids":[...]}].
 //! Omit greedy_ids only when recording an initial baseline (not correctness-verified).
 //! The large 975B architecture is required unless --allow-fixture is explicit.
@@ -9,6 +10,7 @@
 //! throughput counts only subsequent tokens, with complete layers/head/argmax.
 
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
@@ -32,6 +34,21 @@ struct Sample {
     decode_seconds: f64,
     decode_steps: usize,
     generated_ids: Vec<u32>,
+}
+
+#[derive(Serialize)]
+struct LayerRoutes {
+    layer: usize,
+    routed_experts_per_position: Vec<Vec<usize>>,
+}
+
+#[derive(Serialize)]
+struct RoutingSample {
+    case: String,
+    repetition: usize,
+    prefill_positions: usize,
+    decode_positions: usize,
+    layers: Vec<LayerRoutes>,
 }
 
 fn hash_logits(hash: &mut u64, logits: &[f32]) {
@@ -76,6 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut export = None;
     let mut cases_path = None;
     let mut out = None;
+    let mut route_trace = None;
     let mut tokens = 64usize;
     let mut repetitions = 3usize;
     let mut allow_fixture = false;
@@ -92,6 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--tokens" => tokens = value.parse()?,
             "--samples" => repetitions = value.parse()?,
             "--out" => out = Some(PathBuf::from(value)),
+            "--route-trace" => route_trace = Some(PathBuf::from(value)),
             _ => return Err(format!("unknown argument: {flag}").into()),
         }
     }
@@ -99,6 +118,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokens >= 2 && repetitions >= 1,
         "need >=2 tokens and >=1 samples"
     );
+    if let Some(path) = &route_trace {
+        assert!(!path.exists(), "refusing to overwrite a routing trace");
+        assert!(
+            out.as_ref() != Some(path),
+            "trace and result need distinct paths"
+        );
+    }
     let export = export.ok_or("--export is required")?;
     let cases: Vec<Case> =
         serde_json::from_slice(&std::fs::read(cases_path.ok_or("--cases is required")?)?)?;
@@ -141,6 +167,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(model.layers().len(), manifest.num_layers);
     println!("load_seconds={}", load.elapsed().as_secs_f64());
     println!("full_model={}", u8::from(full_model));
+    let mut captures = Vec::new();
+    if route_trace.is_some() {
+        for (li, layer) in model.layers_mut().iter_mut().enumerate() {
+            if let Some(moe) = layer.moe_mut() {
+                let routes = Arc::new(Mutex::new(Vec::new()));
+                let target = Arc::clone(&routes);
+                moe.set_route_observer(Some(Arc::new(move |gate| {
+                    target.lock().unwrap().push(gate.idx.clone());
+                })));
+                captures.push((li, routes));
+            }
+        }
+    }
+    let mut routing_samples = Vec::new();
     let mut samples = Vec::new();
     let mut reference_hash = None;
     for rep in 0..repetitions {
@@ -154,6 +194,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 case.name
             );
             println!("sample_json={}", serde_json::to_string(&sample)?);
+            if route_trace.is_some() {
+                let layers = captures
+                    .iter()
+                    .map(|(li, routes)| {
+                        let rows = std::mem::take(&mut *routes.lock().unwrap());
+                        assert_eq!(rows.len(), case.prompt_ids.len() + sample.decode_steps);
+                        LayerRoutes {
+                            layer: *li,
+                            routed_experts_per_position: rows,
+                        }
+                    })
+                    .collect();
+                routing_samples.push(RoutingSample {
+                    case: case.name.clone(),
+                    repetition: rep,
+                    prefill_positions: case.prompt_ids.len(),
+                    decode_positions: sample.decode_steps,
+                    layers,
+                });
+            }
             samples.push(sample);
         }
         if let Some(expected) = reference_hash {
@@ -195,6 +255,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "output_hash":hash, "correctness_verified":correctness_verified,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
+        )?;
+    }
+    if let Some(path) = route_trace {
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)?;
+        serde_json::to_writer_pretty(
+            file,
+            &serde_json::json!({
+                "scope": "routing_diagnostics", "generation_scope": scope,
+                "full_model": full_model, "correctness_verified": correctness_verified,
+                "output_hash": hash, "export": export,
+                "manifest": {"layers": manifest.num_layers, "routed_experts": manifest.num_experts,
+                    "shared_experts": manifest.n_shared_experts, "top_k": manifest.top_k,
+                    "hidden": manifest.hidden_size, "intermediate": manifest.moe_intermediate},
+                "samples": routing_samples,
+            }),
         )?;
     }
     Ok(())

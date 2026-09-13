@@ -274,3 +274,36 @@ round-robin PTL loopback ports 18868–18875, all to the same authenticated sour
 This sustained **103.70 MB/s**, versus 46.38 MB/s with four transports. More HTTP
 workers within one outer SSH transport did not help. Three detached supervisors
 maintain the selected forwards; current PIDs and restart arguments are in HANDOFF.
+
+## Routing diagnostics after the baseline
+
+`inkling_decode_bench --route-trace FILE` optionally records routed expert IDs
+per layer and position. It includes prefill/decode boundaries, repetition and
+the generation logits hash. It refuses to overwrite a trace. Capturing routes
+does not change the math, but its bookkeeping is included in measured time;
+use the frozen executable for the canonical initial baseline.
+
+PTL's diagnostic executable is `bin/full-routing.exe`. The normal launcher can
+select it with `-Binary full-routing.exe -RouteTrace PATH`. Its default remains
+`full-decode.exe`, preserving the already-queued baseline. `-AllowFixture` is
+explicit and emits fixture metrics, which cannot satisfy the full-model gate.
+
+Once the full baseline has been reviewed, trace a correctness-checked run using
+its `large-cases.baseline-reference.json`. Then analyze storage reuse:
+
+```sh
+python tools/inkling_autolab/analyze-routing.py --trace large-routes.json \
+  --out large-routing-analysis.json --require-full --routed-cache-gib 8 12 16 24 32 \
+  --fixed-model-bytes 23041852040
+```
+
+Budgets cover routed experts only. Shared experts add 4,076,863,488 bytes for
+this export, and fixed shell/edge/dense files add 23,041,852,040 bytes; KV,
+allocator overhead and other processes also need memory. The report gives
+working sets for 1–64 decode-position windows, a whole-expert LRU simulation
+after approximate prefill warming, and a window-union miss lower bound for the
+current matrix implementation. OS page replacement and parallel completion
+order can differ from that simulation. This is storage analysis, not measured
+decode speed. The checked-in trace/analysis are explicitly tiny fixtures.
+The existing OVMS process was observed using about 20 GB of RAM; retain it and
+measure available memory before interpreting any cache budget as feasible.

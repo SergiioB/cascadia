@@ -1,0 +1,55 @@
+{
+  "scope": "routing_storage_analysis",
+  "full_model": false,
+  "correctness_verified": true,
+  "output_hash": "1f7cd0eb14a22662",
+  "routed_expert_bytes": 3456,
+  "fixed_nonexpert_file_bytes": null,
+  "shared_expert_bytes": 20736,
+  "source_samples": 3,
+  "distinct_cases": 1,
+  "cases": [
+    {
+      "case": "tiny_hf_greedy",
+      "decode_positions": 7,
+      "windows": {
+        "1": {
+          "max_routed_bytes": 20736,
+          "median_routed_bytes": 20736
+        },
+        "2": {
+          "max_routed_bytes": 38016,
+          "median_routed_bytes": 32832.0
+        },
+        "4": {
+          "max_routed_bytes": 51840,
+          "median_routed_bytes": 48384.0
+        }
+      },
+      "cache_models": {
+        "16GiB": {
+          "routed_budget_bytes": 17179869184,
+          "whole_expert_capacity": 4971026,
+          "simulated_lru_decode_misses": 1,
+          "simulated_lru_miss_bytes_per_decode_token": 493.7142857142857,
+          "max_window_miss_lower_bound_bytes_per_token": 0.0
+        },
+        "24GiB": {
+          "routed_budget_bytes": 25769803776,
+          "whole_expert_capacity": 7456540,
+          "simulated_lru_decode_misses": 1,
+          "simulated_lru_miss_bytes_per_decode_token": 493.7142857142857,
+          "max_window_miss_lower_bound_bytes_per_token": 0.0
+        },
+        "32GiB": {
+          "routed_budget_bytes": 34359738368,
+          "whole_expert_capacity": 9942053,
+          "simulated_lru_decode_misses": 1,
+          "simulated_lru_miss_bytes_per_decode_token": 493.7142857142857,
+          "max_window_miss_lower_bound_bytes_per_token": 0.0
+        }
+      }
+    }
+  ],
+  "measured_decode_throughput": false
+}

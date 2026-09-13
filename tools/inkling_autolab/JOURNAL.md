@@ -515,3 +515,30 @@ added in 199.334 seconds, **103.70 MB/s**, near the 1 Gb/s Ethernet limit and
 client PID 4740 (parent cmd 9040), baseline queue PID 3856 still waiting, no
 transfer errors. Additional supervisor PID 89290 owns ports 18872–18875.
 Full-model inference is still unmeasured; no 25 tok/s claim is implied.
+
+## 20 hypothesis — measure routed-expert reuse before changing cache policy
+
+The full 549 GB export exceeds PTL RAM, but each token selects only six routed
+experts plus two shared per MoE layer. Actual reuse determines disk traffic.
+Add an opt-in route observer and benchmark trace output, prove that tracing
+preserves fixture logits/greedy IDs, and prepare a working-set analyzer. Keep
+the frozen queued baseline executable unchanged. Once the real baseline is
+available, use traces from correctness-checked runs to quantify routed working
+sets over token windows and estimate cache misses. Do not infer full-model
+residency or 25 tok/s feasibility from one layer or synthetic routes.
+
+Diagnostic validation completed: **75 Inkling MSVC tests passed** across eight
+test targets, including observer-on/off bitwise prefill/decode parity. New
+`bin/full-routing.exe` with and without trace output and the frozen baseline
+all reproduce the eight HF fixture IDs and logits hash `1f7cd0eb14a22662`.
+The PowerShell launcher also passed its fixture trace invocation. Original
+`full-decode.exe` SHA-256 remains unchanged; the queued baseline still uses it.
+Compiler is rustc 1.98.1 / LLVM 22.1.8. The routing analyzer's three tests cover
+window unions, layer identity, prefill warming, LRU eviction, repeated-route
+validation and rejecting partial traces labeled as full models.
+
+Current export metadata: 23,041,852,040 bytes of fixed shell/edge/dense files,
+4,076,863,488 shared-expert bytes, and 16,384 routed bins of 31,850,496 bytes each.
+These are file sizes, not a process working-set measurement. The analyzer keeps
+routed cache budgets separate from fixed/shared weights and other memory use.
+No real routing trace or full-model throughput result exists yet.

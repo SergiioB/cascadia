@@ -1,13 +1,16 @@
 param([Parameter(Mandatory=$true)][string]$Model,
       [Parameter(Mandatory=$true)][string]$Cases,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
-      [int]$Tokens=64, [int]$Samples=3, [string]$Out='')
+      [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
+      [string]$Binary='full-decode.exe', [string]$RouteTrace='', [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
 if (!(Test-Path (Join-Path $Model 'manifest.json'))) {
     throw "Full Inkling checkpoint unavailable at $Model; cannot measure full-model throughput."
 }
 if (!(Test-Path $Cases)) { throw "Missing benchmark cases: $Cases" }
+if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be a filename under the task bin directory' }
+if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 $env:RAYON_NUM_THREADS = '16'
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
@@ -17,7 +20,9 @@ $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
 $benchArgs = @('--export', "`"$Model`"", '--cases', "`"$Cases`"", '--tokens', "$Tokens", '--samples', "$Samples")
 if ($Out) { $benchArgs += @('--out', "`"$Out`"") }
-$p = Start-Process -FilePath "$root\bin\full-decode.exe" -ArgumentList $benchArgs -PassThru -NoNewWindow
+if ($RouteTrace) { $benchArgs += @('--route-trace', "`"$RouteTrace`"") }
+if ($AllowFixture) { $benchArgs += '--allow-fixture' }
+$p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassThru -NoNewWindow
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535

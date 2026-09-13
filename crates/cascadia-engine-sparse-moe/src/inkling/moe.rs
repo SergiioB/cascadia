@@ -87,6 +87,10 @@ pub struct MoeWeights {
     pub shared: Vec<AnyExpert>,
 }
 
+/// Optional diagnostic callback. Observers receive the completed routing result;
+/// they must not change the floating-point environment or perform blocking I/O.
+pub type RouteObserver = Arc<dyn Fn(&GateOut) + Send + Sync>;
+
 pub struct MoeLayer {
     pub hidden: usize,
     pub n_routed: usize,
@@ -99,6 +103,7 @@ pub struct MoeLayer {
     /// Expert-parallel dispatch: `(absolute layer index, client)`. When set,
     /// every expert evaluation goes to the workers ([`Self::forward_remote`]).
     remote: Option<(u32, Arc<EpClient>)>,
+    route_observer: Option<RouteObserver>,
 }
 
 impl MoeLayer {
@@ -149,6 +154,7 @@ impl MoeLayer {
             route_scale,
             w,
             remote: None,
+            route_observer: None,
         }
     }
 
@@ -156,6 +162,12 @@ impl MoeLayer {
     /// for a router-only layer built with `ExpertSet::None`.
     pub fn has_local_experts(&self) -> bool {
         !self.w.experts.is_empty()
+    }
+
+    /// Install or remove an opt-in observer for routing diagnostics. Defaults off.
+    /// Direct calls to `route` are observed as well as prefill/decode dispatch.
+    pub fn set_route_observer(&mut self, observer: Option<RouteObserver>) {
+        self.route_observer = observer;
     }
 
     /// Dispatch every expert evaluation of this layer to the expert workers
@@ -239,14 +251,18 @@ impl MoeLayer {
         let n_total = self.n_routed + self.n_shared;
         let mut logits = vec![0.0f32; n_total];
         linear_f32(x, &self.w.router_w, n_total, self.hidden, &mut logits);
-        inkling_gate(
+        let gate = inkling_gate(
             &logits,
             &self.w.router_bias,
             self.top_k,
             self.n_shared,
             self.route_scale,
             self.w.global_scale,
-        )
+        );
+        if let Some(observer) = &self.route_observer {
+            observer(&gate);
+        }
+        gate
     }
 
     /// MoE for one token `x` (`[hidden]`, the mlp-normed hidden). Returns

@@ -68,3 +68,9 @@ questions:
     103.70 MB/s, versus 46.38 with four and 20.51 with one/eight workers. Retain
     eight transports, near the PTL 1 Gb/s Ethernet limit; every file remains
     SHA-256 verified. This is deployment throughput, not model tokens/s.
+- id: q11
+  question: How much routed-expert reuse is available within PTL's memory budget?
+  status: active
+  priority: 6
+  reason: Prepare optional routing traces with exact logit/greedy parity while
+    deployment finishes, then measure real working sets before changing caches.
