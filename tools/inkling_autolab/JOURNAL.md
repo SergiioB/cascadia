@@ -730,3 +730,11 @@ process CPU in kernel, 2.108 GB/s machine-wide disk reads, 518k page faults/s
 including soft faults. Minimum available RAM during this run was 7.58 MB.
 These support a direct-read experiment but do not establish exclusive I/O
 attribution, exact phase timing or a speedup for the new embedding option.
+
+Native finite qualification is staged and waiting: Python PID 7892 / cmd 596.
+It waits for successful baseline completion and the baseline task lock, then
+builds/tests a separate full-mmap-embed.exe and verifies the MSVC fixture hash
+1f7cd0eb14a22662 in mapped/unmapped modes. It refuses active full benchmarks
+and existing candidate binaries, preserves the frozen hash, and never launches
+a full-model trial or promotes a result. Waiting state was observed; source
+parse and deployment/frozen-hash checks passed. Native results remain pending.

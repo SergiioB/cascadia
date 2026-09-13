@@ -35,7 +35,12 @@ alignment and lifetime; non-BF16/unaligned payloads use the existing copy path.
 Mac fixture: mapped/unmapped hash `5122e042f9b1fb30`, all 8 HF IDs ×3 reps exact.
 This is an ARM debug fixture hash, not the MSVC frozen hash or PTL throughput.
 `test-mmap-embed.bat` is prepared for MSVC qualification AFTER baseline ends;
-`full-mmap-embed.exe` has not been built on PTL. `run-full.ps1 -MmapEmbed 1`
+`full-mmap-embed.exe` has not been built on PTL.
+Native qualification **Python PID 7892**, parent cmd **596**, is waiting for
+`baseline_recorded_needs_review` and its task lock. Source is deployed. Read
+`mmap-qualification-state.json` before starting ANY new full run/build. The job
+only builds/tests, verifies frozen and fixture hashes, then exits; it does not
+start a full performance run. Log: `test-mmap-embed.log` after build starts. `run-full.ps1 -MmapEmbed 1`
 selects the knob and requires the new binary. Do not overwrite frozen binaries.
 
 First long baseline sample: water_cycle rep 0, 63 decode steps /443.773 s =
