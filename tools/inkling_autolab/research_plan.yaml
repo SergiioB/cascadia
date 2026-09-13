@@ -97,3 +97,15 @@ questions:
     versus 86.75 ms batched and 96.95 ms parallel. No-prefetch 65.02 ms differs
     only 2.3%; keep production unchanged pending actual full-model evidence.
     About 254 MB physical reads per 255 MB cohort; concurrent transfer noted.
+- id: q15
+  question: Can the nonresident expert path omit redundant prefetch before bulk reads?
+  status: active
+  priority: 7
+  reason: Compare buffered reads with and without the serial hint phase on disjoint
+    real experts, then validate a production option only if results justify it.
+- id: q16
+  question: How much full-model time is spent in attention versus expert execution?
+  status: active
+  priority: 6
+  reason: Add opt-in layer timing with bitwise fixture parity, then collect it with
+    routing traces after the frozen full baseline is reviewed.

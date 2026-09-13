@@ -317,3 +317,16 @@ order can differ from that simulation. This is storage analysis, not measured
 decode speed. The checked-in trace/analysis are explicitly tiny fixtures.
 The existing OVMS process was observed using about 20 GB of RAM; retain it and
 measure available memory before interpreting any cache budget as feasible.
+
+## Layer timing after the full baseline
+
+Use `run-full.ps1 -Binary full-profile.exe -RouteTrace routes.json
+-LayerProfile profile.json` with the reviewed baseline reference cases. The
+profiler is opt-in, leaves arithmetic unchanged, and includes callback overhead
+in the end-to-end timing. `analyze-layer-profile.py --profile profile.json
+--benchmark result.json --out analysis.json --require-full` validates matching
+identities, complete layer/position coverage and branch-duration sums. It
+reports attention and MLP branch time (including their norms, convolutions and
+residuals), plus time outside layers. The latter includes head, embeddings,
+argmax and validation; it is not a pure head measurement. The tiny fixture
+reports in `results/025_*` validate the instrumentation, not full-model speed.

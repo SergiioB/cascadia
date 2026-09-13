@@ -15,6 +15,9 @@
 //! layer's KV cache + conv histories. Pipeline-parallel sharding is layered
 //! on at the stage level over [`Layer`]s.
 
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
 use super::attn::{AttentionLayer, AttnKv};
 use super::conv::{ConvState, ShortConv};
 use super::moe::{DenseMlp, MoeLayer};
@@ -28,6 +31,19 @@ pub enum LayerMlp {
     Moe(MoeLayer),
 }
 
+/// Optional diagnostic measurements. Branch durations include norms, residuals
+/// and short convolutions; observer overhead is outside `total`.
+#[derive(Debug, Clone, Copy)]
+pub struct LayerTiming {
+    pub rows: usize,
+    pub prefill: bool,
+    pub attention: Duration,
+    pub mlp: Duration,
+    pub total: Duration,
+}
+
+pub type LayerTimingObserver = Arc<dyn Fn(LayerTiming) + Send + Sync>;
+
 pub struct Layer {
     pub hidden: usize,
     pub eps: f32,
@@ -37,6 +53,7 @@ pub struct Layer {
     mlp_norm: Vec<f32>,    // `mlp_norm.weight` [hidden]
     mlp: LayerMlp,
     mlp_sconv: ShortConv, // `mlp_sconv.weight` [hidden, K]
+    timing_observer: Option<LayerTimingObserver>,
 }
 
 /// One layer's complete sequence state (attention KV + k/v convs, plus the
@@ -92,6 +109,34 @@ impl Layer {
             mlp_norm,
             mlp,
             mlp_sconv,
+            timing_observer: None,
+        }
+    }
+
+    /// Install diagnostics without changing model arithmetic. Defaults off;
+    /// callbacks must not change the floating-point environment or block on I/O.
+    pub fn set_timing_observer(&mut self, observer: Option<LayerTimingObserver>) {
+        self.timing_observer = observer;
+    }
+
+    fn observe_timing(
+        &self,
+        start: Option<Instant>,
+        mlp_start: Option<Instant>,
+        rows: usize,
+        prefill: bool,
+    ) {
+        if let (Some(observer), Some(start), Some(mlp_start)) =
+            (&self.timing_observer, start, mlp_start)
+        {
+            let end = Instant::now();
+            observer(LayerTiming {
+                rows,
+                prefill,
+                attention: mlp_start.duration_since(start),
+                mlp: end.duration_since(mlp_start),
+                total: end.duration_since(start),
+            });
         }
     }
 
@@ -162,6 +207,7 @@ impl Layer {
     /// One token at the next cached position: `x` is the residual-stream hidden
     /// `[hidden]`; returns the updated hidden.
     pub fn forward_token(&mut self, x: &[f32]) -> Vec<f32> {
+        let start = self.timing_observer.as_ref().map(|_| Instant::now());
         assert_eq!(x.len(), self.hidden, "layer forward_token: x len");
         // x1 = x + attn_sconv(attention(rmsnorm(x, attn_norm)))
         let mut h = x.to_vec();
@@ -169,6 +215,7 @@ impl Layer {
         let a = self.attn.forward_token(&h);
         let a = self.attn_sconv.decode(&a);
         let mut x1: Vec<f32> = x.iter().zip(&a).map(|(&xi, &ai)| xi + ai).collect();
+        let mlp_start = start.map(|_| Instant::now());
         // x2 = x1 + mlp_sconv(mlp(rmsnorm(x1, mlp_norm)))
         let mut h2 = x1.clone();
         rmsnorm_f32(&mut h2, &self.mlp_norm, self.eps);
@@ -180,6 +227,7 @@ impl Layer {
         for (xi, &mi) in x1.iter_mut().zip(&m) {
             *xi += mi;
         }
+        self.observe_timing(start, mlp_start, 1, false);
         x1
     }
 
@@ -188,6 +236,7 @@ impl Layer {
     /// prefills, the MoE as one batch-union (each expert loaded once per
     /// block). Bit-identical to [`Self::forward_token`] per row.
     pub fn forward_prefill(&mut self, xs: &[f32], rows: usize) -> Vec<f32> {
+        let start = self.timing_observer.as_ref().map(|_| Instant::now());
         let hd = self.hidden;
         assert_eq!(xs.len(), rows * hd, "layer forward_prefill: xs len");
         // attention branch
@@ -196,6 +245,7 @@ impl Layer {
         let a = self.attn.forward_prefill(&h, rows);
         let a = self.attn_sconv.prefill(&a, rows);
         let mut x1: Vec<f32> = xs.iter().zip(&a).map(|(&xi, &ai)| xi + ai).collect();
+        let mlp_start = start.map(|_| Instant::now());
         // mlp branch
         let mut h2 = x1.clone();
         rmsnorm_f32(&mut h2, &self.mlp_norm, self.eps);
@@ -213,6 +263,7 @@ impl Layer {
         for (xi, &mi) in x1.iter_mut().zip(&m) {
             *xi += mi;
         }
+        self.observe_timing(start, mlp_start, rows, true);
         x1
     }
 }

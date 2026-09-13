@@ -729,6 +729,50 @@ fn golden_greedy_ids_match_hf_exactly() {
     assert_eq!(got, want, "greedy token mismatch");
 }
 
+#[test]
+fn timing_observers_preserve_prefill_decode_logits_and_can_be_disabled() {
+    use std::sync::{Arc, Mutex};
+    let Some(fx) = fixtures() else { return };
+    let prompt = prompt_ids(&fx);
+    let mut plain = model_from_fixture(&fx, prompt.len() + 16);
+    let mut observed = model_from_fixture(&fx, prompt.len() + 16);
+    let events = Arc::new(Mutex::new(Vec::new()));
+    for (li, layer) in observed.layers_mut().iter_mut().enumerate() {
+        let events = Arc::clone(&events);
+        layer.set_timing_observer(Some(Arc::new(move |timing| {
+            events.lock().unwrap().push((li, timing));
+        })));
+    }
+    let mut logits = plain.prefill(&prompt);
+    let bits = |xs: Vec<f32>| xs.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(bits(logits.clone()), bits(observed.prefill(&prompt)));
+    for _ in 0..4 {
+        let token = cascadia_engine_sparse_moe::inkling::model::argmax(&logits) as u32;
+        logits = plain.forward_token(token);
+        assert_eq!(bits(logits.clone()), bits(observed.forward_token(token)));
+    }
+    let captured = events.lock().unwrap();
+    assert_eq!(captured.len(), observed.layers().len() * 5);
+    for li in 0..observed.layers().len() {
+        let rows: Vec<_> = captured
+            .iter()
+            .filter(|(layer, _)| *layer == li)
+            .map(|(_, t)| t)
+            .collect();
+        assert_eq!(rows.len(), 5);
+        assert!(rows[0].prefill && rows[0].rows == prompt.len());
+        assert!(rows[1..].iter().all(|t| !t.prefill && t.rows == 1));
+        assert!(rows.iter().all(|t| t.attention + t.mlp == t.total));
+    }
+    drop(captured);
+    for layer in observed.layers_mut() {
+        layer.set_timing_observer(None);
+    }
+    let before = events.lock().unwrap().len();
+    observed.forward_token(1);
+    assert_eq!(events.lock().unwrap().len(), before);
+}
+
 /// MoE block golden: `moe_x` `[1, 64]` -> `moe_out` through the first sparse
 /// layer's (layer 1) MoE. Expert linears are bf16 write-back: rel 2e-2.
 #[test]

@@ -623,3 +623,44 @@ counters and labels disk counters as machine-wide.
 
 Retired unused Tailscale source server PID 199701 after checking its exact
 /proc command. The current jump-path source server/client/tunnels are unchanged.
+
+## 24 hypothesis — buffered reads may not need an earlier prefetch pass
+
+Experiment 023 measured ~38 ms inside the serial prefetch calls themselves.
+The default nonresident path then performs parallel whole-file reads as well.
+Hypothesis: omitting the earlier hints lets those bulk reads do the same I/O
+with less overhead. Compare parallel buffered reads with/without serial hints
+and retain the serial-hint+native-mapped-copy control. Exclude the 192 files
+already used in 023, rotate profiles, retain SHA equality checks, and report
+physical reads. No cache flush; stop before the queued baseline can start.
+
+Buffered-read probe: hints + read 112.698 ms versus read alone 104.155 ms
+(8.2% throughput difference); serial hints + mapped copy 63.475 ms. Physical
+reads are again ~255 MB per cohort, all hashes pass. Allocation/copy behavior
+differs between buffered reads and the preallocated-copy diagnostic, so this
+only strengthens the case for testing the existing direct-map profile on the
+real model. Do not add a second prefetch switch or promote a 2.7x resident
+result to full-model throughput. Keep q15 pending the full baseline comparison.
+
+## 25 hypothesis — attention and MoE timing will identify the next backend target
+
+The external sampler separates paging from CPU use but cannot locate time
+within the model. Add opt-in per-layer attention/MLP timing for decode and
+prefill, default off and exact logits unchanged. Validate traced/untraced
+fixture output against the frozen binary, preserve the queued executable, and
+combine timings with routing traces in the next correctness-checked full run.
+This avoids selecting a GPU or caching change from resident microbenchmarks
+without knowing which component dominates the real workload.
+
+Layer timing qualification passed: **76 Inkling MSVC tests**, including
+observer-on/off bitwise prefill/decode parity and disabling callbacks. New
+full-profile.exe, both unobserved and with simultaneous routing/timing capture,
+reproduces all eight HF fixture IDs and hash 1f7cd0eb14a22662; the PowerShell
+wrapper does too. Frozen full-decode.exe SHA is unchanged. The analyzer
+accepts the measured fixture decomposition, rejects fixture-as-full, missing
+layers and inconsistent duration sums. No real full-model timing exists yet.
+
+Diagnostic binary SHA-256:
+437c7134198fd99b167e45ab76e4cd1c963bc7af8d17e43215de985c13ea6386.
+Use run-full.ps1 -Binary full-profile.exe -RouteTrace FILE -LayerProfile FILE
+for the next correctness-checked full run; no change to the queued baseline.

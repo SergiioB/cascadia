@@ -28,6 +28,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("C:/Users/devcloud/inkling-autolab"))
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--buffered", action="store_true",
+                        help="compare buffered reads with/without hints against serial-hint mapped copy")
+    parser.add_argument("--exclude-report", type=Path,
+                        help="exclude every expert already touched by a preceding report")
     args = parser.parse_args()
     if args.out.exists():
         parser.error("refusing to overwrite report")
@@ -44,13 +48,17 @@ def main():
     for layer in range(2, 22):
         paths += sorted((args.root / f"model/experts/layer_{layer:02}").glob("expert_[0-9][0-9][0-9].bin"))
     paths = [path for path in paths if path.stat().st_size == 31850496]
+    if args.exclude_report:
+        previous = json.loads(args.exclude_report.read_text())
+        used = {file["path"] for sample in previous["samples"] for file in sample["files"]}
+        paths = [path for path in paths if str(path.relative_to(args.root)) not in used]
     random.Random(22191).shuffle(paths)
-    if len(paths) < 192:
-        parser.error("need 192 complete production-sized expert bins")
+    modes = ["read", "serial_read", "serial"] if args.buffered else ["none", "serial", "parallel", "batch"]
+    if len(paths) < 6 * len(modes) * 8:
+        parser.error("not enough untouched complete production-sized expert bins")
     samples = []
-    modes = ["none", "serial", "parallel", "batch"]
     for block in range(6):
-        for offset in range(4):
+        for offset in range(len(modes)):
             if (args.root / "model-ready.json").exists():
                 raise RuntimeError("full baseline may start; component probe stopped")
             mode = modes[(offset + block) % len(modes)]
@@ -63,7 +71,8 @@ def main():
                     # ACCESS_COPY permits obtaining an address; no mapped bytes
                     # are written, and writes could never change the source file.
                     maps.append(mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_COPY))
-                    destinations.append(ctypes.create_string_buffer(path.stat().st_size))
+                    if "read" not in mode:
+                        destinations.append(ctypes.create_string_buffer(path.stat().st_size))
                 ranges = (Range * len(maps))(*[
                     Range(ctypes.addressof(ctypes.c_char.from_buffer(mapping)), len(mapping))
                     for mapping in maps])
@@ -80,7 +89,7 @@ def main():
                 with ThreadPoolExecutor(max_workers=8) as pool:
                     disk_before = psutil.disk_io_counters()
                     start = time.perf_counter()
-                    if mode == "serial":
+                    if mode in ("serial", "serial_read"):
                         for i in range(8):
                             one_prefetch(i)
                     elif mode == "parallel":
@@ -89,11 +98,15 @@ def main():
                         if not prefetch(process, 8, ranges, 0):
                             raise ctypes.WinError(ctypes.get_last_error())
                     prefetched = time.perf_counter()
-                    list(pool.map(touch, range(8)))
+                    if "read" in mode:
+                        destinations = list(pool.map(lambda path: path.read_bytes(), cohort))
+                    else:
+                        list(pool.map(touch, range(8)))
                     end = time.perf_counter()
                     disk_after = psutil.disk_io_counters()
                 hashes = []
                 for path, mapping, destination in zip(cohort, maps, destinations):
+                    assert len(destination) == len(mapping)
                     copied = hashlib.sha256(destination).hexdigest()
                     assert copied == hashlib.sha256(mapping).hexdigest(), "native copy differs from mapping"
                     hashes.append({"path": str(path.relative_to(args.root)), "sha256": copied})
@@ -112,6 +125,7 @@ def main():
     medians = {mode: statistics.median(s["total_seconds"] for s in samples if s["mode"] == mode)
                for mode in modes}
     report = {"scope": "real_expert_pagein_copy_component", "cache_state": "natural_mixed_no_flush",
+              "modes": modes, "excluded_report": str(args.exclude_report) if args.exclude_report else None,
               "concurrent_checkpoint_transfer": True, "full_model_measured": False,
               "bytes_verified": True, "samples": samples, "median_seconds": medians}
     args.out.write_text(json.dumps(report, indent=2) + "\n")

@@ -1,0 +1,38 @@
+{
+  "scope": "fixture_profile_validation",
+  "tests_passed": 76,
+  "binary_sha256": {
+    "full-profile.exe": "437c7134198fd99b167e45ab76e4cd1c963bc7af8d17e43215de985c13ea6386",
+    "full-decode.exe": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a"
+  },
+  "output_hash": "1f7cd0eb14a22662",
+  "greedy_ids": [
+    28,
+    48,
+    106,
+    84,
+    28,
+    48,
+    106,
+    84
+  ],
+  "reports": {
+    "fixture-profile-plain.json": {
+      "samples": 3,
+      "hash": "1f7cd0eb14a22662"
+    },
+    "fixture-profile-observed.json": {
+      "samples": 3,
+      "hash": "1f7cd0eb14a22662"
+    },
+    "fixture-profile-wrapper.json": {
+      "samples": 1,
+      "hash": "1f7cd0eb14a22662"
+    },
+    "fixture-routing-frozen.json": {
+      "samples": 3,
+      "hash": "1f7cd0eb14a22662"
+    }
+  },
+  "full_model_measured": false
+}

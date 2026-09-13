@@ -152,6 +152,29 @@ cache flush; concurrent transfer is a confounder. No production change made.
 `results/023_windows_prefetch_sets.json`, native `prefetch-set-probe.log/json`.
 Probe exited successfully; q14 answered. The full baseline is still queued.
 
+## Prepared combined routing and layer timing diagnostic
+
+`bin/full-profile.exe` SHA-256
+`437c7134198fd99b167e45ab76e4cd1c963bc7af8d17e43215de985c13ea6386` adds
+`--layer-profile FILE`, also supports `--route-trace FILE`. **76 Inkling tests
+passed**; unobserved/combined-trace/wrapper fixture runs reproduce all eight HF
+IDs and hash `1f7cd0eb14a22662`. Frozen `full-decode.exe` is unchanged.
+`run-full.ps1 -Binary full-profile.exe -LayerProfile FILE -RouteTrace FILE`
+selects both diagnostics. `analyze-layer-profile.py --profile FILE --benchmark
+FILE --out FILE --require-full` checks matching scope/hash/sample identities,
+complete layers/positions, and duration sums. Branch times include norms/convs/
+residuals. Outside-layer time includes head, embeddings, argmax, hashes and
+observer overhead; do not call it head time alone. Raw fixture reports/validation
+are `results/025_*`; native build log `test-profile.log`. Build/tests ended.
+q16 awaits actual full-model timing alongside q11's routes.
+
+Experiment 024: serial hints + buffered reads 112.698 ms versus reads alone
+104.155 ms, but serial hints + preallocated mapped copy 63.475 ms. This compares
+allocation/copy behavior as well as I/O; prefer testing the existing direct-map
+full-model profile first, without adding another production switch. Every
+cohort read ~255 MB from disk, exact copy hashes, prior probe files excluded.
+`results/024_windows_buffered_prefetch.json`; q15 awaits full-model evidence.
+
 ## Current outcome and blocker
 
 The autonomous research loop is operational in this Codex session. Autolab is

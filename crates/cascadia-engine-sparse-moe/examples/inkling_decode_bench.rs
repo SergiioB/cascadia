@@ -2,6 +2,7 @@
 //!
 //! --export DIR --cases cases.json [--tokens 64] [--samples 3] [--out result.json]
 //! [--route-trace routes.json] captures routed expert IDs without changing logits.
+//! [--layer-profile profile.json] records attention/MLP branch timings per layer.
 //! cases.json: [{"name":"case", "prompt_ids":[...], "greedy_ids":[...]}].
 //! Omit greedy_ids only when recording an initial baseline (not correctness-verified).
 //! The large 975B architecture is required unless --allow-fixture is explicit.
@@ -51,6 +52,28 @@ struct RoutingSample {
     layers: Vec<LayerRoutes>,
 }
 
+#[derive(Serialize)]
+struct TimingEvent {
+    rows: usize,
+    prefill: bool,
+    attention_seconds: f64,
+    mlp_seconds: f64,
+    total_seconds: f64,
+}
+
+#[derive(Serialize)]
+struct TimedLayer {
+    layer: usize,
+    events: Vec<TimingEvent>,
+}
+
+#[derive(Serialize)]
+struct TimingSample {
+    case: String,
+    repetition: usize,
+    layers: Vec<TimedLayer>,
+}
+
 fn hash_logits(hash: &mut u64, logits: &[f32]) {
     for value in logits {
         assert!(value.is_finite(), "non-finite logits");
@@ -94,6 +117,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut cases_path = None;
     let mut out = None;
     let mut route_trace = None;
+    let mut layer_profile = None;
     let mut tokens = 64usize;
     let mut repetitions = 3usize;
     let mut allow_fixture = false;
@@ -111,6 +135,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--samples" => repetitions = value.parse()?,
             "--out" => out = Some(PathBuf::from(value)),
             "--route-trace" => route_trace = Some(PathBuf::from(value)),
+            "--layer-profile" => layer_profile = Some(PathBuf::from(value)),
             _ => return Err(format!("unknown argument: {flag}").into()),
         }
     }
@@ -123,6 +148,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(
             out.as_ref() != Some(path),
             "trace and result need distinct paths"
+        );
+    }
+    if let Some(path) = &layer_profile {
+        assert!(!path.exists(), "refusing to overwrite a layer profile");
+        assert!(
+            out.as_ref() != Some(path) && route_trace.as_ref() != Some(path),
+            "profile, trace and result need distinct paths"
         );
     }
     let export = export.ok_or("--export is required")?;
@@ -181,6 +213,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     let mut routing_samples = Vec::new();
+    let mut timers = Vec::new();
+    if layer_profile.is_some() {
+        for layer in model.layers_mut() {
+            let events = Arc::new(Mutex::new(Vec::new()));
+            let target = Arc::clone(&events);
+            layer.set_timing_observer(Some(Arc::new(move |timing| {
+                target.lock().unwrap().push(TimingEvent {
+                    rows: timing.rows,
+                    prefill: timing.prefill,
+                    attention_seconds: timing.attention.as_secs_f64(),
+                    mlp_seconds: timing.mlp.as_secs_f64(),
+                    total_seconds: timing.total.as_secs_f64(),
+                });
+            })));
+            timers.push(events);
+        }
+    }
+    let mut timing_samples = Vec::new();
     let mut samples = Vec::new();
     let mut reference_hash = None;
     for rep in 0..repetitions {
@@ -211,6 +261,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     repetition: rep,
                     prefill_positions: case.prompt_ids.len(),
                     decode_positions: sample.decode_steps,
+                    layers,
+                });
+            }
+            if layer_profile.is_some() {
+                let layers = timers
+                    .iter()
+                    .enumerate()
+                    .map(|(li, events)| {
+                        let events = std::mem::take(&mut *events.lock().unwrap());
+                        assert_eq!(events.len(), 1 + sample.decode_steps);
+                        assert!(events[0].prefill && events[0].rows == case.prompt_ids.len());
+                        assert!(events[1..]
+                            .iter()
+                            .all(|event| !event.prefill && event.rows == 1));
+                        TimedLayer { layer: li, events }
+                    })
+                    .collect();
+                timing_samples.push(TimingSample {
+                    case: case.name.clone(),
+                    repetition: rep,
                     layers,
                 });
             }
@@ -272,6 +342,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "shared_experts": manifest.n_shared_experts, "top_k": manifest.top_k,
                     "hidden": manifest.hidden_size, "intermediate": manifest.moe_intermediate},
                 "samples": routing_samples,
+            }),
+        )?;
+    }
+    if let Some(path) = layer_profile {
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)?;
+        serde_json::to_writer_pretty(
+            file,
+            &serde_json::json!({
+                "scope": "layer_timing_diagnostics", "generation_scope": scope,
+                "full_model": full_model, "correctness_verified": correctness_verified,
+                "output_hash": hash, "export": export, "layers": manifest.num_layers,
+                "branch_times_include_norms_convs_residuals": true,
+                "head_and_embedding_excluded_from_layer_times": true,
+                "observer_overhead_included_in_benchmark_time": true,
+                "samples": timing_samples,
             }),
         )?;
     }
