@@ -240,9 +240,15 @@ python tools/inkling_autolab/export-remote.py -- \
   --out /home/ubuntu/inkling-export/exports/Inkling-int4
 ```
 
-Paths are remote. `--print-command` shows the invocation, and forwarded
-`--device cuda:all` selects the available-device pool. The remote `flock` permits
-one launcher invocation at a time. Raw source weights have not been downloaded;
+Paths are remote. `--print-command` shows the invocation. The selected profile
+is **eight independent CUDA processes, one worker each**, with CPU affinity
+partitions and disjoint expert layers. A final CPU pass publishes shells,
+sidecars and the manifest only after every GPU worker passes its output audit.
+This mode requires Linux and the complete local source; source shards are
+retained. Pass `--processes 1` after `--` for the original streaming, partial,
+tiny or validation modes. With one process, `--device cuda:all` uses the GPU
+thread pool. The remote `flock` permits one launcher invocation at a time;
+the parallel exporter also locks its output directory. Raw weights have not been downloaded;
 the current frozen export is still on miner and does not need regeneration for
 PTL kernel tests. Do not keep this $15/hour host running solely for PTL transfer.
 
@@ -260,10 +266,14 @@ See HANDOFF for current process IDs and endpoint/token cleanup. A 32 MiB scp
 probe and a real expert copy passed exact SHA checks; a two-minute bulk window
 measured 20.5 MB/s with eight streams, versus the prior 2.67 MB/s Tailscale copy.
 
-The selected A100 export profile is `cuda:all` with four workers: 22.656 experts/s
-in a 64-expert warm-source trial. Matched eight-expert conversion is 1.58x faster
-than miner CUDA and 3.73x faster than the original miner CPU path. At ~$15/hour,
-plan **15–30 minutes / $4–8** when raw weights are local, or roughly **2–3 hours /
+Eight independent processes achieved **58.98 experts/s** (64 production-sized
+synthetic experts, three repetitions), versus 22.656 with the original GPU
+thread pool. All 64 files match the saved CPU hashes. This scales to a **4.67
+minute / $1.17 expert stage**, excluding startup, shells, cold I/O and source
+download; a full export has not been timed. The per-expert rate is about 4.6x
+miner CUDA or 10.9x miner CPU, extrapolated across different batch sizes
+(miner: eight experts; A100: 64). Retain a conservative overall budget at ~$15/hour:
+**15–30 minutes / $4–8** when raw weights are local, or roughly **2–3 hours /
 $30–45** for a first download plus export. The pinned checkpoint is 1.905 TB;
 eight download streams measured 196–323 MB/s in short range probes. These are
 estimates, not full-model export/download timings. Retaining source storage

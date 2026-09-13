@@ -11,7 +11,7 @@ box**. It has NOT been reached. Do not equate layer/component rates with it.
 
 The user designated **ubuntu@129.146.170.51, 8x A100-SXM4-40GB**, for all future
 exports and requested cost estimates at ~$15/hour. Use `export-remote.py` and
-`export-host.json`, default **cuda:all / four workers / 64 MiB chunks**.
+`export-host.json`, default **cuda:all / eight processes / one worker each / 64 MiB chunks**.
 The working controller identity is `~/.ssh/amx-bench_ed25519`; alias
 `inkling-export` is installed. About 1.7 TiB RAM and 5.7 TiB free disk at setup.
 The isolated root `/home/ubuntu/inkling-export` holds `repo`, `venv`, `source`,
@@ -29,6 +29,22 @@ download plus export. Raw checkpoint size 1,904,604,285,204 bytes. Eight HTTP
 streams measured 196–323 MB/s in bounded probes. Full export/download have NOT
 been timed, and cold I/O or download variance can change these estimates.
 
+New experiment 021 supersedes the thread-pool conversion profile: independent
+process medians for 64 experts are 3.620183 / 1.745651 / 1.085111 s at 1 / 4 / 8
+processes. Every output matches the saved CPU oracle in all nine samples.
+Eight processes: **58.980 experts/s**, 2.603x the previous pool, scaled **4.67
+minute/$1.17 expert stage**. Full export still unmeasured; retain the overall
+15–30 minute local-source budget. Across different batch sizes, per-expert rate
+is 4.62x miner CUDA / 10.93x miner CPU; this is not a full-export comparison.
+
+`--processes 8` requires Linux, `--device cuda:all`, a complete source and full
+--model/--out. It partitions CPU affinity and disjoint layer bins; source
+shards stay intact. Parent-only finalization publishes shells/sidecars/manifest.
+Output flock and parent-death cleanup prevent overlap/strays. Use forwarded
+`--processes 1` for original streaming/tiny/validation modes. **48 tests passed
+in 39.34 s**, including full tiny byte parity, staged resume, truncated-output
+repair and failed child preventing manifest publication.
+
 All A100 test/benchmark jobs have ended and all eight GPUs were observed idle
 (0 MiB). Raw checkpoint weights were NOT downloaded; synthetic test sources and
 outputs were removed automatically. The venv is 5.4 GiB; config is 8 KiB. The
@@ -45,8 +61,8 @@ Direct transfer is live. The old Tailscale native client PID 7060 and subsequent
 one-tunnel clients 11176 / 10512 were stopped with path/PID checks; partials were
 preserved. Current native Python **PID 4740**, parent cmd **9040**, has **32 workers**
 and cycles `http://127.0.0.1:18868` through `18875`. Latest observed state:
-1,070 files / 54,892,348,040 bytes verified, no errors; a later logical files/partials
-snapshot totaled 79,731,783,374 bytes. The baseline queue **PID 3856** still waits for the
+**10,078 files / 341,801,616,008 bytes verified**, no errors (later than the
+historical snapshots below). The baseline queue **PID 3856** still waits for the
 all-files marker. Do not run a competing full benchmark.
 
 Source endpoint on miner: `/tmp/inkling-jump-transfer/transfer-server.py`,

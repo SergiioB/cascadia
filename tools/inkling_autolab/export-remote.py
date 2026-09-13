@@ -2,8 +2,9 @@
 """Run future Inkling exports on the configured 8xA100 host.
 
 Pass exporter arguments after --. Model/output paths are on the remote host.
-The configured device may select one GPU or the shared cuda:all queue. A
-host-local lock prevents overlapping invocations of this launcher.
+The default profile uses eight independent CUDA processes. Pass --processes 1
+after -- for the original streaming or diagnostic modes. A host-local lock
+prevents overlapping invocations of this launcher.
 """
 import argparse
 import json
@@ -33,6 +34,7 @@ def main():
         'flock', '-n', str(root / '.export.lock'),
         str(root / 'venv/bin/python'), '-u', str(root / 'repo/tools/export_inkling.py'),
         '--device', config['device'], '--workers', str(config['workers']),
+        '--processes', str(config.get('processes', 1)),
         '--cuda-chunk-mib', str(config['cuda_chunk_mib']), *forwarded,
     ]
     command = [

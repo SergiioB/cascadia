@@ -542,3 +542,34 @@ Current export metadata: 23,041,852,040 bytes of fixed shell/edge/dense files,
 These are file sizes, not a process working-set measurement. The analyzer keeps
 routed cache budgets separate from fixed/shared weights and other memory use.
 No real routing trace or full-model throughput result exists yet.
+
+## 21 hypothesis — separate conversion processes may improve A100 utilization
+
+The eight-GPU thread pool improved throughput only modestly. Python byte
+serialization and host-side work still share one interpreter. While the PTL
+copy proceeds independently, test one, four and eight converter processes with
+disjoint expert outputs and CPU affinity. Compare the same 64 production-sized
+synthetic experts against the saved CPU hashes, exclude startup from conversion
+timing and include atomic fsynced output writes. This is a bounded cost-saving
+experiment; no raw checkpoint download or full re-export is needed. Only build
+a production multiprocess launcher if the measured gain justifies it.
+
+Separate interpreters confirm the hypothesis: median 64-expert conversion times
+are 3.620183 s (one process/four workers), 1.745651 s (four/one each), and
+1.085111 s (eight/one each), with all CPU output hashes exact in all nine
+samples. Eight processes yield 58.980 experts/s, 3.336x this one-GPU control
+and 2.603x the previous best eight-GPU thread pool. At 16,514 bins this scales
+to 4.67 minutes/$1.17 for the expert stage only. Per-expert rate relative to
+miner is 4.62x CUDA / 10.93x CPU, but those comparisons use different batch
+sizes (64 versus eight); do not present them as measured full-export speedups.
+
+Added opt-in Linux --processes with disjoint per-process layer bins, CPU
+affinity, output flock and parent-death cleanup. Complete source is required;
+parallel source deletion and streaming are rejected. Source config is written
+once; only the parent publishes shells/sidecars/manifest after all children
+and final bins pass. Complete sharded tiny export, staged resume, truncated
+output repair and child-failure behavior passed. All 48 CUDA/exporter tests
+passed in 39.34 s. Remote profile selects eight processes/one worker; default
+CPU behavior remains one process. All GPU jobs ended and eight GPUs were idle.
+Keep the overall local-source export budget at 15–30 minutes until cold I/O
+and a real full export are measured; download remains the expensive first use.

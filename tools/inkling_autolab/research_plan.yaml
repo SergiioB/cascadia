@@ -74,3 +74,12 @@ questions:
   priority: 6
   reason: Prepare optional routing traces with exact logit/greedy parity while
     deployment finishes, then measure real working sets before changing caches.
+- id: q12
+  question: Can separate converter processes improve throughput beyond the A100 GPU thread pool?
+  status: answered
+  priority: 8
+  answer: Eight independent CUDA processes achieve 58.98 experts/s on the saved
+    64-expert CPU oracle, 2.60x the prior GPU pool. Complete multiprocess export,
+    staged resume, truncated-output repair and worker-failure gates pass; all
+    48 exporter tests pass. Default remote profile now uses eight processes and
+    one worker each. Full export and cold-source I/O remain unmeasured.

@@ -1,0 +1,21 @@
+{
+  "host": "ubuntu@129.146.170.51",
+  "tests": 48,
+  "passed": 48,
+  "seconds": 39.34,
+  "remote_log": "/home/ubuntu/inkling-export/logs/tests-parallel.log",
+  "production_mode": "cuda:all processes=8 workers=1 chunk_mib=64",
+  "full_export_measured": false,
+  "coverage": [
+    "complete sharded tiny export bin-byte and shell-tensor parity",
+    "staged streaming output resumed with all source files present",
+    "truncated final repaired despite stale done marker",
+    "source file SHA-256 unchanged",
+    "failed GPU child prevents new manifest publication",
+    "partial/source-deletion CLI modes rejected"
+  ],
+  "source_sha256": {
+    "tools/export_inkling.py": "0614bd8472c857520513a165650e47a1f6d0b68ac32b13fb0b4d9b73127167c7",
+    "tools/inkling_parallel.py": "8b06f73f07aa268c1a2d11cc9f98713c36d342fe8bececbfd9eba52cdd2c7190"
+  }
+}

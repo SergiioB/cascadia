@@ -427,6 +427,74 @@ def _write_sharded_checkpoint(model_dir: Path, ckpt: dict, layout: str = "by_lay
     return names
 
 
+@pytest.mark.skipif(sys.platform != "linux" or torch.cuda.device_count() < 4,
+                    reason="four NVIDIA GPUs and Linux required")
+def test_parallel_export_complete_resume_and_source_retention(tmp_path, tiny_export):
+    from inkling_parallel import export_parallel
+    from safetensors.torch import load_file
+    import hashlib
+    reference, _ = tiny_export
+    man = export_inkling.load_and_validate_config(TINY_CONFIG)
+    source, output = tmp_path / "source", tmp_path / "parallel"
+    names = _write_sharded_checkpoint(source, hf_state_to_checkpoint(build_tiny_model(man).state_dict()),
+                                      layout="spread")
+    before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()}
+    # Leave real staged parts from an interrupted streaming export to resume.
+    parked = tmp_path / names[2]
+    (source / names[2]).rename(parked)
+    with pytest.raises(ValueError, match="complete source"):
+        export_parallel(source, output, processes=4)
+    assert not output.exists()
+    export_inkling.export_real(source, output, workers=2, skip_missing=True)
+    assert export_inkling.staged_part_count(output) > 0
+    assert not (output / "manifest.json").exists()
+    parked.rename(source / names[2])
+    result = export_parallel(source, output, processes=4, verify_cuda=True, cuda_chunk_mib=1)
+    assert result["complete"] and result["parallel"]["processes"] == 4
+    assert not (output / ".staging").exists()
+    for p in reference.rglob("*.bin"):
+        assert (output / p.relative_to(reference)).read_bytes() == p.read_bytes()
+    for p in reference.rglob("*.safetensors"):
+        actual, expected = load_file(str(output / p.relative_to(reference))), load_file(str(p))
+        assert actual.keys() == expected.keys()
+        assert all(torch.equal(actual[k], expected[k]) for k in expected)
+    assert json.loads((output / "manifest.json").read_text()) == man
+    assert (output / "tokenizer_config.json").read_bytes() == (source / "tokenizer_config.json").read_bytes()
+    # Audit and repair a truncated final even though a stale .done marker exists.
+    victim = output / "experts/layer_02/expert_003.bin"
+    original = victim.read_bytes()
+    victim.write_bytes(original[:-1])
+    result = export_parallel(source, output, processes=4, verify_cuda=True, cuda_chunk_mib=1)
+    assert result["complete"] and victim.read_bytes() == original
+    assert {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()} == before
+
+
+@pytest.mark.skipif(sys.platform != "linux" or torch.cuda.device_count() < 4,
+                    reason="four NVIDIA GPUs and Linux required")
+def test_parallel_worker_failure_does_not_publish_manifest(tmp_path):
+    from inkling_parallel import export_parallel
+    man = export_inkling.load_and_validate_config(TINY_CONFIG)
+    ckpt = hf_state_to_checkpoint(build_tiny_model(man).state_dict())
+    ckpt["model.llm.layers.1.mlp.experts.w13_weight"] = torch.ones(8, 62, 64)
+    source, output = tmp_path / "source", tmp_path / "parallel"
+    _write_sharded_checkpoint(source, ckpt, layout="spread")
+    with pytest.raises(RuntimeError, match="converter failed"):
+        export_parallel(source, output, processes=4, cuda_chunk_mib=1)
+    assert not (output / "manifest.json").exists()
+    assert len(list(source.glob("*.safetensors"))) == 3
+
+
+def test_parallel_cli_rejects_source_deletion_and_partial_modes(tmp_path):
+    base = [sys.executable, os.path.join(_TOOLS_DIR, "export_inkling.py"),
+            "--model", str(tmp_path / "source"), "--out", str(tmp_path / "out"),
+            "--device", "cuda:all", "--processes", "8"]
+    for flags in (["--delete-consumed-shards"], ["--skip-missing-shards"],
+                  ["--layers", "1-3"], ["--shards-only"]):
+        result = subprocess.run(base + flags, capture_output=True, text=True)
+        assert result.returncode != 0 and "require --processes 1" in result.stderr
+    assert not (tmp_path / "out").exists()
+
+
 @pytest.mark.parametrize("device", ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(
     not torch.cuda.is_available(), reason="NVIDIA CUDA GPU required"))])
 def test_streaming_export_over_sharded_checkpoint(tmp_path, tiny_export, device):

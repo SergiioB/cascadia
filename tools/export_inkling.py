@@ -19,6 +19,7 @@ Modes:
                                   matter which other shards have arrived
       [--workers N]               conversion threads (default min(8, cpus))
       [--device cpu|cuda:N|cuda:all] int4 quantization device (default cpu); shells remain on CPU
+      [--processes N]             independent CUDA processes (Linux, cuda:all, complete local source)
       [--cuda-chunk-mib N]         f32-equivalent input MiB per GPU chunk (default 64)
       [--verify-cuda]             compare every CUDA-packed matrix to the CPU bytes (qualification)
   --layers-done-check --out OUT [--model DIR]
@@ -993,7 +994,8 @@ class Exporter:
 def _set_threads(workers: int) -> None:
     import torch
 
-    torch.set_num_threads(max(1, (os.cpu_count() or 1) // max(1, workers)))
+    cpus = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else (os.cpu_count() or 1)
+    torch.set_num_threads(max(1, cpus // max(1, workers)))
 
 
 def export_real(model_dir: Path, out: Path, *, layers=None, shards_only=False, skip_missing=False,
@@ -1126,6 +1128,8 @@ def main():
     ap.add_argument("--delete-consumed-shards", action="store_true",
                     help="delete a source shard once every tensor it holds is converted and fsynced")
     ap.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
+    ap.add_argument("--processes", type=int, default=1,
+                    help="independent CUDA processes; requires Linux, cuda:all and complete --model/--out")
     ap.add_argument("--device", default="cpu", help="int4 quantization: cpu (default), cuda, cuda:N or cuda:all")
     ap.add_argument("--cuda-chunk-mib", type=int, default=64,
                     help="f32-equivalent input MiB per CUDA chunk; intermediates use additional VRAM")
@@ -1134,6 +1138,19 @@ def main():
     ap.add_argument("--layers-done-check", action="store_true",
                     help="assert the export at --out is complete and print the manifest (exit 1 otherwise)")
     args = ap.parse_args()
+
+    if args.processes < 1:
+        ap.error("--processes must be positive")
+    if args.processes > 1:
+        if (not args.model or not args.out or args.device != "cuda:all" or args.layers
+                or args.shards_only or args.skip_missing_shards or args.delete_consumed_shards
+                or args.validate or args.tiny or args.layers_done_check):
+            ap.error("--processes > 1 requires full --model/--out with --device cuda:all; "
+                     "partial, streaming, source deletion and other modes require --processes 1")
+        from inkling_parallel import export_parallel
+        export_parallel(args.model, args.out, processes=args.processes, workers=args.workers,
+                        cuda_chunk_mib=args.cuda_chunk_mib, verify_cuda=args.verify_cuda, strict=args.strict)
+        return
 
     if args.validate:
         man = load_and_validate_config(args.validate, strict=args.strict)
