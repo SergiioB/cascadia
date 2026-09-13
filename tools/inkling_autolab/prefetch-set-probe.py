@@ -128,6 +128,12 @@ def main():
                 def touch(index):
                     memcpy(destinations[index], ranges[index].address, ranges[index].size)
 
+                def read_reused(index):
+                    # Include open/close inside timing, as path.read_bytes()
+                    # does for the allocating control. Only storage is reused.
+                    with cohort[index].open('rb', buffering=0) as source:
+                        read_exact_into(source, destinations[index])
+
                 with ThreadPoolExecutor(max_workers=8) as pool:
                     disk_before = psutil.disk_io_counters()
                     faults_before = this_process.memory_info().num_page_faults
@@ -142,7 +148,7 @@ def main():
                             raise ctypes.WinError(ctypes.get_last_error())
                     prefetched = time.perf_counter()
                     if 'reuse' in mode:
-                        list(pool.map(lambda index: read_exact_into(files[index], destinations[index]), range(8)))
+                        list(pool.map(read_reused, range(8)))
                     elif "read" in mode:
                         destinations = list(pool.map(lambda path: path.read_bytes(), cohort))
                     else:

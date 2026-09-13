@@ -813,3 +813,7 @@ terminal baseline/no model process; follow-trials remained active for two
 idle samples and exited cleanly on its stop marker. No inference workload
 was started. Existing baseline sampler2208 continues its original in-memory
 code; use a new output/stop marker when starting the campaign sampler.
+
+Buffer probe timing refinement before measurement: both fresh and reusable
+read paths open/close the file inside the timer. Only destination storage is
+reused; preopened mapping handles are not an extra advantage for the candidate.
