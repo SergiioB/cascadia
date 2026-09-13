@@ -845,3 +845,22 @@ median faults from62,390.5 to53 per255MB batch, while time improves36.872ms to
 46.930ms excluded/reported. Prefetch hurts these buffered reads. This supports
 allocation-churn reduction but no full-model speedup yet; earlier transfer-active
 component timings are not a controlled cross-run comparison.
+
+## 35 hypothesis — bounded reusable decode read buffers
+
+The verified component probe reduces private page faults by >1000x but only
+~9.4% read throughput improvement. Prepare an opt-in production buffer pool
+while034 runs, then qualify separately before measuring it. A process-wide
+pool capped at256MiB avoids retaining eight buffers for EACH of64 layers.
+Leases own their buffers across Rayon read/compute passes, return them on drop,
+and never hold the pool mutex during I/O or compute. Failed/short reads must
+never expose stale bytes. Default behavior and numerical kernels stay intact.
+No native build or second model run during034. No speedup claimed in advance.
+
+Local candidate qualification:218 tests passed, including real int4 buffer
+bytes/kernel parity across expert changes, allocation reuse, disjoint leases,
+size/missing-file rejection and the eight Inkling integration targets. Baseline,
+reuse and reuse-without-hints fixture modes all match the prior ARM-debug hash
+5122e042f9b1fb30 and all expected greedy IDs over3 repetitions. Native results
+remain pending. The optional no-hint mode changes only bulk decode reads;
+prefill/direct-mapped hints remain intact. Existing full trial5044 is untouched.

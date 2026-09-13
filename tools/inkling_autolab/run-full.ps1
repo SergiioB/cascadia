@@ -4,6 +4,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
       [string]$Binary='full-decode.exe', [string]$RouteTrace='',
       [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0, [string]$Log='',
+      [ValidateSet(0,1)][int]$ReuseBuffers=0, [ValidateSet(0,1)][int]$SkipBulkPrefetch=0,
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
@@ -15,11 +16,14 @@ if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be 
 if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 if ($LayerProfile -and $Binary -in @('full-decode.exe', 'full-routing.exe')) { throw 'Select full-profile.exe for layer timing' }
 if ($MmapEmbed -and $Binary -in @('full-decode.exe', 'full-routing.exe', 'full-profile.exe')) { throw 'Select full-mmap-embed.exe for mapped embedding' }
+if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -ne 'full-read-buffers.exe') { throw 'Select qualified full-read-buffers.exe for reusable read options' }
 $env:RAYON_NUM_THREADS = '16'
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
 $env:CASCADIA_INKLING_PIN_EXPERTS = '0'
 $env:CASCADIA_INKLING_MMAP_EMBED = "$MmapEmbed"
+$env:CASCADIA_INKLING_REUSE_READ_BUFFERS = "$ReuseBuffers"
+$env:CASCADIA_INKLING_SKIP_BULK_PREFETCH = "$SkipBulkPrefetch"
 $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
@@ -38,7 +42,7 @@ $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassT
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch"
     $p.WaitForExit()
     if ($Log) {
         Get-Content -LiteralPath $Log -Encoding UTF8

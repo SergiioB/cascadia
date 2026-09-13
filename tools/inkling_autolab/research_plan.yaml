@@ -24,10 +24,11 @@ questions:
   answer: Concurrent projections regress performance; production change removed.
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
-  status: active
-  reason: Complete 549 GB export is SHA-256 verified on PTL. The frozen full
-    model smoke answered Paris correctly at 0.109 tok/s over three decode steps.
-    The longer baseline is running; 25 tok/s remains unmet.
+  status: answered
+  answer: Complete 549 GB export is SHA-256 verified on PTL. Nine full baseline
+    samples (three cases x three repetitions,63 decode steps each) have a
+    slowest rate0.1353339381tok/s. Repeated logits/IDs match; text reviewed.
+    Hashce0fbb9a116d3d09 gates subsequent candidates;25tok/s remains unmet.
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?
@@ -127,6 +128,7 @@ questions:
   question: Can reused bulk-read buffers remove private-page allocation overhead?
   status: active
   priority: 7
-  reason: Baseline page faults track explicit read volume closely; compare fresh
-    buffers, reusable readinto buffers and mapped-copy controls after baseline
-    and native qualification complete. Preserve SHA checks and record page faults.
+  reason: Thirty SHA-verified real-expert samples reduce median faults from
+    62390.5 to53 per255MB batch; reads improve36.872ms to33.714ms. A bounded
+    production pool passes218 local tests and exact fixture logits; native
+    qualification/full throughput are pending. No full speedup claimed.

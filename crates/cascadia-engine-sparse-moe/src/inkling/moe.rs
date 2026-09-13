@@ -59,6 +59,22 @@ pub(crate) fn seq_reads() -> bool {
     *E.get_or_init(|| env_flag("CASCADIA_INKLING_SEQ_READS"))
 }
 
+/// Retain a bounded pool of bulk-read destination buffers across layers/tokens.
+/// Default off; direct mapped execution takes precedence over this option.
+fn reuse_read_buffers() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_REUSE_READ_BUFFERS"))
+}
+
+/// Skip the serial hint phase before bulk decode reads. Prefill and direct
+/// mapped execution retain their hints. This measured alternative is opt-in.
+fn skip_bulk_prefetch() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_SKIP_BULK_PREFETCH"))
+}
+
 /// `CASCADIA_INKLING_SERIAL_EXPERTS`: run a token's selected experts one
 /// after another (each GEMV row-parallel on its own) instead of
 /// concurrently. Same values either way; only the schedule differs. Read
@@ -287,39 +303,65 @@ impl MoeLayer {
             .collect();
         let weights = gate.w.iter().chain(gate.gammas.iter());
         // Kick the OS read-ahead for all of them before any compute.
-        for e in &sel {
-            e.prefetch();
+        if seq_reads() || !skip_bulk_prefetch() {
+            for e in &sel {
+                e.prefetch();
+            }
         }
         // Overlapped reads: an mmap'd expert that is paged out is streamed
         // whole, concurrently with the others, into an owned buffer its GEMV
         // then runs from (bit-identical to the mmap). One already resident
         // is computed straight off the mapping — the copy would only cost.
-        let bufs: Vec<Option<Vec<u8>>> =
-            if !seq_reads() && sel.iter().any(|e| e.as_mmap().is_some()) {
-                use rayon::prelude::*;
-                sel.par_iter()
-                    .map(|e| {
-                        e.as_mmap()
-                            .filter(|m| !m.mostly_resident())
-                            .and_then(|m| m.read_bytes().ok())
-                    })
-                    .collect()
-            } else {
-                vec![None; sel.len()]
-            };
+        let bulk_read = !seq_reads() && sel.iter().any(|e| e.as_mmap().is_some());
+        let mut reused = (bulk_read && reuse_read_buffers())
+            .then(|| super::read_buffers::ReadBuffers::acquire(sel.len()));
+        let ready: Vec<bool> = if let Some(reused) = &mut reused {
+            use rayon::prelude::*;
+            sel.par_iter()
+                .zip(reused.buffers.par_iter_mut())
+                .map(|(e, bytes)| {
+                    e.as_mmap()
+                        .filter(|m| !m.mostly_resident())
+                        .is_some_and(|m| {
+                            super::read_buffers::read_into(m.bin_path(), m.bin_len(), bytes).is_ok()
+                        })
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let bufs: Vec<Option<Vec<u8>>> = if bulk_read && reused.is_none() {
+            use rayon::prelude::*;
+            sel.par_iter()
+                .map(|e| {
+                    e.as_mmap()
+                        .filter(|m| !m.mostly_resident())
+                        .and_then(|m| m.read_bytes().ok())
+                })
+                .collect()
+        } else {
+            vec![None; sel.len()]
+        };
         // The selected experts' FFNs run concurrently (each GEMV is itself
         // row-parallel; rayon's work stealing nests them). Every y_j is the
         // same value the serial loop produced, and the accumulation below
         // keeps gate order, so the result is bit-identical.
-        let ffn = |(e, buf): (&&AnyExpert, &Option<Vec<u8>>)| match (buf, e.as_mmap()) {
-            (Some(b), Some(m)) => m.swiglu_from(b, x),
-            _ => e.forward(x, self.hidden, self.inter),
+        let ffn = |(index, e): (usize, &&AnyExpert)| {
+            let buf = match &reused {
+                Some(reused) if ready[index] => Some(reused.buffers[index].as_slice()),
+                Some(_) => None,
+                None => bufs[index].as_deref(),
+            };
+            match (buf, e.as_mmap()) {
+                (Some(b), Some(m)) => m.swiglu_from(b, x),
+                _ => e.forward(x, self.hidden, self.inter),
+            }
         };
         let ys: Vec<Vec<f32>> = if par_experts() {
             use rayon::prelude::*;
-            sel.par_iter().zip(bufs.par_iter()).map(ffn).collect()
+            sel.par_iter().enumerate().map(ffn).collect()
         } else {
-            sel.iter().zip(bufs.iter()).map(ffn).collect()
+            sel.iter().enumerate().map(ffn).collect()
         };
         let mut out = vec![0.0f32; self.hidden];
         for (y, &wj) in ys.iter().zip(weights) {

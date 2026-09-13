@@ -1,0 +1,22 @@
+{
+  "scope": "ARM_debug_fixture_only",
+  "tests_passed": 218,
+  "profiles": [
+    {
+      "mode": "baseline",
+      "hash": "5122e042f9b1fb30",
+      "correctness_verified": true
+    },
+    {
+      "mode": "reuse",
+      "hash": "5122e042f9b1fb30",
+      "correctness_verified": true
+    },
+    {
+      "mode": "reuse_nohint",
+      "hash": "5122e042f9b1fb30",
+      "correctness_verified": true
+    }
+  ],
+  "full_model_speedup_measured": false
+}

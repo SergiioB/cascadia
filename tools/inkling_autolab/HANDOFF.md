@@ -73,7 +73,8 @@ Current state (refresh native processes before any new benchmark):
 - First diagnostic campaign034 is being launched; see `.autolab/state.json`
   and controller log `/private/tmp/inkling-full-direct-campaign.log`.
 - New bounded sampler uses `host-trials-resources.jsonl`, follow-trials mode,
- 6 hours, stop marker `stop-trials-sampler`. Record PIDs after launch.
+ 6 hours, stop marker `stop-trials-sampler`. Sampler4208,parent1420.
+  Full trial PID5044,created1789339116.8486328; controller tool session87212.
 
 ## Baseline and qualified candidates
 
@@ -172,3 +173,14 @@ source download+export2–3h/$30–45. **Extrapolations, not timed full exports.
 Cross-batch per-expert4.62x minerCUDA/10.93x minerCPU is not matched full speedup.
 Fresh549GB PTL delivery at103.7MB/s adds~88min/~$22 if rental serves it; rental
 route unmeasured. Current model is already on PTL and has no such dependency.
+
+## Read-buffer candidate under preparation
+
+Local opt-in CASCADIA_INKLING_REUSE_READ_BUFFERS and
+CASCADIA_INKLING_SKIP_BULK_PREFETCH prepared while034 runs. Pool caches only
+allocations, never expert contents, capped256MiB idle process-wide. Defaults
+remainoff. Direct-mapped execution takes precedence; prefill unchanged.
+218 local tests passed plus byte/greedy/full-logits fixture checks. Test results
+and source in035. Native **full-read-buffers.exe NOT YET BUILT/QUALIFIED**;
+`test-read-buffers.bat` is prepared. No competing native build during034.
+After034 ends, deploy/build/qualify then measure only if bottlenecks justify it.
