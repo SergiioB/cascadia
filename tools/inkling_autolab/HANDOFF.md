@@ -62,6 +62,18 @@ This is analytical opportunity, not an inference timing or a conclusion about
 other draft models. Direct reads, real routing/timing and mapped embedding
 remain the next tests once baseline and native qualification finish.
 
+## Reusable read-buffer diagnostic prepared
+
+`prefetch-set-probe.py --buffered --reuse-buffered --after-baseline --out FILE`
+adds reusable readinto buffers to the earlier allocating/mapped-copy comparison.
+Eight 31.85 MB buffers are allocated/touched once outside steady-state timing;
+setup time and process page faults are reported. Whole-buffer SHA parity remains.
+Use repeated `--exclude-report` arguments for results 023 and 024 to avoid
+previous cohorts. Source is deployed; no new page-in measurement has run.
+The new mode requires BOTH baseline success and native qualification success,
+and refuses active full binaries. Local readinto short/truncated/extra-data
+checks passed. This is a component hypothesis, not a production change.
+
 ## Lambda rental release readiness
 
 Provider confirmed **Lambda.ai**, **no persistent filesystem attached**. All

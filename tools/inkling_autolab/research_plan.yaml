@@ -123,3 +123,10 @@ questions:
     target-call reduction and substantially more verification rows. Minimum
     suffix length >=2 accepts zero drafts. Defer this drafter on these prompts;
     no measured inference speedup or conclusion about other drafters is implied.
+- id: q19
+  question: Can reused bulk-read buffers remove private-page allocation overhead?
+  status: active
+  priority: 7
+  reason: Baseline page faults track explicit read volume closely; compare fresh
+    buffers, reusable readinto buffers and mapped-copy controls after baseline
+    and native qualification complete. Preserve SHA checks and record page faults.

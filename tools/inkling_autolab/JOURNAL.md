@@ -763,3 +763,23 @@ drafters or more repetitive/longer workloads. No inference speedup claimed.
 No-repeat, periodic exact-match, prefix-continuation and zero-budget analytical
 checks passed. The implementation recursively extends only the observed prefix
 and its own proposals; saved future tokens are used only by the offline verifier.
+
+## 30 hypothesis — reuse buffered-read storage to avoid fresh page faults
+
+The baseline's ~518k process page faults/s is close to one new 4 KiB page
+for its ~2.04 GB/s explicit read traffic. The default expert path allocates
+and discards a ~31.85 MB vector for each nonresident expert. Hypothesis: a
+small reusable pool of read buffers avoids this private-page allocation cost
+while preserving bulk reads. This is distinct from mapped compute and needs
+a component check before production changes.
+
+Extend the existing disjoint-file probe with reusable readinto buffers and
+per-process page-fault counts. Allocate/touch the fixed 255 MB pool once outside
+the steady-state timer and report that setup separately. Compare allocating
+reads, reusable reads, and prefetch+mapped-copy controls; preserve all SHA
+checks. Do not run while the full baseline or native qualification is active.
+
+Preparation checks passed: exact reusable bytes, short reads, premature EOF
+and trailing bytes. The deployed Windows script rejected --after-baseline
+while the full run was active, before allocating the pool or reading experts.
+No component measurement or production pool implementation has run yet.
