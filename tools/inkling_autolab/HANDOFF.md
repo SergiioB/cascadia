@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 12:47UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 12:44UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
 ## Active125/126 selective second read
@@ -10,7 +10,11 @@ fixture modes, all exact. Second19/16/3 aggregate;6/5/1 on independent secondwor
 Early+second library precedence tested; wrapper rejects combination. Selected
 profile stays first-only. Native126 staging next, then127/128 same-binary A/B.
 Candidate full-second-prefetch.exe, source manifest second-prefetch-source.json.
-No126 native process yet. Current native full-early-prefetch sourceb53a984b;
+126 native qualifier9852(created1789389869.1730728), launcher10892 building.
+Controller/private/tmp/run-inkling-second-prefetch-loop.py active, log
+/private/tmp/inkling-second-prefetch-loop.log; archives126 then runs127/128.
+129 prepared but conditional, forecast53152/50539/2613 aggregate.
+Candidate sourceede10f98; archive db3e4521; wrapper09f20b18. Native prior sourceb53a984b;
 14 frozen binaries must remain byte-identical. Autonomy target remains unmet.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)

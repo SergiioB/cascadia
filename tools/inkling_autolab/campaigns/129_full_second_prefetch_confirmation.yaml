@@ -1,8 +1,7 @@
 version: 1
-name: 128_full_second_prefetch_candidate
-hypothesis: Keep the first uncached prediction and optionally read a second concurrently only when its
-  original predicted gate rank is in the top three. Preserve all actual routes, output IDs, cache admission
-  and full read accounting. Confirm gains over nine samples before promotion.
+name: 129_full_second_prefetch_confirmation
+hypothesis: Conditional on127/128 matched gain, confirm selective second prefetch over all nine exact
+  full-model samples; include first samples and all stalls. Compare to112 repeated record before any promotion.
 measurement_scope: full_large_model_decode
 validation_metric: correctness_verified
 question: q125
@@ -21,9 +20,9 @@ runner:
     -Cases "{cases}" -Binary full-second-prefetch.exe -PredictReads 1 -Threads {threads} -AffinityMask
     {affinity} -CacheDecayRequests {decay} -CacheRecentTies 1 -Reads 0 -Bf16Rows {bf16_rows} -Int4Rows
     {int4_rows} -MmapEmbed 1 -ReuseBuffers 1 -OwnShared 1 -UncachedReads 1 -PipelineReads 1 -ExpertCacheMiB
-    256 -PrefillReads 1 -CacheResetHistory 1 -SkipBulkPrefetch 1 -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate.json
-    -RouteTrace C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate-routes.json -LayerProfile
-    C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate-layers.json -Log C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate.log
+    256 -PrefillReads 1 -CacheResetHistory 1 -SkipBulkPrefetch 1 -Tokens 64 -Samples 3 -Out C:/Users/devcloud/inkling-autolab/129-second-prefetch-confirmation.json
+    -RouteTrace C:/Users/devcloud/inkling-autolab/129-second-prefetch-confirmation-routes.json -LayerProfile
+    C:/Users/devcloud/inkling-autolab/129-second-prefetch-confirmation-layers.json -Log C:/Users/devcloud/inkling-autolab/129-second-prefetch-confirmation.log
     -EarlyPredictReads 0 -SecondPredictReads 1
   connect_timeout: 30
 defaults:
@@ -225,53 +224,53 @@ expected_metrics:
   owned_shared_bytes: 4076863488
   embedding_mapped: 1
   full_model: 1
-  repetitions: 1
+  repetitions: 3
   uncached_read_effective: 1
   uncached_read_fallbacks: 0
   pipeline_reads_effective: 1
-  pipelined_read_layers: 12096
+  pipelined_read_layers: 36288
   expert_cache_capacity_bytes: 17179869184
   expert_cache_effective: 1
-  expert_cache_history_resets: 192
-  prefill_read_experts: 13635
-  prefill_uncached_read_bytes: 434281512960
+  expert_cache_history_resets: 576
+  prefill_read_experts: 40905
+  prefill_uncached_read_bytes: 1302844538880
   prefill_uncached_read_fallbacks: 0
   prefill_reads_effective: 1
-  expert_cache_hits: 33257
-  expert_cache_misses: 39319
+  expert_cache_hits: 99853
+  expert_cache_misses: 117875
   expert_cache_retained_bytes: 16309550592
-  uncached_read_bytes: 1280071434240
-  expert_cache_admissions: 26816
-  expert_cache_evictions: 26304
-  expert_cache_hit_bytes: 1059251945472
+  uncached_read_bytes: 3837602562048
+  expert_cache_admissions: 80366
+  expert_cache_evictions: 79854
+  expert_cache_hit_bytes: 3180367577088
   rayon_threads: 16
-  expert_cache_frequency_decays: 2112
+  expert_cache_frequency_decays: 6336
   bf16_rows: 2
   int4_rows: 4
   processor_affinity: 65535
-  expert_cache_recent_tie_admissions: 20015
+  expert_cache_recent_tie_admissions: 60045
   cache_recent_ties: 1
-  prediction_read_scheduled: 17720
-  prediction_read_successful: 17720
-  prediction_read_useful: 16849
-  prediction_read_unused: 871
-  prediction_read_useful_bytes: 536649007104
-  prediction_read_unused_bytes: 27741782016
+  prediction_read_scheduled: 53152
+  prediction_read_successful: 53152
+  prediction_read_useful: 50539
+  prediction_read_unused: 2613
+  prediction_read_useful_bytes: 1609692217344
+  prediction_read_unused_bytes: 83225346048
   prediction_read_read_failures: 0
   prediction_read_worker_failures: 0
   prediction_read_dispatch_failures: 0
   prediction_read_effective: 1
-  early_prediction_reads_effective: 0
-  early_predict_reads: 0
-  second_predict_reads: 1
-  second_prediction_reads_effective: 1
-  prediction_read_workers: 2
-  second_prediction_read_scheduled: 5814
-  second_prediction_read_successful: 5814
-  second_prediction_read_useful: 5511
-  second_prediction_read_unused: 303
-  second_prediction_read_useful_bytes: 175528083456
-  second_prediction_read_unused_bytes: 9650700288
+  second_prediction_read_scheduled: 17434
+  second_prediction_read_successful: 17434
+  second_prediction_read_useful: 16525
+  second_prediction_read_unused: 909
+  second_prediction_read_useful_bytes: 526329446400
+  second_prediction_read_unused_bytes: 28952100864
   second_prediction_read_read_failures: 0
   second_prediction_read_worker_failures: 0
   second_prediction_read_dispatch_failures: 0
+  early_predict_reads: 0
+  early_prediction_reads_effective: 0
+  second_predict_reads: 1
+  second_prediction_reads_effective: 1
+  prediction_read_workers: 2

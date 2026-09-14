@@ -1,0 +1,10 @@
+{
+  "staged_sha256": {
+    "second-prefetch-source.json": "5186563e7a269e1c9d63b2a009b07c1da41537dac36101ad9a1add1a66d09d28",
+    "second-prefetch-source.tar": "db3e4521ce6f855b6b1719100e76308f8183e8496d73f19baf9ab1942f3c46c3",
+    "run-full-second-prefetch.ps1": "09f20b18d6bddc63358d142022e038b85fd265dc6d2657fac75d3cfc0aaf8226",
+    "test-second-prefetch.bat": "4145b812a4eb0053a730dbbb31cc1cb980c472e7247fba922d80457c06d351f3",
+    "qualify-second-prefetch.py": "87c676ecb975089c01ce0c61e8500cb1dbbe7f580f396c4241d5c4a369b0e9f6"
+  },
+  "powershell_parse": "passed"
+}

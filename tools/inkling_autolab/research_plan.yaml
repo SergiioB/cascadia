@@ -203,3 +203,9 @@ questions:
   priority: 2
   reason: 086 observes4–6 physical runs per original file, median5.092 matched temporary-copy probe prepared
     after affinity sweep; no model relocation or new export.
+
+- id: q125
+  question: Can a concurrent second expert read, restricted to the top three predicted ranks, improve full decode?
+  status: active
+  priority: 4
+  reason: Frozen policy124 forecasts43% miss coverage with less than1% additional reads over current prefetch on both calibration and longer prompts.125 exact local qualification passes;126 native qualification precedes127/128 matched full trials.
