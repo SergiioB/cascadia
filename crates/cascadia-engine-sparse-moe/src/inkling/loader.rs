@@ -591,6 +591,17 @@ pub fn load_stage(
             }
         }
     }
+    // Optional OpenVINO attention-projection backend (`CASCADIA_INKLING_OV_ATTN=1`
+    // + `<model>/attn_ov`), layers that have IRs.
+    if let Some(ov) = super::ov_attn::OvAttn::from_env(dir) {
+        let ov = std::sync::Arc::new(ov);
+        for (i, l) in layers.iter_mut().enumerate() {
+            let lid = (lo + i) as u32;
+            if ov.has_layer(lid) {
+                l.attach_ov_attn(lid, std::sync::Arc::clone(&ov));
+            }
+        }
+    }
     Ok(InklingStage {
         embed,
         layers,
