@@ -1,0 +1,136 @@
+{
+  "unix": 1789378911.315257,
+  "scope": "read_only_memory_snapshot_during094",
+  "protected_ovms_pid": 6728,
+  "ovms_model": "qwen3.6-35b-a3b",
+  "sampler_pid": 3036,
+  "memory": {
+    "AvailableBytes": 1749516288,
+    "CommittedBytes": 70366969856,
+    "PoolNonpagedBytes": 705175552,
+    "PoolPagedBytes": 1747169280,
+    "SystemCacheResidentBytes": 76066816,
+    "StandbyCacheCoreBytes": 127107072,
+    "StandbyCacheNormalPriorityBytes": 1614835712,
+    "StandbyCacheReserveBytes": 1957888,
+    "ModifiedPageListBytes": 18018304
+  },
+  "processes": [
+    {
+      "Name": "_Total",
+      "IDProcess": 0,
+      "WorkingSet": 43162382336,
+      "WorkingSetPrivate": 41893482496,
+      "PrivateBytes": 65384656896
+    },
+    {
+      "Name": "full-cache-decay",
+      "IDProcess": 5132,
+      "WorkingSet": 41484746752,
+      "WorkingSetPrivate": 40967692288,
+      "PrivateBytes": 42500440064
+    },
+    {
+      "Name": "ovms",
+      "IDProcess": 6728,
+      "WorkingSet": 3977216,
+      "WorkingSetPrivate": 3321856,
+      "PrivateBytes": 20579508224
+    },
+    {
+      "Name": "MsMpEng",
+      "IDProcess": 11016,
+      "WorkingSet": 204886016,
+      "WorkingSetPrivate": 141799424,
+      "PrivateBytes": 399482880
+    },
+    {
+      "Name": "svchost#60",
+      "IDProcess": 6096,
+      "WorkingSet": 4648960,
+      "WorkingSetPrivate": 2912256,
+      "PrivateBytes": 172756992
+    },
+    {
+      "Name": "dwm",
+      "IDProcess": 1800,
+      "WorkingSet": 10543104,
+      "WorkingSetPrivate": 4427776,
+      "PrivateBytes": 146333696
+    },
+    {
+      "Name": "tailscaled#1",
+      "IDProcess": 5456,
+      "WorkingSet": 17928192,
+      "WorkingSetPrivate": 11808768,
+      "PrivateBytes": 105672704
+    },
+    {
+      "Name": "python#1",
+      "IDProcess": 11228,
+      "WorkingSet": 11063296,
+      "WorkingSetPrivate": 7053312,
+      "PrivateBytes": 73293824
+    }
+  ],
+  "gpu": [
+    {
+      "Name": "pid_6728_luid_0x00000000_0x0000AA0A_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 20027486208,
+      "TotalCommitted": 20028010496
+    },
+    {
+      "Name": "pid_1800_luid_0x00000000_0x0000AA0A_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 119721984,
+      "TotalCommitted": 102420480
+    },
+    {
+      "Name": "pid_1792_luid_0x00000000_0x0000AA0A_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 15904768,
+      "TotalCommitted": 21676032
+    },
+    {
+      "Name": "pid_4_luid_0x00000000_0x0000AA0A_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 1290240,
+      "TotalCommitted": 1290240
+    },
+    {
+      "Name": "pid_1156_luid_0x00000000_0x0000AA0A_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 745472,
+      "TotalCommitted": 745472
+    },
+    {
+      "Name": "pid_4_luid_0x00000000_0x0000ADE7_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 40960,
+      "TotalCommitted": 40960
+    },
+    {
+      "Name": "pid_4_luid_0x00000000_0x0000ADBC_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 8192,
+      "TotalCommitted": 8192
+    },
+    {
+      "Name": "pid_6728_luid_0x00000000_0x0000ADE7_phys_0",
+      "DedicatedUsage": 0,
+      "SharedUsage": 0,
+      "TotalCommitted": 0
+    }
+  ],
+  "protected_services_alive": {
+    "6728": true,
+    "8356": true,
+    "6344": true
+  },
+  "interpretation": "Existing Qwen OVMS service holds about20GB shared GPU memory. Preserve service; larger Inkling cache would require additional physical headroom. Working-set-only rankings omit these GPU allocations.",
+  "references": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-performance_information",
+    "https://learn.microsoft.com/en-us/windows/win32/memory/memory-performance-information"
+  ]
+}

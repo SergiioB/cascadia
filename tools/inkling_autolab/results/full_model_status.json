@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T09:38:19.865473+00:00",
+  "updated_at": "2026-09-14T09:44:28.883527+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
-  "status": "094_repeated_control_running",
+  "status": "095_repeated_candidate_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Qualify093 current wrapper with rows2/4 and2/2, then repeat control094 and candidate095, evaluate and continue optimization.",
+  "next_action": "Finish095/capture/compare to094, wait098 native qualification, then freeze row choice for100/101 cache-recency trials and continue optimization.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,21 +46,22 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": "094_full_rows_repeated_control",
+  "active_campaign": "095_full_rows_repeated_candidate",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 5132,
-      "created_unix": 1789378071.276495,
+      "native_pid": 7928,
+      "created_unix": 1789378926.7827115,
       "binary": "full-cache-decay.exe",
-      "campaign": "094_full_rows_repeated_control"
+      "campaign": "095_full_rows_repeated_candidate"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [
-    "095_full_rows_repeated_candidate"
+    "100_full_cache_recency_control",
+    "101_full_cache_recency_recent"
   ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",

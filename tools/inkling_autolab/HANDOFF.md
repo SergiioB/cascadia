@@ -25,10 +25,12 @@ paired median speedups.831/1.058/1.052.2files has large order effects. Modest,
 mixed component result; no original model file relocated. Raw artifacts/state
 and hashes saved in092_artifact_verification.json.
 
-**093 qualifier COMPLETE/EXITED;094 repeated control RUNNING.**
+**094 repeated control COMPLETE0.9354823511;095 repeated candidate RUNNING.**
+Native095 PID7928, created1789378926.7827115, outputs095-rows-repeated-candidate.*.
+094 raw artifacts/SHA/resources all verified; original record074 remains0.938274.
 Controller95987: /private/tmp/run-inkling-repeated-rows.py.
-Native094 PID5132, created1789378071.276495. Outputs094-rows-repeated-control.*.
-095candidate queued automatically; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
+Native094 PID5132, created1789378071.276495 exited. Outputs094-rows-repeated-control.*.
+095candidate running; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
 093Python8176,parent9488 exited; both modes passed, all raw files SHA copied.
 Read native row-affinity-qualification-state.json for status/PID.
 Sourcequalify-row-affinity.py tests rows2/4 and2/2 with mask65535/thread16,
@@ -58,7 +60,8 @@ Source849a08bd committed/pushed; manifest cache-recency-source.json and tar
 All candidate files staged and SHA verified, PowerShell parser passed.
 098 qualifier ACTIVE/WAITING, Python3144,parent10896, state
 cache-recency-qualification-state.json. It waits094/095.
-No full recency trial prepared yet. Counter predictions097_cache_recency_counter_predictions.json:
+100/101 recency control/candidate campaigns PREPARED with rows2/4. Revisit
+rowchoice after095; launch only after098 qualifies/exits. Counter predictions097_cache_recency_counter_predictions.json:
 1rep recent33257hits39319misses26816admit26304evict20015ties,
 uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ties,
 uncached3754377216000/hitbytes3180367577088. Other counters/profile unchanged.
