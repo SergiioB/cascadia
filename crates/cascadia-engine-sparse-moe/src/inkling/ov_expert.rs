@@ -267,6 +267,12 @@ impl OvExperts {
         (c.lru.len(), c.bytes)
     }
 
+    /// Whether the model ships IRs for layer `lid` (its `experts_ov/layer_NN`
+    /// directory exists); the loader attaches the backend only to those.
+    pub fn has_layer(&self, lid: u32) -> bool {
+        self.dir.join(format!("layer_{lid:02}")).is_dir()
+    }
+
     fn xml(&self, lid: u32, eid: u32, num_experts: u32) -> PathBuf {
         let name = if eid == DENSE {
             "dense".to_string()
