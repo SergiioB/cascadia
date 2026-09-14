@@ -107,10 +107,11 @@ Arc B390 iGPU) with the experts as OpenVINO int4 IRs on the iGPU
 | MoE (2) decode | 23.7 ms/token | **7.6 ms/token** | 7.1 ms/token |
 | MoE (2) prefill, 23 tokens | 210 ms | 152 ms | 129 ms |
 
-With the fused MoE kernel (OpenVINO 2026.3) and int4 attention projections
-on the iGPU as well, the same layer measures 4.6 ms/token decode and 88 ms
-per 23-token prefill, the dense layers 3.6 ms — 6.6× the CPU kernel, about
-0.3 s per token for the whole model on resident ranks. The box itself still
+With the fused MoE kernel (OpenVINO 2026.3) and the attention projections
+on the iGPU as well, the same layer measures 5.1 ms/token decode with int8
+projections (4.5 with int4) and 89 ms per 23-token prefill, the dense
+layers 4.2 ms (3.6) — 5.9–6.6× the CPU kernel, about 0.3 s per token for
+the whole model on resident ranks. The box itself still
 pages the 975B export from NVMe (the 16 GB/token of expert reads are its
 clock), so these are per-rank numbers of a resident pipeline (§3), not a
 single-box tokens/s:
@@ -119,7 +120,8 @@ single-box tokens/s:
 |---|---|---|
 | CPU kernel (30 ms per MoE layer) | ~2.0 | ~0.5 |
 | fused MoE on iGPU, attention on CPU (6.9 ms) | 0.45 | 2.2 |
-| everything on iGPU, int4 attention (4.6 ms) | 0.30 | ~3.3 |
+| everything on iGPU, int8 attention (5.1 ms) | 0.33 | ~3.0 |
+| everything on iGPU, int4 attention (4.5 ms) | 0.30 | ~3.3 |
 | bandwidth floor, all int4 at ~105 GB/s | 0.21 | ~4.7 |
 
 Aggregate with concurrent streams: the fused kernel already batches rows

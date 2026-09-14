@@ -440,18 +440,19 @@ these projections), the same dump on tate-07:
 |---|---|---|---|---|
 | CPU kernel | 9.7 ms/token | 30.1 ms/token | 207 ms | exact |
 | fused MoE on iGPU, attention on CPU | 6.2 ms/token | 6.9 ms/token | 148 ms | rel rms 1.9e-3 |
-| **+ int4 attention on iGPU** | **3.6 ms/token** | **4.6 ms/token** | **88 ms** | rel rms 1.5e-2 |
+| + int4 attention on iGPU (`--weights int4`) | 3.6 ms/token | 4.5 ms/token | 88 ms | rel rms 1.5e-2 |
+| **+ int8 attention on iGPU (`--weights int8`, default)** | **4.2 ms/token** | **5.1 ms/token** | **89 ms** | rel rms 6.5e-3 |
 
-That is 6.6× the CPU kernel per MoE layer, ~0.3 s per token for the whole
-model on resident ranks (~3 tok/s single stream on a 12-rank pipeline). Two
-costs come with it: the int4 round-to-nearest quantisation of the attention
-weights is what moves the residual stream to 1.5e-2 (the plugin's own error
-on those weights is 2e-4), and the device's f16 GEMV and GEMM paths are not
-bit-identical, so decode and prefill no longer produce the same residual
-stream to the bit (the dump's `dec-vs-pre` column, 3e-4 relative at layer
-2) — the prefix cache and the parity harness still hold, greedy output is
-what decides, and an int8 variant (`--weights int8`, ~132 MB per layer) is
-the middle ground measured next.
+That is 5.9× (int8) to 6.6× (int4) the CPU kernel per MoE layer, ~0.33 s
+per token for the whole model on resident ranks (~3 tok/s single stream on
+a 12-rank pipeline). The attention weights' round-to-nearest quantisation
+is what sets the residual: int4 (group 32) carries ~10% weight-relative
+error and moves the residual stream to 1.5e-2, int8 (per row) ~1.2% and
+6.5e-3; the plugin's own error on either set of weights is 2e-4. int8 is
+the default; int4 is the speed option for a demo that tolerates it. With
+int4 the device's f16 GEMV and GEMM paths also stopped being bit-identical,
+so decode and prefill differed by 3e-4 relative at layer 2 (the dump's
+`dec-vs-pre` column); with int8 they agree to the bit again.
 
 ### Expert-parallel dispatch (star topology)
 

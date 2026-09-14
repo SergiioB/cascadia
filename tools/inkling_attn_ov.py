@@ -8,8 +8,10 @@ Per layer two graphs, both `x [1, rows, in] f32` in, f32 out:
 The head norms, relative-position bias, softmax, KV cache and the short
 convolutions stay in Rust (`inkling/attn.rs`); only the five GEMVs move.
 
-Weights (`--weights`, default `int4`; `int8` = per-row symmetric u8, ~132 MB per
-layer, the middle ground; `--dir-name` keeps variants side by side): the bf16 shells are the ~264 MB per
+Weights (`--weights`, default `int8` = per-row symmetric u8, ~132 MB per layer;
+`int4` = group-32 on the experts' grid, ~66 MB, faster but ~10% weight-relative
+error against int8's ~1.2%; `--dir-name` keeps variants side by side): the bf16
+shells are the ~264 MB per
 layer the CPU already streams at ~80 GB/s, so a f16 copy on the iGPU gains
 nothing — the gain is in bytes. `int4` quantises each projection on the same
 grid as the experts (symmetric, per-row groups of 32, scale = max|w|/7 rounded
@@ -214,7 +216,7 @@ def main():
     ap.add_argument("--src", required=True)
     ap.add_argument("--layers", required=True, help="comma list of layer indices")
     ap.add_argument("--out", default=None)
-    ap.add_argument("--weights", choices=["int4", "int8", "f16"], default="int4")
+    ap.add_argument("--weights", choices=["int4", "int8", "f16"], default="int8")
     ap.add_argument("--dir-name", default="attn_ov", help="output subdirectory under --out (runtime: CASCADIA_INKLING_OV_ATTN_DIR)")
     ap.add_argument("--validate", action="store_true")
     ap.add_argument("--validate-device", default="GPU")
