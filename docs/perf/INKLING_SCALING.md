@@ -127,9 +127,11 @@ single-box tokens/s:
 Aggregate with concurrent streams: the fused kernel already batches rows
 (2.4 ms per row at 23 rows against 4.5 ms for one), so a rank that decodes
 several streams per step approaches the bandwidth floor per token; the
-engine's per-request scheduler is the remaining piece for that. One MoE layer of compiled models
-(~13 GiB device) is what a 64 GB box holds cleanly: with two, the
-first-allocated layer's experts get paged and its time doubles.
+engine's per-request scheduler is the remaining piece for that. The device budget is the rank limit on
+Windows: the iGPU gets half the RAM as shared memory (33.5 GiB here), so a
+64 GB box holds three fused MoE layers (8.3 GB each) at these numbers, four
+at the cap and five or six paging — 22 ranks for the model, or larger-RAM
+or Linux ranks for more layers each.
 
 ## 3. Why a pipeline does not multiply per-box bandwidth
 
