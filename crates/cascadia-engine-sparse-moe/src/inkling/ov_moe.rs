@@ -19,8 +19,10 @@
 //! Enabled by `CASCADIA_INKLING_OV_MOE=1`; `CASCADIA_INKLING_OV_MOE_DEVICE`
 //! (default `GPU`), `CASCADIA_INKLING_OV_MOE_CACHE_DIR` (compiled-blob cache),
 //! `CASCADIA_INKLING_OV_MOE_OFFLOAD` (the plugin's `OFFLOAD_RATIO`, percent of
-//! routed experts streamed from the IR .bin instead of held on the device;
-//! measured at ~1 GB/s on the Arc B390, so a benchmark knob, not a speed-up).
+//! experts not pre-loaded on the device but streamed from the IR .bin into
+//! LRU slots on first touch; default 1, because 2026.3.1 compiles a saved
+//! fused-MoE IR only through that path; the streaming itself measured ~1 GB/s
+//! on the Arc B390, so larger ratios are a benchmark knob, not a speed-up).
 //! Layers without an IR keep whatever path they had (per-expert OV or the
 //! Rust kernel), as does any call the device refuses.
 //!
@@ -99,9 +101,24 @@ impl OvMoe {
         let device =
             std::env::var("CASCADIA_INKLING_OV_MOE_DEVICE").unwrap_or_else(|_| "GPU".into());
         let cache_dir = std::env::var("CASCADIA_INKLING_OV_MOE_CACHE_DIR").ok();
+        // OpenVINO 2026.3.1's GPU plugin fails to compile a fused MoE layer
+        // read from an IR file unless the offload path handles its constants
+        // ("Node which is about to be added in between two other nodes should
+        // not have any existing dependencies ... postponed_decompression"):
+        // every saved IR compiles with OFFLOAD_RATIO >= 1 and none without.
+        // So the default is 1: ~99% of the experts resident, the remainder in
+        // the plugin's LRU slots (streamed on first touch, then resident).
         let offload = std::env::var("CASCADIA_INKLING_OV_MOE_OFFLOAD")
             .ok()
-            .filter(|v| !v.trim().is_empty() && v.trim() != "0");
+            .map(|v| v.trim().to_string())
+            .filter(|v| !v.is_empty())
+            .unwrap_or_else(|| "1".into());
+        let offload = if offload == "0" {
+            warn!("CASCADIA_INKLING_OV_MOE_OFFLOAD=0 cannot compile a saved fused-MoE IR on OpenVINO 2026.3.1; using 1");
+            Some("1".to_string())
+        } else {
+            Some(offload)
+        };
         // The plugin's batched-GEMV decode kernel crashes on the Arc B390; the
         // grouped-GEMM path is selected by this plugin option, read from the
         // process environment at compile time. Honour an operator's own value.
