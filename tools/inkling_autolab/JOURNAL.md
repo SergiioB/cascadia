@@ -1533,3 +1533,26 @@ match. Rawdiagnosticsarchived. 067workers24active5688,created1789372336.0766687;
 070replayedverified046nine-sampleroutesforfuture3-repeatcachegates; 4096interval
 90250hits/127478misses/12347admissions/11835evictions;32interval94235/123493/25801/
 25289. Capturehelpersupports--repetitions3andvalidatescartesiancase/repcoverage.
+
+067workers24passed0.8695377030tok/s,thirdconsecutiveworker-settingnonimprovement
+after8and12. Research-loop reassessment: challenge theassumptionthatworker
+oversubscriptionfillsstorage/computeidlecycles. HigherCPUactivitycaninclude
+scheduling/spinning; itisnot evidenceofusefulkernelthroughput. FreshRayon
+documentationreview confirmsdefaultpoolusesRAYON_NUM_THREADS andnotesblocking
+I/Ocanhurtwork-stealingperformance. Sources:
+https://docs.rs/rayon/latest/rayon/struct.ThreadPoolBuilder.html
+https://docs.rs/rayon/latest/rayon/fn.join.html
+Continue069independentI/Osubmission/chunkhypothesis afterremaining32workerarm;
+itscomponentresultmustbevalidatedend-to-endbeforepromotion. Cachedecay32is
+alsoqualifiedforaseparatecausal-cachecomparison. Neitherrelaxesnumericalgates.
+
+067rawdiagnosticsarchived. 068workers32activePID8100created1789372668.7833545,
+observed33process threadsafterload. Controller67450;069probe10092stillwaiting.
+
+Prepared071/072same-new-binarycachedecay4096/32comparisonwith16workers. Current
+32-workerfirstsample0.858327alreadycapsitsslowestscorebelow16control0.917566,
+so16isselectedpendingnormalcompletion. Botharmsfull-cache-decay.exeSHA3874c863...,
+cache256/historyreset1/prefill1/rows2/4. Exactcausalcountgatespredeclared from058:
+32interval31383hits/41193misses/8629admissions/8117evictions/2112actualdecays;
+control30058/42518/4141/3629/0. Do not launchuntil069probeexits. Afterpair,
+three-repeatconfirmationofselectedsettingsbeforefurthernewruntimechanges.

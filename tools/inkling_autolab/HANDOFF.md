@@ -3,6 +3,16 @@
 Updated 2026-09-14 07:38UTC. USER RESUMED AUTONOMOUS OPTIMIZATION. Work is ACTIVE;
 do not stop after a completed campaign. The25tok/s target is unmet.
 
+## Live update08:01UTC —068running
+
+067workers24completed0.8695377030tok/s; allartifactsarchived,exactgatespass.
+**068_full_threads_32 RUNNING**,native**8100**,created**1789372668.7833545**,
+observed33threadsafterload;controller**67450**. Nootherfulltrialqueued.
+069asyncprobe**10092**/parent10616iswaitingfor068completion; sampler3036active.
+Do not startanynewfulltrialuntilprobeiscompleteorfailedanditsprocesshasexited.
+Thenchooseworkers(overallbestcurrently16at0.9175664024),runqualifieddecay
+control4096/candidate32,then3-repeatconfirmation. Keepoptimizingafterthat.
+
 ## Latest checkpoint —067running,069probe waiting
 
 064controlcomplete0.9175664024;065workers8complete0.8846400902;
