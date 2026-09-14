@@ -15,6 +15,7 @@ pub struct ExpertCacheStats {
     pub evictions: u64,
     pub history_resets: u64,
     pub frequency_decays: u64,
+    pub recent_tie_admissions: u64,
 }
 
 impl ExpertCacheStats {
@@ -28,6 +29,7 @@ impl ExpertCacheStats {
         self.evictions += other.evictions;
         self.history_resets += other.history_resets;
         self.frequency_decays += other.frequency_decays;
+        self.recent_tie_admissions += other.recent_tie_admissions;
     }
 }
 
@@ -41,6 +43,7 @@ struct State {
     last: Vec<u64>,
     clock: u64,
     decay_requests: u64,
+    recent_ties: bool,
     entries: Vec<Entry>,
     stats: ExpertCacheStats,
 }
@@ -54,15 +57,31 @@ impl ExpertCache {
             .and_then(|s| s.parse::<u64>().ok())
             .filter(|n| (4..=65536).contains(n) && n.is_power_of_two())
             .unwrap_or(4096);
-        Self::with_decay(experts, capacity, decay_requests)
+        Self::with_policy(
+            experts,
+            capacity,
+            decay_requests,
+            super::env_flag("CASCADIA_INKLING_CACHE_RECENT_TIES"),
+        )
     }
 
+    #[cfg(test)]
     fn with_decay(experts: usize, capacity: usize, decay_requests: u64) -> Self {
+        Self::with_policy(experts, capacity, decay_requests, false)
+    }
+
+    fn with_policy(
+        experts: usize,
+        capacity: usize,
+        decay_requests: u64,
+        recent_ties: bool,
+    ) -> Self {
         Self(Mutex::new(State {
             frequency: vec![0; experts],
             last: vec![0; experts],
             clock: 0,
             decay_requests,
+            recent_ties,
             entries: Vec::new(),
             stats: ExpertCacheStats {
                 capacity_bytes: capacity,
@@ -163,7 +182,13 @@ impl ExpertCache {
                 .min_by_key(|(_, e)| (state.frequency[e.expert], state.last[e.expert]))
                 .map(|(i, _)| i);
             let Some(victim) = victim else { return };
-            if state.frequency[expert] <= state.frequency[state.entries[victim].expert] {
+            let old_expert = state.entries[victim].expert;
+            let incoming_frequency = state.frequency[expert];
+            let old_frequency = state.frequency[old_expert];
+            let recent_tie = state.recent_ties
+                && incoming_frequency == old_frequency
+                && state.last[expert] > state.last[old_expert];
+            if incoming_frequency <= old_frequency && !recent_tie {
                 return;
             }
             let evicted = state.entries.swap_remove(victim);
@@ -171,6 +196,7 @@ impl ExpertCache {
             replacement = Arc::try_unwrap(evicted.bytes).unwrap_or_else(|_| unreachable!());
             state.stats.retained_bytes -= replacement.allocated_bytes();
             state.stats.evictions += 1;
+            state.stats.recent_tie_admissions += u64::from(recent_tie);
         }
         let incoming = std::mem::replace(bytes, replacement);
         state.stats.retained_bytes += size;
@@ -248,6 +274,89 @@ mod tests {
         adaptive.reset_history();
         assert_eq!(adaptive.stats().frequency_decays, 18);
         assert_eq!(adaptive.stats().retained_bytes, 32);
+    }
+
+    #[test]
+    fn recent_ties_replace_stale_entries_but_preserve_later_cohort_hits() {
+        for recent in [false, true] {
+            let cache = ExpertCache::with_policy(3, 32, 32, recent);
+            drop(cache.lookup(&[0]));
+            cache.retain(0, &mut bytes(17, 32));
+            drop(cache.lookup(&[1]));
+            let mut incoming = bytes(93, 32);
+            cache.retain(1, &mut incoming);
+            assert_eq!(cache.stats().recent_tie_admissions, u64::from(recent));
+            let state = cache.0.lock().unwrap();
+            assert_eq!(state.entries[0].expert, usize::from(recent));
+            drop(state);
+            if recent {
+                assert_eq!(incoming.as_slice(), [17; 32]);
+                cache.reset_history();
+                // Both frequencies are one; the existing hit was used later
+                // in this same cohort, so earlier missing expert2 cannot win.
+                drop(cache.lookup(&[2, 1]));
+                cache.retain(2, &mut bytes(61, 32));
+                assert_eq!(cache.0.lock().unwrap().entries[0].expert, 1);
+                assert_eq!(cache.stats().recent_tie_admissions, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn recent_ties_cannot_evict_a_leased_buffer_or_exceed_capacity() {
+        let cache = ExpertCache::with_policy(2, 32, 32, true);
+        drop(cache.lookup(&[0]));
+        cache.retain(0, &mut bytes(17, 32));
+        let held = cache.lookup(&[0]).unwrap();
+        drop(cache.lookup(&[1, 1]));
+        let mut incoming = bytes(93, 32);
+        cache.retain(1, &mut incoming);
+        assert_eq!(cache.stats().evictions, 0);
+        assert_eq!(held[0].as_ref().unwrap().as_slice(), [17; 32]);
+        drop(held);
+        cache.retain(1, &mut incoming);
+        assert_eq!(cache.stats().recent_tie_admissions, 1);
+        assert_eq!(cache.stats().retained_bytes, 32);
+        assert_eq!(incoming.as_slice(), [17; 32]);
+    }
+
+    #[test]
+    fn recent_tie_evictions_preserve_real_packed_kernel_bytes() {
+        use crate::dsv4::expert_mmap::MmapExpert;
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/inkling_export/experts/layer_01");
+        let experts: Vec<_> = ["expert_000.bin", "expert_001.bin"]
+            .iter()
+            .map(|name| MmapExpert::open(&directory.join(name), 64, 32).unwrap())
+            .collect();
+        let mut scratch = ReadBuffer::default();
+        scratch
+            .read(experts[0].bin_path(), experts[0].bin_len())
+            .unwrap();
+        let cache = ExpertCache::with_policy(2, scratch.allocated_bytes(), 32, true);
+        let x: Vec<f32> = (0..64).map(|i| (i as f32 - 7.0) * 0.03125).collect();
+        for id in [0, 1, 0, 1, 0, 1, 0, 1] {
+            let expert = &experts[id];
+            let hit = cache.lookup(&[id]).unwrap();
+            let expected = crate::glm::ffn::swiglu_mmap(expert, &x);
+            let actual = if let Some(bytes) = &hit[0] {
+                expert.swiglu_from(bytes.as_slice(), &x)
+            } else {
+                scratch.read(expert.bin_path(), expert.bin_len()).unwrap();
+                expert.swiglu_from(scratch.as_slice(), &x)
+            };
+            assert_eq!(
+                actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+                expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+            );
+            let missing = hit[0].is_none();
+            drop(hit);
+            if missing {
+                cache.retain(id, &mut scratch);
+            }
+        }
+        assert_eq!(cache.stats().recent_tie_admissions, 4);
+        assert_eq!(cache.stats().evictions, 7);
     }
 
     #[test]
@@ -349,9 +458,11 @@ mod tests {
         }
         assert!(cache.stats().hits > 0 && cache.stats().evictions >= 3);
         let before = cache.stats().admissions;
-        assert!(scratch
-            .read(&directory.join("missing.bin"), experts[0].bin_len())
-            .is_err());
+        assert!(
+            scratch
+                .read(&directory.join("missing.bin"), experts[0].bin_len())
+                .is_err()
+        );
         cache.retain(0, &mut scratch);
         assert_eq!(cache.stats().admissions, before);
     }

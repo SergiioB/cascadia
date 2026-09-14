@@ -13,6 +13,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [ValidateRange(0,256)][int]$ExpertCacheMiB=0,
       [ValidateSet(0,1)][int]$PrefillReads=0,
       [ValidateSet(0,1)][int]$CacheResetHistory=0,
+      [ValidateSet(0,1)][int]$CacheRecentTies=0,
       [ValidateSet(4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536)][int]$CacheDecayRequests=4096,
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
@@ -25,14 +26,15 @@ if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be 
 if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 if ($LayerProfile -and $Binary -in @('full-decode.exe', 'full-routing.exe')) { throw 'Select full-profile.exe for layer timing' }
 if ($MmapEmbed -and $Binary -in @('full-decode.exe', 'full-routing.exe', 'full-profile.exe')) { throw 'Select full-mmap-embed.exe for mapped embedding' }
-if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
-if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe')) { throw 'Select a qualified owned-shared binary' }
-if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
-if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
-if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
-if ($PrefillReads -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
-if ($CacheResetHistory -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe') -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
-if ($CacheDecayRequests -ne 4096 -and ($Binary -ne 'full-cache-decay.exe' -or !$ExpertCacheMiB)) { throw 'Short cache decay requires qualified full-cache-decay.exe and a nonzero expert cache budget' }
+if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
+if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe')) { throw 'Select a qualified owned-shared binary' }
+if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
+if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
+if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
+if ($PrefillReads -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
+if ($CacheResetHistory -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe') -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
+if ($CacheDecayRequests -ne 4096 -and ($Binary -notin @('full-cache-decay.exe', 'full-cache-recency.exe') -or !$ExpertCacheMiB)) { throw 'Short cache decay requires qualified full-cache-decay.exe and a nonzero expert cache budget' }
+if ($CacheRecentTies -and ($Binary -ne 'full-cache-recency.exe' -or !$ExpertCacheMiB)) { throw 'Recent-tie admission requires qualified full-cache-recency.exe and a nonzero expert cache budget' }
 $env:RAYON_NUM_THREADS = "$Threads"
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
@@ -47,6 +49,7 @@ $env:CASCADIA_INKLING_EXPERT_CACHE_MIB = "$ExpertCacheMiB"
 $env:CASCADIA_INKLING_PREFILL_READS = "$PrefillReads"
 $env:CASCADIA_INKLING_CACHE_RESET_HISTORY = "$CacheResetHistory"
 $env:CASCADIA_INKLING_CACHE_DECAY_REQUESTS = "$CacheDecayRequests"
+$env:CASCADIA_INKLING_CACHE_RECENT_TIES = "$CacheRecentTies"
 $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
@@ -70,7 +73,7 @@ try {
     if ($actualAffinity -ne $AffinityMask) { throw "Child affinity mismatch: requested $AffinityMask, observed $actualAffinity" }
     "processor_affinity=$actualAffinity"
     "rayon_threads=$Threads"
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory cache_decay_requests=$CacheDecayRequests"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory cache_decay_requests=$CacheDecayRequests cache_recent_ties=$CacheRecentTies"
     $p.WaitForExit()
     if ($Log) {
         Get-Content -LiteralPath $Log -Encoding UTF8

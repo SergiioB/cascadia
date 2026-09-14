@@ -1,0 +1,39 @@
+{
+  "status": "qualified",
+  "unix": 1789378004.797831,
+  "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+  "wrapper_sha256": "537d1b6f41e25f574377a39ba6d3bae7a959ef4262d4b070303c29ca0bfde461",
+  "modes": [
+    {
+      "bf16_rows": 2,
+      "int4_rows": 4,
+      "output_hash": "1f7cd0eb14a22662",
+      "artifacts": [
+        {
+          "name": "093-fixture-rows-2-4.json",
+          "sha256": "b0ae1f531dc5c176fa62779c4d49c47e28b3821ee80f94892e23dd207b6e3084"
+        },
+        {
+          "name": "093-fixture-rows-2-4.log",
+          "sha256": "3046255345882a0936a64b698e37a9f18b3744d82b856b8d7eb7392297081d4b"
+        }
+      ]
+    },
+    {
+      "bf16_rows": 2,
+      "int4_rows": 2,
+      "output_hash": "1f7cd0eb14a22662",
+      "artifacts": [
+        {
+          "name": "093-fixture-rows-2-2.json",
+          "sha256": "d2d2f4a91549783eefc936d251b3a297b453af83daea15a01e0adc1071aebe89"
+        },
+        {
+          "name": "093-fixture-rows-2-2.log",
+          "sha256": "746f6401594710583e65cd3757ee6e922152862ac11bc98934893d66902ad920"
+        }
+      ]
+    }
+  ],
+  "measured_full_model_speedup": false
+}

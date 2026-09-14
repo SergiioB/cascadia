@@ -53,3 +53,13 @@ one last-level cache;CPUs12–15 report a separate cache. Native qualification08
 passed65535/16workers,4095/12workers and4095/16workers with exact fixture outputs.
 Full performance comparison089–091 is in progress; the selected profile still
 uses all16 CPUs. This option does not change machine power or service settings.
+
+`CASCADIA_INKLING_CACHE_RECENT_TIES=1` allows a more recently observed expert
+to replace an older cached expert when their decayed frequencies are equal.
+Default0 retains the strict-frequency admission rule. It changes storage only;
+all selected experts and arithmetic remain unchanged. Recent use is compared
+after observing the complete current cohort, so an earlier missing expert
+cannot replace a later hit on an equal-frequency tie. Outstanding buffer
+leases still exclude eviction. The new cumulative `recent_tie_admissions`
+statistic counts actual replacements by this rule. Native qualification098
+and full performance trials are pending; this is not the selected profile yet.

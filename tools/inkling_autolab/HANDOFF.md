@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 09:18 UTC. Work is ACTIVE. User requested autonomous
+Updated 2026-09-14 09:26 UTC. Work is ACTIVE. User requested autonomous
 optimization toward25tok/s. Do not stop after a finite campaign. Target unmet.
 
 ## Current record and active trials
@@ -10,41 +10,56 @@ median0.9648021079, fastest1.0329282085.6.933×original and1.652×prior046record
 All tokens/logits/routes/actual counters match. PERFORMANCE.md and native/local
 ptl-profile.ps1 were promoted. Full CPU backend; no full Arc backend.
 
-**090 CPU0–11/12workers COMPLETE0.8891493949;091_full_affinity_4095_16 RUNNING.**
-Controller **43106**, script`/private/tmp/run-inkling-affinity-loop.py`.
-Logs`/private/tmp/inkling-CAMPAIGN_NAME.log`.
-Native091 **PID8032**, created**1789377390.5174108**. Native0904780 exited.
-Outputs090-affinity-4095-12.json/.log/-routes.json/-layers.json;
-next091-affinity-4095-16.*.089 all16CPU/16worker control completed0.9268264569.
-089 PID8156 created1789376738.9105453 exited; raw artifacts/SHA/layer profile
-verified. Its optional phase resource analysis rejected a1.544745s wall-clock
-shift in short_story decode. **089_resources.json is explicitly lifetime-only**
-with monotonic sampler elapsed;089_clock_anomaly.json records the limitation.
-Benchmark rates use RustInstant and remain valid. Do not relax phase checks.
+**089–091 affinity sweep COMPLETE; keep all16CPUs/16workers.**
+Scores:089mask65535/thread16=.9268264569;090mask4095/thread12=.8891493949;
+091mask4095/thread16=.8906346900. All numerical/configuration gates and raw
+artifact SHA checks passed. Controller43106 and all native full processes exited.
+089 optional phase resource attribution rejected a1.544745s wall-clock shift;
+089_resources.json is lifetime-only with monotonic elapsed, and089_clock_anomaly
+records the limitation. RustInstant benchmark rates remain valid.
 
-Both candidates restrict process affinity to4095(CPUs0–11), with12/16workers.
-They retain BF16rows2/int4rows4, cache256MiBperlayer, PrefillReads1, historyreset1,
-decay32, all selected flags. Actual child affinity is read back and gated.
-Native production run-full.ps1 was promoted by088 after all3tiny modes passed;
-it matches the local file. Sourcewrapper0840a7f1; affinity-source.json has exact
-old/newSHA. **Frozen engine unchanged**: full-cache-decay.exe SHA
-3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8, source6b820e83.
-Each full trial3prompts×1rep,64generated/63decode; exact hashce0fbb9a116d3d09,
-IDs and cache/I/O counters. Native08810528,parent3964 exited; all artifacts saved.
+**092 layout probe COMPLETE AND EXITED**, Python6392,parent10052.
+All30pairs/120files passed SHA; temporary copies removed,260.59GB free afterward.
+Median original/copy physical runs5/1. Copies win4/10,7/10,10/10 for2/4/6files;
+paired median speedups.831/1.058/1.052.2files has large order effects. Modest,
+mixed component result; no original model file relocated. Raw artifacts/state
+and hashes saved in092_artifact_verification.json.
 
-After affinity sweep, **092 matched layout-read probe STAGED AND WAITING**,
-parent10052, state layout-read-probe-state.json. Read state for actualPythonPID. Sourcepaired-layout-read-probe.py and helper
-file-extent-metadata.py. All three scripts were SHA checked before detached launch with
---out C:/Users/devcloud/inkling-autolab/092-layout-read-probe.json.
-It waits for089–091 reports and no full process, then takes queue lock.
-30matched cohorts,2/4/6 files, balancedAB/BA; writes only temporary sequential
-byte-identical copies, queries original/copy extents, hashes both timed arms.
-Original model files remain untouched; temp files are removed afterward.
-Local extent-parser tests and syntax checks passed (092_probe_local_validation).
-**Do not start another full trial until092 completes/exits.** Then confirm the
-best row/affinity combination across3reps (nine samples) before promoting it.
-Row2/2 is the current unconfirmed candidate; keep an exact native tiny oracle
-for the combined settings. Continue optimization afterward.
+**093 qualifier COMPLETE/EXITED;094 repeated control RUNNING.**
+Controller95987: /private/tmp/run-inkling-repeated-rows.py.
+Native094 PID5132, created1789378071.276495. Outputs094-rows-repeated-control.*.
+095candidate queued automatically; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
+093Python8176,parent9488 exited; both modes passed, all raw files SHA copied.
+Read native row-affinity-qualification-state.json for status/PID.
+Sourcequalify-row-affinity.py tests rows2/4 and2/2 with mask65535/thread16,
+cache1MiB tiny oracle, decay32/current wrapper; no wrapper mutation.
+It waits for092 complete/exited and no temp files/full process, then queue lock.
+After093 passes, run094_full_rows_repeated_control then095_full_rows_repeated_candidate.
+Each3prompts×3reps,64generated/63decode, exact full hash/IDs/cache/I/O counters.
+094rows2/4,095rows2/2; both all16CPUs/16workers/cache256perlayer/historyreset1/decay32.
+Frozen full-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
+source6b820e83 unchanged. Do not promote2/2 before repeated comparison.
+Continue optimization afterward; finite campaign completion is not task completion.
+
+## Pending cache recency implementation (097/098)
+
+096 causal replay: recent-use admission on frequency ties predicts4.549% fewer
+reads at32/ceil/8slots; every sample4.34–4.85% reduction. Default strict policy
+unchanged. Implemented opt-in CASCADIA_INKLING_CACHE_RECENT_TIES and actual
+recent_tie_admissions statistic, three buffer/ordering/real-byte tests.
+Local241 tests pass, including all10 cache tests. No native build yet.
+Localrun-full.ps1 candidate supportsCacheRecentTies andfull-cache-recency.exe;
+**native run-full.ps1 still old/current and used by094/095**. Never replace it
+mid-sweep. Newqualify-cache-recency.py/test-cache-recency.bat will wait both
+repeated trials finish, then verify previous source/frozen binaries, build/test,
+runfive tiny wrapper modes, and promote wrapper only after qualification.
+Need package source manifest/tar, stage candidate wrapper with distinct filename,
+and launch098 qualifier after local checks/commit. It may wait alongside094/095.
+No full recency trial prepared yet. Counter predictions097_cache_recency_counter_predictions.json:
+1rep recent33257hits39319misses26816admit26304evict20015ties,
+uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ties,
+uncached3754377216000/hitbytes3180367577088. Other counters/profile unchanged.
+Rowchoice for futurefullrecency campaigns depends on094/095 repeated outcome.
 
 ## Completed evidence
 

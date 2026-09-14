@@ -1,0 +1,35 @@
+{
+  "state": {
+    "status": "qualified",
+    "pid": 8176,
+    "unix": 1789378004.797831,
+    "modes": 2,
+    "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8"
+  },
+  "files": [
+    {
+      "name": "093-row-affinity-qualification.json",
+      "sha256": "8b69260c4b8cbd6a44198ccace795fd299f94d790aebabd5c5a47ca540e77e69"
+    },
+    {
+      "name": "row-affinity-qualification-state.json",
+      "sha256": "b8a0d9684daaab6600596392368d23b39caeeae3a92394e3c3f09e749831c806"
+    },
+    {
+      "name": "093-fixture-rows-2-4.json",
+      "sha256": "b0ae1f531dc5c176fa62779c4d49c47e28b3821ee80f94892e23dd207b6e3084"
+    },
+    {
+      "name": "093-fixture-rows-2-4.log",
+      "sha256": "3046255345882a0936a64b698e37a9f18b3744d82b856b8d7eb7392297081d4b"
+    },
+    {
+      "name": "093-fixture-rows-2-2.json",
+      "sha256": "d2d2f4a91549783eefc936d251b3a297b453af83daea15a01e0adc1071aebe89"
+    },
+    {
+      "name": "093-fixture-rows-2-2.log",
+      "sha256": "746f6401594710583e65cd3757ee6e922152862ac11bc98934893d66902ad920"
+    }
+  ]
+}

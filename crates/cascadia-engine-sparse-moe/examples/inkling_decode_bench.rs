@@ -380,6 +380,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         expert_cache.frequency_decays
     );
     println!("expert_cache_effective={}", u8::from(expert_cache.hits > 0));
+    println!(
+        "expert_cache_recent_tie_admissions={}",
+        expert_cache.recent_tie_admissions
+    );
     let (prefill_read_experts, prefill_uncached_read_bytes, prefill_uncached_read_fallbacks) =
         cascadia_engine_sparse_moe::inkling::prefill_read_statistics();
     println!("prefill_read_experts={prefill_read_experts}");

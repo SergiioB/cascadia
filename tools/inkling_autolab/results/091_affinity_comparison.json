@@ -1,0 +1,40 @@
+{
+  "trials": [
+    {
+      "number": 89,
+      "affinity": 65535,
+      "threads": 16,
+      "score": 0.9268264568832152,
+      "rates": {
+        "water_cycle": 0.9623894873448509,
+        "binary_search": 0.9268264568832152,
+        "short_story": 0.9538582502595345
+      }
+    },
+    {
+      "number": 90,
+      "affinity": 4095,
+      "threads": 12,
+      "score": 0.8891493949208523,
+      "rates": {
+        "water_cycle": 0.8891493949208523,
+        "binary_search": 0.9211059156708645,
+        "short_story": 0.9465954326457848
+      }
+    },
+    {
+      "number": 91,
+      "affinity": 4095,
+      "threads": 16,
+      "score": 0.8906346899596382,
+      "rates": {
+        "water_cycle": 0.8906346899596382,
+        "binary_search": 0.9106048244326364,
+        "short_story": 0.9355750973960779
+      }
+    }
+  ],
+  "decision": "retain_all_16_CPUs_and_16_workers",
+  "correctness_verified": true,
+  "control_clock_anomaly": "089_clock_anomaly.json; optional resources lifetime-only; RustInstant rate unaffected"
+}

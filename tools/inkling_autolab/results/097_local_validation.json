@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "platform": "aarch64-apple-darwin",
+  "tests": 241,
+  "suites": 13,
+  "log_sha256": "7184f1319afd3bcbb0d05eeb79ae95a37063fa18a5d3d8ddf7cfddb608eaa942",
+  "new_policy_tests": 3,
+  "native_qualification_pending": true
+}
