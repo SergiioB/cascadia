@@ -7,8 +7,9 @@ checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
 
 Autonomous optimization has resumed. Cache control049 completed at0.566639;
 4GBcache050 reached0.577055 over one pass, with mixed changes across prompts.
-The8GBcache trial051 is running. New prefill and cache-admission experiments
-are prepared; see[HANDOFF.md](HANDOFF.md) for current jobs. The repeated record
+The8GBcache trial051 finished at0.568678. The selected4GBcache is now under
+matched prefill evaluation053/054; cache-admission reset follows.
+See[HANDOFF.md](HANDOFF.md) for current jobs. The repeated record
 above remains the confirmed result until another three-repeat verification.
 
 ## What was measured

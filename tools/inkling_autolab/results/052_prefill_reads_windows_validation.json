@@ -1,0 +1,785 @@
+{
+  "scope": "native_MSVCrelease_prefill_read_qualification",
+  "source_commit": "72cb6f05",
+  "state": {
+    "status": "qualified_needs_full_trial",
+    "pid": 5952,
+    "unix": 1789368763.6862068,
+    "fixture_hash": "1f7cd0eb14a22662",
+    "binary_sha256": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+    "full_model_speedup_measured": false
+  },
+  "native_tests_passed": 241,
+  "wrapper_fixture": {
+    "correctness_verified": true,
+    "embedding_mapped": true,
+    "expert_cache": {
+      "admissions": 16,
+      "capacity_bytes": 3145728,
+      "evictions": 0,
+      "history_resets": 9,
+      "hit_bytes": 380160,
+      "hits": 110,
+      "misses": 16,
+      "retained_bytes": 55296
+    },
+    "export": "C:\\Users\\devcloud\\inkling-autolab\\repo\\crates\\cascadia-engine-sparse-moe\\tests\\fixtures\\inkling_export",
+    "manifest": {
+      "experts": 8,
+      "hidden": 64,
+      "layers": 4
+    },
+    "output_hash": "1f7cd0eb14a22662",
+    "owned_shared_bytes": 20736,
+    "pipelined_read_layers": 63,
+    "prefill_read_experts": 63,
+    "prefill_uncached_read_bytes": 0,
+    "prefill_uncached_read_fallbacks": 63,
+    "samples": [
+      {
+        "case": "tiny_hf_greedy",
+        "decode_ended_unix": 1789368978.7993443,
+        "decode_seconds": 0.011512,
+        "decode_started_unix": 1789368978.787832,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_ended_unix": 1789368978.7878308,
+        "prefill_seconds": 0.0164446,
+        "prefill_started_unix": 1789368978.7713857,
+        "repetition": 0
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_ended_unix": 1789368978.8208199,
+        "decode_seconds": 0.0066941,
+        "decode_started_unix": 1789368978.8141253,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_ended_unix": 1789368978.8141246,
+        "prefill_seconds": 0.0132701,
+        "prefill_started_unix": 1789368978.8008544,
+        "repetition": 1
+      },
+      {
+        "case": "tiny_hf_greedy",
+        "decode_ended_unix": 1789368978.84221,
+        "decode_seconds": 0.0074694,
+        "decode_started_unix": 1789368978.8347404,
+        "decode_steps": 7,
+        "generated_ids": [
+          28,
+          48,
+          106,
+          84,
+          28,
+          48,
+          106,
+          84
+        ],
+        "prefill_ended_unix": 1789368978.8347394,
+        "prefill_seconds": 0.013321,
+        "prefill_started_unix": 1789368978.8214183,
+        "repetition": 2
+      }
+    ],
+    "scope": "fixture_model_decode",
+    "slowest_case_decode_tokens_per_s": 608.0611535788743,
+    "uncached_read_bytes": 0,
+    "uncached_read_effective": false,
+    "uncached_read_fallbacks": 16
+  },
+  "fixture_modes": {
+    "off": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 63,
+      "prefill_read_experts": 0,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 0,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.2166445,
+          "decode_seconds": 0.0079912,
+          "decode_started_unix": 1789368763.2086532,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.2086525,
+          "prefill_seconds": 0.0105498,
+          "prefill_started_unix": 1789368763.1981022,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.228817,
+          "decode_seconds": 0.004763,
+          "decode_started_unix": 1789368763.2240539,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.224053,
+          "prefill_seconds": 0.0073796,
+          "prefill_started_unix": 1789368763.2166731,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.2436264,
+          "decode_seconds": 0.0058953,
+          "decode_started_unix": 1789368763.237731,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.2377303,
+          "prefill_seconds": 0.0089024,
+          "prefill_started_unix": 1789368763.2288277,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 875.9635599159075,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 0
+    },
+    "on": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 63,
+      "prefill_read_experts": 63,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 0,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.2878134,
+          "decode_seconds": 0.01004,
+          "decode_started_unix": 1789368763.2777731,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.2777717,
+          "prefill_seconds": 0.0156598,
+          "prefill_started_unix": 1789368763.2621112,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.3059423,
+          "decode_seconds": 0.0070214,
+          "decode_started_unix": 1789368763.2989204,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.2989192,
+          "prefill_seconds": 0.0110741,
+          "prefill_started_unix": 1789368763.287845,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.324062,
+          "decode_seconds": 0.0074654,
+          "decode_started_unix": 1789368763.316596,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.3165953,
+          "prefill_seconds": 0.0106227,
+          "prefill_started_unix": 1789368763.3059719,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 697.2111553784861,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 0
+    },
+    "uncached": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 63,
+      "prefill_read_experts": 63,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 63,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.363314,
+          "decode_seconds": 0.0079544,
+          "decode_started_unix": 1789368763.355359,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.3553581,
+          "prefill_seconds": 0.0108612,
+          "prefill_started_unix": 1789368763.3444967,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.3790948,
+          "decode_seconds": 0.0054522,
+          "decode_started_unix": 1789368763.3736422,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.3736417,
+          "prefill_seconds": 0.0103023,
+          "prefill_started_unix": 1789368763.3633392,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.3920984,
+          "decode_seconds": 0.0042951,
+          "decode_started_unix": 1789368763.3878033,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.3878026,
+          "prefill_seconds": 0.0086961,
+          "prefill_started_unix": 1789368763.379106,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 880.0160917228201,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 16
+    },
+    "cache_off": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 63,
+      "prefill_read_experts": 63,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 0,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.427713,
+          "decode_seconds": 0.007727,
+          "decode_started_unix": 1789368763.4199853,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.419984,
+          "prefill_seconds": 0.0098596,
+          "prefill_started_unix": 1789368763.4101243,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.4435318,
+          "decode_seconds": 0.0078862,
+          "decode_started_unix": 1789368763.435645,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.435644,
+          "prefill_seconds": 0.007884,
+          "prefill_started_unix": 1789368763.4277594,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.465586,
+          "decode_seconds": 0.0099366,
+          "decode_started_unix": 1789368763.4556491,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.4556482,
+          "prefill_seconds": 0.012089,
+          "prefill_started_unix": 1789368763.4435587,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 704.4663164462693,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 0
+    },
+    "pipeline_off": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 0,
+      "prefill_read_experts": 63,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 0,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.5011196,
+          "decode_seconds": 0.0078032,
+          "decode_started_unix": 1789368763.4933162,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.4933155,
+          "prefill_seconds": 0.0089236,
+          "prefill_started_unix": 1789368763.4843915,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.518855,
+          "decode_seconds": 0.0086106,
+          "decode_started_unix": 1789368763.5102444,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.5102434,
+          "prefill_seconds": 0.0091034,
+          "prefill_started_unix": 1789368763.5011399,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.533872,
+          "decode_seconds": 0.0063808,
+          "decode_started_unix": 1789368763.527491,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.5274904,
+          "prefill_seconds": 0.0086223,
+          "prefill_started_unix": 1789368763.5188677,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 812.9514784103314,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 0
+    },
+    "direct": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 0,
+      "prefill_read_experts": 0,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 0,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.571172,
+          "decode_seconds": 0.0076602,
+          "decode_started_unix": 1789368763.5635116,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.5635107,
+          "prefill_seconds": 0.0124635,
+          "prefill_started_unix": 1789368763.5510466,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.5900292,
+          "decode_seconds": 0.0067098,
+          "decode_started_unix": 1789368763.5833194,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.5833185,
+          "prefill_seconds": 0.0121132,
+          "prefill_started_unix": 1789368763.5712051,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.6066315,
+          "decode_seconds": 0.0055568,
+          "decode_started_unix": 1789368763.6010745,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.6010737,
+          "prefill_seconds": 0.0110262,
+          "prefill_started_unix": 1789368763.5900474,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 913.8142607242631,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 0
+    },
+    "history_reset": {
+      "correctness_verified": true,
+      "embedding_mapped": true,
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "export": "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+      "manifest": {
+        "experts": 8,
+        "hidden": 64,
+        "layers": 4
+      },
+      "output_hash": "1f7cd0eb14a22662",
+      "owned_shared_bytes": 20736,
+      "pipelined_read_layers": 63,
+      "prefill_read_experts": 63,
+      "prefill_uncached_read_bytes": 0,
+      "prefill_uncached_read_fallbacks": 63,
+      "samples": [
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.6413212,
+          "decode_seconds": 0.0067336,
+          "decode_started_unix": 1789368763.6345875,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.6345868,
+          "prefill_seconds": 0.0098295,
+          "prefill_started_unix": 1789368763.624757,
+          "repetition": 0
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.6553793,
+          "decode_seconds": 0.0045797,
+          "decode_started_unix": 1789368763.6507995,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.6507988,
+          "prefill_seconds": 0.0094528,
+          "prefill_started_unix": 1789368763.6413457,
+          "repetition": 1
+        },
+        {
+          "case": "tiny_hf_greedy",
+          "decode_ended_unix": 1789368763.6695502,
+          "decode_seconds": 0.005063,
+          "decode_started_unix": 1789368763.664487,
+          "decode_steps": 7,
+          "generated_ids": [
+            28,
+            48,
+            106,
+            84,
+            28,
+            48,
+            106,
+            84
+          ],
+          "prefill_ended_unix": 1789368763.6644862,
+          "prefill_seconds": 0.009093,
+          "prefill_started_unix": 1789368763.655393,
+          "repetition": 2
+        }
+      ],
+      "scope": "fixture_model_decode",
+      "slowest_case_decode_tokens_per_s": 1039.5627895924913,
+      "uncached_read_bytes": 0,
+      "uncached_read_effective": false,
+      "uncached_read_fallbacks": 16
+    }
+  },
+  "seven_previous_binaries_preserved": true,
+  "full_model_speedup_measured": false
+}

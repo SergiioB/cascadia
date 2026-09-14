@@ -3,39 +3,53 @@
 Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
 the prior final campaign below is the completed reference, not a stopping point.
 
-## Resumed iteration048 — expert cache
+## Current live work — prefill comparison053/054
 
-Cache048 QUALIFIED:238native tests, four fixture modes and productionwrapper
-pass hash1f7cd0eb14a22662,110cachehits. Binaryfull-expert-cache.exe SHA
-fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88,
-source049034de. Qualifier10336/test8168/parent1452 ended. All six older binaries
-preserved. Evidence048_expert_cache_windows_validation.json.
+The loop is ACTIVE. Do not stop after one completed campaign. All cache trials
+049/050/051 completed normally; controller73582 ended. Selected64MiB/cachelayer
+for next experiments: slowest0.5770554937 versuscache00.5666387288 andcache128
+0.5686784912. Mixed per-case changes; repeated record046 remains0.5679137350.
+See051_cache_budget_comparison.json and full archived049/050/051 diagnostics.
 
-**049cache0 and050cache64 COMPLETE; 051cache128MiB/layer RUNNING**
-under local tool73582. Logs/private/tmp/inkling-049_full_expert_cache_control.log,
-/private/tmp/inkling-050_full_expert_cache_64mib.log,
-/private/tmp/inkling-051_full_expert_cache_128mib.log. Do not launch duplicates.
-049 slowest0.5666387288;050slowest0.5770554937(+1.84%),exactoutputs/counters.
-050native10944 exited;051native8084,created1789367822.7529976. Native outputs049-cache-0.*,050-cache-64.*,
-051-cache-128.*. Sampler
-048-host-resources.jsonl,stopmarkerstop-048-sampler,12-hour limit from~06:14UTC.
+**053_full_prefill_read_control RUNNING,054_full_prefill_read_streamed QUEUED**
+sequentially under local tool**41846**. Logs:
+/private/tmp/inkling-053_full_prefill_read_control.log
+/private/tmp/inkling-054_full_prefill_read_streamed.log
+Native053full-prefill-reads.exe PID**8212**,created**1789369078.4974482**.
+Outputs053-prefill-0.*,054-prefill-1.*. Keepcache64MiB/layer,historyreset0;
+onlyPrefillReads differs. Gates exactfullhash/IDs,cachehits8582/misses63994,
+decodeuncachedbytes2038240641024,cachecapacity4294967296,retained4077387648,
+pipelinecount12096. Streamedprefill must read13635experts/434281512960uncachedB,
+zero fallback; controlmustreport0. Same3prompts×1rep,63decodesteps.
 
-Continue analyzing and optimizing after this comparison; 25tok/s bandwidth
-constraint does not mean0.568tok/s is maximized. No Lambda/newexport work needed.
-Questionq49 prefill streaming is being prepared LOCALLY while cache trials run;
-do not deploy/build it onPTL until the current three trials finish. Questions
-q48–q51 track cache, prefill, read concurrency and causal next-layer prefetch.
-User expects continued work; no stopping after a single completed campaign.
+**052nativeQUALIFIED**,241tests,sevenfixture modes andproductionwrapper pass.
+Binaryfull-prefill-reads.exe SHA
+bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82,
+source72cb6f05. Allsevenolderbinariespreserved. Qualifier5952/parent11020 ended.
+Evidence052_prefill_reads_windows_validation.json. Nativewrapper has new
+PrefillReads andCacheResetHistory switches; default0,ownedcachebudgetrequired
+forhistoryreset. Fixture actualhistoryresets9,cachehits110,prefillreads63;
+unalignedtinybins correctly usecachedfallback (prefill63/decode16).
 
-Prefill/history prototype passes237distinct local tests, eight prefill fixture
-modes plus three history-reset modes. Historyresets9 whenenabled,0otherwise;
-phase timestamps ordered, allfixturehashes5122e042f9b1fb30. New reset flag is
-independent/defaultoff, keeps warmbytes but forgets previousrequest frequencies.
-Six updated native source files inarchiveprefill-read-source.tar/json andqualify-prefill-reads.py,
-test-prefill-reads.bat,run-full-prefill-reads.ps1 are STAGED ONLY. QualifierNOT
-launched. It guards completed049/050/051, all seven frozen binaries and previous
-source/wrapperSHAs. Newcandidatefull-prefill-reads.exe does not yet exist.
-Do not overlap its build with current full trials; choose cache setting first.
+Sampler3036/shim9352,parent10880 ACTIVE:
+048-host-resources.jsonl,stopmarkerstop-048-sampler,12-hour limit from06:13UTC.
+Do not stop it while the loop continues. Snapshot completed trials by reading
+whole lines to a newNNN-host-resources.snapshot.jsonl, then copy/archive SHA.
+Native sample JSON now includes explicitUnixphase timestamps; throughputstill
+usesmonotonicInstant. analyze-host-resources.py --benchmark RESULT.json adds
+separateprefill/decoderates,keepingoriginalsamplingadjacency.21Python tests pass.
+
+Next: finish053/054; compareprefilllatency anddecodespeed plusphase-specific
+memory/I/O. Then testCacheResetHistory1 against selectedprefill/cacheprofile,
+and reconsidercache128 ifprefillmemorypressurefalls. Historyreset clears old
+admissionfrequencies onsequence reset,retainsvalidcachedweights/cumulativecounters,
+no arithmeticchange. It is independentlyopt-in andalreadyqualified, buthasNO
+full-model measurementyet. Afterthat q50thread/readconcurrency andq51causal
+prefetch remainopen. No Lambda/newexport required. Preserveprotectedservices.
+
+Cachebinaryfull-expert-cache.exe remainsfrozen,source049034de,SHA
+fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88.
+Originalsourceworktreefeat/inkling rechecked06:32UTC unchanged9aaebff0.
 
 ## Verified outcome
 

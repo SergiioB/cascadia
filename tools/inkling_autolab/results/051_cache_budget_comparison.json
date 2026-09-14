@@ -1,0 +1,76 @@
+{
+  "scope": "same_binary_full_cache_budget_comparison",
+  "binary_sha256": "fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88",
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_match": true,
+  "passes_per_setting": 1,
+  "reports": [
+    {
+      "artifact": "049-cache-0.json",
+      "cache_mib_per_layer": 0,
+      "slowest": 0.5666387287690013,
+      "median": 0.5815790958435723,
+      "rates": {
+        "water_cycle": 0.5666387287690013,
+        "binary_search": 0.5815790958435723,
+        "short_story": 0.5864884838936625
+      },
+      "uncached_read_bytes": 2249218326528,
+      "cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      }
+    },
+    {
+      "artifact": "050-cache-64.json",
+      "cache_mib_per_layer": 64,
+      "slowest": 0.5770554937203956,
+      "median": 0.5809802390997615,
+      "rates": {
+        "water_cycle": 0.6475467198123129,
+        "binary_search": 0.5809802390997615,
+        "short_story": 0.5770554937203956
+      },
+      "uncached_read_bytes": 2038240641024,
+      "cache": {
+        "admissions": 512,
+        "capacity_bytes": 4294967296,
+        "evictions": 384,
+        "hit_bytes": 273340956672,
+        "hits": 8582,
+        "misses": 63994,
+        "retained_bytes": 4077387648
+      }
+    },
+    {
+      "artifact": "051-cache-128.json",
+      "cache_mib_per_layer": 128,
+      "slowest": 0.5686784912466772,
+      "median": 0.5980818455753131,
+      "rates": {
+        "water_cycle": 0.6998934295604589,
+        "binary_search": 0.5980818455753131,
+        "short_story": 0.5686784912466772
+      },
+      "uncached_read_bytes": 1860037115904,
+      "cache": {
+        "admissions": 1026,
+        "capacity_bytes": 8589934592,
+        "evictions": 770,
+        "hit_bytes": 451544481792,
+        "hits": 14177,
+        "misses": 58399,
+        "retained_bytes": 8154775296
+      }
+    }
+  ],
+  "selected_cache_mib_per_layer_for_next_experiment": 64,
+  "selection_basis": "Highest worst-case score; gains are mixed across prompts and not yet repeatedly confirmed.",
+  "repeated_record_046_unchanged": true,
+  "target_reached": false
+}

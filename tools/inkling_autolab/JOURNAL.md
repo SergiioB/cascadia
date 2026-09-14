@@ -1327,3 +1327,23 @@ clears oldfrequency scores atLayer.reset, and countsactualresets. Local237unique
 tests pass, plus eight prefill fixturemodes and three history/timestampmodes.
 Sixsourcefiles and updatedqualifier/wrapper/tests are staged but NOT launched.
 Expected native suite241 tests and seven fixturemodes; do not build until051ends.
+
+051cache128 completed:0.699893/0.598082/0.568678tok/s,fullhash/IDs/counterspass.
+Uncached1,860,037,115,904B,cachehits14177/72576,retained8,154,775,296B.
+Privatepeak34.266GB,machineswappeak23.602GB; lifetimeincludesprefill.
+Lowest-case scoreloses tocache64,so keep64fornextcomparison; all3rawtraces and
+resource snapshots archived. This is not a repeated promotion. Controller73582ended.
+
+052 nativequalification passed241tests,sevenfixturemodes andproductionwrapper,
+hash1f7cd0eb14a22662. Binaryfull-prefill-reads.exe SHA
+bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82,
+source72cb6f05,allsevenolderbinariespreserved. Actualhistoryresets9/prefillreads63
+in tinyfixture; unalignedbins useexpectedcachedfallback. Phase timestampsordered.
+
+053control then054streamedprefill launchedsequentially under tool41846.
+Native053PID8212,created1789369078.4974482. Cache64/historyreset0samebotharms;
+expecteddecodeI/O/cachecounts match050exactly, separatingprefillanddecodecounters.
+Fullstreamedprefillexpected13635visits/434281512960B,computedfromverifiedroutes.
+Sampler3036continues. Newphaseanalysis preservesoriginaladjacency, excludes
+boundary/mixed-phaseintervals and rejectsclockjumps;21Python tests pass.
+Nextafterpair:historyresetexperiment,thencachebudgetretuneifmemoryconditionschange.

@@ -1,0 +1,25 @@
+{
+  "scope": "full_process_lifetime_sampled_resources",
+  "includes_load_prefill_decode": true,
+  "pid": 8084,
+  "created_unix": 1789367822.7529976,
+  "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-expert-cache.exe",
+  "intervals": 66,
+  "sampled_seconds": 660.7650000001304,
+  "cpu_core_equivalents": 5.566180866116205,
+  "kernel_fraction": 0.41949462164596324,
+  "faults_per_second_includes_soft": 229694.4102668423,
+  "machine_disk_read_bytes_per_second": 4227416365.3575006,
+  "process_read_bytes_per_second": 2845544850.413731,
+  "min_available_RAM_bytes": 181133312,
+  "max_private_bytes": 34266460160,
+  "max_rss_bytes": 42954813440,
+  "max_machine_swap_used_bytes": 23602204672,
+  "caveats": [
+    "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+    "Page faults include soft faults; they are not all storage reads.",
+    "Sampled lifetime includes loading and prefills; this is not decode-only.",
+    "Only adjacent snapshots containing the same PID and creation time contribute rates."
+  ],
+  "source_sha256": "9fb67a6105513ba70c74db1b5c51530df34d26fe59750ff47f75bad3e67f6841"
+}
