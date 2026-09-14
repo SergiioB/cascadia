@@ -1113,3 +1113,36 @@ uncached1 provisionally; confirm042 final performance before launch. Both gate
 full IDs/hash/ownedbytes/actualuncached path; pipeline layer count must be0 for
 control and12096 (64MoElayers x63steps x3cases) for overlap. Do not launch until
 queued043 is qualified and the production wrapper fixture passes.
+
+
+## 42 completed — uncached I/O yields a large full-model improvement
+
+All3 cases pass exact IDs/logitshashce0fbb9a116d3d09,ownedbytes4076863488 and
+actualuncached_read_effective1/fallbacks0. Rates0.536215/0.533069/0.515177tok/s;
+slowest0.5151766081,2.184x040 and3.807x original033 baseline. ONE pass; repeated
+record remains036 until final confirmation. Native05024 exited; Autolabverified.
+
+Actual uncached bytes2208959299584 over189 decode steps =11.6876GB/token.
+4.44% of routed selections instead computed from mappings under the sampled
+residency predicate; this is not a physical cache-hit measurement. Counts exclude
+shared/fixed weights and prefill. Median attention0.363591,MLP1.495291,
+outside0.025032,total1.875930seconds/token. MLP fell from3.800657s with040.
+
+Lifetime sampled private peak26.093GB, kernel CPU fraction41.82% versus04076.36%,
+machine reads4.320GB/s. Faults/s199889 include prefill/soft faults and are not
+comparable decode-only rates; faster decode increases prefill's lifetime share.
+Prefill pressure remains: minimum available70.6MB, machine swap peak16.491GB.
+Raw traces/resources and accounting are archived with SHA manifests.
+
+Retain uncached1 for prepared044/045 matched control/overlap.043 qualification
+started after042 native exit; no other full-model trial is active while it builds.
+
+
+043 native qualification complete:233 tests,three fixture modes and production
+wrapper pass hash1f7cd0eb14a22662. Pipeline counts0/63off/on; all five previous
+binary SHAs remain unchanged. Full-pipeline.exe SHA
+8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b.
+044 control then045 overlap launched in a sequential shell under tool20333.
+The second starts automatically only after044 succeeds; never launch it twice.
+Logs/private/tmp/inkling-full-pipeline-{control,overlap}.log. No native qualifier
+is still queued. Final repeated confirmation remains pending after this pair.

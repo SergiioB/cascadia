@@ -1,13 +1,13 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 00:42 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
+Updated 2026-09-14 00:55 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
 PTL machine**, not a component rate, aggregate throughput or remote inference.
 **Target has not been reached.** Continue in this session autonomously.
 
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `18f8becb` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `12c19a3e` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,32 +65,34 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Current live state (2026-09-14 00:42 UTC; refresh before any action):
+Current live state (2026-09-14 00:55 UTC; refresh before any action):
 
-- **042_full_uncached_diagnostics is RUNNING**, controller session45505,
-  log`/private/tmp/inkling-full-uncached-campaign.log`.
-- Native full-uncached.exe **PID5024**,created1789346344.4633756.
-  SHA9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2,
-  source06bc834f. Three cases x1rep,63 decode steps each.
-- Same040 profile: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1;
-  nowUncachedReads1. Expectedhashce0fbb9a116d3d09,ownedbytes4076863488,
-  uncached_read_effective1 andfallbacks0. Native042-uncached*.json/.log.
-- **043 pipeline qualifier QUEUED under parent9672**, state
-  pipeline-qualification-state.json,logpipeline-qualification.log. It waits for
-  verified042 and native exit before applying two SHA-checked source changes,
-  building/testing full-pipeline.exe once, preserving all five frozen binaries.
-  No pipeline full trial is queued; decide its cached/uncached setting from042.
-- **040 completed/Autolab verified**: slowest0.2358904278568449tok/s across
-  three cases x1rep; rates0.237332/0.237696/0.235890. Exact tokens/logits. This is
-  single-pass evidence,19.78% above036 slowest, not the repeated record.
+- **044_full_pipeline_control RUNNING**, followed automatically by
+  **045_full_pipeline_overlap** only if044 exits successfully. One shell tool
+  session **20333** owns this sequential pair. Do NOT launch045 separately.
+- Controller logs`/private/tmp/inkling-full-pipeline-control.log` and
+  `/private/tmp/inkling-full-pipeline-overlap.log` (second created when it starts).
+  Native044-pipeline-control* and045-pipeline-overlap* hold logs/JSON/traces.
+- Both use **full-pipeline.exe**, SHA
+  **8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b**,
+  source18f8becb. Three cases x1rep,63 decode steps each. Samebinarycomparison.
+- Both: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1,UncachedReads1.
+  PipelineReads0control/1overlap. Gatesfullhashce0fbb9a116d3d09,owned4076863488,
+  actualuncached_effective1/fallbacks0,actualpipeline layer count0/12096.
+- **042 completed/Autolabverified:** slowest **0.5151766081427948tok/s** over
+  3cases1rep; rates0.536215/0.533069/0.515177. Exact tokens/logits.2.184x040,
+  3.807xoriginalbaseline. Actualuncached bytes2208959299584,fallbacks0.
+  This is SINGLE-PASS; repeated record remains036 until final confirmation.
 - **Repeated record036:0.1969341563127117tok/s**,9samples,45.52% overbaseline.
   Exact IDs/hash. Original SSH client stayed open after native/wrapper exit;
   closed exact local23331, kept Autolab transport failure. Complete native
   artifacts independently verified in036_completed_artifact_verification.json.
-- Native041 uncached qualification COMPLETE:233 tests including actual aligned
-  byte/kernel canaries, three fixture modes plus production wrapper allpass.
-  Tiny fixture uses expected cached fallback for unaligned bins. Full path042
-  must report actual uncached reads and zero fallbacks; no speedup claimed yet.
+- **043 pipeline qualification COMPLETE:**233 native tests, three fixture modes
+  and production wrapper preserve1f7cd0eb14a22662. Pipelinecounts0/63off/on.
+  All five earlier frozen binaries unchanged. Qualifier5952,parent9672 ended.
+- **041 uncached qualification COMPLETE:**233 native tests inclactualaligned
+  byte/kernel canaries. Tiny fixture uses cached fallback for unaligned bins.
+  full-uncached.exe SHA9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2.
 - Sampler4208,parent1420 active;host-trials-resources.jsonl, six-hour limit from
   22:38UTC,stopmarkerstop-trials-sampler. Stop when campaign sequence ends.
 - Target25 remains unmet; current export/workload/SSD bandwidth bound rules out
@@ -163,11 +165,18 @@ committed040 results. Medianattention0.388156,MLP3.800657,outside0.024941s/token
 Private peak26.093GB,minavailable188MB,swap peak16.092GB; lifetimefaults126252/s
 include prefill/soft faults. Decode gains despite additional private memory.
 
-Finish042 and assess actual uncached-effectiveness, reference hash/IDs, layer
-timings and memory. Queued043 builds only after042 exit. Then choose the better
-cached/uncached base for a pipeline diagnostic. Reconfirm a winning full profile
-with >=3repetitions before reporting a new repeated record. No new export/A100
-job needed. Do not stop protected services.
+042 artifacts under`/private/tmp/inkling-full-uncached-artifacts` andresults042,
+including raw compressed traces/resources with SHAmanifest. Medianattention
+0.363591,MLP1.495291,outside0.025032s/token. Privatepeak26.093GB; sampled lifetime
+kernel41.82%,machine reads4.320GB/s,minimumavailable70.6MB,swappeak16.491GB.
+Lifetimefaults199889/s include prefills/softfaults; fasterdecode changes their
+share, so don't compare as decode-only fault rates. Uncached11.6876GB/token,
+4.44% of routed selections computed from mappings; notphysical cache-hit rate.
+
+Let044 then045 finish and compare full rates/layer timings/resources. Choose
+winning full profile and run a final3repetitions across3cases before reporting a
+new repeated record. No046 final campaign exists yet. No native build/probe
+queued. No new export/A100 job needed. Do not stop protected services.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads
@@ -251,7 +260,7 @@ physical page locking; its full memory/performance tradeoff is measured by040.
 Controller expected_metrics gates ensure the candidate is actually enabled.
 
 
-## Uncached candidate41, active42, queued pipeline43
+## Uncached and pipeline implementation
 
 Opt-inCASCADIA_INKLING_UNCACHED_READS requires ReuseBuffers1/Reads0. Aligned
 padded Vec slices; complete cached retry on unsupported input/I/O. No new unsafe
@@ -260,26 +269,16 @@ report actual completed uncached bytes and all fallback attempts.229 local tests
 plus six focused buffer checks and233 native tests pass. Fixturehash5122e042f9b1fb30
 on ARMdebug and1f7cd0eb14a22662 onMSVCrelease. Do not mix architectures.
 Native aligned byte and actual int4 kernel canaries pass; tiny fixture correctly
-falls back because its bins are unaligned. Native full-uncached.exe is qualified.
+falls back because its bins are unaligned. Full042 validates actual uncached path.
 
 CASCADIA_INKLING_PIPELINE_READS overlaps each expert's read with its compute,
 requires parallel experts/reusable buffers, keeps indexed gate order.221 local
-tests plus five fixture modes pass ARMhash5122e042f9b1fb30. Actual pipeline layer
-counts0/63off/on;0 with reuse disabled,directmaps orserialexperts. No native/full
-performance claim yet. Source18f8becb prepared; deferred archives
-/private/tmp/inkling-pipeline-source.{tar,json},nativepipeline-source.*.
+and233 native tests pass. Five local fixture modes preservehash5122e042f9b1fb30,
+actual pipelinecounts0/63off/on and0 with reuse disabled,directmaps orserial.
+Nativefixture modes/wrapper preserve1f7cd0eb14a22662 withcounts0/63. Qualified
+full-pipeline.exe is now under matched full evaluation044/045. Archives
+/private/tmp/inkling-pipeline-source.{tar,json};nativepipeline-source.*.
 
-Queued qualifier applies only two source files AFTER042 full verification and
-native exit; previous SHAs correspond to06bc834f. It preserves all five frozen
-binaries and installs stagedrun-full-pipeline.ps1 only after native tests and
-priorwrapperSHAcheck. Statepipeline-qualification-state.json; parent9672.
-Do NOT start another build/fullrun until this queued job is terminal. Future
-full-pipeline.exe is NOT YET QUALIFIED. No044 campaign exists yet.
-
-
-Prepared044_full_pipeline_control and045_full_pipeline_overlap, NOT launched.
-Both use full-pipeline.exe,uncached1 provisionally; confirm042 wins before using
-that base. Samebinarycomparison,3cases1rep each; actual pipeline count0/12096.
-After043 qualification and wrapperfixture validation, run044 then045 sequentially.
-Choose winner, then repeat final profile3times acrossall3cases before claiming
-new repeated record.042 firstwater0.5362147788tok/s,othercasespending.
+No native qualifier remains queued/running. Do NOT overlap anotherfull/build with
+sequentialpair20333. After its completion, inspect both final artifacts and choose
+best settings for a >=3rep final confirmation. Preserve all frozen binaries.

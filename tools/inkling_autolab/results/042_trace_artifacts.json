@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "042-uncached-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "042-uncached-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "042-uncached-layers.json",
+      "source_bytes": 2711410,
+      "source_sha256": "83d584fc586c9e792705581d1eb37aee75a5df821aa998a8d188297a879443fd",
+      "compressed_file": "042-uncached-layers.json.gz",
+      "compressed_bytes": 151138,
+      "compressed_sha256": "3d5e4ed6c34d878b8a944da8c51d67d542a4343889b98d67f75cb57548d8684f"
+    },
+    {
+      "source_file": "host-trials-resources.jsonl",
+      "source_bytes": 1741786,
+      "source_sha256": "29358474dd85811c3085ee628f3ec0904c94062d37c62279337c7b38a6c73bac",
+      "compressed_file": "042-host-trials-resources.jsonl.gz",
+      "compressed_bytes": 141590,
+      "compressed_sha256": "d8ecf7a59ec148b24668e87b83b7de95ece1302f83dad38db1572a7ce53080c9"
+    }
+  ]
+}

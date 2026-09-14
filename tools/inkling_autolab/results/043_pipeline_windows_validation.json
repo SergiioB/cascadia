@@ -1,0 +1,19 @@
+{
+  "scope": "pipeline_native_validation",
+  "state": {
+    "status": "qualified_needs_full_trial",
+    "pid": 5952,
+    "unix": 1789347179.9274185,
+    "fixture_hash": "1f7cd0eb14a22662",
+    "binary_sha256": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+    "full_model_speedup_measured": false
+  },
+  "native_tests_passed": 233,
+  "fixture_modes_and_wrapper_passed": true,
+  "actual_pipelined_fixture_layers_off_on": [
+    0,
+    63
+  ],
+  "full_model_speedup_measured": false,
+  "log_sha256": "4ab97f900a6e3ca9673aa9bc9c6bf4d4b11331fb53b1460ae7fc7a6fc1e6176c"
+}

@@ -1,0 +1,13 @@
+{
+  "scope": "uncached_decode_read_accounting",
+  "decode_steps": 189,
+  "uncached_read_bytes": 2208959299584,
+  "all_routed_expert_bytes_if_read_once_per_selection": 2311581597696,
+  "uncached_bytes_per_decode_token": 11687615341.714285,
+  "mapped_execution_fraction_of_routed_selections": 0.04439484126984128,
+  "caveats": [
+    "This counts read-path choices, not physical SSD cache hits.",
+    "The sampled mostly_resident predicate may select mapped execution with some pages absent.",
+    "Counts exclude fixed weights, owned shared experts, and prefill."
+  ]
+}
