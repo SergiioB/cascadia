@@ -3,25 +3,32 @@
 Updated 2026-09-14 07:38UTC. USER RESUMED AUTONOMOUS OPTIMIZATION. Work is ACTIVE;
 do not stop after a completed campaign. The25tok/s target is unmet.
 
-## Latest checkpoint —066running, asyncprobe prepared
+## Latest checkpoint —067running,069probe waiting
 
-064controlcomplete0.9175664024,065workers8complete0.8846400902; allrawdiagnostics
-archived. **066_full_threads_12 ACTIVE**,native**5004**,created**1789372008.120318**,
-observed13threadsafterload. **067threads24/068threads32queued**,controller**67450**.
-Sampler3036continues. Pending066partialfilemustnotbecommittedascomplete.
+064controlcomplete0.9175664024;065workers8complete0.8846400902;
+066workers12complete0.9011509229. Allrawdiagnosticsarchivedandverified.
+**067_full_threads_24 ACTIVE**,native**5688**,created**1789372336.0766687**,
+observed25threadsafterload. **068threads32queued**,controller**67450**.
+Sampler3036continues. Current067partialresultmustnotbecommittedascomplete.
 
-Prepared**async-read-probe.py**(069),Pythoncompile/diffchecksonly; nativeunvalidated.
-It imports unchangeduncached-read-probe.py, waitsfor064–068/noactivefull,thenholds
-baselinequeue lock. Read-onlyexpertcohorts outsideallactualfullroutes; compares
-sync/asyncwhole/1MiB/4MiB/8MiBchunksat2/4/6files,5blocks,allbytesSHAchecked.
-Canarycoversmissing/short/unalignedreadsanddrain/reuseafterpartiallysubmittedbatch.
-AllOVERLAPPEDobjects/events/buffersretainlifetimeuntilcompletion/canceldrain.
-**ProbeNOTlaunchedyet atthischeckpoint.** Stagedcommandshouldbe:
-python.exe async-read-probe.py --wait --out C:/Users/devcloud/inkling-autolab/069-async-read-probe.json
-LaunchdetachedWin32_Process.CreateafterSHAcheckingprobe/basefile; read
-async-read-probe-state.json forstatus. Do not startnextfulltrialuntilprobefinishes.
-Afterprobe: matchedqualifiedfull-cache-decay.exe4096/32withbestworker,then3repeat
-confirmation. Currentworkerfullsweepremainspriority. Noexport/rentalrequired.
+**069async-read-probe LAUNCHEDANDWAITING**,Python**10092**,parentcmd**10616**,
+stateasync-read-probe-state.json,logasync-read-probe.log,output069-async-read-probe.json.
+Itwaitsfor064–068/noactivefull,thenholdsbaselinequeue lockandrunstheread-only
+component. Sourcecommit**ae35cd71**,probe/basefilesSHAcheckedbeforelaunch.
+Do not duplicate it orstartthenextfulltrialuntilprobefinishes. Nativecanaryand
+75cohortreadcomparisonarestillpending; nospeedgainclaimed. Filesoutsideactual
+fullroutes; sync/asyncwhole/1MiB/4MiB/8MiB at2/4/6files,5blocks,allbytesSHAchecked.
+Allbuffers/events/OVERLAPPEDstatespersistthroughcompletion/canceldrain.
+Afterprobe: matchedqualifiedfull-cache-decay.exe4096/32usingbestworker,then
+3-repeatconfirmation. Continuedruntimeworkifproberesultswarrantit.
+
+Capturehelper nowaccepts**--repetitions 3** andvalidatesallcase/repetitionpairs;
+default1preservescurrentcaptures. 070_repeated_cache_predictions.json uses
+verified046nine-sampleroutes: cache256/historyreset1 has4096intervalhits90250,
+misses127478,admissions12347,evictions11835;32intervalhits94235,misses123493,
+admissions25801,evictions25289. For3reps:historyresets576,decays6336for32/0for4096,
+prefillvisits40905,uncachedprefillB1302844538880,pipeline36288;
+readbytes=misses*31850496,retained16309550592. Thesearegatepredictions,notspeed.
 
 ## Current live work — worker sweep064–068
 

@@ -1,0 +1,1051 @@
+{
+  "scope": "causal_admission_simulation_not_measured_throughput",
+  "source_sha256": "27403194370842f4dcb97e66ad2c4cf6f219c82211e490365f191233a6cce9dd",
+  "output_hash": "ce0fbb9a116d3d09",
+  "results": [
+    {
+      "slots_per_layer": 2,
+      "reset_history": false,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 39533,
+      "misses": 178195,
+      "admissions": 6570,
+      "evictions": 6442,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 5180,
+          "misses": 19012,
+          "admissions": 747,
+          "evictions": 619
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 3934,
+          "misses": 20258,
+          "admissions": 728,
+          "evictions": 728
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 4154,
+          "misses": 20038,
+          "admissions": 792,
+          "evictions": 792
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 4993,
+          "misses": 19199,
+          "admissions": 628,
+          "evictions": 628
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 3948,
+          "misses": 20244,
+          "admissions": 752,
+          "evictions": 752
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 4181,
+          "misses": 20011,
+          "admissions": 763,
+          "evictions": 763
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 5047,
+          "misses": 19145,
+          "admissions": 623,
+          "evictions": 623
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 3941,
+          "misses": 20251,
+          "admissions": 740,
+          "evictions": 740
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 4155,
+          "misses": 20037,
+          "admissions": 797,
+          "evictions": 797
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 2,
+      "reset_history": false,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 26632,
+      "misses": 191096,
+      "admissions": 650,
+      "evictions": 522,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 5035,
+          "misses": 19157,
+          "admissions": 423,
+          "evictions": 295
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 1834,
+          "misses": 22358,
+          "admissions": 43,
+          "evictions": 43
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 1713,
+          "misses": 22479,
+          "admissions": 46,
+          "evictions": 46
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 4927,
+          "misses": 19265,
+          "admissions": 35,
+          "evictions": 35
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 1978,
+          "misses": 22214,
+          "admissions": 28,
+          "evictions": 28
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 2098,
+          "misses": 22094,
+          "admissions": 28,
+          "evictions": 28
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 4833,
+          "misses": 19359,
+          "admissions": 21,
+          "evictions": 21
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 1995,
+          "misses": 22197,
+          "admissions": 12,
+          "evictions": 12
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 2219,
+          "misses": 21973,
+          "admissions": 14,
+          "evictions": 14
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 2,
+      "reset_history": true,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 41052,
+      "misses": 176676,
+      "admissions": 7581,
+      "evictions": 7453,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 5180,
+          "misses": 19012,
+          "admissions": 747,
+          "evictions": 619
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 4150,
+          "misses": 20042,
+          "admissions": 891,
+          "evictions": 891
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 4344,
+          "misses": 19848,
+          "admissions": 899,
+          "evictions": 899
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 5195,
+          "misses": 18997,
+          "admissions": 732,
+          "evictions": 732
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 4150,
+          "misses": 20042,
+          "admissions": 891,
+          "evictions": 891
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 4344,
+          "misses": 19848,
+          "admissions": 899,
+          "evictions": 899
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 5195,
+          "misses": 18997,
+          "admissions": 732,
+          "evictions": 732
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 4150,
+          "misses": 20042,
+          "admissions": 891,
+          "evictions": 891
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 4344,
+          "misses": 19848,
+          "admissions": 899,
+          "evictions": 899
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 2,
+      "reset_history": true,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 39583,
+      "misses": 178145,
+      "admissions": 3785,
+      "evictions": 3657,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 5035,
+          "misses": 19157,
+          "admissions": 423,
+          "evictions": 295
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 4030,
+          "misses": 20162,
+          "admissions": 410,
+          "evictions": 410
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 4120,
+          "misses": 20072,
+          "admissions": 438,
+          "evictions": 438
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 5049,
+          "misses": 19143,
+          "admissions": 409,
+          "evictions": 409
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 4030,
+          "misses": 20162,
+          "admissions": 410,
+          "evictions": 410
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 4120,
+          "misses": 20072,
+          "admissions": 438,
+          "evictions": 438
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 5049,
+          "misses": 19143,
+          "admissions": 409,
+          "evictions": 409
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 4030,
+          "misses": 20162,
+          "admissions": 410,
+          "evictions": 410
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 4120,
+          "misses": 20072,
+          "admissions": 438,
+          "evictions": 438
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 4,
+      "reset_history": false,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 63761,
+      "misses": 153967,
+      "admissions": 13021,
+      "evictions": 12765,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 8254,
+          "misses": 15938,
+          "admissions": 1553,
+          "evictions": 1297
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 6260,
+          "misses": 17932,
+          "admissions": 1504,
+          "evictions": 1504
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 6843,
+          "misses": 17349,
+          "admissions": 1437,
+          "evictions": 1437
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 7999,
+          "misses": 16193,
+          "admissions": 1269,
+          "evictions": 1269
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 6352,
+          "misses": 17840,
+          "admissions": 1524,
+          "evictions": 1524
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 6816,
+          "misses": 17376,
+          "admissions": 1468,
+          "evictions": 1468
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 8102,
+          "misses": 16090,
+          "admissions": 1275,
+          "evictions": 1275
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 6315,
+          "misses": 17877,
+          "admissions": 1515,
+          "evictions": 1515
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 6820,
+          "misses": 17372,
+          "admissions": 1476,
+          "evictions": 1476
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 4,
+      "reset_history": false,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 44213,
+      "misses": 173515,
+      "admissions": 1396,
+      "evictions": 1140,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 8015,
+          "misses": 16177,
+          "admissions": 804,
+          "evictions": 548
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 3296,
+          "misses": 20896,
+          "admissions": 123,
+          "evictions": 123
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 2866,
+          "misses": 21326,
+          "admissions": 99,
+          "evictions": 99
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 7813,
+          "misses": 16379,
+          "admissions": 97,
+          "evictions": 97
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 3737,
+          "misses": 20455,
+          "admissions": 66,
+          "evictions": 66
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 3429,
+          "misses": 20763,
+          "admissions": 61,
+          "evictions": 61
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 7584,
+          "misses": 16608,
+          "admissions": 49,
+          "evictions": 49
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 3787,
+          "misses": 20405,
+          "admissions": 49,
+          "evictions": 49
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 3686,
+          "misses": 20506,
+          "admissions": 48,
+          "evictions": 48
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 4,
+      "reset_history": true,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 65862,
+      "misses": 151866,
+      "admissions": 14862,
+      "evictions": 14606,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 8254,
+          "misses": 15938,
+          "admissions": 1553,
+          "evictions": 1297
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 6604,
+          "misses": 17588,
+          "admissions": 1759,
+          "evictions": 1759
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 7078,
+          "misses": 17114,
+          "admissions": 1660,
+          "evictions": 1660
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 8281,
+          "misses": 15911,
+          "admissions": 1526,
+          "evictions": 1526
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 6604,
+          "misses": 17588,
+          "admissions": 1759,
+          "evictions": 1759
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 7078,
+          "misses": 17114,
+          "admissions": 1660,
+          "evictions": 1660
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 8281,
+          "misses": 15911,
+          "admissions": 1526,
+          "evictions": 1526
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 6604,
+          "misses": 17588,
+          "admissions": 1759,
+          "evictions": 1759
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 7078,
+          "misses": 17114,
+          "admissions": 1660,
+          "evictions": 1660
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 4,
+      "reset_history": true,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 63115,
+      "misses": 154613,
+      "admissions": 7088,
+      "evictions": 6832,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 8015,
+          "misses": 16177,
+          "admissions": 804,
+          "evictions": 548
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 6305,
+          "misses": 17887,
+          "admissions": 786,
+          "evictions": 786
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 6701,
+          "misses": 17491,
+          "admissions": 790,
+          "evictions": 790
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 8041,
+          "misses": 16151,
+          "admissions": 778,
+          "evictions": 778
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 6305,
+          "misses": 17887,
+          "admissions": 786,
+          "evictions": 786
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 6701,
+          "misses": 17491,
+          "admissions": 790,
+          "evictions": 790
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 8041,
+          "misses": 16151,
+          "admissions": 778,
+          "evictions": 778
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 6305,
+          "misses": 17887,
+          "admissions": 786,
+          "evictions": 786
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 6701,
+          "misses": 17491,
+          "admissions": 790,
+          "evictions": 790
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 8,
+      "reset_history": false,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 91579,
+      "misses": 126149,
+      "admissions": 22898,
+      "evictions": 22386,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 11597,
+          "misses": 12595,
+          "admissions": 2715,
+          "evictions": 2203
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 9138,
+          "misses": 15054,
+          "admissions": 2560,
+          "evictions": 2560
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 9876,
+          "misses": 14316,
+          "admissions": 2492,
+          "evictions": 2492
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 11336,
+          "misses": 12856,
+          "admissions": 2284,
+          "evictions": 2284
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 9295,
+          "misses": 14897,
+          "admissions": 2661,
+          "evictions": 2661
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 9869,
+          "misses": 14323,
+          "admissions": 2606,
+          "evictions": 2606
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 11319,
+          "misses": 12873,
+          "admissions": 2377,
+          "evictions": 2377
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 9208,
+          "misses": 14984,
+          "admissions": 2682,
+          "evictions": 2682
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 9941,
+          "misses": 14251,
+          "admissions": 2521,
+          "evictions": 2521
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 8,
+      "reset_history": false,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 69893,
+      "misses": 147835,
+      "admissions": 2419,
+      "evictions": 1907,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 11253,
+          "misses": 12939,
+          "admissions": 1364,
+          "evictions": 852
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 6039,
+          "misses": 18153,
+          "admissions": 234,
+          "evictions": 234
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 5014,
+          "misses": 19178,
+          "admissions": 200,
+          "evictions": 200
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 10772,
+          "misses": 13420,
+          "admissions": 148,
+          "evictions": 148
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 6718,
+          "misses": 17474,
+          "admissions": 124,
+          "evictions": 124
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 6227,
+          "misses": 17965,
+          "admissions": 115,
+          "evictions": 115
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 10483,
+          "misses": 13709,
+          "admissions": 86,
+          "evictions": 86
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 6704,
+          "misses": 17488,
+          "admissions": 79,
+          "evictions": 79
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 6683,
+          "misses": 17509,
+          "admissions": 69,
+          "evictions": 69
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 8,
+      "reset_history": true,
+      "decay_requests": 32,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 94235,
+      "misses": 123493,
+      "admissions": 25801,
+      "evictions": 25289,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 11597,
+          "misses": 12595,
+          "admissions": 2715,
+          "evictions": 2203
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 9586,
+          "misses": 14606,
+          "admissions": 3008,
+          "evictions": 3008
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 10200,
+          "misses": 13992,
+          "admissions": 2906,
+          "evictions": 2906
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 11635,
+          "misses": 12557,
+          "admissions": 2677,
+          "evictions": 2677
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 9586,
+          "misses": 14606,
+          "admissions": 3008,
+          "evictions": 3008
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 10203,
+          "misses": 13989,
+          "admissions": 2903,
+          "evictions": 2903
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 11638,
+          "misses": 12554,
+          "admissions": 2674,
+          "evictions": 2674
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 9587,
+          "misses": 14605,
+          "admissions": 3007,
+          "evictions": 3007
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 10203,
+          "misses": 13989,
+          "admissions": 2903,
+          "evictions": 2903
+        }
+      ]
+    },
+    {
+      "slots_per_layer": 8,
+      "reset_history": true,
+      "decay_requests": 4096,
+      "prefetch_previous": 0,
+      "prefetch_predictions": 0,
+      "useful_prefetch_predictions": 0,
+      "extra_read_predictions": 0,
+      "hits": 90250,
+      "misses": 127478,
+      "admissions": 12347,
+      "evictions": 11835,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "hits": 11253,
+          "misses": 12939,
+          "admissions": 1364,
+          "evictions": 852
+        },
+        {
+          "case": "binary_search",
+          "repetition": 0,
+          "hits": 9128,
+          "misses": 15064,
+          "admissions": 1347,
+          "evictions": 1347
+        },
+        {
+          "case": "short_story",
+          "repetition": 0,
+          "hits": 9677,
+          "misses": 14515,
+          "admissions": 1430,
+          "evictions": 1430
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 1,
+          "hits": 11292,
+          "misses": 12900,
+          "admissions": 1325,
+          "evictions": 1325
+        },
+        {
+          "case": "binary_search",
+          "repetition": 1,
+          "hits": 9128,
+          "misses": 15064,
+          "admissions": 1347,
+          "evictions": 1347
+        },
+        {
+          "case": "short_story",
+          "repetition": 1,
+          "hits": 9676,
+          "misses": 14516,
+          "admissions": 1431,
+          "evictions": 1431
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 2,
+          "hits": 11292,
+          "misses": 12900,
+          "admissions": 1325,
+          "evictions": 1325
+        },
+        {
+          "case": "binary_search",
+          "repetition": 2,
+          "hits": 9128,
+          "misses": 15064,
+          "admissions": 1347,
+          "evictions": 1347
+        },
+        {
+          "case": "short_story",
+          "repetition": 2,
+          "hits": 9676,
+          "misses": 14516,
+          "admissions": 1431,
+          "evictions": 1431
+        }
+      ]
+    }
+  ]
+}

@@ -1525,3 +1525,11 @@ countersmatch; rawdiagnosticsarchived. 066workers12activePID5004created
 1789372008.120318,observed13threadsafterload;067/068queuedunder67450.
 069asyncprobesourcepassesPythoncompile/diffchecks only; nativecanaryandtiming
 willrunafter068. Do not run anotherfulltrialuntilthatboundedprobeends.
+
+066workers12passes0.9011509229tok/s,below16control; allactualcounters/IDs/hash
+match. Rawdiagnosticsarchived. 067workers24active5688,created1789372336.0766687;
+068queuedunder67450. 069asyncprobeSHAchecked/launchednativePython10092,parent
+10616,waitingforworkercompletion. No componentreadsduringfulltrials.
+070replayedverified046nine-sampleroutesforfuture3-repeatcachegates; 4096interval
+90250hits/127478misses/12347admissions/11835evictions;32interval94235/123493/25801/
+25289. Capturehelpersupports--repetitions3andvalidatescartesiancase/repcoverage.
