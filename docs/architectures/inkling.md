@@ -441,7 +441,22 @@ export before any Inkling graph was involved:
   cache — an order of magnitude under the NVMe and the Rust mmap path, so it
   cannot serve a paged whole model on this box;
 - the matcher wants the single-input `Swish` (the Python helper's default
-  adds a beta constant and silently prevents fusion).
+  adds a beta constant and silently prevents fusion);
+- a saved IR's file-backed constants cannot be built into the fused op at
+  all (the plugin's reorder insertion fails) unless the offload path is on;
+  the shim therefore materialises the IR's constants in memory before
+  compiling (`CASCADIA_MATERIALIZE_CONSTANTS=1`, the backend's default),
+  which is the form that measures 3.4 ms per padded decode row — the
+  offload path (`CASCADIA_INKLING_OV_MOE_OFFLOAD=N`) works too but starts
+  its slot cache empty (every first touch streams at ~1 GB/s, so the
+  backend sweeps all experts at warm-up), needs the IR padded with dummy
+  experts so its 1% floor still holds every real expert (`--pad-experts`),
+  and costs 5.5 ms per decode row and 55 ms per 23-row prefill;
+- each new row count pays a first-call cost (~55 ms, and ~1 s at the
+  32-row kernel boundary), so a serving loop should bucket prefill rows;
+- the plugin reads its knobs through the C runtime's environment, which a
+  Rust `set_var` does not update on Windows; the backend uses `_putenv_s`
+  there.
 
 ### Expert-parallel dispatch (star topology)
 
