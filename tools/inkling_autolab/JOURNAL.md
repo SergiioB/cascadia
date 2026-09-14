@@ -1347,3 +1347,23 @@ Fullstreamedprefillexpected13635visits/434281512960B,computedfromverifiedroutes.
 Sampler3036continues. Newphaseanalysis preservesoriginaladjacency, excludes
 boundary/mixed-phaseintervals and rejectsclockjumps;21Python tests pass.
 Nextafterpair:historyresetexperiment,thencachebudgetretuneifmemoryconditionschange.
+
+053 matched prefill control passed all full-model gates at0.5867846190tok/s
+slowest (water0.648863,binary0.590169,story0.586785). Prefill103.358/108.410/
+105.273seconds; exact050routingarrays andcache/readcounters. Phase-aware
+sampling separates prefill374547faults/s,59.05%kernelCPU fromdecode48341faults/s,
+14.60%kernelCPU. Decode machine reads7.024GB/s/process6.867GB/s; machineI/O
+is not exclusivelymodeltraffic. Archivedrawresults,traces,snapshot,SHAmanifest.
+054streamedprefill active PID768,created1789369759.6460428,controller41846.
+
+Before055: replayed actual gate-order LFU admission from saved routes. Both
+measured64MiB and128MiB cases match allfourhits/misses/admissions/evictions
+counters exactly. Reset-history predicts64MiB hits13185,misses59391,admissions
+1271,evictions1143 versus8582/63994/512/384 withoutreset. This is causal
+simulation, not measuredspeed; full055will gate onthese counters and192resets.
+
+Next q50 hypothesis: blocking expert reads occupy Rayon workers shared with
+row kernels, so the resident-optimal16worker setting may not minimize full
+latency. After selectedcache/prefill/historyprofile, compare8/12/24/32workers
+using the same nativebinary and boundedmemory; qualify exacttinyIDs/logits
+first and keep one full benchmark active. No globalhost affinity/settingschange.

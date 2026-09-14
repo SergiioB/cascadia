@@ -3,24 +3,34 @@
 Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
 the prior final campaign below is the completed reference, not a stopping point.
 
-## Current live work — prefill comparison053/054
+## Current live work — prefill comparison054
 
-The loop is ACTIVE. Do not stop after one completed campaign. All cache trials
-049/050/051 completed normally; controller73582 ended. Selected64MiB/cachelayer
-for next experiments: slowest0.5770554937 versuscache00.5666387288 andcache128
-0.5686784912. Mixed per-case changes; repeated record046 remains0.5679137350.
-See051_cache_budget_comparison.json and full archived049/050/051 diagnostics.
+The loop is ACTIVE. Do not stop after one completed campaign. 053control finished
+and all artifacts/counters/IDs/hash/route arrays verified. Slowest0.5867846190,
+prefills103.358/108.410/105.273sec. Cache64 remains exploratory; repeatedrecord046
+stays0.5679137350. 049/050/051 all complete, selected64MiB/cachelayer.
 
-**053_full_prefill_read_control RUNNING,054_full_prefill_read_streamed QUEUED**
-sequentially under local tool**41846**. Logs:
-/private/tmp/inkling-053_full_prefill_read_control.log
-/private/tmp/inkling-054_full_prefill_read_streamed.log
-Native053full-prefill-reads.exe PID**8212**,created**1789369078.4974482**.
-Outputs053-prefill-0.*,054-prefill-1.*. Keepcache64MiB/layer,historyreset0;
-onlyPrefillReads differs. Gates exactfullhash/IDs,cachehits8582/misses63994,
+**054_full_prefill_read_streamed RUNNING** under controller tool**41846**.
+Log/private/tmp/inkling-054_full_prefill_read_streamed.log; nativePID**768**,
+created**1789369759.6460428**,full-prefill-reads.exe,outputs054-prefill-1.*.
+Cache64/historyreset0; PrefillReads1. Gates hits8582/misses63994,
 decodeuncachedbytes2038240641024,cachecapacity4294967296,retained4077387648,
 pipelinecount12096. Streamedprefill must read13635experts/434281512960uncachedB,
-zero fallback; controlmustreport0. Same3prompts×1rep,63decodesteps.
+zero fallback. Same3prompts×1rep,63decodesteps. Do not launchduplicates.
+
+Capturehelper/private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED
+snapshots resources,copiesandSHAchecks nativefiles,checksIDs/hash,archivesgzip,
+runslayer+phase-aware resourceanalysis. RefusesactivePID+creationpair.
+053 artifacts/private/tmp/inkling-053-prefill-0-artifacts. Future054hasnotbeen
+captured. Native sampler3036continues.
+
+055notyetlaunched: resetcachehistory using selectedprefillprofile. Causal
+admission replay matches measured050/051 allfourcounters. Predictionfor64MiB
+historyreset1: hits13185,misses59391,admissions1271,evictions1143,historyresets192,
+decodeuncachedbytes=59391*31850496,retained4077387648. For128MiBreset1:
+hits21021/misses51555/admissions2380/evictions2124. See055predictionJSON.
+Then retunecachebudget undernewprefillconditions; qualifyworker8/12/24/32
+wrapperbeforeq50fullcampaigns. No newexport/rentalneeded. Keepiterating.
 
 **052nativeQUALIFIED**,241tests,sevenfixture modes andproductionwrapper pass.
 Binaryfull-prefill-reads.exe SHA
@@ -75,8 +85,8 @@ The observed PCIe5x4 SSD link ceiling is15.754GB/s before protocol overhead.
 See037_full_span_traffic_bound.json,047_all_RAM_traffic_bound.json and
 046_route_identity.json. This rules out ordinary tuning to25 for this export,
 SSD and workload. It does NOT prove mathematical optimality of0.568tok/s or
-rule out gains from a different representation/backend/hardware. No explicit
-routed cache, new compression or full GPU backend has been implemented.
+rule out gains from a different representation/backend/hardware. No new compression or full GPU backend has been implemented; an optional
+routed cache is now under evaluation in the resumed loop.
 
 ## Ownership and repositories
 
