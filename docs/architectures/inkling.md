@@ -501,6 +501,24 @@ per §4 of the scaling note.
 Topology, bandwidth ceilings and what expert-level routing across boxes would
 buy: [`../perf/INKLING_SCALING.md`](../perf/INKLING_SCALING.md).
 
+### Serving with the iGPU backends (end to end)
+
+`cascadia run <model> --engine sparse-moe --api :8011` on tate-07 with the
+three backends enabled and IRs for layers 0–7 (the remaining 58 layers on
+the CPU, paged from NVMe): the same three prompts as the miner and Mac Pro
+runs answer byte-identically — `Paris`, `42`, the Pacific sentence — with
+int8 attention projections and the fused MoE on the iGPU. Wall times there
+are the paged CPU layers' (5–22 minutes per prompt), so this is the
+correctness gate for the device paths inside the real serving loop, not a
+speed measurement.
+
+**Rank budget.** A 64 GB box holds five fused MoE layers with headroom;
+with six (50 GB of compiled models plus the model copies made while
+compiling) Windows pages the device allocations and every call balloons
+(300–430 ms per MoE layer in the 8-layer dump). So a 64 GB rank carries
+five MoE layers (the two dense layers are small): 13 such ranks for the
+975B model, or 12 with one 96 GB box.
+
 ## Open follow-ups
 
 - **Multi-stream decode (aggregate throughput).** The pipeline engine serves
