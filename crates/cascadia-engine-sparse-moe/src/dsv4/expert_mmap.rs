@@ -733,7 +733,10 @@ mod tests {
         let tmp = std::env::temp_dir().join(format!("glm5_short_{}.bin", std::process::id()));
         std::fs::copy(&src, &tmp).unwrap();
         let m = MmapExpert::open(&tmp, 32, 32).expect("open full bin");
-        assert!(m.read_bytes().is_ok(), "full bin reads OK before truncation");
+        assert!(
+            m.read_bytes().is_ok(),
+            "full bin reads OK before truncation"
+        );
         // Shrink the backing file under the already-mmap'd expert. Only
         // read_bytes (fs::read) touches it afterwards, so no mmap SIGBUS.
         std::fs::OpenOptions::new()

@@ -43,6 +43,12 @@ fn hotcold_forced_matches_mmap_reference() {
     // hot-compute concurrency the probe fast path skips. Prove reads happened
     // and none silently fell back.
     let (_hot, cold, fail) = prof::hotcold_counts();
-    assert!(cold > 0, "forced-cold classified no slot cold (cold={cold})");
-    assert_eq!(fail, 0, "reads off the committed fixture must not fall back");
+    assert!(
+        cold > 0,
+        "forced-cold classified no slot cold (cold={cold})"
+    );
+    assert_eq!(
+        fail, 0,
+        "reads off the committed fixture must not fall back"
+    );
 }

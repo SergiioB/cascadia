@@ -30,7 +30,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let usage = || {
         eprintln!("usage: glm5_run <model_dir> \"<prompt>\" [n_gen]");
         eprintln!("   or: glm5_run <model_dir> --ids \"1 2 3 4\" [n_gen]");
-        eprintln!("   or: glm5_run <model_dir> --force \"1 2 3 4\"   (teacher-forced decode bench)");
+        eprintln!(
+            "   or: glm5_run <model_dir> --force \"1 2 3 4\"   (teacher-forced decode bench)"
+        );
     };
     if args.len() < 3 {
         usage();

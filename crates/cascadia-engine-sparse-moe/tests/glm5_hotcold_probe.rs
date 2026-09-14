@@ -46,5 +46,8 @@ fn hotcold_probe_matches_mmap_reference() {
         hot + cold > 0,
         "hot/cold classifier never ran (hot={hot} cold={cold})"
     );
-    assert_eq!(fail, 0, "cold reads off the committed fixture must not fail");
+    assert_eq!(
+        fail, 0,
+        "cold reads off the committed fixture must not fail"
+    );
 }

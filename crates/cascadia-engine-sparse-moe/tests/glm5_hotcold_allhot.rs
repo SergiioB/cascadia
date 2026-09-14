@@ -36,7 +36,10 @@ fn hotcold_allhot_fast_path_is_plain_compute() {
     let (hot, cold, fail) = prof::hotcold_counts();
     assert!(hot > 0, "all-hot fast path never classified a hot slot");
     assert_eq!(cold, 0, "eager experts must never be cold (cold={cold})");
-    assert_eq!(fail, 0, "the fast path spawns no reads, so nothing can fail");
+    assert_eq!(
+        fail, 0,
+        "the fast path spawns no reads, so nothing can fail"
+    );
     // Fast path == plain eager compute: greedy is the eager reference the
     // glm5_expert_mmap parity test tracks against mmap.
     assert_eq!(
