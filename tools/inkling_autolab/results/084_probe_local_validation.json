@@ -1,0 +1,9 @@
+{
+  "source_sha256": "2361625f861625b10cce7da10a5f85b9133bba9bf6e68dd36af0892a078e415a",
+  "failed_future_drains_other_buffer_users": true,
+  "local_codec_canary": true,
+  "native_ptl_pending": true,
+  "harness_note": "Isolated unchanged Codec/drained_map AST definitions; full module import needs native-only psutil dependency absent from local Autolab venv.",
+  "local_codec_version": "1.5.7",
+  "local_library": "/opt/homebrew/lib/libzstd.dylib"
+}

@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 08:35UTC. User resumed autonomous optimization.
+Updated2026-09-14 08:40UTC. User resumed autonomous optimization.
 Work is ACTIVE; do not stop after a finite campaign. Target25tok/s is unmet.
 
 ## Current record and live work
@@ -12,10 +12,10 @@ match. Native6112 exited. Verification074_final_verification.json, raw artifacts
 and SHA manifests committed with this handoff. PERFORMANCE.md and ptl-profile.ps1
 promoted; native profile copy SHA verified. Sampler remains active.
 
-**076_full_rows_2_4 RUNNING**, **077/078/079/080 QUEUED sequentially**.
+**076 control COMPLETE0.9244748903**; **077_full_rows_1_4 RUNNING**, **078/079/080 QUEUED**.
 Controller tool **36811**, script`/private/tmp/run-inkling-row-loop.py`.
 Logs`/private/tmp/inkling-076_full_rows_2_4.log` and equivalent campaign names.
-Native076 **PID2208**, created**1789374854.695914**.
+Native077 **PID6752**, created**1789375174.1959372**. Native0762208 exited and its raw artifacts/SHA/profiles are archived.
 Outputs076-rows-2-4.json/.log/-routes.json/-layers.json, then077-rows-1-4.*,
 078-rows-4-4.*,079-rows-2-1.*,080-rows-2-2.*.
 Frozenfull-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
@@ -36,10 +36,10 @@ snapshot; archives gzip plus layer/phase-resource analyses. Outputdir
 /private/tmp/inkling-STEM-artifacts. Do not overwrite immutable snapshots.
 
 After row sweep, select best candidate and continue. **084 compressed-read
-component probe is PLANNED, NOT WRITTEN OR LAUNCHED.** PTL already has
+component probe is PREPARED, NOT LAUNCHED.** Source`compressed-read-probe.py`;
+local byte/error/context-reuse canary and failure-drain check pass; see084_probe_local_validation.json. PTL already has
 C:/msys64/mingw64/bin/libzstd.dll and zstd.EXE, plus include/zstd.h; nativePython
-3.11.9 has no zstandard package. Repo has no zstd dependency. Use existingDLL
-throughctypes, separate decompression contexts/preallocated buffers, original
+3.11.9 has no zstandard package. Repo has no zstd dependency. Probe pins existingDLLSHA b95c223a9548a9ecf51377c962e0bc8f0c51eb0c6f67a296dbc885996f0dd40d,version1.5.7; usesctypes, separate decompression contexts/preallocated buffers, original
 uncached read vs temporary padded compressed uncached read+decompression,
 matched cohorts/balanced order/exact bytes. Wait until080/full processes exit;
 never overlap component benchmark with full trial. No runtime compression code.

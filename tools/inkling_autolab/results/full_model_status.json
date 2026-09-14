@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-14T08:35:00.499436+00:00",
+  "updated_at": "2026-09-14T08:42:04.246459+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
@@ -46,21 +46,20 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": "076_full_rows_2_4",
+  "active_campaign": "077_full_rows_1_4",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 2208,
-      "created_unix": 1789374854.695914,
+      "native_pid": 6752,
+      "created_unix": 1789375174.1959372,
       "binary": "full-cache-decay.exe",
-      "campaign": "076_full_rows_2_4"
+      "campaign": "077_full_rows_1_4"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [
-    "077_full_rows_1_4",
     "078_full_rows_4_4",
     "079_full_rows_2_1",
     "080_full_rows_2_2"
