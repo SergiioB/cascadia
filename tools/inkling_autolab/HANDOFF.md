@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 09:26 UTC. Work is ACTIVE. User requested autonomous
+Updated 2026-09-14 09:58 UTC. Work is ACTIVE. User requested autonomous
 optimization toward25tok/s. Do not stop after a finite campaign. Target unmet.
 
 ## Current record and active trials
@@ -25,12 +25,15 @@ paired median speedups.831/1.058/1.052.2files has large order effects. Modest,
 mixed component result; no original model file relocated. Raw artifacts/state
 and hashes saved in092_artifact_verification.json.
 
-**094 repeated control COMPLETE0.9354823511;095 repeated candidate RUNNING.**
-Native095 PID7928, created1789378926.7827115, outputs095-rows-repeated-candidate.*.
-094 raw artifacts/SHA/resources all verified; original record074 remains0.938274.
+**094/095 repeated comparison COMPLETE; retainrows2/4.**
+Control0.9354823511 versuscandidate0.9355367858, only0.00582% gain.
+Controller95987 exited. Nextcontroller70713 waits098 qualification then100/101.
+Native095 PID7928, created1789378926.7827115 exited; outputs095-rows-repeated-candidate.*.
+094/095 raw artifacts/SHA/resources verified; all route arrays/counters identical.
+095_repeated_row_comparison.json records all nine pairs; original record074 remains0.938274.
 Controller95987: /private/tmp/run-inkling-repeated-rows.py.
 Native094 PID5132, created1789378071.276495 exited. Outputs094-rows-repeated-control.*.
-095candidate running; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
+095candidate complete; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
 093Python8176,parent9488 exited; both modes passed, all raw files SHA copied.
 Read native row-affinity-qualification-state.json for status/PID.
 Sourcequalify-row-affinity.py tests rows2/4 and2/2 with mask65535/thread16,
@@ -58,14 +61,22 @@ runfive tiny wrapper modes, and promote wrapper only after qualification.
 Source849a08bd committed/pushed; manifest cache-recency-source.json and tar
 /private/tmp/cache-recency-source.tar built from SHA-verified native baseline.
 All candidate files staged and SHA verified, PowerShell parser passed.
-098 qualifier ACTIVE/WAITING, Python3144,parent10896, state
-cache-recency-qualification-state.json. It waits094/095.
+098 qualifier BUILDING/TESTING, Python3144,parent10896, nativecmd2616, state
+cache-recency-qualification-state.json. Both094/095 are complete.
 100/101 recency control/candidate campaigns PREPARED with rows2/4. Revisit
 rowchoice after095; launch only after098 qualifies/exits. Counter predictions097_cache_recency_counter_predictions.json:
 1rep recent33257hits39319misses26816admit26304evict20015ties,
 uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ties,
 uncached3754377216000/hitbytes3180367577088. Other counters/profile unchanged.
 Rowchoice for futurefullrecency campaigns depends on094/095 repeated outcome.
+
+**Next local controller70713 ACTIVE/WAITING**:
+/private/tmp/run-inkling-cache-recency-loop.py waits098 qualified/exited,
+SHA copies all098 artifacts, requires245native tests, reviews094/095 primary
+ratio (<1.005 retainsrows2/4), then sequential100control/101recent. PrintsSTART
+andVERIFIED; logs/private/tmp/inkling-CAMPAIGN_NAME.log. It does not run a
+confirmation automatically; review and prepare102 if recent wins, thencontinue.
+103 future source67973647 pushed; never confuse it with098 source849a08bd.
 
 ## 103 future prediction diagnostic (LOCAL ONLY)
 

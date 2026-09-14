@@ -1,0 +1,74 @@
+{
+  "control": 0.9354823511082949,
+  "candidate": 0.9355367858001731,
+  "candidate_over_control": 1.0000581889030975,
+  "pairs": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "control": 0.9725287188502525,
+      "candidate": 0.9773573118362383,
+      "ratio": 1.0049649875550146
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "control": 0.9370981424743935,
+      "candidate": 0.9372081628617389,
+      "ratio": 1.0001174054054305
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "control": 0.9628154366572871,
+      "candidate": 0.9634045962387853,
+      "ratio": 1.0006119133107625
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "control": 1.0313017447977075,
+      "candidate": 1.027056422254235,
+      "ratio": 0.9958835301453842
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "control": 0.9362443361248716,
+      "candidate": 0.935667706436069,
+      "ratio": 0.9993841034155793
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "control": 0.9625096899326215,
+      "candidate": 0.9632789089312267,
+      "ratio": 1.0007991805242595
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "control": 1.0284964213769037,
+      "candidate": 1.0302882386545023,
+      "ratio": 1.0017421716209765
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "control": 0.9354823511082949,
+      "candidate": 0.9355367858001731,
+      "ratio": 1.0000581889030975
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "control": 0.9635503994794308,
+      "candidate": 0.962296136093394,
+      "ratio": 0.998698289797073
+    }
+  ],
+  "all_actual_routes_identical": true,
+  "all_actual_cache_counters_identical": true,
+  "decision": "retain_rows2_4",
+  "reason": "Primary-score difference is only0.00582%; repeated comparison did not reproduce the earlier1.17% single-pass improvement."
+}

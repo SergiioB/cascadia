@@ -9,9 +9,11 @@ full-logits hashes and routing decisions match. **The 25 tokens/s target is unme
 prompts × three repetitions, with 64 generated tokens and 63 decode steps each.
 Prefill takes 23.82–25.13 seconds. The score includes the first decode run and
 output checking; decode timing excludes prefill. Optimization remains active:
-the current trials compare process affinity, followed by a storage-layout probe.
-The row sweep found a 1.17% single-pass candidate improvement with int4 rows2;
-that setting still needs repeated confirmation.
+the affinity sweep retained all 16 CPUs, and the disk layout probe showed mixed
+component results. The repeated kernel comparison was tied within 0.006%, so
+the selected settings remain BF16 rows2/int4 rows4. The
+next full trials test recent-use cache admission on equal-frequency ties, which
+predicts 4.55% fewer SSD reads but has no measured full-model speedup yet.
 See [HANDOFF.md](HANDOFF.md) for current jobs.
 
 ## What was measured
@@ -75,6 +77,9 @@ fallbacks. Streamed prefill completed 1.303 TB of reads with zero fallbacks.
 Median time per decoded token is 0.184 seconds in attention, 0.829 in the
 expert blocks and 0.024 outside the layers. The sampled process peak was
 42.52 GB private memory; minimum available machine RAM was 1.81 GB.
+A separate Qwen OVMS service holds about 20.03 GB of shared GPU memory, as
+confirmed by the [memory ownership snapshot](results/099_memory_ownership.json).
+That service remains running and limits the RAM available for a larger cache.
 See the [layer profile](results/074_layer_profile.json) and
 [resource report](results/074_resources.json). Machine disk counters include
 other processes, and page-fault counters include soft faults.
