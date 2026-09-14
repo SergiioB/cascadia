@@ -5,12 +5,14 @@ The confirmed three-repeat record is **0.567914 decode tokens/s** on tate-07,
 checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
 **The 25 tokens/s target has not been reached.**
 
-Autonomous optimization has resumed. Cache control049 completed at0.566639;
-4GBcache050 reached0.577055 over one pass, with mixed changes across prompts.
-The8GBcache trial051 finished at0.568678. The selected4GBcache is now under
-matched prefill evaluation053/054; cache-admission reset follows.
-See[HANDOFF.md](HANDOFF.md) for current jobs. The repeated record
-above remains the confirmed result until another three-repeat verification.
+The resumed loop has reached **0.709011 tok/s over one pass** with streamed
+prefill and a 4GB routed cache. The matched prefill comparison improved every
+prompt by 20.8–22.2% and cut prefill from 103–108 seconds to 24–25 seconds.
+All baseline tokens, logits and routes match. [Comparison evidence](results/054_prefill_comparison.json)
+includes separate prefill/decode resource measurements. Cache-history and
+larger-budget trials055/056/057 are running; a qualified worker-count sweep
+follows. See [HANDOFF.md](HANDOFF.md) for active jobs. The three-repeat record
+above remains the confirmed result until another repeated verification.
 
 ## What was measured
 

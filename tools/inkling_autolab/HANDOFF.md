@@ -3,34 +3,47 @@
 Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
 the prior final campaign below is the completed reference, not a stopping point.
 
-## Current live work — prefill comparison054
+## Current live work — cache history and budget055/056/057
 
-The loop is ACTIVE. Do not stop after one completed campaign. 053control finished
-and all artifacts/counters/IDs/hash/route arrays verified. Slowest0.5867846190,
-prefills103.358/108.410/105.273sec. Cache64 remains exploratory; repeatedrecord046
-stays0.5679137350. 049/050/051 all complete, selected64MiB/cachelayer.
+The loop is ACTIVE. Do not stop after one completed campaign. 053/054prefillpair
+finishedandverified. SelectPrefillReads1: slowest0.7090110419 versus0.5867846190
+control (+20.83%), allcasesimprove. Prefill24–25sec versus103–108sec. SameIDs,
+fullhash,routes,cachecountersanddecodebytes. MinavailableRAM14.183GB; decode
+faults58/s versus48341/scontrol. See054_prefill_comparison.json andarchives.
+Repeatedrecord046stays0.5679137350 untilanotherthree-repeatconfirmation.
 
-**054_full_prefill_read_streamed RUNNING** under controller tool**41846**.
-Log/private/tmp/inkling-054_full_prefill_read_streamed.log; nativePID**768**,
-created**1789369759.6460428**,full-prefill-reads.exe,outputs054-prefill-1.*.
-Cache64/historyreset0; PrefillReads1. Gates hits8582/misses63994,
-decodeuncachedbytes2038240641024,cachecapacity4294967296,retained4077387648,
-pipelinecount12096. Streamedprefill must read13635experts/434281512960uncachedB,
-zero fallback. Same3prompts×1rep,63decodesteps. Do not launchduplicates.
+**055_full_history_reset_64mib RUNNING;056_full_history_reset_128mib and
+057_full_history_reset_256mib QUEUED sequentially**. Controllertool**16120**,
+script/private/tmp/run-inkling-cache-history-loop.py.
+Logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native055PID**10436**,
+created**1789370179.2082949**,full-prefill-reads.exe. Outputs055-history-64.*,
+056-history-128.*,057-history-256.*. Same16workers,PrefillReads1,historyreset1;
+3prompts×1pass,63decodepositions. **Do not launchduplicates.**
+
+Causaladmissiongates (all128/256slotbudgetsinclude4095paddingbytes/expert):
+-055cache64: hits13185,misses59391,admissions1271,evictions1143,retained4077387648.
+-056cache128: hits21021,misses51555,admissions2380,evictions2124,retained8154775296.
+-057cache256: hits30058,misses42518,admissions4141,evictions3629,retained16309550592.
+Allrequire192historyresets,13635prefillreads/434281512960uncachedprefillB,
+decodeuncachedbytes=misses*31850496,zero fallback,baselinehash/IDs.
+Replaymatchesallfourmeasured050/051counters; source055predictionJSON.
+
+**059nativeworkerqualification passed8/12/16/24/32**,report059_threads_windows_validation.
+Currentrun-full.ps1SHA5e0a29a4a3ec041ad1c93a44cfcf942e1df2db8dbce6c2a795ec86b5600a259b;
+newThreads1–64parameterdefault16. Samefrozenfull-prefillbinary,exacttinyhash/IDs.
+Nativequalify-threads.py alreadyfinished; do not rerun. Distinctstagingwrapper
+run-full-threads.ps1 andthreads-source.json retained. Nextaftercachetrials:
+selectbestbudget,runthread8/12/24/32versus16,checkactualsamplerthreadcounts,
+thenrepeatedbestprofileconfirmation. Continuewithreadconcurrency/prefetch.
+058offlinefrequencydecaypredictsmodesthitgainat32requestintervalbutmoreadmissions;
+no runtime change yet (native remains4096). Potentiallatercacheexperiment.
 
 Capturehelper/private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED
-snapshots resources,copiesandSHAchecks nativefiles,checksIDs/hash,archivesgzip,
+snapshotsresources,copies/SHAchecks nativefiles,checksIDs/hash,archivesgzip,
 runslayer+phase-aware resourceanalysis. RefusesactivePID+creationpair.
-053 artifacts/private/tmp/inkling-053-prefill-0-artifacts. Future054hasnotbeen
-captured. Native sampler3036continues.
-
-055notyetlaunched: resetcachehistory using selectedprefillprofile. Causal
-admission replay matches measured050/051 allfourcounters. Predictionfor64MiB
-historyreset1: hits13185,misses59391,admissions1271,evictions1143,historyresets192,
-decodeuncachedbytes=59391*31850496,retained4077387648. For128MiBreset1:
-hits21021/misses51555/admissions2380/evictions2124. See055predictionJSON.
-Then retunecachebudget undernewprefillconditions; qualifyworker8/12/24/32
-wrapperbeforeq50fullcampaigns. No newexport/rentalneeded. Keepiterating.
+Completed053/054artifacts/private/tmp/inkling-053-prefill-0-artifacts and
+/private/tmp/inkling-054-prefill-1-artifacts. New055/056/057notcapturedyet.
+Sampler3036continues. No newexport/rentalneeded. Keepiterating.
 
 **052nativeQUALIFIED**,241tests,sevenfixture modes andproductionwrapper pass.
 Binaryfull-prefill-reads.exe SHA

@@ -1367,3 +1367,42 @@ row kernels, so the resident-optimal16worker setting may not minimize full
 latency. After selectedcache/prefill/historyprofile, compare8/12/24/32workers
 using the same nativebinary and boundedmemory; qualify exacttinyIDs/logits
 first and keep one full benchmark active. No globalhost affinity/settingschange.
+
+Prepared055/056/057 cache-history trials at64/128/256MiB perlayer, all3case/1pass.
+They will use streamedprefill only if054passes and improves. Each has exact
+predeclared causal hit/miss/admission/eviction/read-byte gates; retainedbytes
+include4095-byte alignmentpadding perexpert. The largestsettingretains16.31GB
+routedweights plus existingprivateweights, stillwithin64GBhardware. No trial
+hasstarted. Prepared optionalThreads1–64 wrapper (default16) and nativefive-mode
+fixturequalifier for8/12/16/24/32; staged underdistinctnativefilenames, no active
+launcherchange. Runqualifierbetween054 andthecachecampaigns,thenpreserve16
+forcachecomparisons. Source/no-arithmetic-change remainsfull-prefillbinary.
+
+Additional bounded offline hypothesis: even after request-boundary reset, routing
+may shift within a continuation. Replay shorter frequency-decay intervals using
+only past/current routes to assess whether an adaptive cache merits a future
+implementation. Simulated hit rates are diagnostic, not performance results;
+no runtime change or benchmark-specific routing table will be used.
+
+054 streamedprefill passes fullhash/IDs, identical053routearrays andallactual
+cache/decode-read counters. Rates0.793101/0.713443/0.709011tok/s; slowest+20.83%.
+Prefill24.222/25.040/24.108sec,4.27–4.37x faster. SelectPrefillReads1.
+Phase-awaredecode faults58.35/s versuscontrol48340.91/s; machine7.938GB/s,
+process7.937GB/s. Full-lifetimeminavailableRAM14.183GB versus3.25MBcontrol;
+maxmachineswap0.589GB versus20.391GB. Onlyfivewholeintervals coverstreamed
+prefill; machineI/O andsoftfaultlimitationsremain. Medianattention0.184337
+versus0.366595sec/token;MLP1.192887versus1.302730. Rawartifacts/SHAarchived,
+report054_prefill_comparison.json. Repeatedrecord046unchangedpendingconfirmation.
+
+059 nativeworkerqualification passed8/12/16/24/32withsamefrozenbinarySHA,
+exacttinyhash1f7cd0eb14a22662 andIDs,actualcachehistory/prefillcounters. Wrapper
+nowacceptsThreads1–64 (default16) andlogsconfiguredcount. No binaryrebuild.
+055history64active,native10436created1789370179.2082949;056history128then
+057history256queued undercontrollertool16120. Logs/private/tmp/inkling-NAME.log.
+Sampler3036continues. Allcachetrialskeep16workers. Nextselectcachebudget and
+runqualifiedworkercomparison,thenrepeatbest3passes. Keepoptimizingafterthat.
+
+058 offlinefrequencydecay replay:32requests betweenhalvingspredicts13674/21936/
+31383hits at2/4/8slots versus13185/21021/30058with4096. Admissionsroughlydouble.
+This suggests a modestfutureexperiment, not animplementedgain. Currentnative
+cachedecay remains4096; nofuture/hardcodedroutesenterinference.

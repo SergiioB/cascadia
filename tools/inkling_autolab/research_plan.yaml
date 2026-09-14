@@ -24,9 +24,9 @@ questions:
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
   status: answered
-  answer: 'Final full-model repeated record 046: 0.567914 tok/s slowest, 0.583751 median, 0.593815
-    fastest across three prompts and three repetitions, all 63 decode steps. Exact baseline tokens
-    and logits match. 4.196x original 0.135334 tok/s. Target 25 remains unmet.'
+  answer: 'Final full-model repeated record 046: 0.567914 tok/s slowest, 0.583751 median, 0.593815 fastest
+    across three prompts and three repetitions, all 63 decode steps. Exact baseline tokens and logits
+    match. 4.196x original 0.135334 tok/s. Target 25 remains unmet.'
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?
@@ -38,24 +38,24 @@ questions:
   question: Why does adaptive residency repeatedly copy warm files on Windows?
   status: answered
   priority: 7
-  answer: Working-set sample stays 0/64 after buffered reads/prefetch, becomes 64/64 after mapped
-    page walk. Direct-read resident profile avoids repeated copies; cold paging policy remains unvalidated.
+  answer: Working-set sample stays 0/64 after buffered reads/prefetch, becomes 64/64 after mapped page
+    walk. Direct-read resident profile avoids repeated copies; cold paging policy remains unvalidated.
 - id: q8
   question: Can optional NVIDIA CUDA quantization accelerate portable Inkling exports?
   status: answered
   priority: 8
-  answer: RTX 4060 Ti 8 GB passes all 43 exporter tests and reproduces an original expert bin byte
-    for byte. Real expert quantization including copies improves 4.23x; eight-expert warm-source conversion
-    including fsynced writes improves 2.37x with CPU eight workers versus CUDA four workers. Full
-    975B export time remains unmeasured. Keep CPU default; use CUDA 64 MiB chunks when requested.
+  answer: RTX 4060 Ti 8 GB passes all 43 exporter tests and reproduces an original expert bin byte for
+    byte. Real expert quantization including copies improves 4.23x; eight-expert warm-source conversion
+    including fsynced writes improves 2.37x with CPU eight workers versus CUDA four workers. Full 975B
+    export time remains unmeasured. Keep CPU default; use CUDA 64 MiB chunks when requested.
 - id: q9
   question: How much time and cost does the designated 8xA100 export host save?
   status: answered
   priority: 9
-  answer: Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98
-    experts/s in the measured component; seeq12. Estimated whole export15–30minutes with local raw
-    source ($4–8), initial download+export2–3hours ($30–45); no full export timed. Host backed up/idle,
-    no termination performed.
+  answer: "Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98\
+    \ experts/s in the measured component; seeq12. Estimated whole export15\u201330minutes with local\
+    \ raw source ($4\u20138), initial download+export2\u20133hours ($30\u201345); no full export timed.\
+    \ Host backed up/idle, no termination performed."
 - id: q10
   question: Can independent SSH jump transports fill PTL Ethernet better than one?
   status: answered
@@ -67,39 +67,37 @@ questions:
   question: How much routed-expert reuse is available within PTL's memory budget?
   status: answered
   priority: 6
-  answer: Actual routes and causal models are archived in 037; all nine final 046 samples preserve
-    those routes. Even a perfect cache using all nominal 64 GiB still needs 32.5–42.5 GB/s at 25 tok/s,
-    beyond the 15.754 GB/s SSD link. Cache models are not measured runtime gains.
+  answer: "Actual routes and causal models are archived in 037; all nine final 046 samples preserve those\
+    \ routes. Even a perfect cache using all nominal 64 GiB still needs 32.5\u201342.5 GB/s at 25 tok/s,\
+    \ beyond the 15.754 GB/s SSD link. Cache models are not measured runtime gains."
 - id: q12
   question: Can separate converter processes improve throughput beyond the A100 GPU thread pool?
   status: answered
   priority: 8
   answer: Eight independent CUDA processes achieve 58.98 experts/s on the saved 64-expert CPU oracle,
-    2.60x the prior GPU pool. Complete multiprocess export, staged resume, truncated-output repair
-    and worker-failure gates pass; all 48 exporter tests pass. Default remote profile now uses eight
-    processes and one worker each. Full export and cold-source I/O remain unmeasured.
+    2.60x the prior GPU pool. Complete multiprocess export, staged resume, truncated-output repair and
+    worker-failure gates pass; all 48 exporter tests pass. Default remote profile now uses eight processes
+    and one worker each. Full export and cold-source I/O remain unmeasured.
 - id: q13
   question: Does the full-model PTL baseline spend most time on compute or paging?
   status: answered
   priority: 6
-  answer: The original sampled lifetime was 78.7% kernel CPU with 494,348 faults/s and 2.218 GB/s
-    machine reads. Uncached profile 042 was 41.8% kernel CPU with 4.320 GB/s machine reads. These
-    include loading, prefills and soft faults; they are not decode-only rates. Transient prefill memory
-    pressure persists.
+  answer: The original sampled lifetime was 78.7% kernel CPU with 494,348 faults/s and 2.218 GB/s machine
+    reads. Uncached profile 042 was 41.8% kernel CPU with 4.320 GB/s machine reads. These include loading,
+    prefills and soft faults; they are not decode-only rates. Transient prefill memory pressure persists.
 - id: q14
   question: Does batching Windows prefetch ranges improve expert page-in latency?
   status: answered
   priority: 7
-  answer: Refuted. Serial prefetch+copy is 66.51 ms for eight real experts, versus 86.75 ms batched
-    and 96.95 ms parallel. No-prefetch 65.02 ms differs only 2.3%; keep production unchanged pending
-    actual full-model evidence. About 254 MB physical reads per 255 MB cohort; concurrent transfer
-    noted.
+  answer: Refuted. Serial prefetch+copy is 66.51 ms for eight real experts, versus 86.75 ms batched and
+    96.95 ms parallel. No-prefetch 65.02 ms differs only 2.3%; keep production unchanged pending actual
+    full-model evidence. About 254 MB physical reads per 255 MB cohort; concurrent transfer noted.
 - id: q15
   question: Can the nonresident expert path omit redundant prefetch before bulk reads?
   status: answered
   priority: 7
-  answer: Independent effect not isolated; combined 036 improved 45.52%. Subsequent uncached full
-    042 reached 0.515177 tok/s, and final repeated combined 046 reached 0.567914 with exact outputs.
+  answer: Independent effect not isolated; combined 036 improved 45.52%. Subsequent uncached full 042
+    reached 0.515177 tok/s, and final repeated combined 046 reached 0.567914 with exact outputs.
 - id: q16
   question: How much full-model time is spent in attention versus expert execution?
   status: answered
@@ -116,48 +114,50 @@ questions:
   question: Does prefix-only n-gram speculation have useful acceptance on the baseline text?
   status: answered
   priority: 8
-  answer: Three short first-pass continuations yield at most 1.016x optimistic target-call reduction
-    and substantially more verification rows. Minimum suffix length >=2 accepts zero drafts. Defer
-    this drafter on these prompts; no measured inference speedup or conclusion about other drafters
-    is implied.
+  answer: Three short first-pass continuations yield at most 1.016x optimistic target-call reduction and
+    substantially more verification rows. Minimum suffix length >=2 accepts zero drafts. Defer this drafter
+    on these prompts; no measured inference speedup or conclusion about other drafters is implied.
 - id: q19
   question: Can reused bulk-read buffers remove private-page allocation overhead?
   status: answered
   priority: 7
-  answer: Bounded reusable buffers with omitted serial hints, rows2/4 and mapped embedding pass nine
-    full samples at0.196934tok/s slowest,45.52% above baseline with exact IDs/logits. Combined experiment;
+  answer: Bounded reusable buffers with omitted serial hints, rows2/4 and mapped embedding pass nine full
+    samples at0.196934tok/s slowest,45.52% above baseline with exact IDs/logits. Combined experiment;
     individual effects not isolated.
 - id: q39
   question: Does owning4.077GB of always-used shared expert bytes improve full decode?
   status: answered
   priority: 7
-  answer: 040 owns4.077GB shared expert bytes,passes all3cases1rep at0.235890tok/s slowest,19.78%
-    above036. Private peak26.093GB; transient prefill pressure remains. Exact IDs/logits preserved.
+  answer: 040 owns4.077GB shared expert bytes,passes all3cases1rep at0.235890tok/s slowest,19.78% above036.
+    Private peak26.093GB; transient prefill pressure remains. Exact IDs/logits preserved.
 - id: q41
   question: Can an aligned uncached bulk-read path improve full decode without changing model bytes?
   status: answered
   priority: 7
   answer: Full uncached 042 passed all three cases at 0.515177 tok/s slowest. Final repeated combined
-    046 passes all nine at 0.567914, with 6.638 TB successful uncached reads and zero fallbacks. 233
-    native tests and exact full IDs/logits pass.
+    046 passes all nine at 0.567914, with 6.638 TB successful uncached reads and zero fallbacks. 233 native
+    tests and exact full IDs/logits pass.
 - id: q43
   question: Does overlapping each expert read with ready-expert compute improve full decode?
   status: answered
   priority: 7
-  answer: 'Matched 044/045 control versus overlap: slowest score +6.12%, all three cases improve.
-    Selected PipelineReads1 passes final 046 three repetitions at 0.567914 tok/s slowest with exact
-    outputs and 36288 actual pipelined layers. The final campaign is complete; 25 tok/s remains unmet.'
+  answer: 'Matched 044/045 control versus overlap: slowest score +6.12%, all three cases improve. Selected
+    PipelineReads1 passes final 046 three repetitions at 0.567914 tok/s slowest with exact outputs and
+    36288 actual pipelined layers. The final campaign is complete; 25 tok/s remains unmet.'
 - id: q48
-  question: Can a bounded causal cache of hot routed expert weights reduce full decode I/O without
-    losing more to memory pressure?
+  question: Can a bounded causal cache of hot routed expert weights reduce full decode I/O without losing
+    more to memory pressure?
   status: active
   priority: 1
+  reason: 055/056/057 comparehistoryreset with64/128/256MiBperlayer afterprefillpagingreduction.
 - id: q49
-  question: Can prefill stream experts through reusable uncached buffers to reduce page-fault and
-    file-cache pressure?
-  status: active
+  question: Can prefill stream experts through reusable uncached buffers to reduce page-fault and file-cache
+    pressure?
+  status: answered
   priority: 2
-  reason: Prepare locally while cache049/050/051 execute; no overlapping native build.
+  answer: "Matched053/054: streamedprefill improves slowestdecode20.83% to0.709011tok/s, allcases/IDs/logits/routesmatch;\
+    \ prefills4.27\u20134.37x faster at24\u201325sec. MinimumavailableRAM14.183GB anddecodefaults58/s.\
+    \ Onepass; repeatedconfirmationpending."
 - id: q50
   question: After uncached pipelining, does separating read concurrency from kernel concurrency improve
     full-model latency?

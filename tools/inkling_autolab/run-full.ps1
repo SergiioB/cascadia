@@ -1,6 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$Model,
       [Parameter(Mandatory=$true)][string]$Cases,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
+      [ValidateRange(1,64)][int]$Threads=16,
       [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
       [string]$Binary='full-decode.exe', [string]$RouteTrace='',
       [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0, [string]$Log='',
@@ -29,7 +30,7 @@ if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cach
 if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
 if ($PrefillReads -and ($Binary -ne 'full-prefill-reads.exe' -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
 if ($CacheResetHistory -and ($Binary -ne 'full-prefill-reads.exe' -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
-$env:RAYON_NUM_THREADS = '16'
+$env:RAYON_NUM_THREADS = "$Threads"
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
 $env:CASCADIA_INKLING_PIN_EXPERTS = '0'
@@ -60,6 +61,7 @@ $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassT
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
+    "rayon_threads=$Threads"
     "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory"
     $p.WaitForExit()
     if ($Log) {

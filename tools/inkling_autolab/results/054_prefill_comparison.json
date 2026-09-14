@@ -1,0 +1,218 @@
+{
+  "scope": "same_binary_full_model_prefill_comparison",
+  "binary_sha256": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+  "all_ids_and_routes_match": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "passes_per_setting": 1,
+  "decode_read_counts_identical": true,
+  "slowest_score_ratio": 1.2082986141129977,
+  "selected_prefill_reads": 1,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_rate": 0.6488625919230888,
+      "streamed_rate": 0.7931011519723735,
+      "decode_speedup": 1.2222944608685062,
+      "control_prefill_seconds": 103.3583138,
+      "streamed_prefill_seconds": 24.2215083,
+      "prefill_speedup": 4.267212120724951
+    },
+    {
+      "case": "binary_search",
+      "control_rate": 0.5901685335944084,
+      "streamed_rate": 0.7134428252678333,
+      "decode_speedup": 1.2088798108611882,
+      "control_prefill_seconds": 108.4103316,
+      "streamed_prefill_seconds": 25.039882,
+      "prefill_speedup": 4.3295064888884065
+    },
+    {
+      "case": "short_story",
+      "control_rate": 0.5867846189936775,
+      "streamed_rate": 0.7090110419128839,
+      "decode_speedup": 1.2082986141129977,
+      "control_prefill_seconds": 105.2728739,
+      "streamed_prefill_seconds": 24.1082412,
+      "prefill_speedup": 4.366675819553357
+    }
+  ],
+  "profiles": {
+    "053": {
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.3665945126984128,
+        "mlp_seconds": 1.3027304349206348,
+        "total_seconds": 1.669324947619049,
+        "outside_layers_seconds": 0.025106292063490684,
+        "wall_seconds": 1.6944312396825398
+      },
+      "resources": {
+        "scope": "full_process_lifetime_sampled_resources",
+        "includes_load_prefill_decode": true,
+        "pid": 8212,
+        "created_unix": 1789369078.4974482,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+        "intervals": 67,
+        "sampled_seconds": 670.75,
+        "cpu_core_equivalents": 5.319092433842713,
+        "kernel_fraction": 0.38658479972672094,
+        "faults_per_second_includes_soft": 224903.80469623554,
+        "machine_disk_read_bytes_per_second": 4419719633.628028,
+        "process_read_bytes_per_second": 3059636352.178904,
+        "min_available_RAM_bytes": 3252224,
+        "max_private_bytes": 30178471936,
+        "max_rss_bytes": 43183849472,
+        "max_machine_swap_used_bytes": 20390776832,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Sampled lifetime includes loading and prefills; this is not decode-only.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ],
+        "phases": {
+          "prefill": {
+            "scope": "phase_sampled_resources",
+            "includes_load_prefill_decode": false,
+            "pid": 8212,
+            "created_unix": 1789369078.4974482,
+            "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+            "intervals": 29,
+            "sampled_seconds": 290.45400000037625,
+            "cpu_core_equivalents": 5.749619561093449,
+            "kernel_fraction": 0.5904565868263473,
+            "faults_per_second_includes_soft": 374546.53404621413,
+            "machine_disk_read_bytes_per_second": 2581845294.549321,
+            "process_read_bytes_per_second": 0.0,
+            "min_available_RAM_bytes": 3252224,
+            "max_private_bytes": 30178471936,
+            "max_rss_bytes": 43183849472,
+            "max_machine_swap_used_bytes": 20390776832,
+            "caveats": [
+              "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+              "Page faults include soft faults; they are not all storage reads.",
+              "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+              "Only adjacent snapshots containing the same PID and creation time contribute rates."
+            ]
+          },
+          "decode": {
+            "scope": "phase_sampled_resources",
+            "includes_load_prefill_decode": false,
+            "pid": 8212,
+            "created_unix": 1789369078.4974482,
+            "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+            "intervals": 28,
+            "sampled_seconds": 280.2200000002049,
+            "cpu_core_equivalents": 5.552110841477633,
+            "kernel_fraction": 0.14604507291206364,
+            "faults_per_second_includes_soft": 48340.91428160051,
+            "machine_disk_read_bytes_per_second": 7024343609.330386,
+            "process_read_bytes_per_second": 6866804172.944804,
+            "min_available_RAM_bytes": 185380864,
+            "max_private_bytes": 30173921280,
+            "max_rss_bytes": 42265165824,
+            "max_machine_swap_used_bytes": 12255031296,
+            "caveats": [
+              "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+              "Page faults include soft faults; they are not all storage reads.",
+              "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+              "Only adjacent snapshots containing the same PID and creation time contribute rates."
+            ]
+          }
+        },
+        "benchmark_sha256": "961e920100eb5336c3a3ca36e963bdd3618c7901398e67e9e8f6371bc231cfaa",
+        "source_sha256": "c5b6af9e45142d0d388a2d21dd314e11f35db7a0686a25b7e981374e5283bef5"
+      }
+    },
+    "054": {
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.18433715555555516,
+        "mlp_seconds": 1.1928873206349224,
+        "total_seconds": 1.3772428253968285,
+        "outside_layers_seconds": 0.024572549206349024,
+        "wall_seconds": 1.4016540142857143
+      },
+      "resources": {
+        "scope": "full_process_lifetime_sampled_resources",
+        "includes_load_prefill_decode": true,
+        "pid": 768,
+        "created_unix": 1789369759.6460428,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+        "intervals": 36,
+        "sampled_seconds": 360.28200000012293,
+        "cpu_core_equivalents": 5.7256364458932065,
+        "kernel_fraction": 0.04631046340761388,
+        "faults_per_second_includes_soft": 26830.357886313224,
+        "machine_disk_read_bytes_per_second": 6918586979.574748,
+        "process_read_bytes_per_second": 6914232449.378959,
+        "min_available_RAM_bytes": 14182912000,
+        "max_private_bytes": 30241910784,
+        "max_rss_bytes": 29260144640,
+        "max_machine_swap_used_bytes": 588632064,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Sampled lifetime includes loading and prefills; this is not decode-only.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ],
+        "phases": {
+          "prefill": {
+            "scope": "phase_sampled_resources",
+            "includes_load_prefill_decode": false,
+            "pid": 768,
+            "created_unix": 1789369759.6460428,
+            "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+            "intervals": 5,
+            "sampled_seconds": 50.03100000042468,
+            "cpu_core_equivalents": 8.051570526205365,
+            "kernel_fraction": 0.033513052247779375,
+            "faults_per_second_includes_soft": 4520.217465133224,
+            "machine_disk_read_bytes_per_second": 5879005036.667332,
+            "process_read_bytes_per_second": 5876595082.518925,
+            "min_available_RAM_bytes": 14192807936,
+            "max_private_bytes": 30241910784,
+            "max_rss_bytes": 29260144640,
+            "max_machine_swap_used_bytes": 581283840,
+            "caveats": [
+              "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+              "Page faults include soft faults; they are not all storage reads.",
+              "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+              "Only adjacent snapshots containing the same PID and creation time contribute rates."
+            ]
+          },
+          "decode": {
+            "scope": "phase_sampled_resources",
+            "includes_load_prefill_decode": false,
+            "pid": 768,
+            "created_unix": 1789369759.6460428,
+            "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-prefill-reads.exe",
+            "intervals": 22,
+            "sampled_seconds": 220.14099999936298,
+            "cpu_core_equivalents": 5.645458478900324,
+            "kernel_fraction": 0.04353838997221489,
+            "faults_per_second_includes_soft": 58.348967252975,
+            "machine_disk_read_bytes_per_second": 7937906576.1900625,
+            "process_read_bytes_per_second": 7937413117.325062,
+            "min_available_RAM_bytes": 14182912000,
+            "max_private_bytes": 30237417472,
+            "max_rss_bytes": 29256302592,
+            "max_machine_swap_used_bytes": 580100096,
+            "caveats": [
+              "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+              "Page faults include soft faults; they are not all storage reads.",
+              "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+              "Only adjacent snapshots containing the same PID and creation time contribute rates."
+            ]
+          }
+        },
+        "benchmark_sha256": "b2b0c59d48b02057b5c0deec0dcca23a6e3748d3adc6f9d3679330ba8e58cdd9",
+        "source_sha256": "43c768228f979d6a4809dda78ef6ad86351fb93d429683fdb2e4e25bb45491db"
+      }
+    }
+  },
+  "repeated_record_046_unchanged": true,
+  "target_reached": false,
+  "caveats": [
+    "One pass per arm; repeated confirmation follows subsequent tuning.",
+    "Resource rates exclude phase boundaries; only five whole sampler intervals cover streamed prefill.",
+    "Machine disk counters include other processes; faults include soft faults."
+  ]
+}

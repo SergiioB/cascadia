@@ -1,0 +1,34 @@
+{
+  "status": "qualified",
+  "unix": 1789370150.7201786,
+  "binary_sha256": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+  "wrapper_sha256": "5e0a29a4a3ec041ad1c93a44cfcf942e1df2db8dbce6c2a795ec86b5600a259b",
+  "modes": [
+    {
+      "threads": 8,
+      "output_hash": "1f7cd0eb14a22662",
+      "native_json_sha256": "355c830dfb5a07774948876f9df1080029afa2cb2575fba4cb752148e04e3a72"
+    },
+    {
+      "threads": 12,
+      "output_hash": "1f7cd0eb14a22662",
+      "native_json_sha256": "ab6ae4b243e65de48ceced6e64f3ee927ce9b8d9052df487bdb65f75f39e364f"
+    },
+    {
+      "threads": 16,
+      "output_hash": "1f7cd0eb14a22662",
+      "native_json_sha256": "1bba5fd1f62fe8a033106fa9bcefdac3c139111cc9d2e7a68eaa76632a63a22a"
+    },
+    {
+      "threads": 24,
+      "output_hash": "1f7cd0eb14a22662",
+      "native_json_sha256": "11f8fd16cb239544c3085aa71ca63eadcf526e3d67d979bdf4796d373741e888"
+    },
+    {
+      "threads": 32,
+      "output_hash": "1f7cd0eb14a22662",
+      "native_json_sha256": "ae94e1b6f9a69881d11d3a0983c15c7dc9443d10b5eb29443779e8d42ebcebbe"
+    }
+  ],
+  "measured_full_model_speedup": false
+}

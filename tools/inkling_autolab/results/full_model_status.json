@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T07:11:36.516466+00:00",
+  "updated_at": "2026-09-14T07:18:49.032885+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.5679137350358697,
-  "status": "054_prefill_streamed_running",
+  "status": "055_056_057_cache_history_budget_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Finish matched prefill comparison; then test already-qualified cache history reset and reconsider cache budget under improved prefill memory conditions. Continue with q50/q51.",
+  "next_action": "Finish history-reset/cache-budget trials, select budget, then qualified worker8/12/24/32 sweep and three-repeat confirmation. Continue optimization afterward.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -43,24 +43,27 @@
   "full_baseline_decode_steps_min": 63,
   "full_baseline_repeated_ids_and_logits_match": true,
   "full_baseline_text_reviewed": true,
-  "best_single_pass_full_model_decode_tokens_per_s": 0.5867846189936775,
+  "best_single_pass_full_model_decode_tokens_per_s": 0.7090110419128839,
   "best_repeated_full_model_decode_tokens_per_s": 0.5679137350358697,
   "last_verified_campaign": "046_full_final_confirmation",
-  "active_campaign": "054_full_prefill_read_streamed",
+  "active_campaign": "055_full_history_reset_64mib",
   "record_verification": "046_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 768,
-      "created_unix": 1789369759.6460428,
+      "native_pid": 10436,
+      "created_unix": 1789370179.2082949,
       "binary": "full-prefill-reads.exe",
-      "campaign": "054_full_prefill_read_streamed"
+      "campaign": "055_full_history_reset_64mib"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
-  "queued_campaigns": [],
+  "queued_campaigns": [
+    "056_full_history_reset_128mib",
+    "057_full_history_reset_256mib"
+  ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 41846
+  "controller_session": 16120
 }
