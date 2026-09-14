@@ -327,9 +327,7 @@ impl MoeLayer {
                 .map(|(e, bytes)| {
                     e.as_mmap()
                         .filter(|m| !m.mostly_resident())
-                        .is_some_and(|m| {
-                            super::read_buffers::read_into(m.bin_path(), m.bin_len(), bytes).is_ok()
-                        })
+                        .is_some_and(|m| bytes.read(m.bin_path(), m.bin_len()).is_ok())
                 })
                 .collect()
         } else {

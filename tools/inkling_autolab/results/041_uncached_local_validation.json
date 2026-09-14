@@ -1,0 +1,36 @@
+{
+  "scope": "uncached_read_local_validation",
+  "local_tests_passed": 229,
+  "additional_focused_checks_passed": 6,
+  "fixture_output_hash": "5122e042f9b1fb30",
+  "fixture_owned_shared_bytes": 20736,
+  "fixture_modes": [
+    "cached",
+    "Windows option ignored on macOS"
+  ],
+  "native_uncached_tests_pending": true,
+  "full_model_speedup_measured": false,
+  "source_manifest": [
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/read_buffers.rs",
+      "previous_sha256": "84495e4397c81b325d12556e366dbdd4e20e8b4f3eb3ee5ca3be9ec50d1d8bd6",
+      "candidate_sha256": "825c3fdc78e9412299c4aa9a72ffd4b5feda90fd6908323cf6c4c2d89f05f098"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/moe.rs",
+      "previous_sha256": "5240f6add2f1829f7f76caa6594511dfa58bd1eaa561d8f9c63e092b741b96f8",
+      "candidate_sha256": "be2afcf8665a6b15a25cf60eeb8621e7e1e1f4c54f60319009220ee10db37d32"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/mod.rs",
+      "previous_sha256": "daff272a590b664e60316aa97498a9bd432b994017ac4c39a271699d3acd807e",
+      "candidate_sha256": "3624121b5301274eaeda6e792b271458c8da3b7667c26c3efa24803a3f7ee4bb"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/examples/inkling_decode_bench.rs",
+      "previous_sha256": "169b3eab970f09acc49f33c620ee0c170129e46f01849988ad0a4c096d1a184d",
+      "candidate_sha256": "5ee0e93b3b1f241d6a4136eb75a18f70db49171ec72dd074e40d0a80c1650cc5"
+    }
+  ],
+  "local_test_log_sha256": "fceb9e6a8aad4840cb1beda2c710a56e8a2e9790c506e52106f573d508a0984c"
+}

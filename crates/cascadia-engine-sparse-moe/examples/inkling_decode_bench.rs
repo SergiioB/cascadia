@@ -320,6 +320,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "fixture_decode_tokens_per_s"
     };
     println!("{metric}={rate}");
+    let (uncached_read_bytes, uncached_read_fallbacks) =
+        cascadia_engine_sparse_moe::inkling::uncached_read_statistics();
+    let uncached_read_effective = uncached_read_bytes > 0 && uncached_read_fallbacks == 0;
+    println!("uncached_read_bytes={uncached_read_bytes}");
+    println!("uncached_read_fallbacks={uncached_read_fallbacks}");
+    println!(
+        "uncached_read_effective={}",
+        u8::from(uncached_read_effective)
+    );
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -329,6 +338,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "output_hash":hash, "correctness_verified":correctness_verified,
                 "embedding_mapped":embedding_mapped,
                 "owned_shared_bytes":owned_shared_bytes,
+                "uncached_read_bytes":uncached_read_bytes,
+                "uncached_read_fallbacks":uncached_read_fallbacks,
+                "uncached_read_effective":uncached_read_effective,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;

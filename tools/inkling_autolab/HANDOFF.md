@@ -239,3 +239,25 @@ Fixturehash5122e042f9b1fb30 on ARMdebug,1f7cd0eb14a22662 on MSVCrelease; do not
 mix architectures. Actual owned bytes0/20736 for tiny fixture. This is not
 physical page locking; its full memory/performance tradeoff is measured by040.
 Controller expected_metrics gates ensure the candidate is actually enabled.
+
+
+## Queued uncached production candidate41
+
+Opt-inCASCADIA_INKLING_UNCACHED_READS requires ReuseBuffers1/Reads0. Aligned
+padded Vec slices; cached full-read retry on unsupported input/I/O. No new
+unsafe Rust; ordinary private memory, not physical pinning.229 local tests plus
+six focused checks pass; fixturehash5122e042f9b1fb30. Native tests pending.
+
+Four source SHAs checked/deployed. **Qualifier parent8796** waits for040 final
+verified3samples/ownedbytes and no activefull. Stateuncached-qualification-state.json,
+loguncached-qualification.log; futurefull-uncached.exe. Build/tests once, preserve
+all four frozen binaries, then SHA-checked staged wrapper installation. Do NOT
+start another full trial/build until it is terminal. Source archive/manifest
+/private/tmp/inkling-uncached-source.{tar,json}, nativeuncached-source.*.
+
+Prepared042_full_uncached_diagnostics is NOT launched; same040 profile plus
+UncachedReads1, threecases/one repetition. Gates require ownedbytes4076863488,
+full model,mapped embedding,actualuncached_read_effective1 andfallbacks0.
+After native qualification, validate production wrapper fixture, then run042.
+040 nativePID11216,created1789345010.6515927. Firstwatercase0.2373318713tok/s,
+remaining cases pending. Keep036 as verified repeated record until reconfirmation.

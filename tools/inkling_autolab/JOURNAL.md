@@ -1027,3 +1027,33 @@ read path preserving cached fallback and exact numerical kernels.
 plusOwnShared1, expected4076863488 actual owned bytes. SSH keepalives now enabled.
 Sampler4208 remains active;038 and039 jobs have ended. No simultaneous native
 build/probe allowed during040. Repeated record remains036; target25 is unmet.
+
+
+## 41 hypothesis — aligned uncached reusable reads
+
+038's22.28% component throughput gain justifies an opt-in Windows path:
+CASCADIA_INKLING_UNCACHED_READS=1 requires reusable buffers and bulk reads.
+Aligned subslices of ordinary padded Vec allocations use read-only
+FILE_FLAG_NO_BUFFERING. No new unsafe code or physical pinning. Unsupported
+lengths/platforms/I/O retry a full cached read; failed attempts expose no bytes.
+File lengths are checked before/after direct I/O (a one-byte EOF probe would
+violate alignment). Process counters report actual completed uncached bytes
+and fallbacks, including attempts that fall back to mapped execution on error.
+Full campaign042 requires effective uncached reads and zero fallbacks.
+
+229 local tests pass plus six focused buffer checks after counter refinements.
+The tiny fixture preserves5122e042f9b1fb30 with the option unset/set on macOS;
+macOS intentionally retains cached reads, so this is not Windows I/O validation.
+Two pending native tests exercise aligned exact reads, reuse, and actual fixture
+matrix kernel parity through disposable padded files. No model files modified.
+References: https://doc.rust-lang.org/std/os/windows/fs/trait.OpenOptionsExt.html
+and https://learn.microsoft.com/en-us/windows/win32/fileio/file-buffering .
+
+Four previous native source SHAs verified before staging. Qualifier parent8796
+waits for040's complete verified result and native exit before building once.
+Stateuncached-qualification-state.json,loguncached-qualification.log, future
+full-uncached.exe. It preserves all four frozen binaries and replaces the staged
+wrapper only after native success and the previous wrapper SHA check.
+042 full three-case single-pass campaign prepared/parsed, NOT launched.
+040 first water case0.2373318713tok/s,18.90% above036 same case, exact IDs;
+remaining cases pending. No new repeated record claimed.

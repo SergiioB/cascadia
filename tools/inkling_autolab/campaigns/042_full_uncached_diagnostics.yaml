@@ -1,0 +1,79 @@
+version: 1
+name: 042_full_uncached_diagnostics
+hypothesis: Uncached aligned reusable reads reduce kernel cache-manager overhead beyond the
+  owned shared expert profile without changing bytes or logits.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q41
+moonshot: false
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 3600
+  ssh_options:
+  - -o
+  - ServerAliveInterval=15
+  - -o
+  - ServerAliveCountMax=3
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1 -Model
+    "{model}" -Cases "{cases}" -Binary full-uncached.exe -Reads 0 -Bf16Rows 2 -Int4Rows 4 -MmapEmbed
+    1 -ReuseBuffers 1 -OwnShared 1 -UncachedReads {uncached} -SkipBulkPrefetch 1 -Tokens 64
+    -Samples 1 -Out C:/Users/devcloud/inkling-autolab/042-uncached.json -RouteTrace C:/Users/devcloud/inkling-autolab/042-uncached-routes.json
+    -LayerProfile C:/Users/devcloud/inkling-autolab/042-uncached-layers.json -Log C:/Users/devcloud/inkling-autolab/042-uncached.log
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  uncached:
+  - 1
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+  - name: reuse_buffers
+    pattern: (?m)^bf16_rows=.* reuse_buffers=(\d+)
+    type: int
+  - name: owned_shared_bytes
+    pattern: (?m)^owned_shared_bytes=(\d+)
+    type: int
+  - name: uncached_read_bytes
+    pattern: (?m)^uncached_read_bytes=(\d+)
+    type: int
+  - name: uncached_read_fallbacks
+    pattern: (?m)^uncached_read_fallbacks=(\d+)
+    type: int
+  - name: uncached_read_effective
+    pattern: (?m)^uncached_read_effective=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2
+expected_metrics:
+  owned_shared_bytes: 4076863488
+  embedding_mapped: 1
+  full_model: 1
+  repetitions: 1
+  uncached_read_effective: 1
+  uncached_read_fallbacks: 0
