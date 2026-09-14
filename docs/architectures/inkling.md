@@ -348,6 +348,48 @@ previous sequence). Numerics and routing stayed as above (rel rms 5.5e-4
 after four layers). One MoE layer per 64 GB is the clean comparison; a
 resident pipeline rank holds one or two layers anyway.
 
+### OpenVINO fused-MoE backend (one compiled model per layer)
+
+OpenVINO 2026.3's GPU plugin fuses a whole MoE layer into its
+`moe_3gemm_fused_compressed` kernel (all experts one expert-major compressed
+constant, a token's k experts in one launch, rows grouped per expert for
+prefill, optional on-disk expert streaming). `tools/inkling_moe_layer_ov.py`
+writes that layer graph for Inkling — the "tiled 3-GEMM block" the plugin's
+`ConvertTiledMoeBlockToGatherMatmuls` pass matches, with the bins' own
+nibbles as `u4` constants (zero point 8, bf16 scales as f16) and the routing
+as inputs (`topk_indices`, `routing_weights`) fed by the Rust gate, so
+Inkling's routing stays exact and the two shared experts ride as the last
+two ids with their gammas — into `<model>/moe_ov/layer_NN/` (~8.2 GB, ~30 s
+per layer). `inkling/ov_moe.rs` runs them: `CASCADIA_INKLING_OV_MOE=1`
+(`_OV_MOE_DEVICE`, `_OV_MOE_CACHE_DIR`, `_OV_MOE_OFFLOAD` = the plugin's
+`OFFLOAD_RATIO`), one call per layer per token or per prefill batch,
+precedence over the per-expert backend for layers that have an IR, per-layer
+fallback otherwise.
+
+Findings on the Arc B390 (driver 32.0.101.8860, OpenVINO 2026.3.1 and the
+2026.5 nightly), all reproduced on Intel's own optimum-intel Qwen3-MoE
+export before any Inkling graph was involved:
+
+- the plugin's batched-GEMV decode kernel crashes the process (access
+  violation in `openvino_intel_gpu_plugin.dll`); the backend sets
+  `OV_GPU_MOE_BATCHED_GEMV_THRESHOLD=0` so decode takes the grouped-GEMM
+  path, and a single-row call still crashes there, so decode is padded to
+  two rows (the second a copy with zero weights) — 2.9–3.0 ms per MoE layer
+  at Inkling's shape (8 experts, 256 MB, ~85 GB/s) versus 4.4 ms for the
+  per-expert backend's eight concurrent calls;
+- prefill: 23 rows in 30 ms per layer (unique experts read once, ~60 GB/s),
+  128 rows in 34 ms — versus 152 ms for the per-expert backend's per-row
+  calls;
+- numerics: the kernel is f16-only; the real layer-2 IR matches the numpy
+  grid reference at relative rms 6.4e-4 (the per-expert f32 path: 1.5e-6);
+- on-disk offload (`OFFLOAD_RATIO` + `WEIGHTS_PATH`) needs the asymmetric
+  layout (the symmetric `i4` export's zero-point placeholder has no bin
+  offset) and streams non-resident experts at ~1 GB/s even from a warm page
+  cache — an order of magnitude under the NVMe and the Rust mmap path, so it
+  cannot serve a paged whole model on this box;
+- the matcher wants the single-input `Swish` (the Python helper's default
+  adds a beta constant and silently prevents fusion).
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert
