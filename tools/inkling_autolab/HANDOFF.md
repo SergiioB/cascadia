@@ -3,11 +3,16 @@
 Updated2026-09-14 13:06UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Active139 local third-reader work;140 native build next
+## Active140 native third-reader qualification and queued141/142
 
 135 sweep COMPLETE, all alternatives1/3/5 slower on allcases; retainrank2 and
 129 confirmedrecord1.1161344306(min9),median1.1515257935.137 NOTprepared/launched.
-Coordinator45173 ended. No native full benchmark/build currentlyactive;sampler3036continues.
+Coordinator45173 ended. 140 native qualifier1920(created1789393819.9274683), launcher1676.
+Controller/private/tmp/run-inkling-third-prefetch-loop.py ACTIVE;
+log/private/tmp/inkling-third-prefetch-loop.log. It archives140 thenruns141/142;
+reviewcomparisonbeforeconditional143. Do not launchduplicates. Sampler3036continues.
+143 helpers prepared/private/tmp/run-inkling-143.py,verify-inkling-143.py,
+compare-inkling-143.py; do not run unless141/142matchedgainjustifies.
 139 runtime implemented locally andqualified257tests/13suites,18tiny modes,
 plusfocused3-reader unwindguard. Three independent workers; atmost3pending,
 thirdonlyoriginalrank2; earlymutuallyexclusive. Idlepoolcap320MiB only when
@@ -20,11 +25,12 @@ Nativehash3b872132795009f1, Machashcab94449a78517d3. Top3first11/second6/third3
 alluseful,misses20/hits169/admissions20/retained69120; frozenreference8IDsunchanged.
 Local+nativeforecasts agree3thirdreads. OriginalHFtop2modeThird1doesnotrequest3rd.
 140 qualifier/testbatch/candidatewrapper prepared:261native tests,11fixture modes,
-6invaliddependencyguards,preserve16frozenbinaries. Sourcecommit/staging next.
+6invaliddependencyguards,preserve16frozenbinaries. Sourceaebab266 staged/archive45d4e219, wrapperc18b8446 parser/SHAverified.
+140 source/test/qualifier manifestthird-prefetch-source.json preserves16oldbinaries.
 141two-control and142third-candidate prepared;143conditional9sampleforecast
 59288/55811/3477aggregate, third6136/5272/864. No fullthirdspeedclaim.
-Productionwrapperbe0b9fb0, profile722f4758 selectedPredict1/Early0/Second1/Rank2
-remain unchanged untilnewqualification; newcandidatewrapperrun-full-third-prefetch.ps1.
+Productionwrapper transitionsbe0b9fb0→c18b8446 onlyafter140qualification;
+profile722f4758 selectedPredict1/Early0/Second1/Rank2 remainsconfirmed; newcandidatewrapperrun-full-third-prefetch.ps1.
 
 ## Confirmed129 record; completed132–135 rank sweep
 
