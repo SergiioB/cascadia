@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "045-pipeline-overlap-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "045-pipeline-overlap-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "045-pipeline-overlap-layers.json",
+      "source_bytes": 2711154,
+      "source_sha256": "66327e28151fa39730eadd969e902c1bd0f72cde2f3c6f97627caa49c2746659",
+      "compressed_file": "045-pipeline-overlap-layers.json.gz",
+      "compressed_bytes": 150784,
+      "compressed_sha256": "a12d9f9c0731ae93af793fb5874d400bc68de8cdd03e4def75897bb92d8f7792"
+    },
+    {
+      "source_file": "host-trials-resources.jsonl",
+      "source_bytes": 2087776,
+      "source_sha256": "5b2ef4c328edc750880c869922315b6ab55f796ae44d7273f16e311c274f0dad",
+      "compressed_file": "045-host-trials-resources.jsonl.gz",
+      "compressed_bytes": 170894,
+      "compressed_sha256": "5211b1bfb6ed71be98afd96ae182ec667736126236ca06f5fb8b9b3756139333"
+    }
+  ]
+}

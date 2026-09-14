@@ -1,0 +1,25 @@
+{
+  "scope": "full_process_lifetime_sampled_resources",
+  "includes_load_prefill_decode": true,
+  "pid": 2368,
+  "created_unix": 1789348029.3876903,
+  "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-pipeline.exe",
+  "intervals": 67,
+  "sampled_seconds": 670.8599999998696,
+  "cpu_core_equivalents": 5.452376427273516,
+  "kernel_fraction": 0.42092627873796445,
+  "faults_per_second_includes_soft": 218255.314074514,
+  "machine_disk_read_bytes_per_second": 4665562178.887709,
+  "process_read_bytes_per_second": 3329151749.5937066,
+  "min_available_RAM_bytes": 1454080,
+  "max_private_bytes": 26093203456,
+  "max_rss_bytes": 42495799296,
+  "max_machine_swap_used_bytes": 16473042944,
+  "caveats": [
+    "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+    "Page faults include soft faults; they are not all storage reads.",
+    "Sampled lifetime includes loading and prefills; this is not decode-only.",
+    "Only adjacent snapshots containing the same PID and creation time contribute rates."
+  ],
+  "source_sha256": "5b2ef4c328edc750880c869922315b6ab55f796ae44d7273f16e311c274f0dad"
+}

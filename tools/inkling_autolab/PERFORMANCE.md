@@ -1,8 +1,8 @@
 # Inkling large975B on Panther Lake
 
-The best completed single-pass profile reaches **0.515177 decode tokens/s** on
+The best completed single-pass profile reaches **0.570649 decode tokens/s** on
 tate-07. The confirmed three-repeat record is **0.196934 tokens/s**; a matched
-scheduling comparison and final repeated confirmation are in progress.
+scheduling comparison is complete and final repeated confirmation is running.
 **The 25 tokens/s target has not been reached.**
 
 ## What was measured
@@ -26,6 +26,8 @@ Separate tiny-model tests check the port against the Hugging Face fixture.
 | [Reusable buffers, row tiles, mapped embedding](results/036-buffered.json) | 3 | 0.196934 | 1.46× |
 | [Also own the shared expert bytes](results/040-owned-shared.json) | 1 | 0.235890 | 1.74× |
 | [Also use uncached expert reads](results/042-uncached.json) | 1 | 0.515177 | 3.81× |
+| [Control for read/compute overlap](results/044-pipeline-control.json) | 1 | 0.537715 | 3.97× |
+| [Overlap each expert's read and compute](results/045-pipeline-overlap.json) | 1 | 0.570649 | 4.22× |
 
 The 036 SSH connection did not return after native completion. Its transport
 failure remains in Autolab history; its complete native results were separately
@@ -53,6 +55,25 @@ Median expert-block time fell from 3.801 seconds/token in 040 to 1.495 in 042;
 attention was 0.364 and work outside the layers was 0.025 seconds/token in 042.
 Prefill still takes roughly two minutes for these short prompts, with transient
 memory pressure. Decode speed does not include that prefill latency.
+
+The matched overlap comparison improved the slowest-case score by 6.1%, with
+each case improving by 4.2–12.0%. The overlap arm completed 2.72% more uncached
+expert bytes, so its gain did not come from reading fewer expert bytes.
+The [comparison report](results/045_pipeline_comparison.json) retains both arms.
+The selected profile is now being repeated three times across all three cases.
+
+## Reproduce the selected profile
+
+Dot-source [ptl-profile.ps1](ptl-profile.ps1) before launching a new Inkling engine
+process on tate-07. It sets process environment variables only. The benchmark
+also uses High process priority and all 16 logical processors; the production
+launcher [run-full.ps1](run-full.ps1) applies those conditions to its own child.
+
+The qualified `full-pipeline.exe` SHA-256 is
+`8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b`.
+Its source is commit `18f8becb`. The exact repeated benchmark command is saved in
+[campaign 046](campaigns/046_full_final_confirmation.yaml). Repeated results are
+pending; do not describe this profile as meeting the 25 tokens/s target.
 
 The [journal](JOURNAL.md) records hypotheses, tests, and rejected approaches.
 Raw layer/routing traces and sampled host resources are archived under

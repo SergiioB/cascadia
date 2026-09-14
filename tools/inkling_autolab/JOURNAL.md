@@ -1162,3 +1162,20 @@ Direct034 anduncached042 choose identical routed IDs in all192case/layerpairs,
 Prepared046_full_final_confirmation withPipelineReads1,all3cases x3reps,63decode
 steps each,timeout7200,expectedpipelinecount36288. NOT launched; require045
 completion/fullvalidation and no active native model before starting it.
+
+
+## 45 completed; 46 final repetition launched
+
+Matched045 scores0.570649/0.606658/0.598387tok/s,allcases faster than044 by
+4.25/12.00/11.28%. Slowest0.5706485510 vscontrol0.5377145739,+6.12%. Allfull
+IDs/hash/settings pass,actualpipelinecount12096. The overlap arm read2.72%more
+uncached expertbytes,so less expert I/O does not explain its gain. Naturalcache
+state/backgroundconditions remain a comparison limitation. MedianMLP1.289330s
+versuscontrol1.467535s; attention0.357172 vs0.353489s. Privatepeak26.093GB and
+transientprefillpressurepersist. Archived fullrawtraces/resources/comparison.
+
+SelectPipeline1.046 finalconfirmation launched withall3cases x3reps,63steps,
+expectedpipelinecount36288. Tool4290,log/private/tmp/inkling-full-final-confirmation.log,
+nativePID2144,created1789348770.2793455. No other trial/buildqueued. Sampler4208
+continues; stopwithmarkerafter046. Preparedptl-profile.ps1 setsprocessenvonly;
+PERFORMANCE.md reflects single-passresult and pendingrepetition.25unmet.

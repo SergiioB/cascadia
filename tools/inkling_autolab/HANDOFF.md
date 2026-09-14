@@ -1,13 +1,13 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 00:55 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
+Updated 2026-09-14 01:24 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
 PTL machine**, not a component rate, aggregate throughput or remote inference.
 **Target has not been reached.** Continue in this session autonomously.
 
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `12c19a3e` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `f201482f` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,38 +65,34 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Current live state (2026-09-14 00:55 UTC; refresh before any action):
+Current live state (2026-09-14 01:24 UTC; refresh before any action):
 
-- **044_full_pipeline_control RUNNING**, followed automatically by
-  **045_full_pipeline_overlap** only if044 exits successfully. One shell tool
-  session **20333** owns this sequential pair. Do NOT launch045 separately.
-- Controller logs`/private/tmp/inkling-full-pipeline-control.log` and
-  `/private/tmp/inkling-full-pipeline-overlap.log` (second created when it starts).
-  Native044-pipeline-control* and045-pipeline-overlap* hold logs/JSON/traces.
-- Both use **full-pipeline.exe**, SHA
-  **8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b**,
-  source18f8becb. Three cases x1rep,63 decode steps each. Samebinarycomparison.
-- Both: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1,UncachedReads1.
-  PipelineReads0control/1overlap. Gatesfullhashce0fbb9a116d3d09,owned4076863488,
-  actualuncached_effective1/fallbacks0,actualpipeline layer count0/12096.
-- **042 completed/Autolabverified:** slowest **0.5151766081427948tok/s** over
-  3cases1rep; rates0.536215/0.533069/0.515177. Exact tokens/logits.2.184x040,
-  3.807xoriginalbaseline. Actualuncached bytes2208959299584,fallbacks0.
-  This is SINGLE-PASS; repeated record remains036 until final confirmation.
+- **046_full_final_confirmation is RUNNING**, tool session **4290**,
+  controllerlog`/private/tmp/inkling-full-final-confirmation.log`.
+- Native full-pipeline.exe **PID2144**,created1789348770.2793455.
+  Same qualified SHA8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b,
+  source18f8becb. **Nine samples:3cases x3reps,63decode steps each.**
+- Settings: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1,Uncached1,Pipeline1.
+  Gatesfullhashce0fbb9a116d3d09,ownedbytes4076863488,actualuncached_effective1,
+  fallbacks0,actualpipeline layer count36288. Native046-final*.json/.log.
+- **044/045 matched pair COMPLETE**, tool20333 ended; do not restart either.
+  Controlslowest0.5377145739,overlap0.5706485510tok/s. All3 cases improve by
+  4.25/12.00/11.28%; slowest score+6.12%. Exactfullhash/IDs,uncachedfallbacks0,
+  actualpipelinecounts0/12096. Overlapread2.72%MOREuncachedbytes. KeepPipeline1.
+- **Best completed SINGLE-PASS:0.5706485510183931tok/s**,045. Fastest individual
+  case0.6066584264. These are not the final repeated record.
 - **Repeated record036:0.1969341563127117tok/s**,9samples,45.52% overbaseline.
-  Exact IDs/hash. Original SSH client stayed open after native/wrapper exit;
-  closed exact local23331, kept Autolab transport failure. Complete native
-  artifacts independently verified in036_completed_artifact_verification.json.
-- **043 pipeline qualification COMPLETE:**233 native tests, three fixture modes
-  and production wrapper preserve1f7cd0eb14a22662. Pipelinecounts0/63off/on.
-  All five earlier frozen binaries unchanged. Qualifier5952,parent9672 ended.
-- **041 uncached qualification COMPLETE:**233 native tests inclactualaligned
-  byte/kernel canaries. Tiny fixture uses cached fallback for unaligned bins.
-  full-uncached.exe SHA9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2.
+  OriginalSSHclient stayedopen after native/wrapperexit; exactlocal23331closed,
+  Autolabtransportfailure kept. Native artifacts independently verified in
+  036_completed_artifact_verification.json. Do not rerun or rewrite that history.
+- Allnativequalifiers ended. **No build/probe/further trial is queued.**
 - Sampler4208,parent1420 active;host-trials-resources.jsonl, six-hour limit from
-  22:38UTC,stopmarkerstop-trials-sampler. Stop when campaign sequence ends.
-- Target25 remains unmet; current export/workload/SSD bandwidth bound rules out
-  ordinary tuning to25. Continue useful measured improvements without false wins.
+  22:38UTC,stopmarkerstop-trials-sampler. Stop after046 and final resource capture.
+- On046completion verify all9samples/hash/IDs/settings, archive rawprofiles,
+  compare repeated rates, updatePERFORMANCE.md/README/status/handoff,commit+push.
+  Then create samplerstopmarker and verify taskfull/samplerjobs exited.
+- Target25 remains unmet; current packedexport/workload/SSD bandwidth bound
+  rules out ordinarytuning to25. Never claim goal achieved or component rates.
 
 ## Baseline and qualified candidates
 
@@ -173,10 +169,17 @@ Lifetimefaults199889/s include prefills/softfaults; fasterdecode changes their
 share, so don't compare as decode-only fault rates. Uncached11.6876GB/token,
 4.44% of routed selections computed from mappings; notphysical cache-hit rate.
 
-Let044 then045 finish and compare full rates/layer timings/resources. Choose
-winning full profile and run a final3repetitions across3cases before reporting a
-new repeated record. No046 final campaign exists yet. No native build/probe
-queued. No new export/A100 job needed. Do not stop protected services.
+044/045 artifacts are under/private/tmp/inkling-full-pipeline-{control,overlap}-artifacts.
+Comparison045_pipeline_comparison.json shows all3cases improve withoverlap.
+MedianMLP1.467535s/control vs1.289330s/overlap; attention0.353489/0.357172,
+outside0.024980/0.024739. Full046 repeatsselectedoverlap; no code/build needed.
+PERFORMANCE.md summarizes evidence;ptl-profile.ps1 sets selectedprocessenvonly.
+It does not restart services; final repeated confirmation is still pending.
+
+No new export/A100job needed. No native qualifier or othertrial queued. Finish046,
+archive results, update repeatedrecord honestly, stop sampler bymarker, andverify
+all taskjobsended. Do not stopprotectedservices.25 targetrequiresdifferentsetup;
+reportbestverifiedrate and hardwarelimit without claiming mathematicaloptimality.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads
@@ -279,22 +282,7 @@ Nativefixture modes/wrapper preserve1f7cd0eb14a22662 withcounts0/63. Qualified
 full-pipeline.exe is now under matched full evaluation044/045. Archives
 /private/tmp/inkling-pipeline-source.{tar,json};nativepipeline-source.*.
 
-No native qualifier remains queued/running. Do NOT overlap anotherfull/build with
-sequentialpair20333. After its completion, inspect both final artifacts and choose
-best settings for a >=3rep final confirmation. Preserve all frozen binaries.
-
-
-Update01:08UTC:044 completed/Autolabverified,slowest0.5377145739tok/s across3cases,
-actualpipelinecount0,uncachedbytes2154558652416,fallbacks0. **045 is nowRUNNING**
-under the same sequentialtool20333,nativePID2368,created1789348029.3876903.
-Do not launch045 again. Control artifacts copied to/private/tmp/inkling-full-
-pipeline-control-artifacts. After045 choosewinner,prepare046final3repetitions.
-034 versus042 route traces match all192case/layerpairs and108288 routedselections
-includingprefill;037 cache/bandwidth analysis applies to the current routes.
-
-
-01:15UTC:045 has two completed cases,water0.57064855,binary0.60665843,exactIDs;
-finalcase/fullhash/counterspending. Prepared046_full_final_confirmation (NOT
-launched),PipelineReads1,3cases x3reps,63steps,expectedpipelinecount36288. If045
-finishes verified and all cases improve,run046 after tool20333/native exit.
-Keep sampler4208 active through046; no new build required.
+No native qualifier remains queued/running. Do NOT overlap anotherfull/build
+with046. Its tool4290/native2144 are the only activebenchmark. Aftercompletion,
+verify all nine samples and source/counteridentity before reportingnewrecord.
+Preserve all frozenbinaries, model/sourceexport and sampler/rawlogs.

@@ -1,0 +1,36 @@
+{
+  "scope": "same_binary_full_pipeline_comparison",
+  "binary_sha256": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+  "passes_per_arm": 1,
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_match": true,
+  "control_slowest_tokens_per_s": 0.537714573869795,
+  "overlap_slowest_tokens_per_s": 0.5706485510183931,
+  "slowest_score_speedup": 1.0612480649568052,
+  "uncached_read_bytes_ratio": 1.0272152085858735,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_rate": 0.5473955907881215,
+      "overlap_rate": 0.5706485510183931,
+      "speedup": 1.042479261107662
+    },
+    {
+      "case": "binary_search",
+      "control_rate": 0.5416785334748087,
+      "overlap_rate": 0.6066584263578549,
+      "speedup": 1.119960251085099
+    },
+    {
+      "case": "short_story",
+      "control_rate": 0.537714573869795,
+      "overlap_rate": 0.5983867641011793,
+      "speedup": 1.1128334495283285
+    }
+  ],
+  "caveats": [
+    "Single-pass comparison; final repeated confirmation is pending.",
+    "Natural OS cache state and background activity are not identical across runs.",
+    "The overlap arm completed2.72% more uncached expert bytes; it did not win by reading fewer expert bytes."
+  ]
+}
