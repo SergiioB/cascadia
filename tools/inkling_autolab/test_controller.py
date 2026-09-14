@@ -115,3 +115,18 @@ def test_target_requires_full_model_proof(tmp_path):
     assert not controller.full_model_target_met(campaign, valid)
     assert not controller.full_model_target_met(campaign, dict(valid, owned_shared_bytes=0))
     assert controller.full_model_target_met(campaign, dict(valid, owned_shared_bytes=4076863488))
+
+
+@pytest.mark.parametrize('policy', [{'diagnostic_only': True}, {'promotion_allowed': False}])
+def test_diagnostic_campaign_cannot_claim_full_model_target(tmp_path, policy):
+    path = tmp_path/'diagnostic.yaml'
+    path.write_text(yaml.safe_dump({
+        'name': 'diagnostic', 'measurement_scope': 'full_large_model_decode',
+        'defaults': {'expected_hash': 'abcdef'},
+        'metrics': {'primary': 'decode_tokens_per_s', 'direction': 'maximize'},
+        **policy,
+    }))
+    campaign = controller.Campaign(path)
+    complete = {'output_hash': 'abcdef', 'full_model': 1, 'correctness_verified': 1,
+                'decode_steps_min': 63, 'repetitions': 3, 'decode_tokens_per_s': 100}
+    assert not controller.full_model_target_met(campaign, complete)

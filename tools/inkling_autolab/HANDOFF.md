@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 10:01 UTC. Work is ACTIVE. User requested autonomous optimization toward
+Updated 2026-09-14 10:22 UTC. Work is ACTIVE. User requested autonomous optimization toward
 25 tok/s. Do not stop after a finite campaign. The target remains unmet.
 
 ## Current record
@@ -18,60 +18,54 @@ Native094 PID5132(created1789378071.276495),095 PID7928(created1789378926.782711
 and localcontroller95987 exited. Their outputs094-rows-repeated-control.* and
 095-rows-repeated-candidate.* are archived. No new record was promoted.
 
-## Active full cache-recency comparison
+## Active repeated cache-recency confirmation
 
-**100_full_cache_recency_control RUNNING**, native **PID9956**, created
-**1789379922.80522**. Outputs100-cache-recency-control.json/.log/-routes.json/-layers.json.
-Localcontroller **70713**, script **/private/tmp/run-inkling-cache-recency-loop.py**.
-It runs100 then101_full_cache_recency_recent sequentially, with logs
-/private/tmp/inkling-CAMPAIGN_NAME.log.101 outputs101-cache-recency-recent.*.
-Both3prompts×1rep,64generated/63decode, rows2/4/all16CPUs/16workers/cache256/decay32.
-100CacheRecentTies0;101CacheRecentTies1. Actual counters/hash/IDs are gated.
+**102_full_cache_recency_confirmation is RUNNING**, native PID8204,
+created1789380877.6939435. Local controller94756 runs
+/private/tmp/run-inkling-recency-confirmation.py, log
+/private/tmp/inkling-102_full_cache_recency_confirmation.log. Native outputs
+102-cache-recency-confirmation.json/.log/-routes.json/-layers.json.
+Nine samples (three prompts × three repetitions), 64 generated /63 decode,
+rows2/4, all16CPUs, 16workers, cache256MiB/layer, decay32, recent ties enabled.
+Capture only after process exit, with --repetitions 3 and exact PID/creation.
 
-Qualified frozen **full-cache-recency.exe**, source **849a08bd**,
-SHA **a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40**.
-098 native245 tests andfive tiny wrapper modes passed. Python3144,parent10896,
-cmd2616 exited. All raw098 artifacts andSHA copied;098_artifact_verification.json.
-Native productionrun-full.ps1 promoted after tests and matches local file,
-SHA2217f5076314e4462bc95dbe2e5d6a643981e65d11a2444bd412813d59ed1f97.
-All9 older frozen binaries remain unchanged, including recordfull-cache-decay.exe
-SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8/source6b820e83.
+100/101 single-pass comparison is complete and archived. Control score
+0.9281253880; recent-tie score0.9282463125. Actual SSD reads fell4.549%.
+Binary search and short story each gained about4%; the water-cycle sample
+contained an extra5.2-second second-token stall. Its cause is unestablished.
+That stall remains in all scores.102 tests whether gains/stall repeat;
+no profile promotion yet. See101_cache_recency_comparison.json.
 
-Recent-tie admission is opt-in CASCADIA_INKLING_CACHE_RECENT_TIES=1. It admits a
-newer expert on equal frequency, while preserving later current-cohort hits and
-outstanding leases. No arithmetic/weight changes. Actualrecent_tie_admissions
-is cumulative.096 causal replay predicts4.549% fewer reads; no full speedup yet.
-Counter predictions097_cache_recency_counter_predictions.json:
-1rep recent33257hits/39319misses/26816admit/26304evict/20015ties;
-uncached1252329652224, hitbytes1059251945472.
-3rep99853/117875/80366/79854/60045ties; uncached3754377216000,hitbytes3180367577088.
-All other profile/counters unchanged. Control1rep31383hits/41193misses/8629admit/
-8117evict/0ties; uncached1312017481728,hitbytes999564115968.
+102 uses frozen full-cache-recency.exe, source849a08bd, SHA
+ a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40.
+Expected nine-sample counters:99853hits/117875misses/80366admissions/
+79854evictions/60045recent-tie admissions, uncached3754377216000,
+hitbytes3180367577088. Numerical oracle ce0fbb9a116d3d09 and all IDs/routes
+must match.097_cache_recency_counter_predictions.json holds predictions.
 
-**102_full_cache_recency_confirmation PREPARED, NOT LAUNCHED.**
-After100/101 finish and are compared, run102 only if recent wins.102uses3reps/
-nine samples and exact predicted counters. Controller70713 does not launch102.
-Capture completed runs with the helper below, preserve failures, confirm before
-promoting profile/record, then continue optimization.
+## Qualified prediction diagnostic and next campaign
 
-## Future103 prediction diagnostic and104 qualification
+104 native qualification COMPLETE:247 tests/13suites and four tiny modes
+(recentties off/on × prediction off/on) passed. All actual routes, cache
+counters and native fixture hash1f7cd0eb14a22662 match. Python2468 exited.
+All10 older frozen binaries remain unchanged.104_artifact_verification.json
+records the SHA-verified archive and source32e2de69.
 
-Source **67973647** is committed/pushed, but not deployed natively. It adds a
-separate decode-only pre-attention observer using current residual input plus
-the existing MLP norm/router. Actual routes/cache history/state are unchanged;
-no speculative reads occur. Benchmark--prediction-trace requires--route-trace.
-analyze-route-prediction.py scores1–6uncached predictions against causal cache
-state.243localtests pass, includingtwo observer/causality tests.3repeatARMfixture
-hash5122e042f9b1fb30, actualroute arrays andcachecountersexact. Invaliddiagnostics
-rejected. Artifacts103*. **Do not confuse this later code with098 binary849a08bd.**
-104 qualification scripts are PREPARED locally:qualify-route-prediction.py,
-test-route-prediction.bat,run-full-prediction.ps1. Package/stage their source
-manifest/tar and launch;104 waits100/101 then builds/tests247native tests and
-four tiny modes. It preserves all10older binaries. Currentproductionwrapper
-remains2217f507; candidatewrapper is a separate file, promoted only aftertests.
-**102must wait104qualified/exited if104is staged.** Then102 may confirmthe
-frozenrecencybinary;105fullpredictiondiagnostic can follow. No105campaign yet.
-Published other-model accuracy is not Inkling evidence. Sources inJOURNAL.md.
+New full-route-prediction.exe SHA
+89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984.
+Native and local production run-full.ps1 now match prediction-capable wrapper
+SHA b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
+The optional observer evaluates the existing MLP norm/router before attention.
+Actual routes/cache state remain unchanged; no speculative reads occur.
+
+105_full_pre_attention_prediction_diagnostic is PREPARED, not launched.
+After102 capture/decision, revise105 cache policy/counters if needed, then run.
+It uses three prompts × one repetition, records105-route-prediction-predicted.json
+alongside actual routes/layer timings. It is explicitly diagnostic_only and
+promotion_allowed=false; controller gates now enforce both flags (15 tests pass).
+Full-model prediction accuracy is still unknown. After capture/SHA verification,
+run analyze-route-prediction.py with --trace, --predictions, --benchmark,
+--recent-ties 0/1 and a fresh --out. Continue optimizing after the diagnostic.
 
 ## Completed evidence
 

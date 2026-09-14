@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T10:01:35.715654+00:00",
+  "updated_at": "2026-09-14T10:22:18.820336+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
-  "status": "100_full_cache_recency_control_running",
+  "status": "102_cache_recency_confirmation_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Finish095/capture/compare to094, wait098 native qualification, then freeze row choice for100/101 cache-recency trials and continue optimization.",
+  "next_action": "Finish102 and verify all nine samples before any promotion; then105 full pre-attention prediction diagnostic using selected cache policy; continue optimization.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,25 +46,25 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": "100_full_cache_recency_control",
+  "active_campaign": "102_full_cache_recency_confirmation",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 9956,
-      "created_unix": 1789379922.80522,
+      "native_pid": 8204,
+      "created_unix": 1789380877.6939435,
       "binary": "full-cache-recency.exe",
-      "campaign": "100_full_cache_recency_control"
+      "campaign": "102_full_cache_recency_confirmation"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [
-    "101_full_cache_recency_recent"
+    "105_full_pre_attention_prediction_diagnostic"
   ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 70713,
+  "controller_session": 94756,
   "pending_storage_probe": {
     "status": "092_complete_and_exited",
     "native_pid": 6392,
@@ -112,13 +112,13 @@
     "modes": 5
   },
   "next_controller": {
-    "session": 70713,
-    "script": "/private/tmp/run-inkling-cache-recency-loop.py",
-    "status": "running100_then101"
+    "session": 94756,
+    "script": "/private/tmp/run-inkling-recency-confirmation.py",
+    "status": "running102"
   },
   "future_prediction_diagnostic": {
-    "source_commit": "67973647127ea563f376a71af67e481d694d5f0b",
-    "status": "local243_tests_passed_not_native_staged"
+    "status": "105_prepared_not_launched",
+    "native_qualification": "104_artifact_verification.json"
   },
   "repeated_row_comparison": {
     "control": 0.9354823511082949,
@@ -126,5 +126,14 @@
     "decision": "retain_rows2_4",
     "candidate_over_control": 1.0000581889030975
   },
-  "conditional_confirmation": "102_full_cache_recency_confirmation"
+  "conditional_confirmation": "102_full_cache_recency_confirmation",
+  "pending_prediction_qualification": {
+    "status": "qualified_and_exited",
+    "source_commit": "32e2de695925aadad1dc38eeabd0a52290c4f287",
+    "native_tests": 247,
+    "modes": 4,
+    "binary_sha256": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984",
+    "wrapper_sha256": "b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c"
+  },
+  "cache_recency_comparison": "101_cache_recency_comparison.json"
 }

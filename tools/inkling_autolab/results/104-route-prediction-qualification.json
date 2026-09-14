@@ -1,0 +1,141 @@
+{
+  "status": "qualified",
+  "source_commit": "32e2de695925aadad1dc38eeabd0a52290c4f287",
+  "binary_sha256": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984",
+  "wrapper_sha256": "b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c",
+  "modes": [
+    {
+      "recent": 0,
+      "prediction": 0,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "artifacts": [
+        {
+          "name": "104-fixture-recent0-predict0.json",
+          "sha256": "bcd63d64e0d6d3add07cbd015161c7299b89da7bbaf751a48f7bceed090f8309"
+        },
+        {
+          "name": "104-fixture-recent0-predict0.log",
+          "sha256": "1b21cf275af33634fbd30d41c1a76dd258ace27036432c02ef4236b2ec53eba6"
+        },
+        {
+          "name": "104-fixture-recent0-predict0-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        }
+      ]
+    },
+    {
+      "recent": 0,
+      "prediction": 1,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "artifacts": [
+        {
+          "name": "104-fixture-recent0-predict1.json",
+          "sha256": "8f16b7305006f541eac0b5dc64bce05a3abed05dff1e06e9e580933e50d3dbbf"
+        },
+        {
+          "name": "104-fixture-recent0-predict1.log",
+          "sha256": "7cd3f215756f7b48d299a0009fd88d857bba41af550decff9b27878d28c826a9"
+        },
+        {
+          "name": "104-fixture-recent0-predict1-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "104-fixture-recent0-predict1-predicted.json",
+          "sha256": "88fe2a855128d910f57bee1bfe813f9e10b014ac47707ce032d5311d25983709"
+        }
+      ]
+    },
+    {
+      "recent": 1,
+      "prediction": 0,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "artifacts": [
+        {
+          "name": "104-fixture-recent1-predict0.json",
+          "sha256": "325d5ddcb8f352e8f2a151646d4fd47df2c4d0086b6a1ae9dd416bbe949c629e"
+        },
+        {
+          "name": "104-fixture-recent1-predict0.log",
+          "sha256": "749b62182674a076807ab766c9df419ab32b22fd6288be8529ac218ab9acc6b7"
+        },
+        {
+          "name": "104-fixture-recent1-predict0-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        }
+      ]
+    },
+    {
+      "recent": 1,
+      "prediction": 1,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "artifacts": [
+        {
+          "name": "104-fixture-recent1-predict1.json",
+          "sha256": "dfa19b4da0da8f8118ecae153f6863202e640c6c22319cb275f369bffc5fcc12"
+        },
+        {
+          "name": "104-fixture-recent1-predict1.log",
+          "sha256": "3e261b3f4559443c7f9680b90a0ed6d403137fe5f6149bc72cb27761d2723574"
+        },
+        {
+          "name": "104-fixture-recent1-predict1-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "104-fixture-recent1-predict1-predicted.json",
+          "sha256": "88fe2a855128d910f57bee1bfe813f9e10b014ac47707ce032d5311d25983709"
+        }
+      ]
+    }
+  ],
+  "full_model_speedup_measured": false
+}

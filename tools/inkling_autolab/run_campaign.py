@@ -26,7 +26,9 @@ def expected_metrics_match(campaign: Campaign, metrics: dict) -> bool:
 def full_model_target_met(campaign: Campaign, metrics: dict) -> bool:
     """Only a repeated, verified full large-model decode may satisfy 25 tok/s."""
     return (
-        campaign.config.get('measurement_scope') == 'full_large_model_decode'
+        not campaign.config.get('diagnostic_only', False)
+        and campaign.config.get('promotion_allowed', True) is True
+        and campaign.config.get('measurement_scope') == 'full_large_model_decode'
         and campaign.primary_metric == 'decode_tokens_per_s'
         and campaign.metric_direction == 'maximize'
         and bool(campaign.defaults.get('expected_hash'))

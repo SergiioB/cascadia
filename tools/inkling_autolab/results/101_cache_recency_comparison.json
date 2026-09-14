@@ -1,0 +1,38 @@
+{
+  "scope": "matched_full_model_cache_recency_comparison",
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control": 0.9647337326934885,
+      "candidate": 0.928246312510582,
+      "ratio": 0.9621787660715092
+    },
+    {
+      "case": "binary_search",
+      "control": 0.9281253880309936,
+      "candidate": 0.9659562355496301,
+      "ratio": 1.0407604920698206
+    },
+    {
+      "case": "short_story",
+      "control": 0.9532108366121957,
+      "candidate": 0.9914241480717081,
+      "ratio": 1.0400890443034891
+    }
+  ],
+  "control_score": 0.9281253880309936,
+  "candidate_score": 0.928246312510582,
+  "actual_decode_read_reduction": 0.04549316631466516,
+  "all_actual_routes_identical": true,
+  "all_output_hashes_and_ids_exact": true,
+  "first_case_outlier": {
+    "decode_step_zero_based": 1,
+    "control_layer_seconds": 1.5756555,
+    "candidate_layer_seconds": 6.7931058,
+    "source": "100/101 raw layer traces",
+    "cause": "under_investigation",
+    "included_in_reported_score": true
+  },
+  "decision": "run102_confirmation_before_any_promotion",
+  "reason": "Other two prompts gain about4%; first prompt contains a5.2s extra second-token stall. Full reported conservative scores remain nearly tied; do not exclude the stall or claim a record."
+}
