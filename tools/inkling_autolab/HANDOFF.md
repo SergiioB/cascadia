@@ -1,7 +1,33 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:14UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 11:32UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
+
+## Latest112 confirmation launch (11:22UTC)
+
+110/111 complete, allraw/SHA/numeric/routes/cache/read counters verified.
+111 slowest1.0607746934 vs110.9679409165, +9.5909%. All three prompts faster:
+water+6.33%, binary+14.17%, story+14.64%. Actualprefetch11906/11338/568
+scheduled/useful/unused, zero failures; extra1.4446% readbytes. No profile
+promotion yet. Controller92370 and finisher50545 ended normally.
+
+112_full_predicted_read_confirmation RUNNING, three repetitions/nine
+samples, samefrozen7b20ee35/source dc4badd3 and sameprofile. Log
+/private/tmp/inkling-112_full_predicted_read_confirmation.log. Native full-predicted-read.exe PID8584, creation1789384963.340568.
+Local controller session84880. Prepared verifier/private/tmp/verify-inkling-112.py.
+Native outputs112-predicted-read-confirmation.*. Expected35718scheduled/
+34014useful/1704unused, uncached3808650461184, allcache counters same102.
+After completion, capture with --repetitions3 and formalverification adapted
+from/private/tmp/verify-inkling-102.py. Compare all nine complete samples with102,
+including firstcoldsample; promote only if verified. Target25 remains unmet.
+
+Next unimplemented idea, pending112: diagnostic prediction one layer earlier
+may expose more I/O overlap than the current short attention window. Measure
+its accuracy first with the next layer's existing norm/router on the previous
+layer's residual input, preserving actual math/routes and default behavior.
+No code/hypothesis entry/staging yet; do not confuse this idea with qualified
+current-layer prefetch. Could instead validate current prefetch on longer
+held-out cases. Continue choosing experiments from measured evidence.
 
 ## Current confirmed record
 
@@ -14,15 +40,17 @@ Selected profile16workers/all16CPUs, rows2/4, cache256MiB per MoE layer,
 historyreset1/decay32/recentties1, streamed prefill and prior I/O flags. CPU only.
 No actual prefetch is selected yet. No new export or Lambda work needed.
 
-## Active110/111 prefetch comparison
+## Historical110/111 launch state (both now complete)
 
-**110_full_predicted_read_control RUNNING**, native **PID7308**, created
-**1789384238.1766171**, frozenfull-predicted-read.exe. Localcontroller **92370**,
-script **/private/tmp/run-inkling-predicted-read-loop.py**. It runs110 then111
-sequentially and stops for review before conditional112. Logs
+**111_full_predicted_read_prefetch RUNNING**, native **PID3408**, created
+**1789384539.2968717**, frozenfull-predicted-read.exe. Localcontroller **92370**,
+script **/private/tmp/run-inkling-predicted-read-loop.py**.110 control completed
+0.9679409165tok/s, all outputs/counters/SHA archives verified. Native1107308
+(created1789384238.1766171) exited; capture7662 completed. Controller92370 now
+runs111 and stops for review before conditional112. Logs
 /private/tmp/inkling-110_full_predicted_read_control.log and
 /private/tmp/inkling-111_full_predicted_read_prefetch.log.
-Native outputs110-predicted-read-control.* then111-predicted-read-prefetch.*.
+Native outputs110-predicted-read-control.* and111-predicted-read-prefetch.*.
 Both canonicalthree prompts × onerep,64generated/63decode, selectedrecentcache.
 110PredictReads0;111PredictReads1. Full exact output and actual-counter gates.
 
@@ -52,8 +80,7 @@ predictions for identical reset inputs; actual counters must verify determinism.
 No promotion until complete repeated score and exact artifacts are checked.
 
 Capture110/111 with /private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED.
-It supports the original63decode/ce0fbb9a116d3d09 grid. Record actual111PID+creation
-when it starts; do not assume110 identity carries over. Use--repetitions3 for112.
+It supports the original63decode/ce0fbb9a116d3d09 grid. 111 nativeidentity3408/1789384539.2968717 is confirmed. Use--repetitions3 for112.
 Snapshot, SHA copies, exact grid/IDs/full shape, layer/resource analysis included.
 No broad process kills; preserve OVMS6728/node8356/CA6344 and sampler3036.
 

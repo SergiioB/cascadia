@@ -1,0 +1,36 @@
+{
+  "scope": "same_binary_full_model_predicted_read_comparison",
+  "control_score": 0.9679409164808447,
+  "candidate_score": 1.0607746934234432,
+  "ratio": 1.095908516069468,
+  "all_outputs_actual_routes_and_cache_counters_exact": true,
+  "actual_predicted_read_counters_match_causal_forecast": true,
+  "actual_extra_read_fraction": 0.014445942165365322,
+  "all_three_cases_faster": true,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_tok_s": 0.9976549723978958,
+      "candidate_tok_s": 1.0607746934234432,
+      "ratio": 1.0632680864345687
+    },
+    {
+      "case": "binary_search",
+      "control_tok_s": 0.9679409164808447,
+      "candidate_tok_s": 1.1050900775235424,
+      "ratio": 1.1416916659968595
+    },
+    {
+      "case": "short_story",
+      "control_tok_s": 0.9921746836228963,
+      "candidate_tok_s": 1.1374304862517857,
+      "ratio": 1.1464014402166482
+    }
+  ],
+  "decision": "run112_repeated_confirmation_before_promotion",
+  "record_promoted": false,
+  "caveats": [
+    "Three prompts and one repetition; a repeated confirmation is required before promotion.",
+    "All timings include the prediction and unused-read costs; no token or sample excluded."
+  ]
+}
