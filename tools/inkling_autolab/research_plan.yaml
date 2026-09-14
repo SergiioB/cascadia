@@ -184,3 +184,16 @@ questions:
   priority: 3
   reason: Prepare075 native qualification after074, then076 fresh2/4 control and077–080 independent row
     tile trials. All outputs and I/O counters remain gated.
+- id: q84
+  question: Can lossless compression reduce full expert-read latency after accounting for decompression?
+  status: active
+  priority: 3
+  reason: 083 source probe saves12.5–13.1% bytes; native084 matched component queued after rows. No runtime
+    compression implementation.
+- id: q88
+  question: Does restricting workers to CPUs0–11 sharing one reported last-level cache improve exact full
+    decode?
+  status: active
+  priority: 3
+  reason: 087 topology and saved decode utilization justify an isolated process-affinity comparison.088
+    native qualification then089–091 full campaigns prepared.

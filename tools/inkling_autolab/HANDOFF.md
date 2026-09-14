@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 08:53UTC. User resumed autonomous optimization.
+Updated2026-09-14 09:01UTC. User resumed autonomous optimization.
 Work is ACTIVE; do not stop after a finite campaign. Target25tok/s is unmet.
 
 ## Current record and live work
@@ -13,14 +13,16 @@ and SHA manifests committed with this handoff. PERFORMANCE.md and ptl-profile.ps
 promoted; native profile copy SHA verified. Sampler remains active.
 
 **076 control COMPLETE0.9244748903**, **077 rows1/4 COMPLETE0.9273579552**;
-**078 rows4/4 COMPLETE0.9311444128**; **079b retry RUNNING**, **080 QUEUED**.
+**078 rows4/4 COMPLETE0.9311444128**, **079b rows2/1 COMPLETE0.9297757263**;
+**080_full_rows_2_2 RUNNING**.
 Controller **66059**, script`/private/tmp/run-inkling-row-loop-resume.py`.
 Original36811 exited after079 SSH banner timeout; failed079 history is retained.
 Host recheck proved no079 files/process before retry. Newcampaign079b_full_rows_2_1_retry
 uses original079 native outputs,30sConnectTimeout;080 has same transport timeout.
 Logs`/private/tmp/inkling-076_full_rows_2_4.log` and equivalent campaign names.
 Native0786304 and0776752 exited; both artifacts/SHA/profiles are archived.
-Native079b **PID3268**, created**1789375904.384442**.
+Native080 **PID5180**, created**1789376229.1035454**.079b3268 exited;
+079 native artifacts and retry campaign report are archived, original failed079 retained.
 Outputs076-rows-2-4.json/.log/-routes.json/-layers.json, then077-rows-1-4.*,
 078-rows-4-4.*,079-rows-2-1.*,080-rows-2-2.*.
 Frozenfull-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
@@ -199,7 +201,18 @@ are not matched full-export speedups. Fresh549GBdelivery at103.7MB/s adds88min
 MedianMLP time for0/1/2/3/4/5/6misses:3.795/5.373/8.540/11.572/14.578/17.582/20.617ms.
 These are correlations, not isolated read timings. Report085_cache_miss_timing.json.
 
-086 allocation metadata probe PREPARED, NOT LAUNCHED. Sourceprobe-file-extents.py
+086 allocation metadata probe STAGED AND WAITING: nativePython3604,parent1164,
+statefile-extents-probe-state.json, output086-file-extents.json/.log. Sourceprobe-file-extents.py
 will wait for084 terminal state and exit, then take queue lock and query36 original
 files withFSCTL_GET_RETRIEVAL_POINTERS. Native-only; localsyntax passes. No data
-reads or file/volume mutation. Stage/SHAcheck/launchdetached after committing source.
+reads or file/volume mutation. Staged script and unchanged read helper SHA verified before launch.
+
+087 topology: class1CPU0–3;class0CPU4–15. CPU0–11 LLCindex0;CPU12–15 LLCindex12.
+All16 used during074 decode;087_decode_cpu_usage.json is machine-wide, not process-only.
+088_affinity qualifier PREPARED, NOT STAGED/LAUNCHED as of this checkpoint.
+Localrun-full.ps1 now adds optionalAffinityMask/readback, default65535 unchanged.
+Native production wrapper still OLD; stage new asrun-full-affinity.ps1 with
+affinity-source.json andqualify-affinity.py. Nativequalifier must wait084+086
+terminal/exited, then tinytestmasks65535/16,4095/12,4095/16. It promotes wrapper
+only afterallpassandprevious/candidate/binary SHA checks. After088 complete,
+prepared089/090/091 full-affinity campaigns may run sequentially. No rebuild.

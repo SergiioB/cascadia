@@ -2,6 +2,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [Parameter(Mandatory=$true)][string]$Cases,
       [int]$Reads=0, [int]$Bf16Rows=1, [int]$Int4Rows=1,
       [ValidateRange(1,64)][int]$Threads=16,
+      [ValidateRange(1,65535)][int]$AffinityMask=65535,
       [int]$Tokens=64, [int]$Samples=3, [string]$Out='',
       [string]$Binary='full-decode.exe', [string]$RouteTrace='',
       [string]$LayerProfile='', [ValidateSet(0,1)][int]$MmapEmbed=0, [string]$Log='',
@@ -63,7 +64,11 @@ if ($Log) {
 $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassThru -NoNewWindow @startOptions
 try {
     $p.PriorityClass = 'High'
-    $p.ProcessorAffinity = [IntPtr]65535
+    $p.ProcessorAffinity = [IntPtr]$AffinityMask
+    $p.Refresh()
+    $actualAffinity = $p.ProcessorAffinity.ToInt64()
+    if ($actualAffinity -ne $AffinityMask) { throw "Child affinity mismatch: requested $AffinityMask, observed $actualAffinity" }
+    "processor_affinity=$actualAffinity"
     "rayon_threads=$Threads"
     "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory cache_decay_requests=$CacheDecayRequests"
     $p.WaitForExit()

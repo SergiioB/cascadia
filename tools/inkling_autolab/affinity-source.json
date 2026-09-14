@@ -1,0 +1,20 @@
+{
+  "candidate_wrapper_sha256": "537d1b6f41e25f574377a39ba6d3bae7a959ef4262d4b070303c29ca0bfde461",
+  "previous_wrapper_sha256": "90b00e7e25e39c00fc4fa86af8dc8818ff22d45631d3ca1530081253267796d5",
+  "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+  "native_topology_source": "087_cpu_topology.json",
+  "modes": [
+    {
+      "mask": 65535,
+      "threads": 16
+    },
+    {
+      "mask": 4095,
+      "threads": 12
+    },
+    {
+      "mask": 4095,
+      "threads": 16
+    }
+  ]
+}
