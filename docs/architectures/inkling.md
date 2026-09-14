@@ -520,7 +520,10 @@ per-layer numbers above, four (33.2 GB) sit at the cap and decode falls to
 50–145 ms per MoE layer, and five or six page every call (250–430 ms).
 So a 64 GB Windows rank carries **three** fused MoE layers on the iGPU
 (the two dense layers are small) — 22 such ranks for the 975B model — a
-96 GB box five and a 128 GB box seven. Linux ranks are not under the 50%
+96 GB box five and a 128 GB box seven. Confirmed with the 5-layer dump
+(2 dense + 3 fused MoE, int8 attention): 4.5–4.6 ms per dense and
+5.4–5.6 ms per MoE layer decode, 52–91 ms prefill, residual 5.9e-3 after
+five layers — the single-layer numbers hold across a full rank. Linux ranks are not under the 50%
 policy (Level Zero shared allocations can use most of the RAM) and are
 the way to get five or six layers per 64 GB; that is unmeasured here.
 
