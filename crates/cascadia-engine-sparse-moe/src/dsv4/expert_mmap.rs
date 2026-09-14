@@ -198,8 +198,26 @@ impl MmapExpert {
     /// bandwidth — instead of faulting mmap pages in mid-GEMV. The returned bytes
     /// are byte-identical to `self.mmap`, so [`Self::swiglu_from`] is bit-exact
     /// vs the mmap path.
+    ///
+    /// If the file has shrunk since [`Self::open`] validated its length (e.g. the
+    /// bin was replaced/truncated under a running node), `std::fs::read` still
+    /// returns `Ok` with a short buffer — which would slice out of bounds inside
+    /// [`Self::swiglu_from`]. Re-check the length here and return `Err` on a short
+    /// read so callers route through their mmap fallback instead of panicking.
     pub fn read_bytes(&self) -> std::io::Result<Vec<u8>> {
-        std::fs::read(&self.path)
+        let buf = std::fs::read(&self.path)?;
+        let want = 2 * section_bytes(self.inter, self.dim) + section_bytes(self.dim, self.inter);
+        if buf.len() < want {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                format!(
+                    "{}: expert bin shrank to {} bytes (need {want})",
+                    self.path.display(),
+                    buf.len()
+                ),
+            ));
+        }
+        Ok(buf)
     }
 
     /// On-disk size of this expert's int4 bin, i.e. the bytes streamed for it at
