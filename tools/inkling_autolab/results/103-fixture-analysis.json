@@ -1,0 +1,161 @@
+{
+  "scope": "causal_prediction_precision_not_measured_prefetch_speedup",
+  "visits": 63,
+  "cache_control_matches_actual": true,
+  "results": [
+    {
+      "group": "all",
+      "prediction_limit": 1,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 13,
+      "useful_reads": 11,
+      "extra_reads": 2,
+      "precision": 0.8461538461538461,
+      "actual_miss_coverage": 0.6875,
+      "read_amplification": 1.125
+    },
+    {
+      "group": "all",
+      "prediction_limit": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "all",
+      "prediction_limit": 3,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "all",
+      "prediction_limit": 4,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "all",
+      "prediction_limit": 5,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "all",
+      "prediction_limit": 6,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 1,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 13,
+      "useful_reads": 11,
+      "extra_reads": 2,
+      "precision": 0.8461538461538461,
+      "actual_miss_coverage": 0.6875,
+      "read_amplification": 1.125
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 3,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 4,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 5,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 6,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "extra_reads": 3,
+      "precision": 0.8421052631578947,
+      "actual_miss_coverage": 1.0,
+      "read_amplification": 1.1875
+    }
+  ],
+  "caveats": [
+    "No expert prefetch was performed; misses and cache state are the unmodified runtime behavior.",
+    "Predictions use the current residual input before attention and the existing MLP norm/router; no future route enters prediction.",
+    "Potential latency overlap, I/O contention, prediction overhead and unused-read cost require a separate runtime experiment."
+  ],
+  "source_sha256": {
+    "actual": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a",
+    "predictions": "01e17dd619e4627e44ad74cb9fd127985d9f323403a9a5d8ed18981a8ecd0d75",
+    "benchmark": "88640b7f1bdd5a3e642fae2e944f8d26129b1e15334d4718657f101bf22c8753"
+  }
+}

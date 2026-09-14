@@ -67,6 +67,22 @@ uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ti
 uncached3754377216000/hitbytes3180367577088. Other counters/profile unchanged.
 Rowchoice for futurefullrecency campaigns depends on094/095 repeated outcome.
 
+## 103 future prediction diagnostic (LOCAL ONLY)
+
+Implemented separate decode-only pre-attention route observer on Layer and
+route_unobserved onMoeLayer. Uses current residual input+existingMLPnorm/router;
+no cache/history/actual-selection changes, no expert prefetch. Benchmark optional
+--prediction-trace requires--route-trace; analyzeranalyze-route-prediction.py
+scores1–6uncached predicted experts causally against actual cache state.
+243localtests pass, two new observer/causality tests.3repeatARMfixture outputhash
+5122e042f9b1fb30, actualroutes andcachecountersexact. Invaliddiagnosticsrejected.
+All local raw artifacts103*. No native prediction build yet. **Never include
+these later local files in098's staged source; it must remain849a08bd.**
+After098 and fullrecencycomparison/confirmation, prepare separate native
+predictionbinary+oracle qualification, thenfull diagnostic to assess precision,
+extra reads, and attention overlap headroom. Avoid assuming published other-model
+prediction accuracy applies toInkling. Researchhypothesis/sourcesinJOURNAL.md.
+
 ## Completed evidence
 
 076–080 row sweep complete:2/4=.924475,1/4=.927358,4/4=.931144,

@@ -54,6 +54,7 @@ pub struct Layer {
     mlp: LayerMlp,
     mlp_sconv: ShortConv, // `mlp_sconv.weight` [hidden, K]
     timing_observer: Option<LayerTimingObserver>,
+    pre_attention_route_observer: Option<super::moe::RouteObserver>,
 }
 
 /// One layer's complete sequence state (attention KV + k/v convs, plus the
@@ -110,6 +111,7 @@ impl Layer {
             mlp,
             mlp_sconv,
             timing_observer: None,
+            pre_attention_route_observer: None,
         }
     }
 
@@ -117,6 +119,17 @@ impl Layer {
     /// callbacks must not change the floating-point environment or block on I/O.
     pub fn set_timing_observer(&mut self, observer: Option<LayerTimingObserver>) {
         self.timing_observer = observer;
+    }
+
+    /// Observe a causal decode-only route prediction from this layer's input,
+    /// before attention. Uses the existing MLP norm/router without modifying
+    /// actual routing, cache history, weights, or sequence state. Defaults off;
+    /// the callback must not block or alter the floating-point environment.
+    pub fn set_pre_attention_route_observer(
+        &mut self,
+        observer: Option<super::moe::RouteObserver>,
+    ) {
+        self.pre_attention_route_observer = observer;
     }
 
     fn observe_timing(
@@ -212,6 +225,11 @@ impl Layer {
     pub fn forward_token(&mut self, x: &[f32]) -> Vec<f32> {
         let start = self.timing_observer.as_ref().map(|_| Instant::now());
         assert_eq!(x.len(), self.hidden, "layer forward_token: x len");
+        if let (Some(observer), Some(moe)) = (&self.pre_attention_route_observer, self.moe()) {
+            let mut predicted_input = x.to_vec();
+            rmsnorm_f32(&mut predicted_input, &self.mlp_norm, self.eps);
+            observer(&moe.route_unobserved(&predicted_input));
+        }
         // x1 = x + attn_sconv(attention(rmsnorm(x, attn_norm)))
         let mut h = x.to_vec();
         rmsnorm_f32(&mut h, &self.attn_norm, self.eps);

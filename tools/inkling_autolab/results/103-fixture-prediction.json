@@ -1,0 +1,98 @@
+{
+  "correctness_verified": true,
+  "embedding_mapped": true,
+  "expert_cache": {
+    "admissions": 16,
+    "capacity_bytes": 3145728,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 9,
+    "hit_bytes": 380160,
+    "hits": 110,
+    "misses": 16,
+    "recent_tie_admissions": 0,
+    "retained_bytes": 55296
+  },
+  "export": "/private/tmp/tahoma-inkling-panther-autolab/crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export",
+  "manifest": {
+    "experts": 8,
+    "hidden": 64,
+    "layers": 4
+  },
+  "output_hash": "5122e042f9b1fb30",
+  "owned_shared_bytes": 20736,
+  "pipelined_read_layers": 63,
+  "prefill_read_experts": 63,
+  "prefill_uncached_read_bytes": 0,
+  "prefill_uncached_read_fallbacks": 0,
+  "samples": [
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789379299.040766,
+      "decode_seconds": 0.00836525,
+      "decode_started_unix": 1789379299.032401,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789379299.032383,
+      "prefill_seconds": 0.01105825,
+      "prefill_started_unix": 1789379299.021325,
+      "repetition": 0
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789379299.060392,
+      "decode_seconds": 0.008392708,
+      "decode_started_unix": 1789379299.051999,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789379299.051981,
+      "prefill_seconds": 0.011170666,
+      "prefill_started_unix": 1789379299.04081,
+      "repetition": 1
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789379299.079911,
+      "decode_seconds": 0.008501541,
+      "decode_started_unix": 1789379299.071409,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789379299.071392,
+      "prefill_seconds": 0.010982584,
+      "prefill_started_unix": 1789379299.060409,
+      "repetition": 2
+    }
+  ],
+  "scope": "fixture_model_decode",
+  "slowest_case_decode_tokens_per_s": 823.3801377891373,
+  "uncached_read_bytes": 0,
+  "uncached_read_effective": false,
+  "uncached_read_fallbacks": 0
+}

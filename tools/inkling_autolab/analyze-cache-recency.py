@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 
-def replay(trace, slots, decay, rounding, ties):
+def replay(trace, slots, decay, rounding, ties, cohort_observer=None):
     states = {}
     totals = dict(hits=0, misses=0, admissions=0, evictions=0, recent_tie_admissions=0)
     cases = []
@@ -18,7 +18,9 @@ def replay(trace, slots, decay, rounding, ties):
             state.update(freq=[0]*256, last=[0]*256, clock=0)
             routes = layer['routed_experts_per_position'][sample['prefill_positions']:]
             assert len(routes) == sample['decode_positions']
-            for cohort in routes:
+            for position, cohort in enumerate(routes):
+                if cohort_observer is not None:
+                    cohort_observer(sample['case'], sample['repetition'], layer['layer'], position, tuple(cohort), tuple(state['entries']))
                 missing = []
                 # Runtime observes the complete current cohort before admission.
                 for expert in cohort:

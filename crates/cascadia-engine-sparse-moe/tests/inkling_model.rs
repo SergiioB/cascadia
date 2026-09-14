@@ -785,3 +785,75 @@ fn golden_moe_block_matches_hf() {
     let got = moe.forward(&x);
     assert_close("moe_out", &got, &want, 2e-2, 2e-2);
 }
+
+#[test]
+fn pre_attention_predictions_preserve_actual_routes_and_logits() {
+    use std::sync::{Arc, Mutex};
+    let mut plain = random_model(103);
+    let mut observed = random_model(103);
+    let expected_routes = Arc::new(Mutex::new(Vec::new()));
+    let actual_routes = Arc::new(Mutex::new(Vec::new()));
+    let order = Arc::new(Mutex::new(Vec::new()));
+    for (model, routes) in [
+        (&mut plain, &expected_routes),
+        (&mut observed, &actual_routes),
+    ] {
+        let routes = Arc::clone(routes);
+        model.layers_mut()[1]
+            .moe_mut()
+            .unwrap()
+            .set_route_observer(Some(Arc::new(move |gate| {
+                routes.lock().unwrap().push(gate.clone());
+            })));
+    }
+    let predictions = Arc::clone(&order);
+    observed.layers_mut()[1].set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+        predictions.lock().unwrap().push(gate.clone());
+    })));
+    let bits = |v: Vec<f32>| v.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&[3, 7, 1])),
+        bits(observed.prefill(&[3, 7, 1]))
+    );
+    assert!(order.lock().unwrap().is_empty(), "prefill must not predict");
+    for token in [4, 9, 2, 7] {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(observed.forward_token(token))
+        );
+    }
+    assert_eq!(order.lock().unwrap().len(), 4);
+    assert_eq!(
+        *expected_routes.lock().unwrap(),
+        *actual_routes.lock().unwrap()
+    );
+    observed.layers_mut()[1].set_pre_attention_route_observer(None);
+    assert_eq!(
+        bits(plain.forward_token(1)),
+        bits(observed.forward_token(1))
+    );
+    assert_eq!(order.lock().unwrap().len(), 4);
+}
+
+#[test]
+fn pre_attention_prediction_depends_on_current_input_not_attention_state() {
+    use std::sync::{Arc, Mutex};
+    let mut first = random_model(104);
+    let mut second = random_model(104);
+    let h = cfg().hidden;
+    first.layers_mut()[1].forward_prefill(&vec![0.125; h * 2], 2);
+    second.layers_mut()[1].forward_prefill(&vec![-0.375; h * 3], 3);
+    let predictions = Arc::new(Mutex::new(Vec::new()));
+    for model in [&mut first, &mut second] {
+        let target = Arc::clone(&predictions);
+        model.layers_mut()[1].set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+            target.lock().unwrap().push(gate.clone());
+        })));
+        model.layers_mut()[1].forward_token(&vec![0.25; h]);
+    }
+    let captured = predictions.lock().unwrap();
+    assert_eq!(captured.len(), 2);
+    assert_eq!(captured[0], captured[1]);
+    assert_eq!(first.layers()[1].len(), 3);
+    assert_eq!(second.layers()[1].len(), 4);
+}

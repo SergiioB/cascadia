@@ -139,6 +139,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut out = None;
     let mut route_trace = None;
     let mut layer_profile = None;
+    let mut prediction_trace = None;
     let mut tokens = 64usize;
     let mut repetitions = 3usize;
     let mut allow_fixture = false;
@@ -157,6 +158,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--out" => out = Some(PathBuf::from(value)),
             "--route-trace" => route_trace = Some(PathBuf::from(value)),
             "--layer-profile" => layer_profile = Some(PathBuf::from(value)),
+            "--prediction-trace" => prediction_trace = Some(PathBuf::from(value)),
             _ => return Err(format!("unknown argument: {flag}").into()),
         }
     }
@@ -176,6 +178,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(
             out.as_ref() != Some(path) && route_trace.as_ref() != Some(path),
             "profile, trace and result need distinct paths"
+        );
+    }
+    if let Some(path) = &prediction_trace {
+        assert!(!path.exists(), "refusing to overwrite a prediction trace");
+        assert!(
+            route_trace.is_some(),
+            "prediction diagnostics require --route-trace for actual selections"
+        );
+        assert!(
+            out.as_ref() != Some(path)
+                && route_trace.as_ref() != Some(path)
+                && layer_profile.as_ref() != Some(path),
+            "prediction, profile, trace and result need distinct paths"
         );
     }
     let export = export.ok_or("--export is required")?;
@@ -237,6 +252,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    let mut prediction_captures = Vec::new();
+    if prediction_trace.is_some() {
+        for (li, layer) in model.layers_mut().iter_mut().enumerate() {
+            if layer.moe().is_some() {
+                let routes = Arc::new(Mutex::new(Vec::new()));
+                let target = Arc::clone(&routes);
+                layer.set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+                    target.lock().unwrap().push(gate.idx.clone());
+                })));
+                prediction_captures.push((li, routes));
+            }
+        }
+    }
+    let mut prediction_samples = Vec::new();
     let mut routing_samples = Vec::new();
     let mut timers = Vec::new();
     if layer_profile.is_some() {
@@ -285,6 +314,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     case: case.name.clone(),
                     repetition: rep,
                     prefill_positions: case.prompt_ids.len(),
+                    decode_positions: sample.decode_steps,
+                    layers,
+                });
+            }
+            if prediction_trace.is_some() {
+                let layers = prediction_captures
+                    .iter()
+                    .map(|(li, routes)| {
+                        let rows = std::mem::take(&mut *routes.lock().unwrap());
+                        assert_eq!(rows.len(), sample.decode_steps);
+                        LayerRoutes {
+                            layer: *li,
+                            routed_experts_per_position: rows,
+                        }
+                    })
+                    .collect();
+                prediction_samples.push(RoutingSample {
+                    case: case.name.clone(),
+                    repetition: rep,
+                    prefill_positions: 0,
                     decode_positions: sample.decode_steps,
                     layers,
                 });
@@ -429,6 +478,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "shared_experts": manifest.n_shared_experts, "top_k": manifest.top_k,
                     "hidden": manifest.hidden_size, "intermediate": manifest.moe_intermediate},
                 "samples": routing_samples,
+            }),
+        )?;
+    }
+    if let Some(path) = prediction_trace {
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)?;
+        serde_json::to_writer_pretty(
+            file,
+            &serde_json::json!({
+                "scope": "pre_attention_route_prediction_diagnostics", "generation_scope": scope,
+                "full_model": full_model, "correctness_verified": correctness_verified,
+                "output_hash": hash, "export": export,
+                "prediction_input": "current_layer_residual_before_attention_with_existing_mlp_norm_and_router",
+                "actual_routing_changed": false, "prefetch_performed": false,
+                "observer_overhead_included_in_benchmark_time": true,
+                "samples": prediction_samples,
             }),
         )?;
     }

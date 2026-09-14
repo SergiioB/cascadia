@@ -313,22 +313,28 @@ impl MoeLayer {
     /// Route one token: router GEMV (f32) + [`inkling_gate`]. No expert
     /// compute — also the prediction hook for prefetch.
     pub fn route(&self, x: &[f32]) -> GateOut {
+        let gate = self.route_unobserved(x);
+        if let Some(observer) = &self.route_observer {
+            observer(&gate);
+        }
+        gate
+    }
+
+    /// Evaluate the router without reporting an actual expert selection or
+    /// touching cache history. Used only by opt-in prediction diagnostics.
+    pub(crate) fn route_unobserved(&self, x: &[f32]) -> GateOut {
         assert_eq!(x.len(), self.hidden, "moe route: x len");
         let n_total = self.n_routed + self.n_shared;
         let mut logits = vec![0.0f32; n_total];
         linear_f32(x, &self.w.router_w, n_total, self.hidden, &mut logits);
-        let gate = inkling_gate(
+        inkling_gate(
             &logits,
             &self.w.router_bias,
             self.top_k,
             self.n_shared,
             self.route_scale,
             self.w.global_scale,
-        );
-        if let Some(observer) = &self.route_observer {
-            observer(&gate);
-        }
-        gate
+        )
     }
 
     /// MoE for one token `x` (`[hidden]`, the mlp-normed hidden). Returns

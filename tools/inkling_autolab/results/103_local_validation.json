@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "platform": "aarch64-apple-darwin",
+  "tests": 243,
+  "new_observer_tests": 2,
+  "fixture_hash": "5122e042f9b1fb30",
+  "fixture_logits_routes_cache_exact": true,
+  "prediction_capture_decode_only": true,
+  "rejected_invalid_diagnostics": [
+    "missing_prediction",
+    "wrong_hash",
+    "changed_actual_routing"
+  ],
+  "artifacts": [
+    {
+      "name": "103-fixture-analysis.json",
+      "sha256": "2278e36759931f0d65b5d6dadf3fd110ea8d73b46142178e3654a4bfb6cd77d9"
+    },
+    {
+      "name": "103-fixture-control-routes.json",
+      "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+    },
+    {
+      "name": "103-fixture-control.json",
+      "sha256": "ff8d896c9b27925a266ea0e559f454fd3af437e89321dd1e3bd5e92a2533ae89"
+    },
+    {
+      "name": "103-fixture-control.log",
+      "sha256": "dc6f9ac476ee13d83aad63e54e27565ed27921bddc77cce3a2d8187ba3a5002a"
+    },
+    {
+      "name": "103-fixture-predicted-routes.json",
+      "sha256": "01e17dd619e4627e44ad74cb9fd127985d9f323403a9a5d8ed18981a8ecd0d75"
+    },
+    {
+      "name": "103-fixture-prediction-routes.json",
+      "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+    },
+    {
+      "name": "103-fixture-prediction.json",
+      "sha256": "88640b7f1bdd5a3e642fae2e944f8d26129b1e15334d4718657f101bf22c8753"
+    },
+    {
+      "name": "103-fixture-prediction.log",
+      "sha256": "279960f690d930dcdd9e9b0f60ec1639d131f7b4f9f682a5c5d9cfa8f35a9f0a"
+    }
+  ],
+  "native_validation_pending": true,
+  "measured_full_model_prediction_accuracy": false
+}
