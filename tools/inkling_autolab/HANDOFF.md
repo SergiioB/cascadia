@@ -40,15 +40,22 @@ four complete tiny modes pass. Enabled tiny13reads/11useful/2unused/0failures,
 exact outputs/routes/cache counters; native104 replay predicts same counts.
 One-prediction choice frozen before viewing held-out traces. No full speed claim.
 
-109 qualifier prepared locally, not staged/launched: qualify-predicted-read.py,
+109 qualifier staged and launch requested (detached parent3856): qualify-predicted-read.py,
 run-full-prefetch.ps1, test-predicted-read.bat. Waits106/107 complete/exited, then
 checks frozen sources/binaries, builds252native tests, four tiny read/recency
 modes and13/11/2actual counters. Createsnewfull-predicted-read.exe; promotes
-wrapper only after exact checks. Needcommit/stage source tar+SHA manifest and
-candidate scripts, PSparsercheck, detachedlaunch. After109nativepromotion,
-sync localrun-full.ps1 to candidate. Then full110control/111prefetch A/B and
-112repeated confirmation if it wins. No campaigns110+ yet.
+wrapper only after exact checks. All staged files and previous native sources SHA verified; PS parser passes.
+Source dc4badd3; predicted-read-source.json and/private/tmp/predicted-read-source.tar.
+NativePython8624 is waiting_for_heldout_comparison; parent3856.
+Read predicted-read-qualification-state.json for current status. After109nativepromotion,
+sync localrun-full.ps1 to candidate. Full110control/111prefetch A/B and conditional112confirmation are prepared.
+All use runner.connect_timeout30. Control prediction counters all0;111
+scheduled11906/useful11338/unused568, uncached1270420733952;112
+scheduled35718/useful34014/unused1704, uncached3808650461184. Cache counters
+stay the confirmed recent policy.112 repeats observed105 prediction selections
+for identical reset inputs in causal replay; actual counters must confirm.
 
+109 candidatewrapper SHA3eac49ad3042d50a4425f372e24fed12ff9b8b5b983974dfe0d3ee4d3262a7a7.
 Current native/localproductionwrapper SHA b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
 Updated profile with recent ties1 SHA deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304 synced.
 106 artifacts/107 and107b campaigns/109 qualifier checkpoint commit next.

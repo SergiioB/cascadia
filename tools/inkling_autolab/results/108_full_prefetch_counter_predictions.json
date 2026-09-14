@@ -1,0 +1,32 @@
+{
+  "scope": "causal_full_prefetch_counter_prediction_not_observed_prefetch",
+  "one_repetition": {
+    "group": "all",
+    "prediction_limit": 1,
+    "visits": 12096,
+    "actual_misses": 39319,
+    "predicted_reads": 11906,
+    "useful_reads": 11338,
+    "extra_reads": 568,
+    "precision": 0.9522929615320007,
+    "actual_miss_coverage": 0.2883593173783667,
+    "read_amplification": 1.0144459421653653
+  },
+  "three_repetitions": {
+    "group": "all",
+    "prediction_limit": 1,
+    "visits": 36288,
+    "actual_misses": 117875,
+    "predicted_reads": 35718,
+    "useful_reads": 34014,
+    "extra_reads": 1704,
+    "precision": 0.9522929615320007,
+    "actual_miss_coverage": 0.288559915164369,
+    "read_amplification": 1.0144559915164368
+  },
+  "assumptions": [
+    "Three-repetition forecast repeats each observed105 pre-attention prediction for the same reset prompt/position. Runtime determinism is expected; actual112 counters must verify this before acceptance.",
+    "Cache membership and admission replay matches actual102 counters exactly.",
+    "Only first uncached prediction; no lookup/history mutation before actual routing."
+  ]
+}

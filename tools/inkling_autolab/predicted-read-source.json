@@ -1,0 +1,51 @@
+{
+  "source_commit": "dc4badd3d21e5be1be7bfd542019cb9c3527b09a",
+  "files": [
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/mod.rs",
+      "previous_sha256": "1557cbc5fd561dd6a6a08ec56c7df1a15adf7f48fc07949a046c4db982d59411",
+      "candidate_sha256": "6e33c4d0a18eb0ab5ff1d79d9613eecc317553e25509ca116786d16d192cfa98"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/model.rs",
+      "previous_sha256": "47bc767859e8b67db6683157804298f5451450baad657b5efaced721423e29b3",
+      "candidate_sha256": "8500fd12ae3a74808f8b2044245e627496bf02269d10726689c2dd9320b59812"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/moe.rs",
+      "previous_sha256": "164adf90663ec419fa4058f235e86083970a9b3fe96427cc8e6d7d454f4baaf4",
+      "candidate_sha256": "8d84fe060558d783b2901a082afcdee3debacc71e31cbc4ea4b439ec9a3b8c53"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/expert_cache.rs",
+      "previous_sha256": "93edf57de8ffd2c66a08479d008e34db2d76fbc071fee6aa5f372979d76890a8",
+      "candidate_sha256": "678ee7a6d8904428c51b28b0e347df1b9a4a9028054dc7d8cb8d6c7fd68eca26"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/predicted_read.rs",
+      "previous_sha256": null,
+      "candidate_sha256": "d7119817d689fb6ed94b35e0a245232dc9a37619b0514cbd78cb17f7c52dedea"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/examples/inkling_decode_bench.rs",
+      "previous_sha256": "a259505344c8ff6b6df9c4f7ccfc5de6694b9b8cacb719f3d6ac6b88ed3015d3",
+      "candidate_sha256": "98820185d5fbaf564f18f4d4a7fc3342ce18cefab1c7187d14da9c397b49c9c4"
+    }
+  ],
+  "frozen_binaries": {
+    "full-prefill-reads.exe": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+    "full-expert-cache.exe": "fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88",
+    "full-pipeline.exe": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+    "full-uncached.exe": "9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2",
+    "full-owned-shared.exe": "0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb",
+    "full-decode.exe": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a",
+    "full-read-buffers.exe": "497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861",
+    "full-mmap-embed.exe": "95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d",
+    "full-cache-decay.exe": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+    "full-cache-recency.exe": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+    "full-route-prediction.exe": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984"
+  },
+  "previous_wrapper_sha256": "b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c",
+  "candidate_wrapper_sha256": "3eac49ad3042d50a4425f372e24fed12ff9b8b5b983974dfe0d3ee4d3262a7a7",
+  "source_tar_sha256": "d2100c0cfecb8e4b6c4b3ec6951322240f78c4888a4d3aaba8c57462eb2ec14c"
+}

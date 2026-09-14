@@ -138,5 +138,17 @@
     "status": "106_staged_not_launched",
     "next": "Review105, then106 initial reference and107 exact comparison"
   },
-  "transport_failure_107": "107_transport_failure.json"
+  "transport_failure_107": "107_transport_failure.json",
+  "pending_prefetch_qualification": {
+    "status": "waiting_for_heldout_comparison",
+    "native_pid": 8624,
+    "parent_pid": 3856,
+    "source_commit": "dc4badd3d21e5be1be7bfd542019cb9c3527b09a",
+    "expected_native_tests": 252
+  },
+  "prepared_campaigns": [
+    "110_full_predicted_read_control",
+    "111_full_predicted_read_prefetch",
+    "112_full_predicted_read_confirmation"
+  ]
 }
