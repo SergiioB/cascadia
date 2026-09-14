@@ -20,9 +20,10 @@
 //! (default `GPU`), `CASCADIA_INKLING_OV_MOE_CACHE_DIR` (compiled-blob cache),
 //! `CASCADIA_INKLING_OV_MOE_OFFLOAD` (the plugin's `OFFLOAD_RATIO`, percent of
 //! experts not pre-loaded on the device but streamed from the IR .bin into
-//! LRU slots on first touch; default 1, because 2026.3.1 compiles a saved
-//! fused-MoE IR only through that path; the streaming itself measured ~1 GB/s
-//! on the Arc B390, so larger ratios are a benchmark knob, not a speed-up).
+//! LRU slots on first touch; off by default — the shim then materialises the
+//! IR's constants in memory before compiling, the only form 2026.3.1 builds
+//! the fused op from without offload; the streaming itself measured ~1 GB/s
+//! on the Arc B390, so the offload ratio is a benchmark knob, not a speed-up).
 //! Layers without an IR keep whatever path they had (per-expert OV or the
 //! Rust kernel), as does any call the device refuses.
 //!
@@ -142,17 +143,17 @@ impl OvMoe {
         // every saved IR compiles with OFFLOAD_RATIO >= 1 and none without.
         // So the default is 1: ~99% of the experts resident, the remainder in
         // the plugin's LRU slots (streamed on first touch, then resident).
+        // Default: no offload. The shim materialises the IR's constants in
+        // memory before compiling (see CASCADIA_MATERIALIZE_CONSTANTS in
+        // shim.cpp), which is the graph form the plugin builds its fused op
+        // from without the offload path: 3.4 ms per padded decode row and
+        // 30 ms per 23-row prefill at Inkling's shape, against 5.5 / 55 ms
+        // through offload. Set CASCADIA_INKLING_OV_MOE_OFFLOAD=N (1..99) for
+        // the plugin's on-disk experts.
         let offload = std::env::var("CASCADIA_INKLING_OV_MOE_OFFLOAD")
             .ok()
             .map(|v| v.trim().to_string())
-            .filter(|v| !v.is_empty())
-            .unwrap_or_else(|| "1".into());
-        let offload = if offload == "0" {
-            warn!("CASCADIA_INKLING_OV_MOE_OFFLOAD=0 cannot compile a saved fused-MoE IR on OpenVINO 2026.3.1; using 1");
-            Some("1".to_string())
-        } else {
-            Some(offload)
-        };
+            .filter(|v| !v.is_empty() && v != "0");
         // The plugin's batched-GEMV decode kernel crashes on the Arc B390; the
         // grouped-GEMM path is selected by this plugin option, read from the
         // process environment at compile time. Honour an operator's own value.
@@ -194,8 +195,9 @@ impl OvMoe {
         if let Some(cd) = cache_dir {
             plugin = plugin.with("CACHE_DIR", cd);
         }
-        if let Some(r) = &offload {
-            plugin = plugin.with("OFFLOAD_RATIO", r.clone());
+        match &offload {
+            Some(r) => plugin = plugin.with("OFFLOAD_RATIO", r.clone()),
+            None => plugin = plugin.with("CASCADIA_MATERIALIZE_CONSTANTS", "1"),
         }
         Self {
             dir,
@@ -294,6 +296,9 @@ impl OvMoe {
     pub fn warm(&self, lid: u32) -> bool {
         if self.compiled(lid).is_none() {
             return false;
+        }
+        if self.offload.is_none() {
+            return true; // every expert is on the device already
         }
         let k = self.k_total;
         let x = vec![0.0f32; self.hidden];
