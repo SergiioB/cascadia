@@ -3,42 +3,37 @@
 Updated 2026-09-14 07:38UTC. USER RESUMED AUTONOMOUS OPTIMIZATION. Work is ACTIVE;
 do not stop after a completed campaign. The25tok/s target is unmet.
 
-## Live update08:01UTC —068running
+## Live update08:10UTC —071running,072queued
 
-067workers24completed0.8695377030tok/s; allartifactsarchived,exactgatespass.
-**068_full_threads_32 RUNNING**,native**8100**,created**1789372668.7833545**,
-observed33threadsafterload;controller**67450**. Nootherfulltrialqueued.
-069asyncprobe**10092**/parent10616iswaitingfor068completion; sampler3036active.
-Do not startanynewfulltrialuntilprobeiscompleteorfailedanditsprocesshasexited.
-Thenchooseworkers(overallbestcurrently16at0.9175664024),runqualifieddecay
-control4096/candidate32,then3-repeatconfirmation. Keepoptimizingafterthat.
+064–068workersweepCOMPLETE. Slowestscores16=.9175664024,8=.8846400902,
+12=.9011509229,24=.8695377030,32=.8583274179. Select16. Allrawresults/traces/
+resourcesarchivedandSHAverified;068_worker_comparison.json.
 
-## Latest checkpoint —067running,069probe waiting
+069asyncprobeCOMPLETEandexited,75cohorts/300distinctfilesallSHA/errorcanarypass.
+Rawprobe/statecopiedandSHAverified. Wholeasync2files7.889msvs12.204sync,
+4files19.762vs16.482,6files28.750vs24.336; chunkedmodesdonotconsistentlywin.
+Do not implementchunkedruntimebasedonthisprobe. Needmatchedfilecheckofthe
+2-filewholeasyncobservation; see069_async_read_comparison.json.
 
-064controlcomplete0.9175664024;065workers8complete0.8846400902;
-066workers12complete0.9011509229. Allrawdiagnosticsarchivedandverified.
-**067_full_threads_24 ACTIVE**,native**5688**,created**1789372336.0766687**,
-observed25threadsafterload. **068threads32queued**,controller**67450**.
-Sampler3036continues. Current067partialresultmustnotbecommittedascomplete.
+**071_full_cache_decay_4096 RUNNING;072_full_cache_decay_32 QUEUED** under
+controller**51214**. Script/private/tmp/run-inkling-cache-decay-loop.py.
+Logs/private/tmp/inkling-071_full_cache_decay_4096.log and072equivalent.
+Native071**PID5952**,created**1789373120.0706015** (differentlifetimefromolder
+qualifierPID5952). Binary**full-cache-decay.exe**,SHA3874c863...,source6b820e83.
+Outputs071-decay-4096.*,072-decay-32.*. 16workers/cache256/historyreset1/
+prefill1/rows2and4. Fullhash/IDs/countersstrict. 32intervalexpects31383hits,
+41193misses,8629admissions,8117evictions,2112decays,1312017481728decodeuncachedB.
+Controlcountsarestill30058/42518/4141/3629/0,1354219388928B. Each3cases×1rep.
 
-**069async-read-probe LAUNCHEDANDWAITING**,Python**10092**,parentcmd**10616**,
-stateasync-read-probe-state.json,logasync-read-probe.log,output069-async-read-probe.json.
-Itwaitsfor064–068/noactivefull,thenholdsbaselinequeue lockandrunstheread-only
-component. Sourcecommit**ae35cd71**,probe/basefilesSHAcheckedbeforelaunch.
-Do not duplicate it orstartthenextfulltrialuntilprobefinishes. Nativecanaryand
-75cohortreadcomparisonarestillpending; nospeedgainclaimed. Filesoutsideactual
-fullroutes; sync/asyncwhole/1MiB/4MiB/8MiB at2/4/6files,5blocks,allbytesSHAchecked.
-Allbuffers/events/OVERLAPPEDstatespersistthroughcompletion/canceldrain.
-Afterprobe: matchedqualifiedfull-cache-decay.exe4096/32usingbestworker,then
-3-repeatconfirmation. Continuedruntimeworkifproberesultswarrantit.
-
-Capturehelper nowaccepts**--repetitions 3** andvalidatesallcase/repetitionpairs;
-default1preservescurrentcaptures. 070_repeated_cache_predictions.json uses
-verified046nine-sampleroutes: cache256/historyreset1 has4096intervalhits90250,
-misses127478,admissions12347,evictions11835;32intervalhits94235,misses123493,
-admissions25801,evictions25289. For3reps:historyresets576,decays6336for32/0for4096,
-prefillvisits40905,uncachedprefillB1302844538880,pipeline36288;
-readbytes=misses*31850496,retained16309550592. Thesearegatepredictions,notspeed.
+**073paired-async-read-probe.py PREPARED,NOTLAUNCHED** atthischeckpoint.
+Itwillwaitfor071/072complete/noactivefull,thenlock/probe30matchedcohorts
+(10each2/4/6files),syncvsasyncwhole,AB/BAorder; mappedoracleafterbotharms.
+Excludes069files/fullroutes; reusesqualifiedasync-read-probe.py/uncached-read-probe.py.
+StageandSHAcheckall3scripts,launchdetachedwith--out C:/Users/devcloud/inkling-autolab/073-async-read-paired.json.
+Do not startnextfulluntilpairedprobecomplete/exited. Then**three-repeat
+confirmation**ofbestdecaysetting,usingcapturehelper--repetitions3 and070
+predictedcounters. Continuefurtheroptimizationafterconfirmingtherecord.
+Sampler3036ACTIVE; stop-048-sampler,expires~18:13UTC. Noexport/rentalrequired.
 
 ## Current live work — worker sweep064–068
 

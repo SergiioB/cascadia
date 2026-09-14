@@ -1,0 +1,83 @@
+{
+  "status": "complete",
+  "pid": 10092,
+  "unix": 1789373032.6825478,
+  "medians": [
+    {
+      "files": 2,
+      "mode": "sync",
+      "seconds": 0.012203999795019627
+    },
+    {
+      "files": 2,
+      "mode": "async_whole",
+      "seconds": 0.007889399770647287
+    },
+    {
+      "files": 2,
+      "mode": "async_1mib",
+      "seconds": 0.015676800161600113
+    },
+    {
+      "files": 2,
+      "mode": "async_4mib",
+      "seconds": 0.012829599902033806
+    },
+    {
+      "files": 2,
+      "mode": "async_8mib",
+      "seconds": 0.008818500209599733
+    },
+    {
+      "files": 4,
+      "mode": "sync",
+      "seconds": 0.01648150011897087
+    },
+    {
+      "files": 4,
+      "mode": "async_whole",
+      "seconds": 0.019762299954891205
+    },
+    {
+      "files": 4,
+      "mode": "async_1mib",
+      "seconds": 0.02290039975196123
+    },
+    {
+      "files": 4,
+      "mode": "async_4mib",
+      "seconds": 0.020032200030982494
+    },
+    {
+      "files": 4,
+      "mode": "async_8mib",
+      "seconds": 0.018849499989300966
+    },
+    {
+      "files": 6,
+      "mode": "sync",
+      "seconds": 0.02433609962463379
+    },
+    {
+      "files": 6,
+      "mode": "async_whole",
+      "seconds": 0.028750300407409668
+    },
+    {
+      "files": 6,
+      "mode": "async_1mib",
+      "seconds": 0.02948780031874776
+    },
+    {
+      "files": 6,
+      "mode": "async_4mib",
+      "seconds": 0.026328899897634983
+    },
+    {
+      "files": 6,
+      "mode": "async_8mib",
+      "seconds": 0.0319815999828279
+    }
+  ],
+  "full_model_speedup_measured": false
+}

@@ -1556,3 +1556,19 @@ cache256/historyreset1/prefill1/rows2/4. Exactcausalcountgatespredeclared from05
 32interval31383hits/41193misses/8629admissions/8117evictions/2112actualdecays;
 control30058/42518/4141/3629/0. Do not launchuntil069probeexits. Afterpair,
 three-repeatconfirmationofselectedsettingsbeforefurthernewruntimechanges.
+
+068workers32finished0.8583274179tok/s; allgatespass. Workercomparison068selects16
+at0.9175664024,all064–068routes/cache/I/Oidentical; rawdiagnosticsarchived.
+069asyncprobecompletedall75cohorts/300distinctexpertSHAchecks,errorcanarypasses,
+nativestate10092exited. Copiedrawprobe/stateSHAexactlymatchsource79637e61.../
+882bf43e.... Wholeasync2filesmedian7.889msversussync12.204ms, but4files19.762
+versus16.482msand6files28.750versus24.336ms. No consistentchunkedgain; defer
+chunkedruntimeimplementation. Disjointfilecohortsleavefile-layoutvariability.
+
+073pairedfollowuphypothesis: confirmwholeasync2filebenefitwithsamefiles/buffers,
+AB/BAorderbalanced, hashesaftereacharm butmappedoracleonlyafterboth. 30pairs
+(10each2/4/6files), excludesprior069andactualroutes. Reusebyte/errorcanary.
+Preparedpaired-async-read-probe.py,syntaxpasses,notlaunchedyet. Itwaitsfor071/072
+andnoactivefullbeforelock/probe; next3-repeatfullmustwaitforprobecompletion.
+071default4096controlactive5952created1789373120.0706015;072decay32queuedunder
+51214. Frozenbinary3874c863...verifiedandnoactive069processbeforelaunch.

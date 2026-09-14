@@ -1,0 +1,86 @@
+{
+  "scope": "same_binary_full_worker_comparison",
+  "binary_sha256": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_routes_cache_and_read_counts_match": true,
+  "reports": [
+    {
+      "trial": "064",
+      "threads": 16,
+      "slowest": 0.9175664024235638,
+      "rates": {
+        "water_cycle": 0.9605225432910445,
+        "binary_search": 0.9175664024235638,
+        "short_story": 0.9407049959196846
+      },
+      "prefill_seconds": {
+        "water_cycle": 24.1888068,
+        "binary_search": 25.2182979,
+        "short_story": 24.1779887
+      }
+    },
+    {
+      "trial": "065",
+      "threads": 8,
+      "slowest": 0.88464009016117,
+      "rates": {
+        "water_cycle": 0.9105337148001323,
+        "binary_search": 0.88464009016117,
+        "short_story": 0.9092032002780788
+      },
+      "prefill_seconds": {
+        "water_cycle": 28.2995415,
+        "binary_search": 28.9687239,
+        "short_story": 27.8313029
+      }
+    },
+    {
+      "trial": "066",
+      "threads": 12,
+      "slowest": 0.9011509229242312,
+      "rates": {
+        "water_cycle": 0.9406456464207288,
+        "binary_search": 0.9011509229242312,
+        "short_story": 0.924725952656823
+      },
+      "prefill_seconds": {
+        "water_cycle": 25.8948967,
+        "binary_search": 26.8081321,
+        "short_story": 25.8517952
+      }
+    },
+    {
+      "trial": "067",
+      "threads": 24,
+      "slowest": 0.8695377030340344,
+      "rates": {
+        "water_cycle": 0.8695377030340344,
+        "binary_search": 0.8942534633691425,
+        "short_story": 0.9173718807677845
+      },
+      "prefill_seconds": {
+        "water_cycle": 25.1086076,
+        "binary_search": 26.0558391,
+        "short_story": 25.067504
+      }
+    },
+    {
+      "trial": "068",
+      "threads": 32,
+      "slowest": 0.8583274178792825,
+      "rates": {
+        "water_cycle": 0.8583274178792825,
+        "binary_search": 0.8882657743646879,
+        "short_story": 0.9113605150262026
+      },
+      "prefill_seconds": {
+        "water_cycle": 25.932924,
+        "binary_search": 27.0192011,
+        "short_story": 26.0837219
+      }
+    }
+  ],
+  "selected_workers": 16,
+  "repeated_record_046_unchanged": true,
+  "target_reached": false
+}

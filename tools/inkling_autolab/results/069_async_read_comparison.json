@@ -1,0 +1,129 @@
+{
+  "scope": "component_async_read_comparison_not_inference_speed",
+  "samples_verified": 75,
+  "expert_bins_verified": 300,
+  "summary": [
+    {
+      "files": 2,
+      "mode": "sync",
+      "median_seconds": 0.012203999795019627,
+      "min_seconds": 0.006609399802982807,
+      "max_seconds": 0.013282599858939648,
+      "sync_over_mode_median_ratio": 1.0
+    },
+    {
+      "files": 2,
+      "mode": "async_whole",
+      "median_seconds": 0.007889399770647287,
+      "min_seconds": 0.006672699935734272,
+      "max_seconds": 0.014283099677413702,
+      "sync_over_mode_median_ratio": 1.5468857137174008
+    },
+    {
+      "files": 2,
+      "mode": "async_1mib",
+      "median_seconds": 0.015676800161600113,
+      "min_seconds": 0.007225300185382366,
+      "max_seconds": 0.018478399608284235,
+      "sync_over_mode_median_ratio": 0.778475177920108
+    },
+    {
+      "files": 2,
+      "mode": "async_4mib",
+      "median_seconds": 0.012829599902033806,
+      "min_seconds": 0.005974899977445602,
+      "max_seconds": 0.015401700045913458,
+      "sync_over_mode_median_ratio": 0.951237753960277
+    },
+    {
+      "files": 2,
+      "mode": "async_8mib",
+      "median_seconds": 0.008818500209599733,
+      "min_seconds": 0.00607970030978322,
+      "max_seconds": 0.014310299884527922,
+      "sync_over_mode_median_ratio": 1.3839087718946212
+    },
+    {
+      "files": 4,
+      "mode": "sync",
+      "median_seconds": 0.01648150011897087,
+      "min_seconds": 0.012070499826222658,
+      "max_seconds": 0.017488399986177683,
+      "sync_over_mode_median_ratio": 1.0
+    },
+    {
+      "files": 4,
+      "mode": "async_whole",
+      "median_seconds": 0.019762299954891205,
+      "min_seconds": 0.017649800051003695,
+      "max_seconds": 0.02474559983238578,
+      "sync_over_mode_median_ratio": 0.8339869426428612
+    },
+    {
+      "files": 4,
+      "mode": "async_1mib",
+      "median_seconds": 0.02290039975196123,
+      "min_seconds": 0.011871499940752983,
+      "max_seconds": 0.026077500078827143,
+      "sync_over_mode_median_ratio": 0.71970359895396
+    },
+    {
+      "files": 4,
+      "mode": "async_4mib",
+      "median_seconds": 0.020032200030982494,
+      "min_seconds": 0.019190900027751923,
+      "max_seconds": 0.020848299842327833,
+      "sync_over_mode_median_ratio": 0.8227503765677265
+    },
+    {
+      "files": 4,
+      "mode": "async_8mib",
+      "median_seconds": 0.018849499989300966,
+      "min_seconds": 0.01800530031323433,
+      "max_seconds": 0.02128899982199073,
+      "sync_over_mode_median_ratio": 0.8743733323603183
+    },
+    {
+      "files": 6,
+      "mode": "sync",
+      "median_seconds": 0.02433609962463379,
+      "min_seconds": 0.022045600228011608,
+      "max_seconds": 0.030051300302147865,
+      "sync_over_mode_median_ratio": 1.0
+    },
+    {
+      "files": 6,
+      "mode": "async_whole",
+      "median_seconds": 0.028750300407409668,
+      "min_seconds": 0.02670559985563159,
+      "max_seconds": 0.03283320041373372,
+      "sync_over_mode_median_ratio": 0.8464641857572303
+    },
+    {
+      "files": 6,
+      "mode": "async_1mib",
+      "median_seconds": 0.02948780031874776,
+      "min_seconds": 0.02438020007684827,
+      "max_seconds": 0.03315770020708442,
+      "sync_over_mode_median_ratio": 0.8252938286875667
+    },
+    {
+      "files": 6,
+      "mode": "async_4mib",
+      "median_seconds": 0.026328899897634983,
+      "min_seconds": 0.0235470999032259,
+      "max_seconds": 0.032512799836695194,
+      "sync_over_mode_median_ratio": 0.9243112974431492
+    },
+    {
+      "files": 6,
+      "mode": "async_8mib",
+      "median_seconds": 0.0319815999828279,
+      "min_seconds": 0.02669369988143444,
+      "max_seconds": 0.03306959988549352,
+      "sync_over_mode_median_ratio": 0.7609406545545169
+    }
+  ],
+  "next_action": "Paired same-file whole-read comparison at2/4/6files; defer chunked-runtime implementation because no consistent chunked gain.",
+  "caveat": "Disjoint cohorts do not isolate file-layout variability; the two-file whole-async win needs matched confirmation."
+}

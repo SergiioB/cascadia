@@ -1,0 +1,2418 @@
+{
+  "scope": "windows_uncached_async_chunk_component",
+  "full_model_speedup_measured": false,
+  "canary_bytes_and_error_recovery_verified": true,
+  "excludes_observed_full_routes": true,
+  "cache_state": "natural_mixed_no_flush",
+  "reusable_buffer_bytes": 191102976,
+  "samples": [
+    {
+      "block": 0,
+      "files": 2,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.013272499665617943,
+      "bytes_per_second": 4799472111.87473,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63909888,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_20\\expert_233.bin",
+          "sha256": "5c4754c07aaf15f14ace89fa4d3aac6499f5c00c90b23ed305c381a1812eaab8"
+        },
+        {
+          "path": "model\\experts\\layer_40\\expert_139.bin",
+          "sha256": "a09370f8d6d45fb11e1592b9544a241a3aba5f973bc9538e22bec6369fbdb2c3"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 2,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.006672699935734272,
+      "bytes_per_second": 9546509301.1095,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_57\\expert_135.bin",
+          "sha256": "a4cd8a14ce6c9a5b4bf6ea2e8b4334845c64b2e79547742b529aa3e613340e7c"
+        },
+        {
+          "path": "model\\experts\\layer_61\\expert_230.bin",
+          "sha256": "1cac2ec206ff9a7a973acf9cbf2497ec25a8568e0dcac87dbc9df5a45bfde2a1"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 2,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 63700992,
+      "seconds": 0.0167306000366807,
+      "bytes_per_second": 3807454117.625185,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63963136,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_20\\expert_222.bin",
+          "sha256": "d3d66c116880acc12492cd14f81cac68b4b642333d884f137e686b8a598bdcaf"
+        },
+        {
+          "path": "model\\experts\\layer_23\\expert_017.bin",
+          "sha256": "c4f228aeceff58a5b67b6ef99bfc439c414c1d36f95938452582a2efc5718e01"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 2,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 63700992,
+      "seconds": 0.005974899977445602,
+      "bytes_per_second": 10661432365.472591,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_44\\expert_193.bin",
+          "sha256": "5ddc59313d59b59f3733fff99082cdb79afd41dff3c8a0889ea851f845af1a6e"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_198.bin",
+          "sha256": "07696321e6cddf86129ac786ee5d4ced687ed6634d1bc6c5764e1ec2dd55c354"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 2,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 63700992,
+      "seconds": 0.012310999911278486,
+      "bytes_per_second": 5174315040.13265,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_24\\expert_228.bin",
+          "sha256": "e46ffe4d972be727a3cceb22d53eacc5388130e1b714edbc325e793ff9161ceb"
+        },
+        {
+          "path": "model\\experts\\layer_63\\expert_204.bin",
+          "sha256": "c43f4787ca3771941e89feb9aea802a0e56d16ce476a236cf8df9ba736ba9847"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 4,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.012913999613374472,
+      "bytes_per_second": 9865416432.880737,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 127401984,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_55\\expert_150.bin",
+          "sha256": "5008bdd62ae42e0d849b6aedfcc2c083bbbdccf392242601f567cbb21851bda5"
+        },
+        {
+          "path": "model\\experts\\layer_58\\expert_153.bin",
+          "sha256": "8fa2f27d2c99e51a81b917423b74b37a2bf598ce2571f7cc3a26e01ebab462de"
+        },
+        {
+          "path": "model\\experts\\layer_32\\expert_153.bin",
+          "sha256": "6faed5483704a294c4032b785afd01559507d014a32d24f3dbe3c57357832412"
+        },
+        {
+          "path": "model\\experts\\layer_51\\expert_087.bin",
+          "sha256": "52604bda592bd6eb3b14ad8b95f4c250f684c039d6d19236a45320b6d72c3265"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 4,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.019762299954891205,
+      "bytes_per_second": 6446718463.478628,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_52\\expert_232.bin",
+          "sha256": "4d583465a499665e1dcd875fda9988e3faea30c1804556099fd745d8b39f90da"
+        },
+        {
+          "path": "model\\experts\\layer_44\\expert_094.bin",
+          "sha256": "a997f5903527d4b60d4fbdd4f8664f75989c517344c356096ba8755f8f8cc0bd"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_025.bin",
+          "sha256": "f73cf3ea3d75c837fb003ce84a53b1d1d83885762d51e074a21159893e35cc0a"
+        },
+        {
+          "path": "model\\experts\\layer_53\\expert_095.bin",
+          "sha256": "f3076c09cafc4f902db63b94398c7f1f37f8dacac5d4ecd770c83256eb087343"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 4,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 127401984,
+      "seconds": 0.011871499940752983,
+      "bytes_per_second": 10731751222.324411,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 127401984,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_31\\expert_202.bin",
+          "sha256": "363a91be024515ff8be3331ec07b801805e336aeb38131fc38dd235b0d8700d4"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_141.bin",
+          "sha256": "abfb098f2238c1e5f0d8a5597fcabc15e271ecb460fc55ee3f836fbccbab2193"
+        },
+        {
+          "path": "model\\experts\\layer_37\\expert_039.bin",
+          "sha256": "1467e7f582839b220b0f211dd119d47df6039062f4d92a850329f6c7cf03a09b"
+        },
+        {
+          "path": "model\\experts\\layer_57\\expert_127.bin",
+          "sha256": "a0f035b26058a7bd667c6d1fd1f8d14df7b4c7c687b2bded99ec419c2bb04b8b"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 4,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 127401984,
+      "seconds": 0.020848299842327833,
+      "bytes_per_second": 6110905203.950426,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_65\\expert_211.bin",
+          "sha256": "27a0e41f9199583f7c9ad428c7612849a6faa8f02a6abb4a1f5b0a109e216bde"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_113.bin",
+          "sha256": "1ed0a53606142c3cd577f5967a873a3aaf4e53002febb2409a480b7f699515a4"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_166.bin",
+          "sha256": "d4e933dd6734b0362d4fa637ad169dbebf3e4ff806462e32ae97b54df43a9263"
+        },
+        {
+          "path": "model\\experts\\layer_48\\expert_015.bin",
+          "sha256": "5cef4146afe5d03a48f5cd1d26109e9ed114c35bbea1f4f88f8d940409adf156"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 4,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 127401984,
+      "seconds": 0.018726599868386984,
+      "bytes_per_second": 6803262999.978531,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_63\\expert_094.bin",
+          "sha256": "b08c06bdd403f983dc363dcbfde91072737d96d2f92850df03a7a68ea6cb271a"
+        },
+        {
+          "path": "model\\experts\\layer_24\\expert_235.bin",
+          "sha256": "47d13b86f5ed2096d3bdd3347acba31d7b27fb3e750dce4aa306b5b7b674a703"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_153.bin",
+          "sha256": "5ffeb1a4b51ff376a85186a33a5ad76861e49dc41edbcadd647b944234a6b9b0"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_182.bin",
+          "sha256": "a31906ead7472b5c892d52813bab9f5b33d57461d66dde5312ed67c69a4fbe0e"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 6,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.030051300302147865,
+      "bytes_per_second": 6359224861.439398,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 192294912,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_29\\expert_156.bin",
+          "sha256": "293a14fe50072a1399a8f280e03d27cac232595ddec622b68854d0fb6b3015b2"
+        },
+        {
+          "path": "model\\experts\\layer_59\\expert_036.bin",
+          "sha256": "721b0e884cee3229fced6c0004263ff77dd9b34b0fdb5abaf3dbfedc4b7480b5"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_041.bin",
+          "sha256": "5a9b2118ef2a086c920706c5696ee298442462b87447862173ab68d19bba61c8"
+        },
+        {
+          "path": "model\\experts\\layer_11\\expert_209.bin",
+          "sha256": "a29422ed6a4a148e31e4ce1897ad4b06aa6acf937c94b8f3266fe1ad119699bc"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_057.bin",
+          "sha256": "c931520f33090f535fdfd3656952a05b8a70891a08f45348829efb4714ef223d"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_040.bin",
+          "sha256": "acbb272b62e1db050119bafef16b65195665724d59dbf7b48d85267bbf0f3a43"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 6,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.03283320041373372,
+      "bytes_per_second": 5820418770.996933,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191496192,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_32\\expert_133.bin",
+          "sha256": "0e5dd309528536fffbc02fb862280b004ab14394240db7eb41b71f1b9fd4dd56"
+        },
+        {
+          "path": "model\\experts\\layer_49\\expert_009.bin",
+          "sha256": "e8d539be7e68379a4dc7462a19847975af06239cb14efac3579487c8e00018f9"
+        },
+        {
+          "path": "model\\experts\\layer_61\\expert_028.bin",
+          "sha256": "09dbc41a397913e029e4123fbdb85a120c9942c2f8021bac9c27ab9430959ecc"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_010.bin",
+          "sha256": "7b27397dd94c9e39e78a20bf58c4ddeac6e36552646f4d48d48ee410e7753a33"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_117.bin",
+          "sha256": "89bb4316c23ad7578f28b9150dc96d9f4d7aba27d0e19212006552ed22f39ed6"
+        },
+        {
+          "path": "model\\experts\\layer_25\\expert_033.bin",
+          "sha256": "e6a8c2a5dccd01580edcf16736c17ad6f6a1e116dc383b8d707720ebeb2d3e71"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 6,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 191102976,
+      "seconds": 0.03098449995741248,
+      "bytes_per_second": 6167695985.498132,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191369216,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_54\\expert_150.bin",
+          "sha256": "9f5a3839a785e6cb83f799331b1b56c646dad2da139bf5fb94246ce09e294d04"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_122.bin",
+          "sha256": "81b768e2bf636354f655af59403719f36333668eb976c348542ab6a4a8061df0"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_252.bin",
+          "sha256": "bf7d1a593f74527a4aefea7036e2e65344d448a22da1908342c4c59fe276a36a"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_153.bin",
+          "sha256": "712700951caf8e1ddc353184ee83a59c323bb988f782dd33d7653aa8e91e35fb"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_155.bin",
+          "sha256": "095cf0fef5a575c57696b23f4292c4bec45bf4c9fe40a236a2647c416f0543c9"
+        },
+        {
+          "path": "model\\experts\\layer_46\\expert_177.bin",
+          "sha256": "6e22c8e7a957babdb68db8421c486ab90a996fcbac0714e7417c80719a5fc0bd"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 6,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 191102976,
+      "seconds": 0.025125399697571993,
+      "bytes_per_second": 7605967598.536048,
+      "user_cpu_seconds": 0.03125,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_02\\expert_169.bin",
+          "sha256": "46b3d977ef3d3dd2accad0f1c06f1a74adeda642f20af8cacac0c97091829478"
+        },
+        {
+          "path": "model\\experts\\layer_54\\expert_074.bin",
+          "sha256": "f76e7bacf941dab0c781ccc0702caee8c9a47be88ee8684c770a8fdd574fe558"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_250.bin",
+          "sha256": "ca0bd4a69e466ee64cb105edc2b36ebfa0d5087b205faf2b1841e4bb90cb80c1"
+        },
+        {
+          "path": "model\\experts\\layer_53\\expert_116.bin",
+          "sha256": "b6b0fe341c59312420199cdf0e799284c9ebfaac3151abcb38c795eea0743304"
+        },
+        {
+          "path": "model\\experts\\layer_43\\expert_165.bin",
+          "sha256": "6f598cc79a62d25b78a56ce74d9e8500f0d20b84de0e1e4c8db36f0465a32e2c"
+        },
+        {
+          "path": "model\\experts\\layer_65\\expert_199.bin",
+          "sha256": "2c1f7e25c00c2a3bbf033c452fdbef29fd22ec2f17e092e676033f0d5569e49a"
+        }
+      ]
+    },
+    {
+      "block": 0,
+      "files": 6,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 191102976,
+      "seconds": 0.0325458999723196,
+      "bytes_per_second": 5871798787.636345,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191758336,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_19\\expert_089.bin",
+          "sha256": "3120dc72397e39a3347753b1aceb7ffd1b535419ce8e1b694c788fca45ee8070"
+        },
+        {
+          "path": "model\\experts\\layer_28\\expert_185.bin",
+          "sha256": "0c49667f65d28bc612a82edbf0594624081f331c0c1d5ad02c7fc71241d9c90c"
+        },
+        {
+          "path": "model\\experts\\layer_04\\expert_033.bin",
+          "sha256": "5e26b6e5d0a29505a27b9a7d9f3a5deda19a2ab79485b1af9265465f1b4ef0de"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_163.bin",
+          "sha256": "1df82e8755d93940356675e3d57b00da6bdd2a45bbdb7148cd8505d52e1f3df5"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_042.bin",
+          "sha256": "df42ed7e9f1ad3a62ee9194a9dbea707ae61d97a0d0b66db5a450c9e8d95120b"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_123.bin",
+          "sha256": "63237c2e1f3fb0f2ce313c9fbc760d3e464bf9f6bf95a198e24366a742c4518e"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 2,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 63700992,
+      "seconds": 0.008818500209599733,
+      "bytes_per_second": 7223563019.327904,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_34\\expert_212.bin",
+          "sha256": "ec3a583863212976bd237e97a69ba8754daf52f0a475b0dfcde3686b23f63ff9"
+        },
+        {
+          "path": "model\\experts\\layer_46\\expert_046.bin",
+          "sha256": "5d5ae44673d00b9ac212d5f6c19cf07cce1b9ee917618e9a54d5278210444a50"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 2,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 63700992,
+      "seconds": 0.015401700045913458,
+      "bytes_per_second": 4135971471.3377905,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63963136,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_20\\expert_174.bin",
+          "sha256": "e1d1f8b26d6d29bb05dd652c2d57b992ed087f3a691daedcaad0b49be03cc595"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_240.bin",
+          "sha256": "c62995439045d7f5acd50b099228d07e2f7825f188199047b2b51a51a143d7b4"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 2,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 63700992,
+      "seconds": 0.018478399608284235,
+      "bytes_per_second": 3447321919.125592,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_58\\expert_228.bin",
+          "sha256": "07a6cac58222f0204c41885f98646e715dfeac51349a3d903d8a462ed3578a03"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_151.bin",
+          "sha256": "4885729376122ea007ae4faeeedcb2fb4b90f443c2af4891682ca902fb315ca0"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 2,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.0074259997345507145,
+      "bytes_per_second": 8578103188.399053,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_56\\expert_011.bin",
+          "sha256": "0eaa979ea84af013950533b4eb15cc119b6cd5ee7b74c3e96403dfa20bf50011"
+        },
+        {
+          "path": "model\\experts\\layer_31\\expert_166.bin",
+          "sha256": "0b798fcbb19816086008580ef0bf64a4e892695a9796d7c08387aa6caf901c73"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 2,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.013282599858939648,
+      "bytes_per_second": 4795822555.561442,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_61\\expert_115.bin",
+          "sha256": "fae02f7ab77426c484b020935fc37429f257ce3dc7eea7807a002317b373edfd"
+        },
+        {
+          "path": "model\\experts\\layer_30\\expert_052.bin",
+          "sha256": "188c3a72e0b50d079c8c62c9190de78177ee5bcd17b1668b0aab80c39149a6a9"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 4,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 127401984,
+      "seconds": 0.019547599833458662,
+      "bytes_per_second": 6517525685.272742,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_40\\expert_131.bin",
+          "sha256": "9f947e0b677bbe586496640f41d43e6cdc481467f8cbbeae9d33256433c295d1"
+        },
+        {
+          "path": "model\\experts\\layer_65\\expert_156.bin",
+          "sha256": "83a73fe64f12c4b5021632326fade5e9fa3d54fd4da1d34e56e29d2cc1953740"
+        },
+        {
+          "path": "model\\experts\\layer_04\\expert_161.bin",
+          "sha256": "ba2bd7e7b17bbbe501deef530df18eb6d92583001060f065d39da5e933967941"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_253.bin",
+          "sha256": "8400773e22188fe707132260e22423b8df3823c16c5b874b9a82b8460bb6870c"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 4,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 127401984,
+      "seconds": 0.019190900027751923,
+      "bytes_per_second": 6638666441.6866455,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_61\\expert_061.bin",
+          "sha256": "dddf9adeba7f39c12c5f22da0e5b51bd3e0d7beaf05d09fc82e9c2acda6d7a2f"
+        },
+        {
+          "path": "model\\experts\\layer_45\\expert_020.bin",
+          "sha256": "e7d34d54ac5f71de88fb9d6d028c0a25a5671657d1cb5cbad0ed1b087f630720"
+        },
+        {
+          "path": "model\\experts\\layer_35\\expert_158.bin",
+          "sha256": "1af98ddda04438f7026cc78148df4fd5944a50471ae56aa1df88852b0e5add41"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_003.bin",
+          "sha256": "682d75c9c5040969037658f9e24a9eeee4ad236bdadb768a49fc6ebd81609cb2"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 4,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 127401984,
+      "seconds": 0.026077500078827143,
+      "bytes_per_second": 4885513703.955092,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127795200,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_19\\expert_041.bin",
+          "sha256": "e95857dea1ae00a8fdc18331a498716d527ff85dd344d1b8246533b98b015179"
+        },
+        {
+          "path": "model\\experts\\layer_35\\expert_226.bin",
+          "sha256": "a101dd7fd88675996e46108665f624c1ee601fc4ca7d6d74c5a6c583bfdebafd"
+        },
+        {
+          "path": "model\\experts\\layer_28\\expert_142.bin",
+          "sha256": "bedf37501d8a0ae1afc8cb5a4e5af88e8c36d867d8ec9830d593a8e3e3674d6a"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_051.bin",
+          "sha256": "0bb71b8e5531e38a875b83a0e5b0cf8694f15ed70dcaea0b8db91c0aeaa154b3"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 4,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.020673399791121483,
+      "bytes_per_second": 6162604375.053724,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_65\\expert_171.bin",
+          "sha256": "0e4046446aaeecdb8839c858c251c5017a0488c9c72416d6d974ff5a7eb679ff"
+        },
+        {
+          "path": "model\\experts\\layer_32\\expert_232.bin",
+          "sha256": "efd6463b48047f4a787e62236d8cee9fc61d9681d1906fc23fb028852c16414f"
+        },
+        {
+          "path": "model\\experts\\layer_47\\expert_088.bin",
+          "sha256": "5478b7d4b5a9559dfa4015645b20cf4ea632e6548139b4e1dae5a46ce9357adc"
+        },
+        {
+          "path": "model\\experts\\layer_25\\expert_214.bin",
+          "sha256": "345b3d610e1f043d99c8915aaaab64ef760cba7c35baae8d28e03a7897a8c3d8"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 4,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.01648150011897087,
+      "bytes_per_second": 7729999276.786412,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_32\\expert_022.bin",
+          "sha256": "486aa1dfb332aef349bb8cae016149e4ab617333d83429ca9f720e2099087e04"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_042.bin",
+          "sha256": "55607a00d11e9738d2e0f9e60699866416d34e6dd4b1b37771287a56b71d5ac2"
+        },
+        {
+          "path": "model\\experts\\layer_24\\expert_164.bin",
+          "sha256": "4179f28cff929234a1566ca049577f4d3da46f758f71e2a4928b196b3d7f7427"
+        },
+        {
+          "path": "model\\experts\\layer_60\\expert_251.bin",
+          "sha256": "e273588c8f8292ff4162203d4c90138d775e7e8e2e2272d0e47b6ec506fa3654"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 6,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 191102976,
+      "seconds": 0.02669369988143444,
+      "bytes_per_second": 7159104090.059571,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_62\\expert_090.bin",
+          "sha256": "50edff695541a064aa33d98ed40615b898116d3be81e77d725bf53260d66d634"
+        },
+        {
+          "path": "model\\experts\\layer_33\\expert_211.bin",
+          "sha256": "75206ce83a9006cedb2495b9cbd194c64205ee8e0f0b5c6c82726d78b360bf6d"
+        },
+        {
+          "path": "model\\experts\\layer_60\\expert_122.bin",
+          "sha256": "70b6ca41522111d22d10d51bb8d223029ba78900f44f1df08947acdef297c3cc"
+        },
+        {
+          "path": "model\\experts\\layer_58\\expert_217.bin",
+          "sha256": "ed0ee4a42ce3b13d86f119ca81e4afb2d36cd1e21c6e488984b4c3865f0987bf"
+        },
+        {
+          "path": "model\\experts\\layer_30\\expert_142.bin",
+          "sha256": "b01ba2f49fc2407ead41a821afa1a04ae548745e3d0d0594a03cdbae1f997a49"
+        },
+        {
+          "path": "model\\experts\\layer_23\\expert_255.bin",
+          "sha256": "4f39dfb3dac2baa9cfaf82d2bca220e3da6972f738b959c094375c125ada1396"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 6,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 191102976,
+      "seconds": 0.026328899897634983,
+      "bytes_per_second": 7258297032.652169,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_35\\expert_195.bin",
+          "sha256": "41a2c2f0cf61c0c23cd8a92e2c2709e0d4c706b897307a457da3f6ad83b2e286"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_024.bin",
+          "sha256": "35f1820a5c978e3131fcdd4f6e36b70883f65dc58087972779333ae024b7c1de"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_159.bin",
+          "sha256": "3b0cf3b15e3e0f9c62301b6fe1193fe58de6eefba2a6635163114f5e83857552"
+        },
+        {
+          "path": "model\\experts\\layer_17\\expert_090.bin",
+          "sha256": "e211ec5c94d9a12f09990e20da752384ca5e1f34a3d41348f2b03ad3ac7d72ff"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_224.bin",
+          "sha256": "1d40599268817a574474cdb66beb27854cc1248f893a14f3c261628cddbce034"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_148.bin",
+          "sha256": "5ace778f3be847b01a593942b4406bea03e049f0eff237ebce509225ca54d36a"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 6,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 191102976,
+      "seconds": 0.03315770020708442,
+      "bytes_per_second": 5763456898.593023,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191496192,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_29\\expert_084.bin",
+          "sha256": "179c580bc947c3c4bb762338e977d8f3302483f63e284dc7760b410328129b2a"
+        },
+        {
+          "path": "model\\experts\\layer_39\\expert_081.bin",
+          "sha256": "75ea5c22a49d7927b56cf090e30be7f9791de62859e6fb9321f6441e6de253fd"
+        },
+        {
+          "path": "model\\experts\\layer_55\\expert_075.bin",
+          "sha256": "b2d556f7cca3815988b2d341cc47d90b26a7ba7b1faf5c229c4973acb905be65"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_097.bin",
+          "sha256": "b6139417b314b4e1bdec743cc3a9ff0e5eb8ebcbb54e8b85ff8578c79c0f3a17"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_112.bin",
+          "sha256": "8e149020d75dd7419733cfdc63cf4e7d2538718d18bd2c373f0e657cbf680371"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_057.bin",
+          "sha256": "ce23e34feaf34f824de5e7a6184401ad1596effd6ee1d8ccd3e11e2b76842ae4"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 6,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.028423800133168697,
+      "bytes_per_second": 6723343645.278291,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_31\\expert_223.bin",
+          "sha256": "f7bc263e206dcd4b39666fcc63805a177277dc66b2751a7a7dadae448f703795"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_050.bin",
+          "sha256": "b386cf391f6ff1c9bef0c0f3d6f1234cd0dbd2cdad4909f185d6ae7e9e24a382"
+        },
+        {
+          "path": "model\\experts\\layer_65\\expert_128.bin",
+          "sha256": "f9dd63f46321dd77ff69fbcaf594d0ef22a8e197385c68850c88e7877d7d937f"
+        },
+        {
+          "path": "model\\experts\\layer_37\\expert_093.bin",
+          "sha256": "ec74a63e3a9ef521246a01fbfefa7a4edac2bc0ffe8180324f802e5298a6d77e"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_067.bin",
+          "sha256": "dbd21b98f77573ffdae6d774c05d9ea64421de520e4bb71b23dd7c99404fc686"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_171.bin",
+          "sha256": "58e8b6ab6b6c995baa8235726613eb7c2ef8ee582f2374d5fa5564ec1cd1bcd7"
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "files": 6,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.02433609962463379,
+      "bytes_per_second": 7852654244.0087385,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_51\\expert_134.bin",
+          "sha256": "7d7d6a7013bf5e09229aa57a47ee89fbddafd53302a7c9245e8493f6bd4800ac"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_254.bin",
+          "sha256": "337afe4650739206c92a17ca60063980a954b5c519fead0e04fb343d144e8445"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_044.bin",
+          "sha256": "d9116a202db194d68691e627b77a0114a6ed6e74ebdcb06e6f6f5e6a71a71756"
+        },
+        {
+          "path": "model\\experts\\layer_37\\expert_165.bin",
+          "sha256": "3e0398b5befc5113ab106f915c597c5eea1ba07275b619f661263acdc4d0e25a"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_077.bin",
+          "sha256": "cab818f980ffeda83fa2a3e04c61fb2622856bfef2eab995e73abc9db1e8d0a4"
+        },
+        {
+          "path": "model\\experts\\layer_08\\expert_051.bin",
+          "sha256": "4c4811c983d9137a2fefc92e9a863cfe2fe051711d2cac1cfe66a2832f691282"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 2,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.012203999795019627,
+      "bytes_per_second": 5219681503.599825,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_37\\expert_041.bin",
+          "sha256": "1517e0320affb576e0053770352d274a4c95d423d9644981d9a5ee6d827c0e68"
+        },
+        {
+          "path": "model\\experts\\layer_23\\expert_005.bin",
+          "sha256": "b2b8e28049f995674b87c3c3bff80492da48f60ee6ddde90372212f9800a811c"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 2,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.007889399770647287,
+      "bytes_per_second": 8074250748.07353,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_46\\expert_160.bin",
+          "sha256": "78fd9b27c2c6038d032e9223fd8807fdfc373115c879f8a23f2ab5c4b1d846b7"
+        },
+        {
+          "path": "model\\experts\\layer_41\\expert_222.bin",
+          "sha256": "cdd06285a22137a02b973f51ccfd045284f336a38e6434ef303c37c8413f06a8"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 2,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 63700992,
+      "seconds": 0.007225300185382366,
+      "bytes_per_second": 8816379993.301125,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_43\\expert_072.bin",
+          "sha256": "28e3d7936ee25dbfb586942e8a8f4a628482d5e3b7ee9e400ff64b0ef03b090b"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_253.bin",
+          "sha256": "5071785e0e9a8042fd68b74ddd9aa516bd90f0792d264b62568d312e962f001d"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 2,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 63700992,
+      "seconds": 0.012829599902033806,
+      "bytes_per_second": 4965158109.872298,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_55\\expert_000.bin",
+          "sha256": "68b9058e7f054013c7b462f82b0610635b34e26fa77c5ee2c127bef8df55fe79"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_077.bin",
+          "sha256": "9e262a3f35e4d08b04fe9d3415c6b8f944e9ea731eb4db41990f393e264c8ba1"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 2,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 63700992,
+      "seconds": 0.00607970030978322,
+      "bytes_per_second": 10477653297.728312,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_57\\expert_183.bin",
+          "sha256": "089ba83a23e3cd33a37d594b5af814b4a0700c4e61d2039d500a3708f8fc53ac"
+        },
+        {
+          "path": "model\\experts\\layer_36\\expert_035.bin",
+          "sha256": "0c9ebc9f27114874f5c1f8b65db06e01402a3c46353d879b642583b803da4e8e"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 4,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.016640199813991785,
+      "bytes_per_second": 7656277293.790367,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127795200,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_02\\expert_072.bin",
+          "sha256": "100618270fbd0e674675528cc14d0574abfba5bc06c272c930349c71c4fb4890"
+        },
+        {
+          "path": "model\\experts\\layer_10\\expert_026.bin",
+          "sha256": "9c2876f78d91a38abe178b6a5486cff3701c132bac97bf34cdd98cec9fae33b0"
+        },
+        {
+          "path": "model\\experts\\layer_36\\expert_063.bin",
+          "sha256": "3f3f5723333c3be62a2f1b9c09361df1278fd2dda12fcf3f8c0ec25ce383ae64"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_065.bin",
+          "sha256": "776c07fa035013b0f2f2a6d6d1462aca9d8089a170dc497c2823232687a01025"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 4,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.02474559983238578,
+      "bytes_per_second": 5148470227.553862,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_29\\expert_111.bin",
+          "sha256": "ca012df1dbce4ed8e184845cf85bbb2c55e25ebe79c22d6f7709f5d929193092"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_222.bin",
+          "sha256": "2d9e140081c62f8dc3d2cb4c512b369ef86eef15b9c683bfe598adb769d07a35"
+        },
+        {
+          "path": "model\\experts\\layer_11\\expert_142.bin",
+          "sha256": "ccc9a408883e9464b30384b7efe2e7c87697b7520390e919ba244fbf2e88d61a"
+        },
+        {
+          "path": "model\\experts\\layer_56\\expert_127.bin",
+          "sha256": "3ccb7a75d368e32b1886b1ecd2cb0e71bb5e974f76d5b1b8ec31dcc72f673f6a"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 4,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 127401984,
+      "seconds": 0.02290039975196123,
+      "bytes_per_second": 5563308299.414689,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_64\\expert_010.bin",
+          "sha256": "c74bf9ff9d20ae5048b4f78bf9a0ac9a33ef253adc3970ac0268ca76150b2d6c"
+        },
+        {
+          "path": "model\\experts\\layer_47\\expert_156.bin",
+          "sha256": "5845f5f36c694cd71f6abe9d0ee5fba0e8c520bcea623099b007a738cbbe2ad5"
+        },
+        {
+          "path": "model\\experts\\layer_25\\expert_195.bin",
+          "sha256": "efebd3313f6e8bb9091c8c3bd82f630c0a8ec3456a4b39544ebbd2dcbe68ae39"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_003.bin",
+          "sha256": "c9cac3af50df33e9074af0055737fce317a2b7a30cd210d677bf468aa34d1bee"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 4,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 127401984,
+      "seconds": 0.019882500171661377,
+      "bytes_per_second": 6407744644.790028,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_47\\expert_166.bin",
+          "sha256": "a53a2371f4c15f32b0d4e8be6a75dfc712ea641e0bf6ec5e9db3f27ba1c391c7"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_082.bin",
+          "sha256": "b01165fcee24f4c244a0307621521e25409de0bcbb5d7dc03fbce9b41880b97a"
+        },
+        {
+          "path": "model\\experts\\layer_65\\expert_090.bin",
+          "sha256": "e182c190a5e82a6505e33700d89949afd612cc267f7d8ece7c3c0ac6d69a3a4e"
+        },
+        {
+          "path": "model\\experts\\layer_08\\expert_065.bin",
+          "sha256": "1601b6a776accffaa6c5a16c2b5732af6f54969db04cd77ed9d774d623a3c148"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 4,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 127401984,
+      "seconds": 0.02128899982199073,
+      "bytes_per_second": 5984404390.308585,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_28\\expert_048.bin",
+          "sha256": "8008dd465261a07f38193e1cacbd777bcdfd6990197a336c11e74ab052954e77"
+        },
+        {
+          "path": "model\\experts\\layer_59\\expert_208.bin",
+          "sha256": "a029885a82c3b0cf38e34c74bab271be732e6375c278b21c2dca205ebd787372"
+        },
+        {
+          "path": "model\\experts\\layer_48\\expert_255.bin",
+          "sha256": "1b8dcb4e054c9767f05801bca79e75e7115ee169a314338625d9c8166d65cc42"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_159.bin",
+          "sha256": "b92f4f79927c3c0c3acf3881d426296668aaeec619dd311e4e2f7757c7cc1ec3"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 6,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.023049399722367525,
+      "bytes_per_second": 8291017479.928142,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.09375,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_34\\expert_034.bin",
+          "sha256": "a22500813f6d875197390aa055a99eca6a67846f7041d401547a071f788946c2"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_207.bin",
+          "sha256": "69ced3d7a46fe8412305dc7adbfb9b8da2df7f341e4cf7da2610c2e0caac85be"
+        },
+        {
+          "path": "model\\experts\\layer_47\\expert_145.bin",
+          "sha256": "68374647a954feba81c50c05e971d7e5806da63f8bfff5b8224dd4644c9d2b7b"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_170.bin",
+          "sha256": "ea65ace5dec89f983626416cd1f5b436e11159cfb47d3b3a9e1561da9cacab05"
+        },
+        {
+          "path": "model\\experts\\layer_28\\expert_133.bin",
+          "sha256": "96bb1bce9c9a54d2f9f044c31f27c198cbc7ccb45542105e110fb8bc44a7ecb4"
+        },
+        {
+          "path": "model\\experts\\layer_39\\expert_082.bin",
+          "sha256": "596e827a4cc023701afaab6250313b86a0b374df51de1296158f8fc80deb2ba9"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 6,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.028750300407409668,
+      "bytes_per_second": 6646990580.687916,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_37\\expert_243.bin",
+          "sha256": "2a83767f54b5881c74086e4697a0ed55317f1e811678642ad02649a98e45e3f5"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_210.bin",
+          "sha256": "651a2384c16767fe1f9fb061ee97ff718f191ce393d2777cc0b870091fe6d593"
+        },
+        {
+          "path": "model\\experts\\layer_16\\expert_207.bin",
+          "sha256": "f049ffa7309f274d38ccbb4a3c01d00217b185a3d7664e2559b41086390e0b8f"
+        },
+        {
+          "path": "model\\experts\\layer_48\\expert_238.bin",
+          "sha256": "61ec98ca544a2b41177cfe7bb2882b7173c78d28eef132b8fd6afa7ff3225d80"
+        },
+        {
+          "path": "model\\experts\\layer_32\\expert_139.bin",
+          "sha256": "dcdb847226690546115a813c227da8ac035d2fb66a97fac0e88b51d76306a655"
+        },
+        {
+          "path": "model\\experts\\layer_46\\expert_218.bin",
+          "sha256": "d90d4f5af379cfb195462a458c53a13cc946275364d75ccf225388cf3c1edc5e"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 6,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 191102976,
+      "seconds": 0.028367300052195787,
+      "bytes_per_second": 6736734749.107981,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_26\\expert_007.bin",
+          "sha256": "de3e478afae6812d8f2a4c750ead8b66a4bcbd155df10e7b79dfd8177dee5a01"
+        },
+        {
+          "path": "model\\experts\\layer_57\\expert_248.bin",
+          "sha256": "048d66470bd887207ec1ae135018ae4f654880f904788be219fed36af101a56e"
+        },
+        {
+          "path": "model\\experts\\layer_10\\expert_082.bin",
+          "sha256": "e27b92509768d0e61ff1efc73fa154fa52c1c065aedfab86dce2ed91799ff67d"
+        },
+        {
+          "path": "model\\experts\\layer_50\\expert_026.bin",
+          "sha256": "1a653078b297e1ce4c2949f553c755335441753465c29267b921df5ac8304eee"
+        },
+        {
+          "path": "model\\experts\\layer_55\\expert_202.bin",
+          "sha256": "4237c5601f32b5be9eceeb04813c0e600e39b581534d1101eac2169c8fdbb5ce"
+        },
+        {
+          "path": "model\\experts\\layer_37\\expert_157.bin",
+          "sha256": "597b616f422413a2fc2ba88a5c00b05bfa0b894e294b1aa1e4f8cd9eb3927e92"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 6,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 191102976,
+      "seconds": 0.0235470999032259,
+      "bytes_per_second": 8115775479.162907,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191234048,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_54\\expert_086.bin",
+          "sha256": "a9131e51274b6b9ef3bc178a60815bf6ae02b4ec6f4465681cbee8cfdcb1d9ac"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_001.bin",
+          "sha256": "5d5690da5220d379405d1da91b9afd9bd669e6211dd7cc30d8649eb63ed74a21"
+        },
+        {
+          "path": "model\\experts\\layer_50\\expert_032.bin",
+          "sha256": "35489b8a487926fb059c9a6e8aae68270aece3f7df6709d057bdd8a90dd13730"
+        },
+        {
+          "path": "model\\experts\\layer_62\\expert_172.bin",
+          "sha256": "9052553878201e62c912cf395635417e205f60fb657eb777b27bc4a42f9ea747"
+        },
+        {
+          "path": "model\\experts\\layer_57\\expert_218.bin",
+          "sha256": "0985ee16d4fbfeb231bd05c37c865fb1e6f0a962188e14f5b3ef096415ee125d"
+        },
+        {
+          "path": "model\\experts\\layer_63\\expert_074.bin",
+          "sha256": "0e733ae39d3d29d5786603bedfbab98717164ff1d96296fa4c15b0a9cb5d7275"
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "files": 6,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 191102976,
+      "seconds": 0.027569000143557787,
+      "bytes_per_second": 6931806558.267808,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_49\\expert_253.bin",
+          "sha256": "8c7468ddf1b4e02d9cb3e5bb6cefbef0b98a2d480b7a6d38e2db67247e0cedff"
+        },
+        {
+          "path": "model\\experts\\layer_41\\expert_214.bin",
+          "sha256": "9b8b38da57bab8aaaf97ce145fa52ad77f9d31c9c3721c65766e9739afba621c"
+        },
+        {
+          "path": "model\\experts\\layer_28\\expert_084.bin",
+          "sha256": "503fb8fd4c58f3d99a87e8015ad392aabdf257317e362261ab295f04332640f6"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_159.bin",
+          "sha256": "c59da2100855d9b06068a0f3e3b8207709e77ce78ee7722e2d4aea2ac6ceb504"
+        },
+        {
+          "path": "model\\experts\\layer_39\\expert_120.bin",
+          "sha256": "7b3ae4cd4ff2d4e59ad91cbb60965ea1dc2094e7905a6ad90ac3ed7572bc1318"
+        },
+        {
+          "path": "model\\experts\\layer_50\\expert_234.bin",
+          "sha256": "7af91dba89a47ff8f7326935e96eaffaaa653859d23105512c02ec1627425f5e"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 2,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 63700992,
+      "seconds": 0.007319000083953142,
+      "bytes_per_second": 8703510215.782616,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_37\\expert_047.bin",
+          "sha256": "46467a18fe2376cf2c787680c2ba4542542d2476e4b905a233f337b44caa70f6"
+        },
+        {
+          "path": "model\\experts\\layer_48\\expert_174.bin",
+          "sha256": "9a84051ec16608d1d567307d73a76a635d566041df20cc0adaab1d84a44745d4"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 2,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 63700992,
+      "seconds": 0.013803199864923954,
+      "bytes_per_second": 4614943826.313345,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_46\\expert_130.bin",
+          "sha256": "f8711789476f6d2b4ff7046f1c5a009de155717957df4426ccf75d8fb3f4cb00"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_196.bin",
+          "sha256": "8520218888c44790c93b5362467a02d1e6aaeb40dd84430981c5aeeae55de492"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 2,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 63700992,
+      "seconds": 0.014207500033080578,
+      "bytes_per_second": 4483617233.973559,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_09\\expert_167.bin",
+          "sha256": "cb9255775f41c814c00193e4801ba5bd31c3f3325451ee11bbdfa584ea03cc22"
+        },
+        {
+          "path": "model\\experts\\layer_36\\expert_194.bin",
+          "sha256": "0c9d50fe0de4b12875bb870f790a6d98e2f34e65923a47b423228a12daa1a1bf"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 2,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.014283099677413702,
+      "bytes_per_second": 4459885699.7919235,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_07\\expert_034.bin",
+          "sha256": "ceac4772417a54d6616860e07bbad599e60b2308d06e8daee6dc5a48356e41b3"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_057.bin",
+          "sha256": "2512cb32cdeb7aac3d075e3986258b42fe02cebdfa4b9f90ee924da476c951c9"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 2,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.006609399802982807,
+      "bytes_per_second": 9637938980.669907,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_50\\expert_188.bin",
+          "sha256": "105f45bcf8c021696e6cf7528d594ebee1ef19f3e1038a7636c265b787a850d1"
+        },
+        {
+          "path": "model\\experts\\layer_60\\expert_233.bin",
+          "sha256": "3c649466873dcc7125b933a1487067a3c475bb8fbd21a567d7e93d539ed1ec7e"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 4,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 127401984,
+      "seconds": 0.01800530031323433,
+      "bytes_per_second": 7075804445.5585375,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127713280,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_03\\expert_075.bin",
+          "sha256": "85b30405352686ed81b73434e069aba8adb39b32679b862738c76a065a1635a0"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_112.bin",
+          "sha256": "bf5954af4de8faa2bb498cccda36c6611885d39b645d7c5bc576a7647ecbcb31"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_228.bin",
+          "sha256": "96e94f5e68f0ed0b96a7e071d819c21a98154c45c832b589ac21be95462621cb"
+        },
+        {
+          "path": "model\\experts\\layer_58\\expert_086.bin",
+          "sha256": "80ac1ad2131176457c3c97910a681a3651c292750b9c8876db9734ae4739e71a"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 4,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 127401984,
+      "seconds": 0.020032200030982494,
+      "bytes_per_second": 6359859815.8442745,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_11\\expert_164.bin",
+          "sha256": "c81498619a041df5362576e78bbccc810c517e73495a8930fd84380ad2a6455c"
+        },
+        {
+          "path": "model\\experts\\layer_61\\expert_072.bin",
+          "sha256": "ebfa8e92400f2ea265f67808efd8fe9f4e6f5ada392fab034b648ed81a082d07"
+        },
+        {
+          "path": "model\\experts\\layer_41\\expert_188.bin",
+          "sha256": "6158461a75b0926cc53e0b84f9307d26f27b1011c2723976d046537c3a5c89ba"
+        },
+        {
+          "path": "model\\experts\\layer_31\\expert_228.bin",
+          "sha256": "acc3517b85e9421f439dc18ffa7eabe4da8408043061b0c5bf7eb55e1d88d8d3"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 4,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 127401984,
+      "seconds": 0.014097100123763084,
+      "bytes_per_second": 9037460391.2504,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127401984,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_34\\expert_229.bin",
+          "sha256": "0a2a73745dee448d4b98dca550ea686dd7f56ee227cb4e3e58a473ac42d44a20"
+        },
+        {
+          "path": "model\\experts\\layer_44\\expert_164.bin",
+          "sha256": "f344a53ebe9924212730926a92c056b18e355347afcc1417859eec946c7a35a0"
+        },
+        {
+          "path": "model\\experts\\layer_32\\expert_180.bin",
+          "sha256": "f3607eb0505d80eb3fdeb6dd24d1da246257d23e595362ba3716d893d7fc6c5a"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_074.bin",
+          "sha256": "adb3d1a5df5cc2c60411cbf94166f366ea3806ff915f61c06d9a22028f0e75e8"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 4,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.019270099699497223,
+      "bytes_per_second": 6611381673.511739,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_31\\expert_077.bin",
+          "sha256": "2c7407caa13b407db0548213243f26818d47818b568b24ca7bdbe456d2ec5c2b"
+        },
+        {
+          "path": "model\\experts\\layer_57\\expert_012.bin",
+          "sha256": "08a7f9a2b7047daa40ceca8bd10e442b8cf7d53fedae99e77386c9a0eb11254e"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_143.bin",
+          "sha256": "88b23af46db890fdfb1cf545f9b746076dbffb985725b03693af23e906b9fb0a"
+        },
+        {
+          "path": "model\\experts\\layer_46\\expert_222.bin",
+          "sha256": "897a9468725d4902978925d9b097791cde5c244eb58f6a203e6711719ca02261"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 4,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.012070499826222658,
+      "bytes_per_second": 10554822570.248873,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127401984,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_35\\expert_087.bin",
+          "sha256": "4d39c006922be53388c62880b5752ff2a08d00cb467598f743d258d31431d320"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_016.bin",
+          "sha256": "3dd4b4c5a0138ea5f70056450b2ae110c95aa95cfcecce67b499ee939d8ba1e6"
+        },
+        {
+          "path": "model\\experts\\layer_42\\expert_213.bin",
+          "sha256": "03b36706b2d3ee4e44c5bd75714031838ac4dd7ea62d6eb0ee96690410584811"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_183.bin",
+          "sha256": "3a516228004decc522ff758626b94a0f4e03ce532e1c2d31695f54928b168803"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 6,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 191102976,
+      "seconds": 0.0319815999828279,
+      "bytes_per_second": 5975403860.426314,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191627264,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_19\\expert_076.bin",
+          "sha256": "0f71da68903e3cfa987df54614a0f6af0a81ac08806da1746e005d561c611215"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_005.bin",
+          "sha256": "eabcd55e72cbe346f03d3178ae74188a0c24a6fc2cd9db4e1c29081db43e8915"
+        },
+        {
+          "path": "model\\experts\\layer_62\\expert_169.bin",
+          "sha256": "9488d62c67e8cd99651cfad5f993d8293d644cd6f58804f84997c439c0507956"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_211.bin",
+          "sha256": "ad5ce7ab26a54f919d04a691af67606f1b3415a058bf6e22c8718c2a38531dd3"
+        },
+        {
+          "path": "model\\experts\\layer_41\\expert_079.bin",
+          "sha256": "5f4978aae44fb0dccac28b2dc1c4bfe602836923d1a1e50eb502982080d67d7b"
+        },
+        {
+          "path": "model\\experts\\layer_24\\expert_175.bin",
+          "sha256": "f4ecd64f375faf16dbfd84e40dee8966ace6545a0c99662fa8a2be1b722aa1f7"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 6,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 191102976,
+      "seconds": 0.032512799836695194,
+      "bytes_per_second": 5877776659.034878,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191758336,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_02\\expert_029.bin",
+          "sha256": "c23d85781961c925e7281b6b7377a51429c82bd13d7a2e42af9ea3ce8ace0fd7"
+        },
+        {
+          "path": "model\\experts\\layer_25\\expert_004.bin",
+          "sha256": "15f0095177ed4168612044501d977765ac9e4baf4b41647edb5f751ea01a5ecb"
+        },
+        {
+          "path": "model\\experts\\layer_53\\expert_142.bin",
+          "sha256": "975bb25fb9d883b4a253d07f2a75f65c197a9a75caa21c0cabf706a7f18b669f"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_173.bin",
+          "sha256": "6e39d0f3ffb99c34063765fae8f73ab0c5ff58a0c34cddbba6509d620068300a"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_175.bin",
+          "sha256": "6df2d18b00ba9033b309acb0c2dc643da7f97750c5fa392706ec4026159d29eb"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_184.bin",
+          "sha256": "b4a2524c2539b776bf7d98592769f72585fb885ae183e5b01a300af114737409"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 6,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 191102976,
+      "seconds": 0.02948780031874776,
+      "bytes_per_second": 6480747086.397642,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191496192,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_37\\expert_029.bin",
+          "sha256": "2d33ead9535f02b369f1e470fd2e1de03daaf4c75640347b45cde072fe888ffb"
+        },
+        {
+          "path": "model\\experts\\layer_13\\expert_055.bin",
+          "sha256": "3fb7a64b682b15df24d8b4b1fffc758b4b775dd447d13759fd5628819e5026e2"
+        },
+        {
+          "path": "model\\experts\\layer_44\\expert_008.bin",
+          "sha256": "0c1bd37dad46d25f2d804fc8729b64a881542c3eec4e7eb20de9a390e55bcfcb"
+        },
+        {
+          "path": "model\\experts\\layer_49\\expert_251.bin",
+          "sha256": "dbbcc14d08c3ca35e17190ac3beceb672778d488d506facc5977bdf7247084ba"
+        },
+        {
+          "path": "model\\experts\\layer_27\\expert_006.bin",
+          "sha256": "8a14af1a1e1778163d078afa311b0f75dbebeb7f60d07785386e7946a4e99bc9"
+        },
+        {
+          "path": "model\\experts\\layer_04\\expert_074.bin",
+          "sha256": "886ef6d456b3e0bd6fe60544659e8d625118166ee4c8e443873ea0e2cabae752"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 6,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.02670559985563159,
+      "bytes_per_second": 7155914004.294527,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191234048,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_43\\expert_097.bin",
+          "sha256": "3e19384f6c34f6f41a326b23cdb5b63cfed2d66b33bf0085d83c53daf7ffc022"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_149.bin",
+          "sha256": "412e8c680f92de4c12acb8b47d631c1649e9953291c84f9ff7e4cfdef3f65d58"
+        },
+        {
+          "path": "model\\experts\\layer_40\\expert_056.bin",
+          "sha256": "a4fee3778f256f8197e38a4613a98fc97cb1eda7a7f4e985cb3b114f0c4389b5"
+        },
+        {
+          "path": "model\\experts\\layer_60\\expert_221.bin",
+          "sha256": "baf4199d76a9b40448d9dd11aa5224f3a4b94ff51c7aa824372903b380f01a93"
+        },
+        {
+          "path": "model\\experts\\layer_52\\expert_006.bin",
+          "sha256": "98b8bc90ed4c26df54ae602dce380820459c28fe71d9bd59d4597fa705a9900a"
+        },
+        {
+          "path": "model\\experts\\layer_24\\expert_205.bin",
+          "sha256": "338c2cb612649c4d87a631f8c1329b27f39c60681e07c7865ca97c7aafc4c898"
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "files": 6,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.025960099883377552,
+      "bytes_per_second": 7361411429.790556,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191627264,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_20\\expert_123.bin",
+          "sha256": "684dc34af249129bf741c41fa5362b4457fc7acfd8faa5e00d48fb2c9a99ccf3"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_047.bin",
+          "sha256": "c0e3faa860f9a0fa61a8492e314d5af3568b8b146da97b3ddfeac23b7fab46c6"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_083.bin",
+          "sha256": "29f7d489e6c86652c6682d9bee55576440dc2e76c13592a21b14d9988df86582"
+        },
+        {
+          "path": "model\\experts\\layer_53\\expert_035.bin",
+          "sha256": "1f4a42c221881c0eacea89137a15b8a821134f83d791fe5b3caaabd8c9bb64f8"
+        },
+        {
+          "path": "model\\experts\\layer_08\\expert_180.bin",
+          "sha256": "020cc7219240ccfae403667f2aefe953b87eed894632b41d8f75b65f23bca838"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_101.bin",
+          "sha256": "fe048a366064f2b510e9ae04f93ecb1f58cb6e6d8b69d51286d071349ff683af"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 2,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.006661700084805489,
+      "bytes_per_second": 9562272571.425732,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63700992,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_64\\expert_052.bin",
+          "sha256": "e503095ec6ad936e3dd386e4d40feb6a5bd94010f4da6932bfe274d3e0cf8a07"
+        },
+        {
+          "path": "model\\experts\\layer_55\\expert_105.bin",
+          "sha256": "2f44d2ee15229ac43399e10e48411929f7aad8b8c536a3e614df47805767050c"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 2,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 63700992,
+      "seconds": 0.014236800372600555,
+      "bytes_per_second": 4474389633.403569,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_44\\expert_015.bin",
+          "sha256": "993eee428b7fea416daaef9308a41aa1df20b4b20053332ef34a0f9099180704"
+        },
+        {
+          "path": "model\\experts\\layer_22\\expert_157.bin",
+          "sha256": "908e92ed9d1d03e8900fa96838a0dd292005c31b212b8b18bd3a89c255a12331"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 2,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 63700992,
+      "seconds": 0.015676800161600113,
+      "bytes_per_second": 4063392487.201171,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_26\\expert_028.bin",
+          "sha256": "bbfbbb383313aca5b38acf9825403d2443fd7b651821c7640294d342436a7a4b"
+        },
+        {
+          "path": "model\\experts\\layer_34\\expert_135.bin",
+          "sha256": "59eb57d37b56b1ab8599a023c19700769b95ff5533ae2c88588db9c2e223b99b"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 2,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 63700992,
+      "seconds": 0.011913000140339136,
+      "bytes_per_second": 5347183014.318892,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_60\\expert_103.bin",
+          "sha256": "aec9a02bc334ac5f48131176aba2b15faf5d188c41eabe79f6cebe7cf1a76fd0"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_037.bin",
+          "sha256": "00c0a92009d9179a8ef1ed23840fef21d18193aceb6c12856e310b65f523abe9"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 2,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 63700992,
+      "seconds": 0.014310299884527922,
+      "bytes_per_second": 4451408601.77728,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 63832064,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_35\\expert_235.bin",
+          "sha256": "99af7e16071c57f883975c6da85617357f2c408c01217340e407b5911a5f7cab"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_105.bin",
+          "sha256": "a11e41243e492dbeb077d8c344793f1c13bcc1a0d8dfc7256d3e2d5d73c701f1"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 4,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.017488399986177683,
+      "bytes_per_second": 7284942253.190388,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127664128,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_19\\expert_137.bin",
+          "sha256": "31b1b8db9d8845f8429d9282bd915bb7c2a028f1bb9da55848f0ab9d87f3db50"
+        },
+        {
+          "path": "model\\experts\\layer_61\\expert_161.bin",
+          "sha256": "95ebbd64330b25f6fcc365d93635ca1fbe7eace1331c47a7877541d3e9d61ffa"
+        },
+        {
+          "path": "model\\experts\\layer_22\\expert_019.bin",
+          "sha256": "8f28c18066e608b0f82cd3e69f403fd9d19e04dfaa6b3f814b15a01ea4faf136"
+        },
+        {
+          "path": "model\\experts\\layer_32\\expert_089.bin",
+          "sha256": "494fae774d3fa93fd4c1ac19a60304a52cb1b8319313c9acb734348cf6c19c3a"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 4,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 127401984,
+      "seconds": 0.017649800051003695,
+      "bytes_per_second": 7218324492.732993,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_46\\expert_115.bin",
+          "sha256": "bf00393dc939e693c03ee516d4cc47c54f2b9c22b0cdb2888dd87956e3effd6b"
+        },
+        {
+          "path": "model\\experts\\layer_65\\expert_054.bin",
+          "sha256": "ccbe897e31d4d7089e16eca76ac8a720399d154fc695691c17dc87f74456213a"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_162.bin",
+          "sha256": "e112031562ca1ecf681151a6df378a86e2ea6610938dd83bf6b2b05d0be4045a"
+        },
+        {
+          "path": "model\\experts\\layer_53\\expert_063.bin",
+          "sha256": "1f476d1bd0bdb093ec8eab7f25dd5b536529ed533bc331f8bfb7e3b678d7a2da"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 4,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 127401984,
+      "seconds": 0.023675200063735247,
+      "bytes_per_second": 5381242129.191103,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127668224,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_45\\expert_219.bin",
+          "sha256": "5a1313d011f6be486e952ff7d67601dd86cd6c19dc7f82bb98a6dd7cfc50b4c3"
+        },
+        {
+          "path": "model\\experts\\layer_25\\expert_231.bin",
+          "sha256": "6b7a4b58be51003083e2c50de5da7e9d57ccb40ec2ba091baf36b95a4385f811"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_026.bin",
+          "sha256": "e805f5881aab1dad3c4be321165b9db1e3f32d56725a551b4f44e8255a7b8768"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_111.bin",
+          "sha256": "c4e472e074d9f127b3a87e0733662b6ef78740983f6a4dc9eed7a95263449c8e"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 4,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 127401984,
+      "seconds": 0.02055529970675707,
+      "bytes_per_second": 6198011501.536006,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127803392,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_63\\expert_102.bin",
+          "sha256": "241dfbb31bea4b174a009ea0c7761edf47d9488d7bc9b6263aa0f41d9c931e7a"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_183.bin",
+          "sha256": "175a339d7782e49b0f3f16ab7fa92205c671a0b51a47472b1134a8eb0c2ba26c"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_090.bin",
+          "sha256": "7d9d4852fab41fee2923e26476da2ece2f763dd45215c68c573e1aff1dfd384f"
+        },
+        {
+          "path": "model\\experts\\layer_30\\expert_227.bin",
+          "sha256": "1c5ce2e89675fde27a38965d288623964056e59f3fb24f0adbf7ab7da9748b4a"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 4,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 127401984,
+      "seconds": 0.018849499989300966,
+      "bytes_per_second": 6758905226.786586,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 127533056,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_11\\expert_240.bin",
+          "sha256": "ac44037d95e4e49e67d33641184fe86cda634b7e4642de816d0e877b8e22bf07"
+        },
+        {
+          "path": "model\\experts\\layer_31\\expert_240.bin",
+          "sha256": "a7a710ca23d11ba31cc31df4122a259182d3b553efccbbc2eb875ffb645310e3"
+        },
+        {
+          "path": "model\\experts\\layer_33\\expert_066.bin",
+          "sha256": "0edf51d92abce4eeaf8bc9411f264284506255c32d03f949dbb67a5697187fba"
+        },
+        {
+          "path": "model\\experts\\layer_49\\expert_007.bin",
+          "sha256": "af8e5c55ace5f18ac5492ae688d097f437642581997e3f28a9525176f6651369"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 6,
+      "mode": "sync",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.022045600228011608,
+      "bytes_per_second": 8668531317.971579,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191234048,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_43\\expert_096.bin",
+          "sha256": "a9b99b64c74358e1200ed11fc6635e66e93441af06586ab5851c111f7889c793"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_067.bin",
+          "sha256": "8e4006343ab19c43c97fd5ffaec7b2099f6aef0ae0616cee667ebf1fcbc2c259"
+        },
+        {
+          "path": "model\\experts\\layer_41\\expert_165.bin",
+          "sha256": "3ae632866bce6bdf2ad33f85bc297a93b7bdf597b441830c588be5943e4735fb"
+        },
+        {
+          "path": "model\\experts\\layer_45\\expert_222.bin",
+          "sha256": "6d4686af13c20ff87d44f764d898739eefc6451f1f399e5c6276c7cc283f0933"
+        },
+        {
+          "path": "model\\experts\\layer_36\\expert_175.bin",
+          "sha256": "ae55559b1b4beea4be6b378da4199dac3cbd666d1c3089561a1c1f45dc0dc315"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_248.bin",
+          "sha256": "f4e445542b3191eafd8714c9acb713a68b23a91b002ccbf20ac3e8328e9f517e"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 6,
+      "mode": "async_whole",
+      "chunk_bytes": 0,
+      "bytes": 191102976,
+      "seconds": 0.028998199850320816,
+      "bytes_per_second": 6590166871.957942,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191365120,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_58\\expert_248.bin",
+          "sha256": "1d8b55f541c205176db8536b28d8d83d948a77f7889f0319991e0037985d20eb"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_129.bin",
+          "sha256": "a3fc86ee21c934c76ab64c5f041edd40451f7e49baa9418f75e396ed0903c743"
+        },
+        {
+          "path": "model\\experts\\layer_30\\expert_186.bin",
+          "sha256": "62b6875b1f3b47f5cacff940ed02edba7e8799456c249d2a72f1592003acd6e5"
+        },
+        {
+          "path": "model\\experts\\layer_43\\expert_058.bin",
+          "sha256": "7e544681f935b5ccd93e097d1b27b00826b2927cfd646a0ca3672777254b0557"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_165.bin",
+          "sha256": "a881dcdd1e8bf9b3da180ce85c750ea45f7f1ae0fe2fe065d45a35baf9b4315f"
+        },
+        {
+          "path": "model\\experts\\layer_55\\expert_074.bin",
+          "sha256": "a0d509686104990e6593516ec2ae175d803db02b33c5f9d0e135c453e6b5d858"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 6,
+      "mode": "async_1mib",
+      "chunk_bytes": 1048576,
+      "bytes": 191102976,
+      "seconds": 0.02438020007684827,
+      "bytes_per_second": 7838449864.957166,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 191234048,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_35\\expert_084.bin",
+          "sha256": "66fc98f01bd096125c9d3a1938ed6acaa33db31efc5aadcab4c13bffac8f04ad"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_193.bin",
+          "sha256": "27f7304ad13253e18b04937458c5fa9ae91b1ead10253db5148a4f7267701aff"
+        },
+        {
+          "path": "model\\experts\\layer_38\\expert_223.bin",
+          "sha256": "28fc8ab734425a59c2402e87a44d37492f633bb1004f2285e3220ccd38351ab7"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_144.bin",
+          "sha256": "d7f47fe01ee17258f33efe653e15c6854caaee358ba9e832df26305c5e40be6d"
+        },
+        {
+          "path": "model\\experts\\layer_64\\expert_021.bin",
+          "sha256": "bc948118c842b2e375a9c3717df6583cc131ef9b58860329e9b3a2f3831b13c4"
+        },
+        {
+          "path": "model\\experts\\layer_57\\expert_105.bin",
+          "sha256": "246a039059df2e95d8c4c9c27bd0b2df19a55639acc7efef410b7182cf413b4c"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 6,
+      "mode": "async_4mib",
+      "chunk_bytes": 4194304,
+      "bytes": 191102976,
+      "seconds": 0.026366799604147673,
+      "bytes_per_second": 7247863937.568602,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191627264,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_39\\expert_063.bin",
+          "sha256": "98ac0b91223521156792c88248547748f479fae6b9cfba8f72816246f95a5c9b"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_093.bin",
+          "sha256": "783d6d6f91d1066294bba405f94396513828f889941cd51b9da21d7310b50364"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_027.bin",
+          "sha256": "c7a731137190c9b5444e6142b41791c19a140f2c7ac856393fb8a43472d13375"
+        },
+        {
+          "path": "model\\experts\\layer_36\\expert_132.bin",
+          "sha256": "0f97aec7470ea76021b105b65f5c079e439f9c5fbb6176863413ce7bd7da99dc"
+        },
+        {
+          "path": "model\\experts\\layer_45\\expert_006.bin",
+          "sha256": "80eaea789358266f39f0bdd3ae51a47061aa02eb945aab18e0bfa8da56d618d5"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_134.bin",
+          "sha256": "de6b26fe25a4ff17e2d230360bfb9ef30e3231c9844f43a4d3f228b6eebab5f6"
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "files": 6,
+      "mode": "async_8mib",
+      "chunk_bytes": 8388608,
+      "bytes": 191102976,
+      "seconds": 0.03306959988549352,
+      "bytes_per_second": 5778811254.496921,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 191627264,
+      "sha256_verified": true,
+      "artifacts": [
+        {
+          "path": "model\\experts\\layer_17\\expert_228.bin",
+          "sha256": "f43ff28089c8df0f8ff8b415ca76861eda5a7bfd7870fba5d9d402556b2a2f6d"
+        },
+        {
+          "path": "model\\experts\\layer_54\\expert_217.bin",
+          "sha256": "43bce7322c831a4d3197c0e6c0a4faf42102d42c154fad48a3dbfd61ddd556fc"
+        },
+        {
+          "path": "model\\experts\\layer_47\\expert_119.bin",
+          "sha256": "639c3b8515558b56ee2022d6969f683a02e34d77cb5f87fdaba418d42ed1ebc8"
+        },
+        {
+          "path": "model\\experts\\layer_10\\expert_144.bin",
+          "sha256": "488580bafdeb3caa3d4b7d08ae9647e6c0e534dbe4652e5be8f18762da5ea452"
+        },
+        {
+          "path": "model\\experts\\layer_29\\expert_021.bin",
+          "sha256": "1266c691509404ecf2f2907f96b59051fa74a63b8381ad347c8979473df0cebb"
+        },
+        {
+          "path": "model\\experts\\layer_26\\expert_199.bin",
+          "sha256": "f9f1155bfed0bf60d7028827743cbddf5f1a4d321bb337a5523259b5a9e964e7"
+        }
+      ]
+    }
+  ],
+  "medians": [
+    {
+      "files": 2,
+      "mode": "sync",
+      "seconds": 0.012203999795019627
+    },
+    {
+      "files": 2,
+      "mode": "async_whole",
+      "seconds": 0.007889399770647287
+    },
+    {
+      "files": 2,
+      "mode": "async_1mib",
+      "seconds": 0.015676800161600113
+    },
+    {
+      "files": 2,
+      "mode": "async_4mib",
+      "seconds": 0.012829599902033806
+    },
+    {
+      "files": 2,
+      "mode": "async_8mib",
+      "seconds": 0.008818500209599733
+    },
+    {
+      "files": 4,
+      "mode": "sync",
+      "seconds": 0.01648150011897087
+    },
+    {
+      "files": 4,
+      "mode": "async_whole",
+      "seconds": 0.019762299954891205
+    },
+    {
+      "files": 4,
+      "mode": "async_1mib",
+      "seconds": 0.02290039975196123
+    },
+    {
+      "files": 4,
+      "mode": "async_4mib",
+      "seconds": 0.020032200030982494
+    },
+    {
+      "files": 4,
+      "mode": "async_8mib",
+      "seconds": 0.018849499989300966
+    },
+    {
+      "files": 6,
+      "mode": "sync",
+      "seconds": 0.02433609962463379
+    },
+    {
+      "files": 6,
+      "mode": "async_whole",
+      "seconds": 0.028750300407409668
+    },
+    {
+      "files": 6,
+      "mode": "async_1mib",
+      "seconds": 0.02948780031874776
+    },
+    {
+      "files": 6,
+      "mode": "async_4mib",
+      "seconds": 0.026328899897634983
+    },
+    {
+      "files": 6,
+      "mode": "async_8mib",
+      "seconds": 0.0319815999828279
+    }
+  ],
+  "caveats": [
+    "Component timing includes handle/metadata/event setup and read completion, excludes hashing.",
+    "Disjoint experts and alternating mode order reduce cache/order bias; hardware caches remain uncontrolled.",
+    "No compute overlaps these reads. A component win requires subsequent full-model validation.",
+    "Both arms use the same uncached flag; all bytes are checked against a mapped read outside timing."
+  ]
+}

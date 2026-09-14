@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-09-14T08:01:16.401315+00:00",
+  "updated_at": "2026-09-14T08:10:35.648150+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.5679137350358697,
-  "status": "064_068_worker_sweep_running",
+  "status": "071_072_cache_decay_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
@@ -46,27 +46,29 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9175664024235638,
   "best_repeated_full_model_decode_tokens_per_s": 0.5679137350358697,
   "last_verified_campaign": "046_full_final_confirmation",
-  "active_campaign": "068_full_threads_32",
+  "active_campaign": "071_full_cache_decay_4096",
   "record_verification": "046_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 8100,
-      "created_unix": 1789372668.7833545,
-      "binary": "full-prefill-reads.exe",
-      "campaign": "068_full_threads_32"
+      "native_pid": 5952,
+      "created_unix": 1789373120.0706015,
+      "binary": "full-cache-decay.exe",
+      "campaign": "071_full_cache_decay_4096"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
-  "queued_campaigns": [],
+  "queued_campaigns": [
+    "072_full_cache_decay_32"
+  ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 67450,
+  "controller_session": 51214,
   "pending_storage_probe": {
     "pid": 10092,
     "parent_pid": 10616,
-    "status": "waiting_for_worker_sweep",
+    "status": "complete_and_exited",
     "output": "069-async-read-probe.json"
   }
 }
