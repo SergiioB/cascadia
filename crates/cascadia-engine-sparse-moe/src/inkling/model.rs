@@ -173,6 +173,32 @@ impl Layer {
         }
     }
 
+    /// Route this layer's MLP (MoE experts or the dense FFN) through an
+    /// OpenVINO backend; `layer` is the global layer index.
+    pub fn attach_ov(&mut self, layer: u32, ov: Arc<super::ov_expert::OvExperts>) {
+        match &mut self.mlp {
+            LayerMlp::Moe(m) => m.attach_ov(layer, ov),
+            LayerMlp::Dense(d) => d.attach_ov(layer, ov),
+        }
+    }
+
+    /// The attached OV backend, if any.
+    pub fn ov(&self) -> Option<&Arc<super::ov_expert::OvExperts>> {
+        match &self.mlp {
+            LayerMlp::Moe(m) => m.ov().map(|(_, o)| o),
+            LayerMlp::Dense(d) => d.ov().map(|(_, o)| o),
+        }
+    }
+
+    /// Compile this layer's experts / MLP on the attached OV backend;
+    /// `(compiled, failed keys)`, or `None` without a backend.
+    pub fn warm_ov(&self) -> Option<(usize, Vec<(u32, u32)>)> {
+        match &self.mlp {
+            LayerMlp::Moe(m) => m.warm_ov(),
+            LayerMlp::Dense(d) => d.warm_ov(),
+        }
+    }
+
     /// Cached positions (attention and convs agree).
     pub fn len(&self) -> usize {
         debug_assert_eq!(self.attn.len(), self.attn_sconv.len());
@@ -619,6 +645,14 @@ impl Model {
 
     /// Embed `token`, run every layer and the head; returns logits
     /// `[unpadded_vocab]` at this position and advances the caches.
+    /// Route every layer's experts / dense MLP through an OpenVINO backend
+    /// (layer index = position; the model holds all layers).
+    pub fn attach_ov(&mut self, ov: Arc<super::ov_expert::OvExperts>) {
+        for (i, l) in self.layers.iter_mut().enumerate() {
+            l.attach_ov(i as u32, Arc::clone(&ov));
+        }
+    }
+
     pub fn forward_token(&mut self, token: u32) -> Vec<f32> {
         let mut x = self.embed_token(token);
         let early = self.early_prediction_reads_enabled();

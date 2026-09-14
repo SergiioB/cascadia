@@ -565,6 +565,15 @@ pub fn load_stage(
     for li in lo..hi {
         layers.push(load_layer(dir, &m, li, max_seq, mode, experts)?);
     }
+    // Optional OpenVINO expert backend (`CASCADIA_INKLING_OV_EXPERTS=1` +
+    // `<model>/experts_ov`): one backend, Arc-shared by every layer of this
+    // slice so all share one cache of compiled IRs.
+    if let Some(ov) = super::ov_expert::OvExperts::from_env(dir, hidden) {
+        let ov = std::sync::Arc::new(ov);
+        for (i, l) in layers.iter_mut().enumerate() {
+            l.attach_ov((lo + i) as u32, std::sync::Arc::clone(&ov));
+        }
+    }
     Ok(InklingStage {
         embed,
         layers,
