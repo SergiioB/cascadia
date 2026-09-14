@@ -1,0 +1,17 @@
+{
+  "scope": "hybrid_forecast_decision",
+  "decision": "defer_runtime_hybrid",
+  "reason": "Hybrid ceiling2 covers fewer misses and wastes more reads than already-prepared current-layer ceiling3. Prior pure earlier-prefetch trial122 also regressed. Extra lead time remains unmeasured, so this is experiment prioritization, not proof of slower hybrid runtime.",
+  "hybrid_rank2": {
+    "useful": 17358,
+    "unused": 2085,
+    "coverage": 0.4414659579338233
+  },
+  "current_rank3": {
+    "useful": 18742,
+    "unused": 1215,
+    "coverage": 0.47666522546351636
+  },
+  "actual_hybrid_prefetch_performed": false,
+  "next_step": "Finish132\u2013135 measured rank sweep, then choose repeated confirmation or another hypothesis."
+}

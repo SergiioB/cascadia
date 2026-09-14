@@ -29,8 +29,8 @@ selectedPredict1/Early0/Second1/Rank2. No new export/Lambda work.
 four invalid dependency guards; all15 older binaries preserved.
 New full-second-rank.exe SHA83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2,
 source6c40e442, local/nativewrapperbe0b9fb0. Allproof artifacts SHA archived.
-132rank2 control active native4248(created1789391471.5424938), then133rank1,
-134rank3,135rank5 sequentially. Guarded45173 log/private/tmp/inkling-after-129.log.
+132rank2control COMPLETE/SHA captured1.1182391858, native4248 exited.
+133rank1 active native6736(created1789391748.78917), then134rank3,135rank5. Guarded45173 log/private/tmp/inkling-after-129.log.
 Do not launch duplicate native qualifiers or controllers.
 125 local full crate suite387 tests plus eight fixture modes all exact.
 Two readers use independent bounded workers, same original predicted rank ceiling2.
@@ -56,6 +56,15 @@ verification+comparison then calls stage-inkling-131.py and the rank loop.
 Do not launch duplicates. It skips future sweep if129 actually reaches25.
 Rank loop archives131 then runs132–135 sequentially; root reviews results next.
 All forecast counters from124; no new exports, no full speed claim yet.
+
+##136 hybrid diagnostic completed, runtime deferred
+
+analyze-hybrid-prediction.py replays105current+117earlier predictions, exact
+cache membership and actual routes. Hybridcap2 coverage44.15%,2085unused vs
+currentcap3 coverage47.67%,1215unused; cap5hybrid also worse read tradeoff.
+No hybrid runtime implemented, no speed claim.136_hybrid_decision.json defers
+it; earlier lead time remains unmeasured. Finish132–135 before next decision.
+Number137 is available for a winning-rank repeated confirmation.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
 
