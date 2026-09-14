@@ -14,7 +14,7 @@ $env:CASCADIA_INKLING_SKIP_BULK_PREFETCH = '1'
 $env:CASCADIA_INKLING_OWN_SHARED = '1'
 $env:CASCADIA_INKLING_UNCACHED_READS = '1'
 $env:CASCADIA_INKLING_PIPELINE_READS = '1'
-# Requires the qualified predicted-read runtime (source dc4badd3 or later).
+# Requires qualified selective-second-read runtime (source ede10f98 or later).
 # Cache budget is per MoE layer: 256 MiB × 64 layers, 16.31 GB retained.
 $env:CASCADIA_INKLING_EXPERT_CACHE_MIB = '256'
 $env:CASCADIA_INKLING_PREFILL_READS = '1'
@@ -27,5 +27,7 @@ $env:CASCADIA_INKLING_CACHE_RECENT_TIES = '1'
 $env:CASCADIA_INKLING_PREDICT_READS = '1'
 # Earlier prediction remains experimental; retain the confirmed current-layer path.
 $env:CASCADIA_INKLING_EARLY_PREDICT_READS = '0'
-# Selective second prediction remains experimental until repeated full confirmation.
-$env:CASCADIA_INKLING_SECOND_PREDICT_READS = '0'
+# Read a second uncached prediction only within the top three predicted ranks.
+# Confirmed129; changes only future processes, preserving exact actual routing.
+$env:CASCADIA_INKLING_SECOND_PREDICT_READS = '1'
+$env:CASCADIA_INKLING_SECOND_PREDICT_RANK = '2'

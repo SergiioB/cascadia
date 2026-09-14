@@ -1,0 +1,28 @@
+{
+  "checked_unix": 1789391342.983125,
+  "confirmed_trial_exited": true,
+  "sampler_running": true,
+  "protected_processes": [
+    {
+      "pid": 6728,
+      "name": "ovms.exe",
+      "created_unix": 1788965719.653577
+    },
+    {
+      "pid": 8356,
+      "name": "cascadia-node.exe",
+      "created_unix": 1788965719.132614
+    },
+    {
+      "pid": 6344,
+      "name": "cascadia-ca.exe",
+      "created_unix": 1788891553.493666
+    }
+  ],
+  "free_disk_bytes": 265315627008,
+  "files_sha256": {
+    "bin/full-second-prefetch.exe": "71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476",
+    "run-full.ps1": "09f20b18d6bddc63358d142022e038b85fd265dc6d2657fac75d3cfc0aaf8226",
+    "model-ready.json": "9e7f11b6131131e8c3db879a814e121cd6a4fde9c6987fa6de7e86a80cb46a20"
+  }
+}

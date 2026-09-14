@@ -1,30 +1,36 @@
 # Inkling large975B on Panther Lake
 
-The confirmed record is **1.090427 decode tokens/s**, the slowest of nine samples,
-**8.06× the original baseline** and **12.95% above the previous repeated record**.
-The median is 1.149207 and the fastest sample is 1.229908. All saved tokens,
-full-logits hashes and actual routing decisions match. **The 25 tokens/s target is unmet.**
+The confirmed record is **1.116134 decode tokens/s**, the slowest of nine samples,
+**8.25× the original baseline**. The median is1.151526 and the fastest sample is
+1.231289. Every saved token, full-logits hash and actual route matches.
+**The 25 tokens/s target is unmet.**
 
-[Campaign112 verification](results/112_final_verification.json) confirms three
+[Campaign129 verification](results/129_final_verification.json) covers three
 prompts × three repetitions, with64 generated tokens and63 decode steps each.
-Prefill takes23.59–25.17 seconds. All nine samples improved against102, including
-the first run and its2.67-second MLP stall. Every sample and stall remains included.
-The [repeated comparison](results/112_repeated_prefetch_comparison.json) records
-those limits; the fresh same-binary [110/111 comparison](results/111_prefetch_comparison.json)
-improved each prompt by6.3–14.6%.
+Prefill takes23.86–25.23 seconds. The conservative record is2.36% above112;
+the [matched127/128 comparison](results/128_second_prefetch_comparison.json)
+measured1.2–1.5% gains on the same binary. The historical nine-sample median gain
+is only0.20%, and two samples are within0.02% below their112 counterparts.
+The old112 first water sample included a2.67-second MLP stall; it remains in
+that result. These limits are preserved in the
+[repeated comparison](results/129_repeated_second_prefetch_comparison.json).
+All first samples and stalls remain included; the entire historical record
+change should not be attributed to the new setting.
 
-The selected profile reads one predicted uncached expert before attention, using
-the existing MLP norm/router on the current residual. A bounded worker supplies
-complete bytes only if actual routing selects that expert; otherwise the read
-is drained. Normal routing, cache admission and arithmetic remain unchanged.
-Across112,35,718 predictions completed:34,014 useful and1,704 unused, with zero
-read or worker failures. Extra reads cost1.45% over102 and remain in all timings.
-A separate [113/114 comparison](results/114_heldout_prefetch_comparison.json)
-used three frozen longer prompts and128-token continuations. Each gained15–16%,
-with exact outputs/routes/cache counters and zero read failures. Its slowest
-rate rose from0.916559 to1.057007 tok/s. These single-pass results are separate
-from the nine-sample canonical record. See [HANDOFF.md](HANDOFF.md) for current
-jobs; optimization remains active.
+The selected profile reads the first predicted uncached expert before attention
+and a second only when its original predicted gate rank is within the top three.
+Two bounded workers supply complete bytes only if actual routing selects those
+experts; unused requests drain. Routing, cache admission and arithmetic remain
+unchanged. Across129,53,152 predictions completed:50,539 useful and2,613 unused,
+with zero read or worker failures. Of these, the second worker completed17,434
+reads:16,525 useful and909 unused. Actual read bytes rise0.760% over first-only112.
+
+The earlier first-only predictor also passed a separate
+[113/114 comparison](results/114_heldout_prefetch_comparison.json) on three frozen
+longer prompts and128-token continuations. Each gained15–16%, with exact
+outputs/routes/cache counters and no read failures. Those runs do not measure
+the second reader's speed. See [HANDOFF.md](HANDOFF.md) for active rank-selection
+experiments; optimization continues without a new export or Lambda instance.
 
 ## What was measured
 
@@ -52,12 +58,13 @@ identity and the complete case/repetition grid are checked before promotion.
 | [Shorter cache frequency history](results/072-decay-32.json) | 1 | 0.937041 |
 | [Short-history profile, repeated confirmation](results/074-cache-confirmation.json) | 3 | 0.938274 |
 | [Recent-use tie admission, repeated confirmation](results/102-cache-recency-confirmation.json) | 3 | 0.965412 |
-| [One predicted expert read, repeated confirmation](results/112-predicted-read-confirmation.json) | 3 | **1.090427** |
+| [One predicted expert read, repeated confirmation](results/112-predicted-read-confirmation.json) | 3 | 1.090427 |
+| [Selective second read, repeated confirmation](results/129-second-prefetch-confirmation.json) | 3 | **1.116134** |
 
 The 036 SSH connection failed to return after native completion. That transport
 failure remains in Autolab history; its complete native artifacts were
 [verified separately](results/036_completed_artifact_verification.json).
-Campaigns074,102 and112 completed normally through Autolab. Each native benchmark process
+Campaigns074,102,112 and129 completed normally through Autolab. Each native benchmark process
 exited; the resource sampler continues for subsequent trials. Protected OVMS
 and Cascadia services remain running.
 
@@ -83,19 +90,19 @@ removed 3.12% of remaining decode reads and improved all three prompts against
 the matched default-history control. A worker sweep selected 16 threads over
 8, 12, 24 and 32. Matched asynchronous-read probes found no consistent benefit.
 
-Campaign112 retained16.31 GB of routed weights, recorded99,853 cache hits and
-117,875 misses, and completed3.809 TB of uncached decode reads with zero
+Campaign129 retained16.31 GB of routed weights, recorded99,853 cache hits and
+117,875 misses, and completed3.838 TB of uncached decode reads with zero
 fallbacks. Streamed prefill completed1.303 TB of reads with zero fallbacks.
-Median time per decoded token is0.207 seconds in the attention span (including
-prediction submission),0.640 in the expert blocks and0.024 outside the layers.
-The sampled process peak was42.52 GB private memory; minimum available machine
-RAM was1.85 GB. Decode used8.92 CPU core equivalents and read about7.74 GB/s
+Median time per decoded token is0.211 seconds in the attention span (including
+prediction submission),0.633 in the expert blocks and0.024 outside the layers.
+The sampled process peak was42.51 GB private memory; minimum available machine
+RAM was1.84 GB. Decode used9.05 CPU core equivalents and read about7.83 GB/s
 in the complete sampled decode intervals.
 A separate Qwen OVMS service holds about 20.03 GB of shared GPU memory, as
 confirmed by the [memory ownership snapshot](results/099_memory_ownership.json).
 That service remains running and limits RAM available for a larger cache.
-See the [layer profile](results/112_layer_profile.json) and
-[resource report](results/112_resources.json). Machine disk counters include
+See the [layer profile](results/129_layer_profile.json) and
+[resource report](results/129_resources.json). Machine disk counters include
 other processes, and page-fault counters include soft faults.
 
 ## Reproduce the selected profile
@@ -106,12 +113,12 @@ layer, not a model-wide budget. The benchmark uses High process priority and
 all 16 logical processors; [run-full.ps1](run-full.ps1) applies those settings
 to its own child. See [runtime options](RUNTIME_OPTIONS.md) for dependencies.
 
-The frozen `full-predicted-read.exe` SHA-256 is
-`7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a`,
-built from source `dc4badd3`. Qualification passed252 native tests and four tiny
-fixture modes with exact routes, outputs and useful/unused read counts before
-full trials. The exact repeated command and expected counters are in
-[campaign112](campaigns/112_full_predicted_read_confirmation.yaml).
+The record's frozen `full-second-prefetch.exe` SHA-256 is
+`71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476`,
+built from source `ede10f98`. Qualification passed257 native tests, five tiny
+fixture modes and three invalid-dependency guards before full trials. The exact
+repeated command and expected counters are in
+[campaign129](campaigns/129_full_second_prefetch_confirmation.yaml).
 
 All raw traces and resource snapshots are archived with SHA manifests.
 [The journal](JOURNAL.md) records hypotheses, measured results and rejected ideas.

@@ -1,0 +1,154 @@
+{
+  "scope": "completed_full_model_repeated_confirmation",
+  "campaign": "129_full_second_prefetch_confirmation",
+  "native_source_commit": "ede10f9896952ccad13426351e6523ee6e39c4fe",
+  "binary_sha256": "71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476",
+  "native_pid": 5360,
+  "created_unix": 1789390588.1517277,
+  "autolab_status": "completed",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "repetitions": 3,
+  "decode_steps_min": 63,
+  "slowest_decode_tokens_per_s": 1.1161344306111156,
+  "median_decode_tokens_per_s": 1.151525793518846,
+  "fastest_decode_tokens_per_s": 1.2312886559775449,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 8.24726189502863,
+  "speedup_over_prior_repeated_record": 1.0235757745091112,
+  "prefill_seconds_range": [
+    23.862846,
+    25.227058800000002
+  ],
+  "actual_metrics": {
+    "decode_tokens_per_s": 1.1161344306111156,
+    "output_hash": "ce0fbb9a116d3d09",
+    "full_model": 1,
+    "correctness_verified": 1,
+    "decode_steps_min": 63,
+    "repetitions": 3,
+    "embedding_mapped": 1,
+    "reuse_buffers": 1,
+    "owned_shared_bytes": 4076863488,
+    "uncached_read_bytes": 3837602562048,
+    "uncached_read_fallbacks": 0,
+    "uncached_read_effective": 1,
+    "pipelined_read_layers": 36288,
+    "pipeline_reads_effective": 1,
+    "expert_cache_capacity_bytes": 17179869184,
+    "expert_cache_retained_bytes": 16309550592,
+    "expert_cache_hits": 99853,
+    "expert_cache_hit_bytes": 3180367577088,
+    "expert_cache_misses": 117875,
+    "expert_cache_admissions": 80366,
+    "expert_cache_evictions": 79854,
+    "expert_cache_effective": 1,
+    "expert_cache_history_resets": 576,
+    "prefill_read_experts": 40905,
+    "prefill_uncached_read_bytes": 1302844538880,
+    "prefill_uncached_read_fallbacks": 0,
+    "prefill_reads_effective": 1,
+    "rayon_threads": 16,
+    "expert_cache_frequency_decays": 6336,
+    "bf16_rows": 2,
+    "int4_rows": 4,
+    "processor_affinity": 65535,
+    "cache_recent_ties": 1,
+    "expert_cache_recent_tie_admissions": 60045,
+    "prediction_read_scheduled": 53152,
+    "prediction_read_successful": 53152,
+    "prediction_read_useful": 50539,
+    "prediction_read_unused": 2613,
+    "prediction_read_useful_bytes": 1609692217344,
+    "prediction_read_unused_bytes": 83225346048,
+    "prediction_read_read_failures": 0,
+    "prediction_read_worker_failures": 0,
+    "prediction_read_dispatch_failures": 0,
+    "prediction_read_effective": 1,
+    "early_prediction_reads_effective": 0,
+    "early_predict_reads": 0,
+    "second_predict_reads": 1,
+    "second_prediction_reads_effective": 1,
+    "prediction_read_workers": 2,
+    "second_prediction_read_scheduled": 17434,
+    "second_prediction_read_successful": 17434,
+    "second_prediction_read_useful": 16525,
+    "second_prediction_read_unused": 909,
+    "second_prediction_read_useful_bytes": 526329446400,
+    "second_prediction_read_unused_bytes": 28952100864,
+    "second_prediction_read_read_failures": 0,
+    "second_prediction_read_worker_failures": 0,
+    "second_prediction_read_dispatch_failures": 0
+  },
+  "per_sample": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.1464094565911267,
+      "prefill_seconds": 24.4752789
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.1171082030633117,
+      "prefill_seconds": 24.9746819
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.151525793518846,
+      "prefill_seconds": 24.1569956
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.2297446393679272,
+      "prefill_seconds": 23.8730886
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.1193573316840948,
+      "prefill_seconds": 25.0967275
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.151978572935234,
+      "prefill_seconds": 24.1423809
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.2312886559775449,
+      "prefill_seconds": 23.862846
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.1161344306111156,
+      "prefill_seconds": 25.227058800000002
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.1519316729424331,
+      "prefill_seconds": 24.276095
+    }
+  ],
+  "all_prefill_and_decode_routes_match_046": true,
+  "native_trial_exited": true,
+  "sampler_remains_running": true,
+  "target_reached": false,
+  "caveats": [
+    "Full CPU backend; Arc B390 is not used.",
+    "Three prompts and three repetitions with natural OS cache state and protected background services.",
+    "Decode excludes prefill; timings include output checking and diagnostics.",
+    "Best tested profile is not a claim of mathematical optimality."
+  ],
+  "artifact_sha256": {
+    "129-second-prefetch-confirmation.json": "aba08592109b5daee519f154219fda5f69b1b6038440c138e631be8d123f0e0d",
+    "129-second-prefetch-confirmation.log": "b992abbe637c833d4401550ee8e6ded6284236fc64e0cf4988c5a023d17b739e"
+  }
+}

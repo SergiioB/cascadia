@@ -1,0 +1,124 @@
+{
+  "correctness_verified": true,
+  "early_prediction_reads_effective": true,
+  "embedding_mapped": true,
+  "expert_cache": {
+    "admissions": 16,
+    "capacity_bytes": 3145728,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 9,
+    "hit_bytes": 380160,
+    "hits": 110,
+    "misses": 16,
+    "recent_tie_admissions": 0,
+    "retained_bytes": 55296
+  },
+  "export": "C:\\Users\\devcloud\\inkling-autolab\\repo\\crates\\cascadia-engine-sparse-moe\\tests\\fixtures\\inkling_export",
+  "manifest": {
+    "experts": 8,
+    "hidden": 64,
+    "layers": 4
+  },
+  "output_hash": "1f7cd0eb14a22662",
+  "owned_shared_bytes": 20736,
+  "pipelined_read_layers": 63,
+  "prediction_read_workers": 1,
+  "prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 16,
+    "successful": 16,
+    "unused": 6,
+    "unused_bytes": 20736,
+    "useful": 10,
+    "useful_bytes": 34560,
+    "worker_failures": 0
+  },
+  "prefill_read_experts": 63,
+  "prefill_uncached_read_bytes": 0,
+  "prefill_uncached_read_fallbacks": 63,
+  "samples": [
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789391441.956758,
+      "decode_seconds": 0.0079412,
+      "decode_started_unix": 1789391441.9488165,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789391441.9488158,
+      "prefill_seconds": 0.0120067,
+      "prefill_started_unix": 1789391441.9368057,
+      "repetition": 0
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789391441.9723828,
+      "decode_seconds": 0.00556,
+      "decode_started_unix": 1789391441.9668226,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789391441.9668221,
+      "prefill_seconds": 0.0087208,
+      "prefill_started_unix": 1789391441.958101,
+      "repetition": 1
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789391441.9880147,
+      "decode_seconds": 0.0058753,
+      "decode_started_unix": 1789391441.9821393,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789391441.9821384,
+      "prefill_seconds": 0.0095852,
+      "prefill_started_unix": 1789391441.972553,
+      "repetition": 2
+    }
+  ],
+  "scope": "fixture_model_decode",
+  "second_prediction_rank_ceiling": 2,
+  "second_prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 0,
+    "successful": 0,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 0,
+    "useful_bytes": 0,
+    "worker_failures": 0
+  },
+  "second_prediction_reads_effective": false,
+  "slowest_case_decode_tokens_per_s": 881.4788696922378,
+  "uncached_read_bytes": 0,
+  "uncached_read_effective": false,
+  "uncached_read_fallbacks": 22
+}

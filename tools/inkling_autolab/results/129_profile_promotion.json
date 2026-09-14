@@ -1,0 +1,22 @@
+{
+  "native_profile_sha256": "722f4758c46a9b1c966e25521363adcebc50a23bee9221336dcddf08ef04f9a6",
+  "verified_unix": 1789391405.1543734,
+  "scope": "confirmed_selective_second_profile_promotion",
+  "previous_profile_sha256": "4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad",
+  "local_profile_sha256": "722f4758c46a9b1c966e25521363adcebc50a23bee9221336dcddf08ef04f9a6",
+  "confirmed_campaign": 129,
+  "confirmed_record": 1.1161344306111156,
+  "median": 1.151525793518846,
+  "selected_predict_reads": 1,
+  "selected_early_predict_reads": 0,
+  "selected_second_predict_reads": 1,
+  "selected_second_predict_rank": 2,
+  "all_nine_samples_faster": false,
+  "matched_gain_fraction": 0.013183238413398524,
+  "caveats": [
+    "The old112 first water sample included a2.67s MLP stall; it remains in the historical record.",
+    "Two129 samples are within0.02% below their112 counterparts; the median gain is about0.20%.",
+    "The matched127/128 gain is1.2\u20131.5%; do not attribute the entire2.36% historical record change causally to this setting.",
+    "No model math, route, cache order or benchmark score definition changed.25target remains unmet."
+  ]
+}

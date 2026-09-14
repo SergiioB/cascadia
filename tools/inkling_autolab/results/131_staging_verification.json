@@ -1,0 +1,10 @@
+{
+  "staged_sha256": {
+    "second-rank-source.json": "f8654224bfc672bbbce120d72d4b1ad527a64868896af6464eed7b86ebd7f049",
+    "second-rank-source.tar": "dc847164e96086c61ee0d039482c658384a2dffb694a52bd0bb093c44c3007e2",
+    "run-full-second-rank.ps1": "be0b9fb02ff1dd2b58ed908adac1bc745d471a5b39229c5ebfa243c4ffcce4ba",
+    "test-second-rank.bat": "840c06ce275d1624e3792de50d35e5c3ab8dc585a9ffb2f442a61be5c4dfd380",
+    "qualify-second-rank.py": "5fa1fb2fa8add60ca449cb8cf94022ecfc7fac120e8252e4750b9c6b455d922e"
+  },
+  "powershell_parse": "passed"
+}

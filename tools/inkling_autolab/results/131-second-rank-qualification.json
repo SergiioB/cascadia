@@ -1,0 +1,442 @@
+{
+  "status": "qualified",
+  "source_commit": "6c40e44241dbd9dc57c91812eeb60df96a2ab2f3",
+  "native_tests": 259,
+  "binary_sha256": "83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2",
+  "wrapper_sha256": "be0b9fb02ff1dd2b58ed908adac1bc745d471a5b39229c5ebfa243c4ffcce4ba",
+  "modes": [
+    {
+      "mode": "off",
+      "lead_layers": null,
+      "predict_reads": 0,
+      "early_predict_reads": 0,
+      "second_predict_reads": 0,
+      "second_predict_rank": 2,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 0,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-off.json",
+          "sha256": "41e317df31639ec886991757e62001cf478436d5f5a7bfd906b1b17503a16532"
+        },
+        {
+          "name": "131-fixture-off.log",
+          "sha256": "a11a087cbed0a8725fa7600b78ad1a8d707fb96e26e80e48c89f67fd1e846b1e"
+        },
+        {
+          "name": "131-fixture-off-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        }
+      ]
+    },
+    {
+      "mode": "current",
+      "lead_layers": 0,
+      "predict_reads": 1,
+      "early_predict_reads": 0,
+      "second_predict_reads": 0,
+      "second_predict_rank": 2,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 1,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 13,
+        "successful": 13,
+        "unused": 2,
+        "unused_bytes": 6912,
+        "useful": 11,
+        "useful_bytes": 38016,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-current.json",
+          "sha256": "fd3199391aacfff527247139af66f0e745512e32952a3382422afb9ecc62b161"
+        },
+        {
+          "name": "131-fixture-current.log",
+          "sha256": "f2d1590a9a8925a09e5114615bc7dea5d4cff4089bb92c765286ca25df10fd8f"
+        },
+        {
+          "name": "131-fixture-current-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-current-predicted.json",
+          "sha256": "06a93990fc4b87be3be5d8052bac934eee9d822d3bb27e0f0d5412c64850e1b0"
+        }
+      ]
+    },
+    {
+      "mode": "rank1",
+      "lead_layers": 0,
+      "predict_reads": 1,
+      "early_predict_reads": 0,
+      "second_predict_reads": 1,
+      "second_predict_rank": 1,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 6,
+        "successful": 6,
+        "unused": 1,
+        "unused_bytes": 3456,
+        "useful": 5,
+        "useful_bytes": 17280,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 2,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 19,
+        "successful": 19,
+        "unused": 3,
+        "unused_bytes": 10368,
+        "useful": 16,
+        "useful_bytes": 55296,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-rank1.json",
+          "sha256": "8fc7e0f517cdb4f33f592e1a603f5eb5dee51d25805b06589eaf26375b518795"
+        },
+        {
+          "name": "131-fixture-rank1.log",
+          "sha256": "1f6e1dd8b6bd329f903c5031df1f2356201345311f7c9d8d79ed579327632968"
+        },
+        {
+          "name": "131-fixture-rank1-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-rank1-predicted.json",
+          "sha256": "06a93990fc4b87be3be5d8052bac934eee9d822d3bb27e0f0d5412c64850e1b0"
+        }
+      ]
+    },
+    {
+      "mode": "rank2",
+      "lead_layers": 0,
+      "predict_reads": 1,
+      "early_predict_reads": 0,
+      "second_predict_reads": 1,
+      "second_predict_rank": 2,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 6,
+        "successful": 6,
+        "unused": 1,
+        "unused_bytes": 3456,
+        "useful": 5,
+        "useful_bytes": 17280,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 2,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 19,
+        "successful": 19,
+        "unused": 3,
+        "unused_bytes": 10368,
+        "useful": 16,
+        "useful_bytes": 55296,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-rank2.json",
+          "sha256": "537d4d9368cc493740303cb62dbfe7713c2b4ddba02903d0abab75136b53c61e"
+        },
+        {
+          "name": "131-fixture-rank2.log",
+          "sha256": "3df020e68b681c12890148a9e83a5df2529262f79889e832b94663120f9bdea7"
+        },
+        {
+          "name": "131-fixture-rank2-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-rank2-predicted.json",
+          "sha256": "06a93990fc4b87be3be5d8052bac934eee9d822d3bb27e0f0d5412c64850e1b0"
+        }
+      ]
+    },
+    {
+      "mode": "rank5",
+      "lead_layers": 0,
+      "predict_reads": 1,
+      "early_predict_reads": 0,
+      "second_predict_reads": 1,
+      "second_predict_rank": 5,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 6,
+        "successful": 6,
+        "unused": 1,
+        "unused_bytes": 3456,
+        "useful": 5,
+        "useful_bytes": 17280,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 2,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 19,
+        "successful": 19,
+        "unused": 3,
+        "unused_bytes": 10368,
+        "useful": 16,
+        "useful_bytes": 55296,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-rank5.json",
+          "sha256": "52475d07e6e121cb93f98e0f9d4ba554f914df652676bc877f22b27406011e3e"
+        },
+        {
+          "name": "131-fixture-rank5.log",
+          "sha256": "6a1eb8b33699505e2c1f2f31bfe7b0e7775c77653e1394f64be725c9c5536e73"
+        },
+        {
+          "name": "131-fixture-rank5-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-rank5-predicted.json",
+          "sha256": "06a93990fc4b87be3be5d8052bac934eee9d822d3bb27e0f0d5412c64850e1b0"
+        }
+      ]
+    },
+    {
+      "mode": "early",
+      "lead_layers": 1,
+      "predict_reads": 1,
+      "early_predict_reads": 1,
+      "second_predict_reads": 0,
+      "second_predict_rank": 2,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 1,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 16,
+        "successful": 16,
+        "unused": 6,
+        "unused_bytes": 20736,
+        "useful": 10,
+        "useful_bytes": 34560,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-early.json",
+          "sha256": "f21d1fb5a211d73e5775c2d2cbebe6a2a69253d30afeeecc9c4d5b972a73a05d"
+        },
+        {
+          "name": "131-fixture-early.log",
+          "sha256": "debb59439e9f26c617abc9d2c9c10456abb1c2dc563d61dc6c43d12569388596"
+        },
+        {
+          "name": "131-fixture-early-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-early-predicted.json",
+          "sha256": "475ff8d8b0c9e287a6b426634ca10b16dbb8131907ddcd1461829b5edec5e97d"
+        }
+      ]
+    },
+    {
+      "mode": "previous",
+      "lead_layers": 1,
+      "predict_reads": 0,
+      "early_predict_reads": 0,
+      "second_predict_reads": 0,
+      "second_predict_rank": 2,
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "prediction_read_workers": 0,
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "recent_tie_admissions": 0,
+        "retained_bytes": 55296
+      },
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 0,
+        "successful": 0,
+        "unused": 0,
+        "unused_bytes": 0,
+        "useful": 0,
+        "useful_bytes": 0,
+        "worker_failures": 0
+      },
+      "artifacts": [
+        {
+          "name": "131-fixture-previous.json",
+          "sha256": "a5011790d4d85eaa5e84a61ae14f8d6a9e3e371c27a4931f82bdec91f08cce14"
+        },
+        {
+          "name": "131-fixture-previous.log",
+          "sha256": "d2e3e6139c314a8694f02e36be59c5d5b1ce231fc74776e19389b9a9cb7a7c0e"
+        },
+        {
+          "name": "131-fixture-previous-routes.json",
+          "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+        },
+        {
+          "name": "131-fixture-previous-predicted.json",
+          "sha256": "ea52062d0d8ad2aa806574559962a0339328a99488bbe75dc14077ee10ed8659"
+        }
+      ]
+    }
+  ],
+  "full_model_prediction_accuracy_measured": false,
+  "full_model_speedup_measured": false,
+  "invalid_dependencies_rejected": 4
+}

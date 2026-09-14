@@ -1,0 +1,168 @@
+{
+  "scope": "repeated_predicted_read_comparison_to_previous_record",
+  "previous_record": 1.0904267748485879,
+  "candidate_score": 1.1161344306111156,
+  "ratio": 1.0235757745091112,
+  "actual_read_reduction": -0.0076016691894060795,
+  "all_nine_samples_faster": false,
+  "all_outputs_and_routes_exact": true,
+  "samples": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "control_tok_s": 1.0904267748485879,
+      "candidate_tok_s": 1.1464094565911267,
+      "ratio": 1.051340156931044
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "control_tok_s": 1.1159227752744352,
+      "candidate_tok_s": 1.1171082030633117,
+      "ratio": 1.0010622847881072
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "control_tok_s": 1.1494069442391146,
+      "candidate_tok_s": 1.151525793518846,
+      "ratio": 1.0018434282917388
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "control_tok_s": 1.2299078615696846,
+      "candidate_tok_s": 1.2297446393679272,
+      "ratio": 0.9998672890816804
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "control_tok_s": 1.1161405170525196,
+      "candidate_tok_s": 1.1193573316840948,
+      "ratio": 1.0028820874992246
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "control_tok_s": 1.1492074013232425,
+      "candidate_tok_s": 1.151978572935234,
+      "ratio": 1.0024113764049907
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "control_tok_s": 1.2273705072584764,
+      "candidate_tok_s": 1.2312886559775449,
+      "ratio": 1.0031923112832655
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "control_tok_s": 1.116315367447722,
+      "candidate_tok_s": 1.1161344306111156,
+      "ratio": 0.9998379160209717
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "control_tok_s": 1.149969740645426,
+      "candidate_tok_s": 1.1519316729424331,
+      "ratio": 1.001706072975369
+    }
+  ],
+  "stall_observations": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "first_token_layer_seconds": 3.1304856,
+      "second_token_layer_seconds": 1.5072386,
+      "median_token_layer_seconds": 0.7650721,
+      "max_token_layer_seconds": 3.1304856,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "first_token_layer_seconds": 1.2174356,
+      "second_token_layer_seconds": 0.8256647,
+      "median_token_layer_seconds": 0.8594531,
+      "max_token_layer_seconds": 1.2174356,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "first_token_layer_seconds": 1.2399456,
+      "second_token_layer_seconds": 0.8908319,
+      "median_token_layer_seconds": 0.8190518,
+      "max_token_layer_seconds": 1.2399456,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.2225217,
+      "second_token_layer_seconds": 0.8474225,
+      "median_token_layer_seconds": 0.7587084,
+      "max_token_layer_seconds": 1.2225217,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.2115684,
+      "second_token_layer_seconds": 0.8243531,
+      "median_token_layer_seconds": 0.8614384,
+      "max_token_layer_seconds": 1.2115684,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.2421182,
+      "second_token_layer_seconds": 0.8957746,
+      "median_token_layer_seconds": 0.8212823,
+      "max_token_layer_seconds": 1.2421182,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.219205,
+      "second_token_layer_seconds": 0.8518209,
+      "median_token_layer_seconds": 0.7583784,
+      "max_token_layer_seconds": 1.219205,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.2257898,
+      "second_token_layer_seconds": 0.8361116,
+      "median_token_layer_seconds": 0.856424,
+      "max_token_layer_seconds": 1.2257898,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.2507895,
+      "second_token_layer_seconds": 0.8949014,
+      "median_token_layer_seconds": 0.8164213,
+      "max_token_layer_seconds": 1.2507895,
+      "mlp_events_over_half_second": []
+    }
+  ],
+  "first_sample_and_all_stalls_included": true,
+  "caveats": [
+    "The previous repeated record and this confirmation ran at different times. Fresh single-pass127/128 provides the same-binary current-versus-selective-second prefetch comparison; all samples and stalls remain included.",
+    "Rates describe these three prompts and their63-token continuations; best tested settings do not prove global optimality."
+  ],
+  "source_sha256": {
+    "112-predicted-read-confirmation.json": "2e487e0b0438bc485a8e2410c6e7a8a953d36d5c73f7963b35d3fd4447df8f4b",
+    "129-second-prefetch-confirmation.json": "aba08592109b5daee519f154219fda5f69b1b6038440c138e631be8d123f0e0d",
+    "129-second-prefetch-confirmation-layers.json.gz": "cd15a25532cbd2948f1f8c772cb3304e54e9828b2e58ffe1599ded372d30aee5",
+    "129_final_verification.json": "c5466f9ce8277e9df775cf8ae8faa1620e43d64dca45c6f404a18d08fa7ee332"
+  }
+}

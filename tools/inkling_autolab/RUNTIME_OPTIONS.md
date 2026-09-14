@@ -110,5 +110,15 @@ unchanged. Aggregate nine-field read counters include both workers; separate
 `second_prediction_reads` and `prediction_read_workers` expose the additional
 work. Early mode takes precedence in the library; the wrapper rejects combined
 flags. Native126 qualification passes257 tests and five exact tiny modes.
-Full127/128 speed comparison is active; selected profile explicitly keepsSecond0
-until a gain survives repeated confirmation.
+Full127/128 gains1.2–1.5%, and129 verifies nine samples with minimum1.116134,
+median1.151526 tok/s. The selected profile enablesSecond1 at rank ceiling2.
+The historical median gain over112 is0.20%; two samples are essentially tied.
+All costs and the prior112 stall remain included. See129_profile_promotion.json.
+
+`CASCADIA_INKLING_SECOND_PREDICT_RANK` (`SecondPredictRank`) is an experimental
+zero-based ceiling1..5, default2. It changes only second-read selection and
+never increases the two-reader bound. Changing it requires a qualified
+`full-second-rank.exe` and `SecondPredictReads1` in the wrapper. Local130 passes
+255 tests and ten fixture modes; native131 passes259 tests, seven fixture modes
+and four dependency guards.132–135 full performance comparisons are active.
+The selected profile explicitly retains rank2.

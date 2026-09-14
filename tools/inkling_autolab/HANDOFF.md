@@ -1,9 +1,9 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 12:49UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 13:06UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Active127/128 selective second read comparison
+## Confirmed129 record; active132–135 rank sweep
 
 126 QUALIFIED:257 native tests/13suites, five exact fixture modes, three invalid
 wrapper dependency guards, all14 older binaries preserved. Sourceede10f98;
@@ -13,33 +13,48 @@ Wrapper local/native09f20b18. All22 native proof artifacts SHA archived.
 Matchedscore1.1036037599→1.1181528314,+1.3183%,allthree+1.2–1.5%.
 EveryID/fullhash/route/cache/readcounter exact; additionalreads.759646%.
 NoMLPevent>.5s eitherarm; medianattention.21167/MLP.63307/outside.02444.
-129 nine-sample confirmation ACTIVE native5360(created1789390588.1517277),
-controller/private/tmp/run-inkling-129.py;
-log/private/tmp/inkling-129-controller.log, nativeidentity written129_native_identity.json.
-It runs Autolab then verify/compare129 helpers; fullrecord/profile not promoted yet.
-Forecast53152scheduled/50539useful/2613unused, second17434/16525/909.
-Selected profile remains first-only, explicitSecond0; new local/nativeSHA
-4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad,
-proof126_profile_default_guard.json. No new export/Lambda work.
+129 COMPLETE/verified, native5360 exited. Newrecord1.1161344306111156 min9,
+median1.151525793518846,max1.2312886559775449;8.24726×original,+2.35758% vs112.
+Fullhash ce0fbb9a116d3d09, everyID/route/cache/readcounter exact.53152successful,
+50539useful/2613unused; second17434/16525/909; zero failures, +.76017% reads.
+NoMLPevent>.5s. Two samples are within.02% below112, median gain only.20%;
+old112firstwater2.67s stall remains inoldscore. Do not claimallninefaster or
+attributewhole2.36%historicalrecordchange to the setting; matchedgain1.3%.
+MinavailableRAM1.837GB,maxprivate42.505GB. Decode9.049cores/7.827GB/s.
+129_final_verification.json/129_repeated_second_prefetch_comparison.json and
+129_profile_promotion.json preserveproof; local/native profileSHA
+722f4758c46a9b1c966e25521363adcebc50a23bee9221336dcddf08ef04f9a6,
+selectedPredict1/Early0/Second1/Rank2. No new export/Lambda work.
+129controller ended;131 QUALIFIED259 tests/13suites, seven fixture modes and
+four invalid dependency guards; all15 older binaries preserved.
+New full-second-rank.exe SHA83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2,
+source6c40e442, local/nativewrapperbe0b9fb0. Allproof artifacts SHA archived.
+132rank2 control active native4248(created1789391471.5424938), then133rank1,
+134rank3,135rank5 sequentially. Guarded45173 log/private/tmp/inkling-after-129.log.
+Do not launch duplicate native qualifiers or controllers.
 125 local full crate suite387 tests plus eight fixture modes all exact.
 Two readers use independent bounded workers, same original predicted rank ceiling2.
 Early flag takes precedence in library; wrapper rejects combined flags.
 
-## Prepared130 rank-selection experiment (not native yet)
+## Qualified130/131 rank-selection implementation
 
 Local runtime accepts CASCADIA_INKLING_SECOND_PREDICT_RANK1..5, default2;
 selection only changes the second candidate, two-worker bound unchanged.
-255 tests/13suites and ten tiny modes pass; source not deployed while129 runs.
-Candidatewrapper run-full-second-rank.ps1; productionwrapper stays09f20b18.
-131 qualifier expects259 native tests/13suites, seven fixture modes and four
-invalid dependency guards; must preserve15 frozen binaries and wait until129
-completed and its artifacts/verification captured before staging/launching.
+255 tests/13suites and ten tiny modes pass; source deployed only after129 completed and verified.
+Candidatewrapper run-full-second-rank.ps1; productionwrapper is nowbe0b9fb0.
+131 qualification completed259 native tests/13suites, seven fixture modes and
+four invalid dependency guards; preserved15 frozen binaries. Nativeparent7408
+launched after129 full verification and exited.
 Prepared132rank2control,133rank1,134rank3,135rank5 samebinary single passes.
-Source6c40e442, second-rank-source.json/tar prepared locally (not staged),
+Source6c40e442, second-rank-source.json/tar staged/qualified,
 archive dc847164e96086c61ee0d039482c658384a2dffb694a52bd0bb093c44c3007e2.
 Candidatewrapper be0b9fb02ff1dd2b58ed908adac1bc745d471a5b39229c5ebfa243c4ffcce4ba.
 /private/tmp/stage-inkling-131.py requires129verification+comparison before staging.
-Then run/private/tmp/run-inkling-second-rank-loop.py to archive131+run132–135.
+Guarded coordinator is ALREADY ACTIVE: /private/tmp/continue-inkling-after-129.py,
+localPID45173, log/private/tmp/inkling-after-129.log. It waits for129 full
+verification+comparison then calls stage-inkling-131.py and the rank loop.
+Do not launch duplicates. It skips future sweep if129 actually reaches25.
+Rank loop archives131 then runs132–135 sequentially; root reviews results next.
 All forecast counters from124; no new exports, no full speed claim yet.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
@@ -59,7 +74,7 @@ heldout cases. No prediction trace, only PredictReads differs. Separate from
 canonical record. Native113-heldout-prefetch-control.*,114-heldout-prefetch-prefetch.*.
 Local logs/private/tmp/inkling-113_heldout_prefetch_control.log and corresponding114.
 
-## Current confirmed record112
+## Previous confirmed record112
 
 **1.0904267748tok/s**, slowest of nine; median1.1492074013,max1.2299078616.
 Allnine faster than102; conservative+12.9494%,8.0573× original.
