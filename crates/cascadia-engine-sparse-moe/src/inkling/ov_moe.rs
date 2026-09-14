@@ -302,13 +302,19 @@ impl OvMoe {
         while ids.len() % k != 0 {
             ids.push(ids[0]);
         }
-        let before = self.calls.load(Ordering::Relaxed);
+        let before = (
+            self.calls.load(Ordering::Relaxed),
+            self.rows.load(Ordering::Relaxed),
+            self.call_ns.load(Ordering::Relaxed),
+        );
         let mut ok = true;
         for chunk in ids.chunks(k) {
             ok &= self.forward(lid, &x, 1, chunk, &w).is_some();
         }
         // Warm-up calls are not benchmark calls.
-        self.calls.store(before, Ordering::Relaxed);
+        self.calls.store(before.0, Ordering::Relaxed);
+        self.rows.store(before.1, Ordering::Relaxed);
+        self.call_ns.store(before.2, Ordering::Relaxed);
         ok
     }
 
