@@ -555,6 +555,16 @@ buy: [`../perf/INKLING_SCALING.md`](../perf/INKLING_SCALING.md).
 
 ## Open follow-ups
 
+- **Multi-stream decode (aggregate throughput).** The pipeline engine serves
+  one request at a time; the fused MoE kernel already batches rows (2.4 ms
+  per row at 23 rows against 4.5 ms for one), so several streams per step
+  would raise a rank's tokens per second toward the bandwidth floor. Needs
+  per-stream KV and conv slots in `AttentionLayer` (the state is already
+  separable — `LayerState` snapshot/restore exists), a `forward_tokens` over
+  `(slot, token)` rows in `Model`/`InklingStage`, and a scheduler in the
+  engine that steps every active task together (the `StagedRunner` trait
+  is per stream today).
+
 - Per-rank KV-prefix cache and the qwen35-style in-process prefix cache (TTFT).
 - MTP draft head (exported? no — dropped) / n-gram speculative decode: the
   rewind slack is in place.
