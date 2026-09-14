@@ -43,6 +43,30 @@ use std::time::Instant;
 use cascadia_ov_genai_shim::{DType, PluginConfig, Runtime};
 use tracing::warn;
 
+/// Set an environment variable for this process AND the C runtime's copy of
+/// the environment: the plugin reads its knobs with `getenv`, and on Windows
+/// `std::env::set_var` (SetEnvironmentVariable) does not update the CRT's
+/// table, so the plugin would keep the default.
+fn set_process_env(name: &str, value: &str) {
+    std::env::set_var(name, value);
+    #[cfg(windows)]
+    {
+        use std::ffi::CString;
+        extern "C" {
+            fn _putenv_s(
+                name: *const std::os::raw::c_char,
+                value: *const std::os::raw::c_char,
+            ) -> std::os::raw::c_int;
+        }
+        if let (Ok(n), Ok(v)) = (CString::new(name), CString::new(value)) {
+            // SAFETY: both strings are valid NUL-terminated C strings for the call.
+            unsafe {
+                let _ = _putenv_s(n.as_ptr(), v.as_ptr());
+            }
+        }
+    }
+}
+
 fn f32_bytes(v: &[f32]) -> &[u8] {
     // SAFETY: f32 has no invalid bit patterns; lifetime tied to `v`.
     unsafe { std::slice::from_raw_parts(v.as_ptr() as *const u8, std::mem::size_of_val(v)) }
@@ -133,7 +157,7 @@ impl OvMoe {
         // grouped-GEMM path is selected by this plugin option, read from the
         // process environment at compile time. Honour an operator's own value.
         if std::env::var_os("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD").is_none() {
-            std::env::set_var("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
+            set_process_env("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
         }
         let ov = Self::new(
             dir,
