@@ -29,7 +29,8 @@ The earlier first-only predictor also passed a separate
 [113/114 comparison](results/114_heldout_prefetch_comparison.json) on three frozen
 longer prompts and128-token continuations. Each gained15–16%, with exact
 outputs/routes/cache counters and no read failures. Those runs do not measure
-the second reader's speed. See [HANDOFF.md](HANDOFF.md) for active rank-selection
+the second reader's speed. The later rank sweep and third-reader test both regressed; the shared-cache
+forecast also increased reads. See [HANDOFF.md](HANDOFF.md) for active
 experiments; optimization continues without a new export or Lambda instance.
 
 ## What was measured

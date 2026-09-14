@@ -1,0 +1,42 @@
+{
+  "scope": "third_reader_runtime_decision",
+  "decision": "reject_third_keep_second_rank2",
+  "comparison": {
+    "scope": "same_binary_two_vs_third_prefetch_comparison",
+    "control_score": 1.1159718949811779,
+    "candidate_score": 1.1122921515491702,
+    "ratio": 0.9967026558208532,
+    "cases": [
+      {
+        "case": "water_cycle",
+        "control_tok_s": 1.1450335124682527,
+        "candidate_tok_s": 1.138256387969378,
+        "ratio": 0.9940812872068122
+      },
+      {
+        "case": "binary_search",
+        "control_tok_s": 1.1159718949811779,
+        "candidate_tok_s": 1.1122921515491702,
+        "ratio": 0.996702655820853
+      },
+      {
+        "case": "short_story",
+        "control_tok_s": 1.1514745422924335,
+        "candidate_tok_s": 1.145223412301026,
+        "ratio": 0.9945711956610328
+      }
+    ],
+    "all_outputs_actual_routes_cache_counters_exact": true,
+    "actual_read_counters_match_forecast": true,
+    "all_samples_included": true,
+    "record_promoted": false,
+    "decision": "review_before_conditional143_confirmation",
+    "caveats": [
+      "Three original prompts and one repetition; no result is promoted without repeated confirmation.",
+      "Both preserve current rank2 first/second reads. Candidate adds a third only at original predicted rank2, plus bounded idle pool256to320MiB; all costs included.",
+      "All prediction and unused read costs, first samples and stalls remain included."
+    ]
+  },
+  "confirmation143_launched": false,
+  "target_25_met": false
+}

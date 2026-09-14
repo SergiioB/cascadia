@@ -1,0 +1,13 @@
+{
+  "native_profile_sha256": "28d023fce8a3bd27360917a5be4bd55f38bbcb24e4d05904f302f48b63a7741f",
+  "verified_unix": 1789395490.1444097,
+  "intermediate_sha256": "d4a19aa13fe4314bb07166995f8ead9ffe45b3ad80b7b9cf183a16e5e248ae80",
+  "scope": "retain_confirmed_two_reader_profile_after_third_regression",
+  "previous_profile_sha256": "722f4758c46a9b1c966e25521363adcebc50a23bee9221336dcddf08ef04f9a6",
+  "local_profile_sha256": "28d023fce8a3bd27360917a5be4bd55f38bbcb24e4d05904f302f48b63a7741f",
+  "confirmed_campaign": 129,
+  "confirmed_record": 1.1161344306111156,
+  "third_reads": 0,
+  "conditional143_launched": false,
+  "repair_note": "Initial script template substituted SHA inside OWN_SHARED setting. Post-write hash failed; read-only check proved no full process. Restored exact intended bytes via base64, verified native/local SHA before any new launch."
+}

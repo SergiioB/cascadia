@@ -1,0 +1,9 @@
+{
+  "decision": "reject_shared_cache_policy",
+  "read_reductions": [
+    -0.03737248071659627,
+    -0.041865338654799356
+  ],
+  "full_model_runtime_implemented": false,
+  "record_promoted": false
+}

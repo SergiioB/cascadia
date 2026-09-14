@@ -31,3 +31,5 @@ $env:CASCADIA_INKLING_EARLY_PREDICT_READS = '0'
 # Confirmed129; changes only future processes, preserving exact actual routing.
 $env:CASCADIA_INKLING_SECOND_PREDICT_READS = '1'
 $env:CASCADIA_INKLING_SECOND_PREDICT_RANK = '2'
+# Third-reader matched trial142 regressed; keep it disabled.
+$env:CASCADIA_INKLING_THIRD_PREDICT_READS = '0'
