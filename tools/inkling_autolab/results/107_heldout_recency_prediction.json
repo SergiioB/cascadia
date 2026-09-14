@@ -1,0 +1,25 @@
+[
+  {
+    "run_id": "107_heldout_recency_prediction_affinity=65535_bf16_rows=2_decay=32_int4_rows=4_threads=16_6cc0b633",
+    "timestamp": "2026-09-14T10:51:23.992577+00:00",
+    "campaign_name": "107_heldout_recency_prediction",
+    "experiment_name": "107_heldout_recency_prediction_affinity=65535_bf16_rows=2_decay=32_int4_rows=4_threads=16",
+    "status": "failed",
+    "wall_time_s": 10.01650016696658,
+    "raw_output": "",
+    "error": "Connection timed out during banner exchange\r\nConnection to UNKNOWN port 65535 timed out",
+    "metrics": {},
+    "config": {
+      "model": "C:/Users/devcloud/inkling-autolab/model",
+      "cases": "C:/Users/devcloud/inkling-autolab/heldout-cases.reference.json",
+      "expected_hash": "e396cc533e658e44",
+      "affinity": 65535,
+      "bf16_rows": 2,
+      "decay": 32,
+      "int4_rows": 4,
+      "threads": 16,
+      "name": "107_heldout_recency_prediction_affinity=65535_bf16_rows=2_decay=32_int4_rows=4_threads=16",
+      "campaign_name": "107_heldout_recency_prediction"
+    }
+  }
+]

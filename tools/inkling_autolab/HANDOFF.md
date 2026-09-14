@@ -3,37 +3,59 @@
 Updated 2026-09-14 10:33 UTC. Work is ACTIVE. User requested autonomous optimization toward
 25 tok/s. Do not stop after a finite campaign. The target remains unmet.
 
-## Latest active state (2026-09-14 10:44 UTC)
+## Latest active state (2026-09-14 10:53 UTC)
+
+107b_heldout_recency_prediction_retry is RUNNING, local controller12159, log
+/private/tmp/inkling-107b_heldout_recency_prediction_retry.log. Native4424,
+created1789383292.9362197. Original107 controller34086 failed SSH banner before
+launch; failure/history preserved, native no-file/process proof107_transport_failure.json. Outputs107-heldout-prediction.* plus -predicted.json.
+Frozen full-route-prediction.exe/source32e2de69. Exact referencehash
+ e396cc533e658e44, three128-generated/127-decode-token unseen cases.
+106 native596(created1789382341.9607809), Python3092 and launcher5324 exited.
+106 artifacts/SHA/resources are captured. Text reviewed coherent truncated
+prefixes; initial reference stays correctness_verified=false/record_eligible=false.
+107 usesheldout-cases.reference.json and predicted recent cache counters:
+63445hits/82859misses/58482admit/57970evict/45872ties;4.836% fewerreads.
+Timing includes prediction observer overhead; not an isolated cache A/B.
+
+Capture107 after exit using /private/tmp/capture-inkling-heldout.py107
+107-heldout-prediction PID CREATED (spaces between every argument).
+This scoped helper accepts held-out cases and128token counts, keeps reference106
+unverified/ineligible, and also SHA-captures/gzips predicted traces. Then run
+analyze-route-prediction.py against107 raw/routes/predicted --recent-ties1.
+Compare actual routes and IDs/hash with106 exactly. Established record stays102.
 
 105 completed and all raw artifacts/SHA/counters/routes verified. First uncached
 prediction:95.229% precision,28.836% miss coverage,1.4446% extra reads
 (11338 useful,568 unused,11906 scheduled).105_pre_attention_prediction.json.
 No prefetch occurred; diagnostic score.947160 is not a promoted record.
 
-106 held-out strict reference finished generation; capture4863 is RUNNING: native596 created1789382341.9607809,
-Python3092, launcher5324, detached parent10768. Native state
-heldout-reference-state.json preserves identities. Outputs106-heldout-control.*;
-128generated tokens on three frozen unseen prompts. Wait for completion, review
-106-heldout-reference.json text, build107 recent-policy prediction campaign
-using reference IDs/hash and causal cache counters. Initial106 lacks an oracle
-and is not record eligible. Do not use normal capture helper blindly: it assumes
-original three case names,64tokens,ce0fbb9a116d3d09; prepare scoped106 capture.
+108 prefetch implementation committeddb496530 (push initially failed transiently;
+retry succeeded). Native sources/binaries remain unchanged while107 runs.
+Newpredicted_read.rs: bounded channel, one independent background reader,
+one predicted uncached expert per layer, actual-ID-only consumption, normal
+fallback, unused reads drained, explicit counters. Cache query read-only;
+actual math/routes/admission order unchanged. All248 local tests/13suites plus
+four complete tiny modes pass. Enabled tiny13reads/11useful/2unused/0failures,
+exact outputs/routes/cache counters; native104 replay predicts same counts.
+One-prediction choice frozen before viewing held-out traces. No full speed claim.
 
-108 prefetch implementation is LOCAL ONLY; native sources/binaries stay
-unchanged while106/107 run. New predicted_read.rs: bounded channel, one background
-reader, one predicted uncached expert per layer, actual-ID-only consumption,
-normal fallback, unused reads drained, explicit counters. Cache query is read-only;
-actual route/math/admission order unchanged. Layer starts I/O before attention;
-MoE consumes in its parallel read/compute branch.All248 local tests/13suites and example build pass. Four tiny modes preserve
-exact outputs/routes/cache counters; enabled mode13reads/11useful/2unused, all
-failures0. Native104 replay predicts the same counts. Still needs native252
-tests and wrapper qualification,
-then full110/111 A/B and confirmation if it wins. Do not claim speedup from105.
-One-prediction runtime choice frozen before observing held-out routes.
+109 qualifier prepared locally, not staged/launched: qualify-predicted-read.py,
+run-full-prefetch.ps1, test-predicted-read.bat. Waits106/107 complete/exited, then
+checks frozen sources/binaries, builds252native tests, four tiny read/recency
+modes and13/11/2actual counters. Createsnewfull-predicted-read.exe; promotes
+wrapper only after exact checks. Needcommit/stage source tar+SHA manifest and
+candidate scripts, PSparsercheck, detachedlaunch. After109nativepromotion,
+sync localrun-full.ps1 to candidate. Then full110control/111prefetch A/B and
+112repeated confirmation if it wins. No campaigns110+ yet.
 
-Commit/push105 artifacts and108 implementation checkpoint now; run git log -1
-for latest source. Native sources remain32e2de69 until109 qualifies later.
-Update this top section on progress; older active descriptions below are historical.
+Current native/localproductionwrapper SHA b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
+Updated profile with recent ties1 SHA deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304 synced.
+106 artifacts/107 and107b campaigns/109 qualifier checkpoint commit next.
+SSH note: ssh_options ConnectTimeout30 came after runner default10, so it did
+not apply. Use runner.connect_timeout:30 in future campaigns; do not rewrite
+completed/running configurations. Local ssh -G proved first option wins. Update this
+section as work advances; old active descriptions below are historical.
 
 ## Current record
 

@@ -1,0 +1,11 @@
+{
+  "scope": "initial_heldout_reference_review",
+  "output_hash": "e396cc533e658e44",
+  "samples": 3,
+  "generated_tokens_per_sample": 128,
+  "decode_steps_per_sample": 127,
+  "text_reviewed": true,
+  "review": "All three prefixes are coherent and responsive to their prompts. They are intentionally truncated at128 generated tokens; JSON is an incomplete prefix, not a validated finished JSON document. Subsequent candidate must preserve every ID and full-logits hash.",
+  "initial_reference_correctness_verified": false,
+  "record_eligible": false
+}

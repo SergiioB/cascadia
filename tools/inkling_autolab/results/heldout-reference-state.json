@@ -1,0 +1,11 @@
+{
+  "status": "reference_recorded",
+  "pid": 3092,
+  "unix": 1789382894.9765015,
+  "record_eligible": false,
+  "launcher_pid": 5324,
+  "native_pid": 596,
+  "native_created": 1789382341.9607809,
+  "output_hash": "e396cc533e658e44",
+  "next_action": "Review outputs and run107 with exact reference IDs/hash plus causal counter predictions."
+}

@@ -1,0 +1,85 @@
+{
+  "scope": "causal_heldout_cache_counter_prediction_not_throughput",
+  "control_matches_actual": true,
+  "control": {
+    "slots": 8,
+    "decay": 32,
+    "rounding": "ceil",
+    "ties": "strict",
+    "hits": 59234,
+    "misses": 87070,
+    "admissions": 16630,
+    "evictions": 16118,
+    "recent_tie_admissions": 0,
+    "cases": [
+      {
+        "case": "worked_algebra",
+        "repetition": 0,
+        "hits": 21414,
+        "misses": 27354,
+        "admissions": 5325,
+        "evictions": 4813,
+        "recent_tie_admissions": 0
+      },
+      {
+        "case": "json_inventory",
+        "repetition": 0,
+        "hits": 20409,
+        "misses": 28359,
+        "admissions": 5336,
+        "evictions": 5336,
+        "recent_tie_admissions": 0
+      },
+      {
+        "case": "planning_dialogue",
+        "repetition": 0,
+        "hits": 17411,
+        "misses": 31357,
+        "admissions": 5969,
+        "evictions": 5969,
+        "recent_tie_admissions": 0
+      }
+    ]
+  },
+  "recent": {
+    "slots": 8,
+    "decay": 32,
+    "rounding": "ceil",
+    "ties": "recent",
+    "hits": 63445,
+    "misses": 82859,
+    "admissions": 58482,
+    "evictions": 57970,
+    "recent_tie_admissions": 45872,
+    "cases": [
+      {
+        "case": "worked_algebra",
+        "repetition": 0,
+        "hits": 22768,
+        "misses": 26000,
+        "admissions": 18168,
+        "evictions": 17656,
+        "recent_tie_admissions": 14125
+      },
+      {
+        "case": "json_inventory",
+        "repetition": 0,
+        "hits": 21618,
+        "misses": 27150,
+        "admissions": 18973,
+        "evictions": 18973,
+        "recent_tie_admissions": 14804
+      },
+      {
+        "case": "planning_dialogue",
+        "repetition": 0,
+        "hits": 19059,
+        "misses": 29709,
+        "admissions": 21341,
+        "evictions": 21341,
+        "recent_tie_admissions": 16943
+      }
+    ]
+  },
+  "read_reduction": 0.04836338578155508
+}

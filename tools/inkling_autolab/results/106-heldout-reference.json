@@ -1,0 +1,28 @@
+{
+  "scope": "initial_reference_needs_candidate_comparison",
+  "record_eligible": false,
+  "output_hash": "e396cc533e658e44",
+  "decoded_text": [
+    {
+      "case": "worked_algebra",
+      "text": "To solve a quadratic equation by **completing the square**, you rewrite the equation in the form  \n\\[\n(x+p)^2 = q\n\\]  \nand then take the square root of both sides.\n\n**General steps**\n1. Write in standard form: \\(ax^2+bx+c=0\\).\n2. If \\(a\\neq 1\\), divide every term by \\(a\\).\n3. Move the constant term to the right side.\n4. Take half of the coefficient of \\(x\\), square it, and add it to both sides.\n5. Write the left side as a perfect square"
+    },
+    {
+      "case": "json_inventory",
+      "text": "[\n  {\n    \"title\": \"The Glass Cartographer\",\n    \"author\": \"Elara Voss\",\n    \"year\": 1987,\n    \"genre\": \"Fantasy\",\n    \"description\": \"A mapmaker discovers that every path she draws becomes real, forcing her to navigate a world she accidentally created.\"\n  },\n  {\n    \"title\": \"Neon Drift\",\n    \"author\": \"Jin Park\",\n    \"year\": 2014,\n    \"genre\": \"Cyberpunk\",\n    \"description\": \"A retired courier must deliver one last package through a rain-soaked megacity where memories can be"
+    },
+    {
+      "case": "planning_dialogue",
+      "text": "**Maya:** I want to keep this solar weather station lean\u2014just temperature, humidity, barometric pressure, and rainfall. For sensors, I\u2019m leaning toward the BME280 for the first three and a simple tipping-bucket for rain.\n\n**Leo:** The BME280 is cheap and I\u00b2C-friendly, but its humidity accuracy drifts in constant high-moisture environments. For a remote station, should we upgrade to the SHT35? It\u2019s more stable long-term.\n\n**Maya:** Good point. Let\u2019s go with the SHT35 for humidity and temperature, keep the BME280 for pressure"
+    }
+  ],
+  "binary_sha256": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+  "source_sha256": {
+    "heldout-prompts.json": "3fa6e03b925811888273a2e7e129d48cb8e36666110be33c1510cde0f37a16be",
+    "heldout-cases.json": "941d911aa50c1f587b6de934cead263113207b121e3c0202c5a7482b98aceb9e",
+    "heldout-cases.reference.json": "cd42073e67282f18d16380d2e178261f1880a384a70ea35c91ee9986e2401dff",
+    "106-heldout-control.json": "e08e6fe92467fff8a8a72a22d85b9506d0a8c85212153350e43d4ae8f2362894"
+  },
+  "tokenizer_sha256": "9fb6333a7db8fe5da90728e741e4a3ee4ac2ae12c5dd4958cc6f31688787d3c2",
+  "template_sha256": "0aa1aa0c729d90176dcaa00c440c8faffca2957ffb2cc4b79456ee6d02bcf43b"
+}
