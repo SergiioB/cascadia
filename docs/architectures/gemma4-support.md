@@ -76,7 +76,8 @@ Verified 2026-09-14 on tate-09 (Panther Lake, Arc B390, OpenVINO
   {"enable_thinking": false}` (or `reasoning_effort: "none"`) for a
   direct answer. For HF-parity checks use `/v1/completions` with the
   prompt from `tokenizer.apply_chat_template(..., tokenize=False)`
-  minus the leading `<bos>`, which the engine adds itself.
+  unchanged — it starts with `<bos>`, and the engine does not add one
+  on that route, so `usage.prompt_tokens` then matches HF's count.
 * **Run command** — a gemma4 tree runs with `--engine gemma4`, not
   `ov-runtime`. Start rank 1 first: `cascadia worker --rank 1 --total 2
   --engine gemma4 --device GPU --ov-inference-precision f32 --model
