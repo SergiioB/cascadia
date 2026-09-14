@@ -1,0 +1,23 @@
+[
+  {
+    "run_id": "079_full_rows_2_1_bf16_rows=2_decay=32_int4_rows=1_37d8683e",
+    "timestamp": "2026-09-14T08:50:20.125388+00:00",
+    "campaign_name": "079_full_rows_2_1",
+    "experiment_name": "079_full_rows_2_1_bf16_rows=2_decay=32_int4_rows=1",
+    "status": "failed",
+    "wall_time_s": 10.01673525001388,
+    "raw_output": "",
+    "error": "Connection timed out during banner exchange\r\nConnection to UNKNOWN port 65535 timed out",
+    "metrics": {},
+    "config": {
+      "model": "C:/Users/devcloud/inkling-autolab/model",
+      "cases": "C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json",
+      "expected_hash": "ce0fbb9a116d3d09",
+      "bf16_rows": 2,
+      "decay": 32,
+      "int4_rows": 1,
+      "name": "079_full_rows_2_1_bf16_rows=2_decay=32_int4_rows=1",
+      "campaign_name": "079_full_rows_2_1"
+    }
+  }
+]

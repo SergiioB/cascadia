@@ -1,0 +1,76 @@
+{
+  "scope": "full_process_lifetime_sampled_resources",
+  "includes_load_prefill_decode": true,
+  "pid": 6304,
+  "created_unix": 1789375493.4175692,
+  "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-decay.exe",
+  "intervals": 30,
+  "sampled_seconds": 300.2339999997057,
+  "cpu_core_equivalents": 6.837739479879069,
+  "kernel_fraction": 0.05202950063552711,
+  "faults_per_second_includes_soft": 41734.88012687531,
+  "machine_disk_read_bytes_per_second": 5881914087.177772,
+  "process_read_bytes_per_second": 5877028768.246533,
+  "min_available_RAM_bytes": 1958072320,
+  "max_private_bytes": 42499674112,
+  "max_rss_bytes": 41489879040,
+  "max_machine_swap_used_bytes": 476913664,
+  "caveats": [
+    "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+    "Page faults include soft faults; they are not all storage reads.",
+    "Sampled lifetime includes loading and prefills; this is not decode-only.",
+    "Only adjacent snapshots containing the same PID and creation time contribute rates."
+  ],
+  "phases": {
+    "prefill": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 6304,
+      "created_unix": 1789375493.4175692,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-decay.exe",
+      "intervals": 6,
+      "sampled_seconds": 60.04799999995157,
+      "cpu_core_equivalents": 7.834357513995127,
+      "kernel_fraction": 0.031154510429121828,
+      "faults_per_second_includes_soft": 3250.3497202264425,
+      "machine_disk_read_bytes_per_second": 5879447891.291712,
+      "process_read_bytes_per_second": 5880205812.954383,
+      "min_available_RAM_bytes": 1983459328,
+      "max_private_bytes": 42499674112,
+      "max_rss_bytes": 41489088512,
+      "max_machine_swap_used_bytes": 476696576,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    },
+    "decode": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 6304,
+      "created_unix": 1789375493.4175692,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-decay.exe",
+      "intervals": 16,
+      "sampled_seconds": 160.1239999998361,
+      "cpu_core_equivalents": 7.433984755572047,
+      "kernel_fraction": 0.04066524027670215,
+      "faults_per_second_includes_soft": 69.11518573112917,
+      "machine_disk_read_bytes_per_second": 6645379175.14607,
+      "process_read_bytes_per_second": 6644636774.506564,
+      "min_available_RAM_bytes": 1958072320,
+      "max_private_bytes": 42495176704,
+      "max_rss_bytes": 41489879040,
+      "max_machine_swap_used_bytes": 476913664,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    }
+  },
+  "benchmark_sha256": "9411d200187bf903e38d9723058371fd0d3abeb0b14197f278193f0eee86be44",
+  "source_sha256": "19703dcc65c3f0e817b1bb2f1d88630032ff4c55a9428022290d57eb07d31b49"
+}

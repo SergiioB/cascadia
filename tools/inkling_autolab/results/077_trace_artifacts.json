@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "077-rows-1-4-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "077-rows-1-4-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "077-rows-1-4-layers.json",
+      "source_bytes": 2710805,
+      "source_sha256": "06495d47bdefb8517ec5b29e4ec631c004e313413c9ac91b014c02c0baa06be1",
+      "compressed_file": "077-rows-1-4-layers.json.gz",
+      "compressed_bytes": 155270,
+      "compressed_sha256": "5ee17f137a885cbb5e9f0d0678d1d64419407cedea88079304e048f1879a68f6"
+    },
+    {
+      "source_file": "077-host-resources.snapshot.jsonl",
+      "source_bytes": 1959819,
+      "source_sha256": "322f4af4181de087d40877839cfb8bdee9e0146f054155e86d050540f559f98c",
+      "compressed_file": "077-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 164192,
+      "compressed_sha256": "d051fdc1478d0561c0e1eb316fae22ee450b361de46a002f4fe61b33aaeb550a"
+    }
+  ]
+}

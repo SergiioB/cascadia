@@ -1,0 +1,67 @@
+{
+  "scope": "measured_latency_grouped_by_replayed_cache_misses",
+  "output_hash": "ce0fbb9a116d3d09",
+  "replay_counters_match_actual": true,
+  "decode_layer_visits": 36288,
+  "groups": [
+    {
+      "misses": 0,
+      "visits": 585,
+      "median_mlp_seconds": 0.0037951,
+      "mean_mlp_seconds": 0.003851439829059829,
+      "total_mlp_seconds": 2.2530923
+    },
+    {
+      "misses": 1,
+      "visits": 2975,
+      "median_mlp_seconds": 0.0053725,
+      "mean_mlp_seconds": 0.0054025129075630255,
+      "total_mlp_seconds": 16.0724759
+    },
+    {
+      "misses": 2,
+      "visits": 6661,
+      "median_mlp_seconds": 0.0085402,
+      "mean_mlp_seconds": 0.008381883005554721,
+      "total_mlp_seconds": 55.8317227
+    },
+    {
+      "misses": 3,
+      "visits": 9002,
+      "median_mlp_seconds": 0.0115718,
+      "mean_mlp_seconds": 0.011446292190624307,
+      "total_mlp_seconds": 103.0395223
+    },
+    {
+      "misses": 4,
+      "visits": 8210,
+      "median_mlp_seconds": 0.014578,
+      "mean_mlp_seconds": 0.014430764884287454,
+      "total_mlp_seconds": 118.4765797
+    },
+    {
+      "misses": 5,
+      "visits": 5780,
+      "median_mlp_seconds": 0.01758235,
+      "mean_mlp_seconds": 0.017437352889273356,
+      "total_mlp_seconds": 100.7878997
+    },
+    {
+      "misses": 6,
+      "visits": 3075,
+      "median_mlp_seconds": 0.0206167,
+      "mean_mlp_seconds": 0.021197685788617887,
+      "total_mlp_seconds": 65.1828838
+    }
+  ],
+  "source_sha256": {
+    "trace": "27403194370842f4dcb97e66ad2c4cf6f219c82211e490365f191233a6cce9dd",
+    "profile": "5991e0f917c4678eb774725c8f41c38d7438745bc94080c82ecf7955049ea65f",
+    "benchmark": "68b9c430b195429f1ce828ce32f995203aba8ba3a5b18dd84a08445f4d72292a"
+  },
+  "caveats": [
+    "Cache misses are causal replay values, validated against actual aggregate counters.",
+    "MLP timings include compute and overlapped I/O; these groups are correlations across different layers and positions.",
+    "This does not isolate read time, prove a causal speedup, or predict full-model throughput."
+  ]
+}

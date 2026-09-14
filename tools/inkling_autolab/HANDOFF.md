@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 08:40UTC. User resumed autonomous optimization.
+Updated2026-09-14 08:53UTC. User resumed autonomous optimization.
 Work is ACTIVE; do not stop after a finite campaign. Target25tok/s is unmet.
 
 ## Current record and live work
@@ -12,10 +12,15 @@ match. Native6112 exited. Verification074_final_verification.json, raw artifacts
 and SHA manifests committed with this handoff. PERFORMANCE.md and ptl-profile.ps1
 promoted; native profile copy SHA verified. Sampler remains active.
 
-**076 control COMPLETE0.9244748903**; **077_full_rows_1_4 RUNNING**, **078/079/080 QUEUED**.
-Controller tool **36811**, script`/private/tmp/run-inkling-row-loop.py`.
+**076 control COMPLETE0.9244748903**, **077 rows1/4 COMPLETE0.9273579552**;
+**078 rows4/4 COMPLETE0.9311444128**; **079b retry RUNNING**, **080 QUEUED**.
+Controller **66059**, script`/private/tmp/run-inkling-row-loop-resume.py`.
+Original36811 exited after079 SSH banner timeout; failed079 history is retained.
+Host recheck proved no079 files/process before retry. Newcampaign079b_full_rows_2_1_retry
+uses original079 native outputs,30sConnectTimeout;080 has same transport timeout.
 Logs`/private/tmp/inkling-076_full_rows_2_4.log` and equivalent campaign names.
-Native077 **PID6752**, created**1789375174.1959372**. Native0762208 exited and its raw artifacts/SHA/profiles are archived.
+Native0786304 and0776752 exited; both artifacts/SHA/profiles are archived.
+Native079b **PID3268**, created**1789375904.384442**.
 Outputs076-rows-2-4.json/.log/-routes.json/-layers.json, then077-rows-1-4.*,
 078-rows-4-4.*,079-rows-2-1.*,080-rows-2-2.*.
 Frozenfull-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
@@ -36,7 +41,9 @@ snapshot; archives gzip plus layer/phase-resource analyses. Outputdir
 /private/tmp/inkling-STEM-artifacts. Do not overwrite immutable snapshots.
 
 After row sweep, select best candidate and continue. **084 compressed-read
-component probe is PREPARED, NOT LAUNCHED.** Source`compressed-read-probe.py`;
+component probe is STAGED AND WAITING.** NativePython**3204**,parent**10144**,
+state`compressed-read-probe-state.json`, output084-compressed-read-probe.json/.log.
+Source`compressed-read-probe.py`, commit1b3a0640(pushed);
 local byte/error/context-reuse canary and failure-drain check pass; see084_probe_local_validation.json. PTL already has
 C:/msys64/mingw64/bin/libzstd.dll and zstd.EXE, plus include/zstd.h; nativePython
 3.11.9 has no zstandard package. Repo has no zstd dependency. Probe pins existingDLLSHA b95c223a9548a9ecf51377c962e0bc8f0c51eb0c6f67a296dbc885996f0dd40d,version1.5.7; usesctypes, separate decompression contexts/preallocated buffers, original
@@ -187,3 +194,12 @@ exportroughly2–3hours/$30–45. These are estimates, not timed full exports.
 Matched8-expert CUDA speedup1.58×minerCUDA/3.73×minerCPU; othercrossbatchnumbers
 are not matched full-export speedups. Fresh549GBdelivery at103.7MB/s adds88min
 (~$22 if rental serves it); rentalroute unmeasured. Current export already onPTL.
+
+085 offline timing join validated all36288MoEvisits against actual074 counters.
+MedianMLP time for0/1/2/3/4/5/6misses:3.795/5.373/8.540/11.572/14.578/17.582/20.617ms.
+These are correlations, not isolated read timings. Report085_cache_miss_timing.json.
+
+086 allocation metadata probe PREPARED, NOT LAUNCHED. Sourceprobe-file-extents.py
+will wait for084 terminal state and exit, then take queue lock and query36 original
+files withFSCTL_GET_RETRIEVAL_POINTERS. Native-only; localsyntax passes. No data
+reads or file/volume mutation. Stage/SHAcheck/launchdetached after committing source.

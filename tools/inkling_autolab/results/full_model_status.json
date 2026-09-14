@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-14T08:42:04.246459+00:00",
+  "updated_at": "2026-09-14T08:52:46.852011+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
@@ -46,37 +46,40 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": "077_full_rows_1_4",
+  "active_campaign": "079b_full_rows_2_1_retry",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 6752,
-      "created_unix": 1789375174.1959372,
+      "native_pid": 3268,
+      "created_unix": 1789375904.384442,
       "binary": "full-cache-decay.exe",
-      "campaign": "077_full_rows_1_4"
+      "campaign": "079b_full_rows_2_1_retry"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [
-    "078_full_rows_4_4",
-    "079_full_rows_2_1",
     "080_full_rows_2_2"
   ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 36811,
+  "controller_session": 66059,
   "pending_storage_probe": {
-    "pid": 2520,
-    "parent_pid": 2460,
-    "status": "complete_and_exited",
-    "output": "073-async-read-paired.json"
+    "pid": 3204,
+    "parent_pid": 10144,
+    "status": "waiting_for_row_sweep",
+    "output": "084-compressed-read-probe.json"
   },
   "row_qualification": {
     "status": "qualified_and_exited",
     "pid": 9864,
     "parent_pid": 3504,
     "modes": 5
+  },
+  "transport_failure_079": {
+    "stage": "SSH_banner_before_command",
+    "native_files_or_process_found": false,
+    "retry_campaign": "079b_full_rows_2_1_retry"
   }
 }

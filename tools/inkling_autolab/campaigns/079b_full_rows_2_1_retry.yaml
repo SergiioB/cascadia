@@ -1,7 +1,8 @@
 version: 1
-name: 080_full_rows_2_2
+name: 079b_full_rows_2_1_retry
 hypothesis: Retest existing matrix row tiles after cache and prefill improvements, changing only BF16
-  or int4 row count relative to fresh 2/4 control.
+  or int4 row count relative to fresh 2/4 control. Retry after SSH banner timeout before command launch;
+  native host confirmed no079 output or full process.
 measurement_scope: full_large_model_decode
 validation_metric: correctness_verified
 question: q75
@@ -22,8 +23,8 @@ runner:
     -Cases "{cases}" -Binary full-cache-decay.exe -Threads 16 -CacheDecayRequests {decay} -Reads 0 -Bf16Rows
     {bf16_rows} -Int4Rows {int4_rows} -MmapEmbed 1 -ReuseBuffers 1 -OwnShared 1 -UncachedReads 1 -PipelineReads
     1 -ExpertCacheMiB 256 -PrefillReads 1 -CacheResetHistory 1 -SkipBulkPrefetch 1 -Tokens 64 -Samples
-    1 -Out C:/Users/devcloud/inkling-autolab/080-rows-2-2.json -RouteTrace C:/Users/devcloud/inkling-autolab/080-rows-2-2-routes.json
-    -LayerProfile C:/Users/devcloud/inkling-autolab/080-rows-2-2-layers.json -Log C:/Users/devcloud/inkling-autolab/080-rows-2-2.log
+    1 -Out C:/Users/devcloud/inkling-autolab/079-rows-2-1.json -RouteTrace C:/Users/devcloud/inkling-autolab/079-rows-2-1-routes.json
+    -LayerProfile C:/Users/devcloud/inkling-autolab/079-rows-2-1-layers.json -Log C:/Users/devcloud/inkling-autolab/079-rows-2-1.log
 defaults:
   model: C:/Users/devcloud/inkling-autolab/model
   cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
@@ -34,7 +35,7 @@ grid:
   bf16_rows:
   - 2
   int4_rows:
-  - 2
+  - 1
 metrics:
   primary: decode_tokens_per_s
   direction: maximize
@@ -160,4 +161,4 @@ expected_metrics:
   rayon_threads: 16
   expert_cache_frequency_decays: 2112
   bf16_rows: 2
-  int4_rows: 2
+  int4_rows: 1

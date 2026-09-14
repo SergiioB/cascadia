@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 
-def replay(trace, slots, reset_history, decay_requests=4096, prefetch_previous=0):
+def replay(trace, slots, reset_history, decay_requests=4096, prefetch_previous=0, visit_observer=None):
     states = {}
     totals = dict(hits=0, misses=0, admissions=0, evictions=0)
     cases = []
@@ -24,7 +24,7 @@ def replay(trace, slots, reset_history, decay_requests=4096, prefetch_previous=0
             routes = layer['routed_experts_per_position'][sample['prefill_positions']:]
             assert len(routes) == sample['decode_positions']
             previous = []
-            for cohort in routes:
+            for position, cohort in enumerate(routes):
                 eligible = [e for e in previous if e not in state['entries']]
                 eligible.sort(key=lambda e: (state['freq'][e], state['last'][e]), reverse=True)
                 predicted = eligible[:prefetch_previous]
@@ -58,6 +58,8 @@ def replay(trace, slots, reset_history, decay_requests=4096, prefetch_previous=0
                         totals['evictions'] += 1
                     state['entries'].append(expert)
                     totals['admissions'] += 1
+                if visit_observer is not None:
+                    visit_observer(sample['case'], sample['repetition'], layer['layer'], position, len(missing))
         cases.append(dict(case=sample['case'], repetition=sample['repetition'], **{k: totals[k]-before[k] for k in totals}))
     return dict(slots_per_layer=slots, reset_history=reset_history, decay_requests=decay_requests, prefetch_previous=prefetch_previous, prefetch_predictions=predictions, useful_prefetch_predictions=useful_predictions, extra_read_predictions=predictions-useful_predictions, **totals, cases=cases)
 
