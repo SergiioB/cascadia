@@ -1,0 +1,277 @@
+version: 1
+name: 128_full_second_prefetch_candidate
+hypothesis: Keep the first uncached prediction and optionally read a second concurrently only when its
+  original predicted gate rank is in the top three. Preserve all actual routes, output IDs, cache admission
+  and full read accounting. Confirm gains over nine samples before promotion.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q125
+moonshot: true
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 7200
+  ssh_options:
+  - -o
+  - ServerAliveInterval=15
+  - -o
+  - ServerAliveCountMax=3
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1 -Model "{model}"
+    -Cases "{cases}" -Binary full-second-prefetch.exe -PredictReads 1 -Threads {threads} -AffinityMask
+    {affinity} -CacheDecayRequests {decay} -CacheRecentTies 1 -Reads 0 -Bf16Rows {bf16_rows} -Int4Rows
+    {int4_rows} -MmapEmbed 1 -ReuseBuffers 1 -OwnShared 1 -UncachedReads 1 -PipelineReads 1 -ExpertCacheMiB
+    256 -PrefillReads 1 -CacheResetHistory 1 -SkipBulkPrefetch 1 -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate.json
+    -RouteTrace C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate-routes.json -LayerProfile
+    C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate-layers.json -Log C:/Users/devcloud/inkling-autolab/128-second-prefetch-candidate.log
+    -EarlyPredictReads 0 -SecondPredictReads 1
+  connect_timeout: 30
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  decay:
+  - 32
+  bf16_rows:
+  - 2
+  int4_rows:
+  - 4
+  threads:
+  - 16
+  affinity:
+  - 65535
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+  - name: reuse_buffers
+    pattern: (?m)^bf16_rows=.* reuse_buffers=(\d+)
+    type: int
+  - name: owned_shared_bytes
+    pattern: (?m)^owned_shared_bytes=(\d+)
+    type: int
+  - name: uncached_read_bytes
+    pattern: (?m)^uncached_read_bytes=(\d+)
+    type: int
+  - name: uncached_read_fallbacks
+    pattern: (?m)^uncached_read_fallbacks=(\d+)
+    type: int
+  - name: uncached_read_effective
+    pattern: (?m)^uncached_read_effective=(\d+)
+    type: int
+  - name: pipelined_read_layers
+    pattern: (?m)^pipelined_read_layers=(\d+)
+    type: int
+  - name: pipeline_reads_effective
+    pattern: (?m)^pipeline_reads_effective=(\d+)
+    type: int
+  - name: expert_cache_capacity_bytes
+    pattern: (?m)^expert_cache_capacity_bytes=(\d+)
+    type: int
+  - name: expert_cache_retained_bytes
+    pattern: (?m)^expert_cache_retained_bytes=(\d+)
+    type: int
+  - name: expert_cache_hits
+    pattern: (?m)^expert_cache_hits=(\d+)
+    type: int
+  - name: expert_cache_hit_bytes
+    pattern: (?m)^expert_cache_hit_bytes=(\d+)
+    type: int
+  - name: expert_cache_misses
+    pattern: (?m)^expert_cache_misses=(\d+)
+    type: int
+  - name: expert_cache_admissions
+    pattern: (?m)^expert_cache_admissions=(\d+)
+    type: int
+  - name: expert_cache_evictions
+    pattern: (?m)^expert_cache_evictions=(\d+)
+    type: int
+  - name: expert_cache_effective
+    pattern: (?m)^expert_cache_effective=(\d+)
+    type: int
+  - name: expert_cache_history_resets
+    pattern: (?m)^expert_cache_history_resets=(\d+)
+    type: int
+  - name: prefill_read_experts
+    pattern: (?m)^prefill_read_experts=(\d+)
+    type: int
+  - name: prefill_uncached_read_bytes
+    pattern: (?m)^prefill_uncached_read_bytes=(\d+)
+    type: int
+  - name: prefill_uncached_read_fallbacks
+    pattern: (?m)^prefill_uncached_read_fallbacks=(\d+)
+    type: int
+  - name: prefill_reads_effective
+    pattern: (?m)^prefill_reads_effective=(\d+)
+    type: int
+  - name: rayon_threads
+    pattern: (?m)^rayon_threads=(\d+)
+    type: int
+  - name: expert_cache_frequency_decays
+    pattern: (?m)^expert_cache_frequency_decays=(\d+)
+    type: int
+  - name: bf16_rows
+    pattern: (?m)^bf16_rows=(\d+)
+    type: int
+  - name: int4_rows
+    pattern: (?m)^bf16_rows=\d+ int4_rows=(\d+)
+    type: int
+  - name: processor_affinity
+    pattern: (?m)^processor_affinity=(\d+)
+    type: int
+  - name: cache_recent_ties
+    pattern: (?m)^bf16_rows=.* cache_recent_ties=(\d+)
+    type: int
+  - name: expert_cache_recent_tie_admissions
+    pattern: (?m)^expert_cache_recent_tie_admissions=(\d+)
+    type: int
+  - name: prediction_read_scheduled
+    pattern: (?m)^prediction_read_scheduled=(\d+)
+    type: int
+  - name: prediction_read_successful
+    pattern: (?m)^prediction_read_successful=(\d+)
+    type: int
+  - name: prediction_read_useful
+    pattern: (?m)^prediction_read_useful=(\d+)
+    type: int
+  - name: prediction_read_unused
+    pattern: (?m)^prediction_read_unused=(\d+)
+    type: int
+  - name: prediction_read_useful_bytes
+    pattern: (?m)^prediction_read_useful_bytes=(\d+)
+    type: int
+  - name: prediction_read_unused_bytes
+    pattern: (?m)^prediction_read_unused_bytes=(\d+)
+    type: int
+  - name: prediction_read_read_failures
+    pattern: (?m)^prediction_read_read_failures=(\d+)
+    type: int
+  - name: prediction_read_worker_failures
+    pattern: (?m)^prediction_read_worker_failures=(\d+)
+    type: int
+  - name: prediction_read_dispatch_failures
+    pattern: (?m)^prediction_read_dispatch_failures=(\d+)
+    type: int
+  - name: prediction_read_effective
+    pattern: (?m)^prediction_read_effective=(\d+)
+    type: int
+  - name: early_prediction_reads_effective
+    pattern: (?m)^early_prediction_reads_effective=(\d+)
+    type: int
+  - name: early_predict_reads
+    pattern: (?m)^bf16_rows=.* early_predict_reads=(\d+)
+    type: int
+  - name: second_predict_reads
+    pattern: (?m)^bf16_rows=.* second_predict_reads=(\d+)
+    type: int
+  - name: second_prediction_reads_effective
+    pattern: (?m)^second_prediction_reads_effective=(\d+)
+    type: int
+  - name: prediction_read_workers
+    pattern: (?m)^prediction_read_workers=(\d+)
+    type: int
+  - name: second_prediction_read_scheduled
+    pattern: (?m)^second_prediction_read_scheduled=(\d+)
+    type: int
+  - name: second_prediction_read_successful
+    pattern: (?m)^second_prediction_read_successful=(\d+)
+    type: int
+  - name: second_prediction_read_useful
+    pattern: (?m)^second_prediction_read_useful=(\d+)
+    type: int
+  - name: second_prediction_read_unused
+    pattern: (?m)^second_prediction_read_unused=(\d+)
+    type: int
+  - name: second_prediction_read_useful_bytes
+    pattern: (?m)^second_prediction_read_useful_bytes=(\d+)
+    type: int
+  - name: second_prediction_read_unused_bytes
+    pattern: (?m)^second_prediction_read_unused_bytes=(\d+)
+    type: int
+  - name: second_prediction_read_read_failures
+    pattern: (?m)^second_prediction_read_read_failures=(\d+)
+    type: int
+  - name: second_prediction_read_worker_failures
+    pattern: (?m)^second_prediction_read_worker_failures=(\d+)
+    type: int
+  - name: second_prediction_read_dispatch_failures
+    pattern: (?m)^second_prediction_read_dispatch_failures=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2
+expected_metrics:
+  owned_shared_bytes: 4076863488
+  embedding_mapped: 1
+  full_model: 1
+  repetitions: 1
+  uncached_read_effective: 1
+  uncached_read_fallbacks: 0
+  pipeline_reads_effective: 1
+  pipelined_read_layers: 12096
+  expert_cache_capacity_bytes: 17179869184
+  expert_cache_effective: 1
+  expert_cache_history_resets: 192
+  prefill_read_experts: 13635
+  prefill_uncached_read_bytes: 434281512960
+  prefill_uncached_read_fallbacks: 0
+  prefill_reads_effective: 1
+  expert_cache_hits: 33257
+  expert_cache_misses: 39319
+  expert_cache_retained_bytes: 16309550592
+  uncached_read_bytes: 1280072675328
+  expert_cache_admissions: 26816
+  expert_cache_evictions: 26304
+  expert_cache_hit_bytes: 1059251945472
+  rayon_threads: 16
+  expert_cache_frequency_decays: 2112
+  bf16_rows: 2
+  int4_rows: 4
+  processor_affinity: 65535
+  expert_cache_recent_tie_admissions: 20015
+  cache_recent_ties: 1
+  prediction_read_scheduled: 17720
+  prediction_read_successful: 17720
+  prediction_read_useful: 16849
+  prediction_read_unused: 871
+  prediction_read_useful_bytes: 536671580160
+  prediction_read_unused_bytes: 27743023104
+  prediction_read_read_failures: 0
+  prediction_read_worker_failures: 0
+  prediction_read_dispatch_failures: 0
+  prediction_read_effective: 1
+  early_prediction_reads_effective: 0
+  early_predict_reads: 0
+  second_predict_reads: 1
+  second_prediction_reads_effective: 1
+  prediction_read_workers: 2
+  second_prediction_read_scheduled: 5814
+  second_prediction_read_successful: 5814
+  second_prediction_read_useful: 5511
+  second_prediction_read_unused: 303
+  second_prediction_read_useful_bytes: 175550656512
+  second_prediction_read_unused_bytes: 9651941376
+  second_prediction_read_read_failures: 0
+  second_prediction_read_worker_failures: 0
+  second_prediction_read_dispatch_failures: 0

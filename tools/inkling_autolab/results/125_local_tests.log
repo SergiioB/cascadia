@@ -1,0 +1,856 @@
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: `cascadia-int4-gemm` (lib) generated 2 warnings (run `cargo fix --lib -p cascadia-int4-gemm` to apply 1 suggestion)
+warning: `cascadia-ov-genai-shim` (lib) generated 4 warnings (run `cargo fix --lib -p cascadia-ov-genai-shim` to apply 4 suggestions)
+   Compiling cascadia-engine-sparse-moe v0.2.3 (/private/tmp/tahoma-inkling-panther-autolab/crates/cascadia-engine-sparse-moe)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: `cascadia-engine-sparse-moe` (lib test) generated 1 warning (1 duplicate)
+warning: `cascadia-engine-sparse-moe` (lib) generated 1 warning
+warning: variable `next` is assigned to, but never used
+   --> crates/cascadia-engine-sparse-moe/tests/minimax_m2_eval.rs:420:9
+    |
+420 |     let mut next = 0u32;
+    |         ^^^^^^^^
+    |
+    = note: consider using `_next` instead
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `next` is never read
+   --> crates/cascadia-engine-sparse-moe/tests/minimax_m2_eval.rs:422:9
+    |
+422 |         next = step(&mut r, t, pos);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable `next` is assigned to, but never used
+   --> crates/cascadia-engine-sparse-moe/tests/minimax_m2_eval.rs:526:9
+    |
+526 |     let mut next = 0u32;
+    |         ^^^^^^^^
+    |
+    = note: consider using `_next` instead
+
+warning: value assigned to `next` is never read
+   --> crates/cascadia-engine-sparse-moe/tests/minimax_m2_eval.rs:528:9
+    |
+528 |         next = pstep(&mut r0, &mut r1, t, pos);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: `cascadia-engine-sparse-moe` (test "minimax_m2_eval") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.95s
+     Running unittests src/lib.rs (/private/tmp/inkling-autolab-target/debug/deps/cascadia_engine_sparse_moe-5c012738683cfa6c)
+
+running 163 tests
+test dist::capture_frame_tests::capture_v2_code_is_appended_and_distinct ... ok
+test dist::expert_frame_tests::expert_codes_are_appended_and_distinct ... ok
+test dist::capture_frame_tests::restore_and_ack_codes_are_distinct_and_recognized ... ok
+test dist::capture_frame_tests::restore_ack_bytes_verdict_roundtrips ... ok
+test dist::capture_frame_tests::restore_frame_bytes_layout ... ok
+test dist::capture_frame_tests::capture_frame_bytes_empty_tokens ... ok
+test dist::capture_frame_tests::restore_carry_bytes_layout_roundtrips ... ok
+test dsv4::expert_mmap::tests::fused_dequant_dot_matches_reference ... ok
+test dist::capture_frame_tests::capture_frame_bytes_layout_roundtrips ... ok
+test dist::capture_frame_tests::capture_v2_frame_bytes_layout_roundtrips ... ok
+test dist::expert_frame_tests::ids_tensor_roundtrips_including_pad ... ok
+test engine::tests::even_moe_split_with_remainder ... ok
+test engine::tests::even_moe_split_uniform ... ok
+test engine::tests::per_token_budget_beats_the_gateway_inter_token_deadline ... ok
+test engine::tests::prefill_reply_budget_ceiling_clamp_never_underflows ... ok
+test engine::tests::prefill_reply_budget_clamps_below_the_frame_idle_ceiling ... ok
+test engine::tests::prefill_reply_budget_exceeds_the_per_token_reply_deadline ... ok
+test engine::tests::prefill_reply_budget_leaves_the_default_config_unclamped ... ok
+test engine::tests::prefill_reply_budget_saturates_instead_of_panicking ... ok
+test engine::tests::prefill_reply_budget_unclamped_when_no_ceiling_is_configured ... ok
+test engine::tests::prefill_reply_budget_widens_by_the_documented_factor ... ok
+test engine::tests::resume_max_new_is_unchanged_when_not_resuming ... ok
+test engine::tests::resume_max_new_at_full_budget_is_zero ... ok
+test engine::tests::resume_max_new_subtracts_prefix_len ... ok
+test engine::tests::resume_max_new_saturates_when_prefix_exceeds_budget ... ok
+test engine::tests::single_stage_yields_full_range ... ok
+test dsv4::st::tests::oversized_header_returns_error_without_overflow ... ok
+test glm::attn::kv_tests::kvstore_bf16_tracks_f32 ... ok
+test engine::tests::worker_disconnect_reports_fatal_once ... ok
+test engine::tests::utf8_safe_delta_streams_full_text_across_multibyte_split ... ok
+test dsv4::st::tests::tensor_metadata_mutation_cannot_create_out_of_bounds_view ... ok
+test engine::tests::utf8_safe_delta_ascii_is_one_suffix_per_step ... ok
+test glm::env_flag_tests::zero_and_false_mean_off_not_on ... ok
+test glm::gate::tests::tie_breaks_toward_lower_id_and_normalises ... ok
+test glm::kv_cache::tests::slice_cache_disabled_when_cap_zero ... ok
+test glm::gate::tests::no_norm_keeps_raw_scaled_scores ... ok
+test glm::kv_cache::tests::prefix_cache_longest_match ... ok
+test engine::tests::pipeline_engine_declines_seeded_task_with_sentinel_first_chunk ... ok
+test dsv4::st::tests::mapped_bf16_owns_lifetime_and_preserves_all_bit_patterns ... ok
+test glm::kv_cache::tests::slice_cache_get_take_lru ... ok
+test dsv4::st::tests::mapped_bf16_rejects_mismatched_or_overflowing_shape ... ok
+test glm::kv_cache::tests::slice_cache_reinserting_a_live_key_moves_it_to_mru ... ok
+test dsv4::st::tests::unaligned_and_f32_tensors_use_copy_fallback ... ok
+test glm::loader::int3_tests::dequant_int3_matches_pack_layout ... ok
+test glm::ov_expert::tests::fatal_classifier_matches_only_terminal_exhaustion ... ok
+test glm::ov_expert::tests::from_env_is_none_when_disabled ... ok
+test glm::residency::tests::autopin_ramps_with_confidence ... ok
+test glm::residency::tests::budget_reserves_slack_and_page_cache ... ok
+test inkling::ep::tests::reply_deadline_widens_for_batches_but_stays_under_the_ceiling ... ok
+test inkling::ep::tests::expert_home_is_modulo_and_covers_every_worker ... ok
+test glm::stage::tests::widetable_bf16_tracks_f32 ... ok
+test glm::moe::tests::predict_topk_selects_the_router_topk ... ok
+test glm::indexer::tests::select_prunes_once_past_topk ... ok
+test inkling::expert_cache::tests::predicted_membership_query_preserves_history_and_actual_counters ... ok
+test glm::ov_expert::tests::expert_cost_scales_with_bin_and_floors ... ok
+test dsv4::st::tests::malformed_offsets_are_errors_for_owned_and_mapped_readers ... ok
+test inkling::expert_cache::tests::disabled_cache_and_unobserved_or_invalid_reads_retain_nothing ... ok
+test inkling::expert_cache::tests::independent_models_never_share_same_numbered_expert_bytes ... ok
+test inkling::expert_cache::tests::new_sequence_can_replace_stale_favorites_without_discarding_warm_weights ... ok
+test inkling::ffn::tests::w13_even_rows_are_gate_odd_rows_are_up ... ok
+test inkling::expert_cache::tests::lfu_retains_hot_expert_and_recycles_evicted_allocation ... ok
+test inkling::predicted_read::tests::blocked_worker_accepts_two_queued_requests_without_losing_ownership ... ok
+test inkling::expert_cache::tests::real_int4_kernel_remains_exact_across_cache_hits_and_evictions ... ok
+test inkling::expert_cache::tests::recent_tie_evictions_preserve_real_packed_kernel_bytes ... ok
+test inkling::moe::prefill_read_tests::streamed_prefill_preserves_real_int4_bits_across_multiple_cohorts ... ok
+test inkling::expert_cache::tests::recent_ties_cannot_evict_a_leased_buffer_or_exceed_capacity ... ok
+test inkling::expert_cache::tests::outstanding_leases_prevent_eviction_and_keep_capacity_bounded ... ok
+test glm::residency::tests::usage_records_hottest_and_roundtrips ... ok
+test inkling::predicted_read::tests::disconnected_worker_falls_back_without_exposing_bytes_or_hanging ... ok
+test inkling::predicted_read::tests::unused_drop_drains_in_flight_read_before_returning ... ok
+test inkling::read_buffers::tests::overlapping_leases_own_disjoint_buffers ... ok
+test inkling::predicted_read::tests::failed_prediction_leaves_destination_intact_and_worker_can_continue ... ok
+test inkling::expert_cache::tests::selective_prediction_respects_original_rank_and_preserves_history ... ok
+test inkling::predicted_read::tests::only_matching_expert_consumes_complete_bytes_once ... ok
+test inkling::tests::rmsnorm_f32_matches_definition_per_row ... ok
+test inkling::read_buffers::tests::incompatible_length_falls_back_and_failed_read_exposes_no_bytes ... ok
+test kv_prefix_cache::tests::disabled_cache_is_a_noop ... ok
+test kv_prefix_cache::tests::clear_empties_cache ... ok
+test kv_prefix_cache::tests::evicting_a_pulled_entry_leaves_a_local_mark ... ok
+test inkling::read_buffers::tests::small_leases_leave_other_idle_allocations_available ... ok
+test kv_prefix_cache::tests::fingerprint_digest_is_deterministic ... ok
+test kv_prefix_cache::tests::fingerprint_ignores_sampling_params ... ok
+test inkling::read_buffers::tests::reusable_real_int4_bytes_match_mapped_kernel_after_expert_changes ... ok
+test inkling::expert_cache::tests::short_frequency_history_adapts_within_a_sequence ... ok
+test kv_prefix_cache::tests::insert_dedup_is_scoped_to_partner ... ok
+test kv_prefix_cache::tests::insert_same_key_replaces_in_place ... ok
+test kv_prefix_cache::tests::insert_then_lookup_returns_same_snapshot ... ok
+test kv_prefix_cache::tests::lookup_misses_on_different_model_fingerprint ... ok
+test kv_prefix_cache::tests::lookup_misses_when_prefix_differs ... ok
+test kv_prefix_cache::tests::lookup_ns_does_not_let_a_longer_other_tenant_entry_mask_the_callers_own_hit ... ok
+test kv_prefix_cache::tests::lookup_ns_is_confined_to_the_callers_namespace ... ok
+test inkling::expert_cache::tests::recent_ties_replace_stale_entries_but_preserve_later_cohort_hits ... ok
+test inkling::read_buffers::tests::rejects_missing_short_and_oversized_experts ... ok
+test kv_prefix_cache::tests::lookup_promotes_entry_to_mru ... ok
+test kv_prefix_cache::tests::lookup_rejects_exact_match_no_suffix ... ok
+test kv_prefix_cache::tests::lookup_reports_entry_provenance ... ok
+test inkling::predicted_read::tests::two_workers_start_concurrently_and_keep_expert_buffers_distinct ... ok
+test inkling::read_buffers::tests::overwrites_previous_expert_without_reallocating ... ok
+test kv_prefix_cache::tests::lookup_returns_longest_matching_prefix ... ok
+test kv_prefix_cache::tests::lru_eviction_drops_oldest ... ok
+test kv_prefix_cache::tests::plane_digest_ignores_stage_slice_but_not_model ... ok
+test kv_prefix_cache::tests::snapshot_approx_bytes_counts_layer0_and_shells ... ok
+test ngram_draft::tests::append_extends_history_and_indexes ... ok
+test ngram_draft::tests::draft_k_default_and_clamp ... ok
+test ngram_draft::tests::empty_draft_proposes_nothing ... ok
+test ngram_draft::tests::longer_kgram_match_wins_over_shorter ... ok
+test ngram_draft::tests::propose_walks_repeated_sequence ... ok
+test ngram_draft::tests::reset_clears_state ... ok
+test ngram_draft::tests::rewind_past_history_clamps_to_zero ... ok
+test ngram_draft::tests::rewind_truncates_history_but_keeps_table ... ok
+test ngram_draft::tests::warm_with_prompt_indexes_kgrams ... ok
+test ov_kv_cache::tests::disabled_cache_never_hits ... ok
+test ov_kv_cache::tests::evicting_a_pulled_entry_leaves_a_local_mark ... ok
+test ov_kv_cache::tests::full_prompt_match_is_rejected_strict_prefix ... ok
+test ov_kv_cache::tests::insert_dedup_is_scoped_to_partner ... ok
+test ov_kv_cache::tests::insert_then_lookup_returns_same_snapshot ... ok
+test ov_kv_cache::tests::lookup_ns_does_not_let_a_longer_other_tenant_entry_mask_the_callers_own_hit ... ok
+test ov_kv_cache::tests::lookup_ns_is_confined_to_the_callers_namespace ... ok
+test ov_kv_cache::tests::lookup_reports_entry_provenance ... ok
+test ov_kv_cache::tests::lookup_returns_longest_matching_prefix ... ok
+test runner::tests::argmax_i64_all_non_finite_returns_zero ... ok
+test runner::tests::argmax_i64_finds_max_index ... ok
+test runner::tests::argmax_i64_skips_non_finite ... ok
+test runner::tests::expert_lru_bounded_evicts_least_recently_used ... ok
+test runner::tests::resolve_runner_options_from_config ... ok
+test runner::tests::write_present_kv_into_middle_slot ... ok
+test runner::tests::unpack_rejects_wrong_length_slice ... ok
+test runner::tests::write_present_kv_into_empty_slot ... ok
+test runner::tests::expert_lru_unbounded_never_evicts ... ok
+test sampling::tests::frequency_penalty_demotes_repeated_token_greedy ... ok
+test sampling::tests::greedy_picks_max ... ok
+test runner::tests::grow_kv_buffer_doubles_and_preserves_data ... ok
+test sampling::tests::presence_penalty_is_count_independent ... ok
+test sampling::tests::repetition_penalty_avoids_repeat_with_temp_zero ... ok
+test sampling::tests::temperature_above_zero_does_advance_the_rng ... ok
+test sampling::tests::temperature_does_not_panic_on_uniform ... ok
+test sampling::tests::temperature_zero_does_not_advance_the_rng ... ok
+test sampling::tests::top_p_does_not_pick_long_tail ... ok
+test ov_moe::tests::int4_bin_expert_matches_fp32_within_tolerance ... ok
+test spec_decode::tests::count_accepted_first_mismatch ... ok
+test spec_decode::tests::count_accepted_all_match ... ok
+test spec_decode::tests::count_accepted_unequal_lens ... ok
+test spec_decode::tests::reconcile_all_accepted_with_bonus_forward ... ok
+test spec_decode::tests::reconcile_partial_accept ... ok
+test spec_decode::tests::reconcile_pending_token_all_accepted ... ok
+test spec_decode::tests::reconcile_pending_token_partial_accept ... ok
+test spec_decode::tests::reconcile_pending_token_zero_accepted ... ok
+test spec_decode::tests::reconcile_single_draft_accepted ... ok
+test spec_decode::tests::reconcile_zero_accepted ... ok
+test spec_decode::tests::simulated_runner_pending_session_matches_sequential_greedy ... ok
+test spec_decode::tests::simulated_session_matches_sequential_greedy ... ok
+test tensors::tests::bf16_roundtrip ... ok
+test tensors::tests::causal_mask_seq1_past0 ... ok
+test sampling::tests::top_k_one_forces_argmax_under_temperature ... ok
+test tensors::tests::causal_mask_seq1_past5 ... ok
+test spec_decode::tests::count_accepted_no_match ... ok
+test spec_decode::tests::end_to_end_round_math_is_invariant ... ok
+test tensors::tests::causal_mask_seq3_past0 ... ok
+test tensors::tests::concat_axis2 ... ok
+test runner::tests::grow_kv_buffer_from_empty_is_zero_filled ... ok
+test runner::tests::unpack_into_larger_capacity_preserves_layout ... ok
+test runner::tests::pack_unpack_roundtrip_is_bit_identical ... ok
+test inkling::read_buffers::tests::alignment_survives_resizing_and_reuse ... ok
+
+test result: ok. 163 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/dist_wire.rs (/private/tmp/inkling-autolab-target/debug/deps/dist_wire-8ef8ea805de178c4)
+
+running 16 tests
+test decode_sanitizes_corrupt_zero_repetition_penalty ... ok
+test frame_kind_codes_remain_stable ... ok
+test sampling_wire_round_trips_defaults_and_explicit_values ... ok
+test forward_batch_rejects_oversize_k ... ok
+test forward_batch_rejects_mismatched_shape ... ok
+test forward_batch_rejects_k_zero ... ok
+test token_batch_frame_round_trips_k4 ... ok
+test reset_frame_round_trips ... ok
+test token_frame_handles_negative_and_extreme_ids ... ok
+test forward_frame_round_trips_hidden_state ... ok
+test token_frame_round_trips_upstream ... ok
+test forward_batch_then_token_batch_pair ... ok
+test token_batch_handles_negative_and_extreme_ids ... ok
+test forward_batch_frame_round_trips_k4 ... ok
+test sequence_reset_then_forward_then_token ... ok
+test restore_carry_round_trips_blob_larger_than_max_raw ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_attn.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_attn-75da2bd0a1bbfcc8)
+
+running 4 tests
+test attn_layer2_ratio16_matches_reference ... ok
+test attn_layer1_ratio4_indexer_matches_reference ... ok
+test attn_layer0_window_hash_matches_reference ... ok
+test attn_layer3_ratio4_indexer_matches_reference ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_compress.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_compress-464231bf46516bff)
+
+running 4 tests
+test compressor_indexer_variant_matches_reference ... ok
+test indexer_matches_reference ... ok
+test compressor_ratio4_overlap_matches_reference ... ok
+test compressor_ratio16_matches_reference ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_engine.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_engine-708f7f1b05520900)
+
+running 4 tests
+test dsv4_runner_single_stage_matches_reference ... ok
+test dsv4_runner_two_rank_matches_reference ... ok
+test export_loads_and_greedy_decodes ... ok
+test token_by_token_drive_matches_and_reset_reuses ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/dsv4_expert_mmap.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_expert_mmap-58622f62842a660a)
+
+running 2 tests
+test mmap_expert_forward_matches_eager ... ok
+test mmap_greedy_matches_reference ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/dsv4_math.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_math-231905a9b43aa454)
+
+running 8 tests
+test rmsnorm_matches_reference ... ok
+test yarn_freqs_match_reference ... ok
+test rope_apply_matches_reference ... ok
+test sinkhorn_matches_reference ... ok
+test sparse_attn_matches_reference ... ok
+test hadamard_matches_reference ... ok
+test act_quant_sim_matches_reference_exactly ... ok
+test fp4_act_quant_sim_matches_reference_exactly ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_model.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_model-759063e3ea871e0b)
+
+running 1 test
+test full_model_matches_reference_greedy ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_pipeline.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_pipeline-b313909b41104269)
+
+running 3 tests
+test hash_layers_must_stay_on_stage_zero ... ok
+test two_stage_pipeline_matches_reference ... ok
+test four_stage_pipeline_matches_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/dsv4_reply_timeout.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_reply_timeout-099102908529a2f1)
+
+running 4 tests
+test closed_downstream_reply_errors_fast ... ok
+test downstream_token_reply_returns_value ... ok
+test late_token_after_timeout_is_not_served_to_the_next_request ... ok
+test silent_downstream_reply_times_out_fast ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running tests/dsv4_sampling_parity.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_sampling_parity-5b8e6daca5703cb5)
+
+running 3 tests
+test generate_reason_reports_context_cap_vs_natural_stop ... ok
+test seeded_temp_is_reproducible ... ok
+test seeded_temp_single_stage_matches_pipeline ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/dsv4_wire_3rank.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_wire_3rank-1f62de7712d88582)
+
+running 1 test
+test dsv4_three_rank_mid_relay_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/dsv4_wire_4rank.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_wire_4rank-ff78b8dfa9d89fa6)
+
+running 1 test
+test dsv4_four_rank_two_mid_relays_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/dsv4_wire_big4rank.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_wire_big4rank-2a8a394afc4f86ea)
+
+running 2 tests
+test big_four_rank_matches_reference ... ignored, needs generated dsv4_big_export fixture (see module doc); known torch drift at token 5 under investigation
+test big_single_stage_matches_reference ... ignored, needs generated dsv4_big_export fixture (see module doc); known torch drift at token 5 under investigation
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dsv4_wire_bigframe.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_wire_bigframe-d959f4caa736b2c4)
+
+running 2 tests
+test forward_nosample_roundtrips_and_is_distinct_kind ... ok
+test forward_hidden_roundtrips_at_real_width_and_boundaries ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/dsv4_wire_e2e.rs (/private/tmp/inkling-autolab-target/debug/deps/dsv4_wire_e2e-277ba992819d1575)
+
+running 1 test
+test dsv4_two_rank_over_real_transport_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/engine_smoke.rs (/private/tmp/inkling-autolab-target/debug/deps/engine_smoke-ae602516a4365a0c)
+
+running 5 tests
+test sampling_config_default_is_greedy ... ok
+test builder_rejects_multi_stage_peers ... ok
+test builder_accepts_empty_peers ... ok
+test manifest_load_round_trip ... ok
+test load_returns_missing_file_for_empty_dir ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_attn.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_attn-e4a3ccf5c896ad61)
+
+running 1 test
+test mla_attention_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_builder_opts.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_builder_opts-8b159756734881b9)
+
+running 5 tests
+test f32_head_is_the_opt_out_not_the_default ... ok
+test unset_fields_fall_back_to_the_env_defaults ... ok
+test config_fields_default_to_none ... ok
+test explicit_config_overrides_the_env_default ... ok
+test load_staged_knobs_reach_stage_opts ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/glm5_dsa_attn.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_dsa_attn-64944f7bf13ee9f3)
+
+running 1 test
+test dsa_gated_attention_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_dsa_model.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_dsa_model-7d4b8018c2142f77)
+
+running 1 test
+test dsa_model_prunes_and_differs_from_dense ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/glm5_expert_mmap.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_expert_mmap-d165768a59f84ed6)
+
+running 1 test
+test eager_and_mmap_experts_agree ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/glm5_ffn.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_ffn-743f4c637e4a7b55)
+
+running 1 test
+test swiglu_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_fp8_export.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_fp8_export-5b10df4a49d06dd2)
+
+running 1 test
+test real_exporter_roundtrip_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/glm5_gate.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_gate-07501d2298ca05ab)
+
+running 1 test
+test moe_gate_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_grammar.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_grammar-c70df9bc2ce91d2e)
+
+running 1 test
+test grammar_forced_run_batching_matches_naive ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/glm5_indexer.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_indexer-add4b090a62f0810)
+
+running 1 test
+test dsa_indexer_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_indexshare_model.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_indexshare_model-069d6757b2e98934)
+
+running 1 test
+test indexshare_shared_layers_reuse_carried_topk ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/glm5_indexshare_pipeline.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_indexshare_pipeline-f2f9658234c829be)
+
+running 1 test
+test indexshare_pipeline_matches_single_process_beyond_topk ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/glm5_layer.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_layer-8b45e51d80ec3afb)
+
+running 3 tests
+test layer_attn_stage_matches_reference ... ok
+test layer_moe_stage_on_ref_h_matches_reference ... ok
+test transformer_layer_matches_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_layer_split.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_layer_split-cbf64d7bfec27ded)
+
+running 7 tests
+test even_split_covers_every_layer_exactly_once ... ok
+test rejects_total_exceeding_layer_count ... ok
+test rejects_rank_at_or_past_total ... ok
+test index_aligned_split_covers_every_layer_exactly_once ... ok
+test orphaned_head_layers_are_rejected ... ok
+test index_aligned_split_is_contiguous_across_four_ranks ... ok
+test split_is_contiguous_and_complete_for_all_rank_counts ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/glm5_loader.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_loader-1c6daa2d022c6c5b)
+
+running 1 test
+test loader_greedy_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/glm5_model.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_model-4d467a3c3c76f225)
+
+running 4 tests
+test model_prefill_bit_exact_vs_per_token ... ok
+test model_greedy_matches_reference ... ok
+test prefix_snapshot_restore_bit_exact_vs_full ... ok
+test prefix_cache_reuse_matches_uncached ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/glm5_moe.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_moe-9fd440f197f2bc01)
+
+running 3 tests
+test moe_records_routing_into_usage ... ok
+test moe_block_matches_reference ... ok
+test moe_batch_union_bit_exact_vs_per_token ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_mtp.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_mtp-7eb4a5523ea8d4b0)
+
+running 1 test
+test mtp_draft_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_mtp_loader.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_mtp_loader-d934706d2b3d4506)
+
+running 1 test
+test loader_mtp_spec_matches_greedy ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/glm5_mtp_spec.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_mtp_spec-6d66a4c0dc0c88f7)
+
+running 2 tests
+test full_acceptance_vocab1 ... ok
+test spec_matches_greedy ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/glm5_pipeline_ml.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_pipeline_ml-f731a854de96899b)
+
+running 1 test
+test glm5_pipeline_matches_reference_for_1_2_3_4_ranks ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/glm5_prefill_pipeline.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_prefill_pipeline-97201ff9bdd80fc3)
+
+running 4 tests
+test glm5_bf16_head_pipeline_bounded_vs_f32 ... ok
+test glm5_batched_prefill_pipeline_matches_single_process ... ok
+test glm5_prefix_cache_pipeline_matches_full ... ok
+test glm5_multi_window_prefill_matches_single_process ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.57s
+
+     Running tests/glm5_r1.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_r1-211ed907b0509fa8)
+
+running 1 test
+test r1_read_matches_mmap_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/glm5_rope.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_rope-4b05bd8dd0a1180f)
+
+running 2 tests
+test glm_freqs_match_reference ... ok
+test glm_rope_apply_matches_reference ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_runner.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_runner-e3a9322aa4d69814)
+
+running 2 tests
+test runner_greedy_matches_reference ... ok
+test staged_composition_matches_full_model ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/glm5_tiny_indexer.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_tiny_indexer-d6f18f7a5e37fa92)
+
+running 1 test
+test tiny_default_indexer_prunes_and_differs_from_dense ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/glm5_tokenizer_flags.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_tokenizer_flags-1bb7f9aa9bcc3949)
+
+running 3 tests
+test special_true_token_is_stripped_by_skip_special_decode ... ok
+test tool_call_open_tag_survives_skip_special_decode ... ok
+test think_close_tag_is_special_false_and_survives_skip_special_decode ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_wire.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_wire-12fa0e6f8b3e3c7c)
+
+running 1 test
+test glm5_two_rank_over_real_transport_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/inkling_attn.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_attn-db6f7347e923bbe6)
+
+running 15 tests
+test relative_bias_steers_the_softmax ... ok
+test log_scaling_scales_the_bias_on_global_layers_only ... ok
+test log_scaling_scales_q_and_scale_is_one_over_d ... ok
+test sliding_truncate_beyond_the_ring_slack_panics - should panic ... ok
+test sliding_consecutive_truncates_cannot_creep_past_the_slack - should panic ... ok
+test sliding_window_attends_only_to_the_last_window_keys ... ok
+test sliding_consecutive_truncates_within_the_slack_redecode_exactly ... ok
+test golden_sliding_attention_layer0_matches_hf ... ok
+test golden_global_attention_layer3_matches_hf ... ok
+test sliding_truncate_snapshot_restore_truncate_beyond_the_slack_panics - should panic ... ok
+test sliding_truncate_snapshot_restore_truncate_within_the_slack_is_exact ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test prefill_is_bit_identical_to_per_token ... ok
+test snapshot_restore_roundtrip_then_rewind ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_layer ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/inkling_conv.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_conv-f28c4ef6aa225738)
+
+running 15 tests
+test impulse_response_is_reversed_kernel_plus_residual ... ok
+test rewind_to_zero_before_the_ring_wraps_is_allowed ... ok
+test snapshot_restore_roundtrip_and_rewind_after_restore ... ok
+test multichannel_matches_the_spec_formula ... ok
+test rewind_slack_exactly_at_the_bound_is_allowed ... ok
+test prefill_is_bit_identical_to_sequential_decode ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_conv ... ok
+test consecutive_truncates_cannot_creep_past_the_slack - should panic ... ok
+test truncate_snapshot_restore_truncate_within_the_slack_is_exact ... ok
+test truncate_snapshot_restore_truncate_beyond_the_slack_panics - should panic ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test truncate_beyond_the_rewind_slack_panics - should panic ... ok
+test zero_kernel_is_the_identity_through_the_residual ... ok
+test consecutive_truncates_within_the_slack_redecode_exactly ... ok
+test golden_sconv_matches_hf ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_ep.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_ep-6b23c2404d661e65)
+
+running 5 tests
+test expert_frames_round_trip_over_loopback_with_padding_ok_and_error ... ok
+test a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_message ... ok
+test placement_homes_every_expert_on_exactly_one_worker_and_banks_hold_exactly_those ... ok
+test driver_with_two_workers_matches_single_process_on_mmap_experts ... ok
+test driver_with_two_workers_over_loopback_matches_single_process_bit_for_bit ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.25s
+
+     Running tests/inkling_gate.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_gate-5bd777f62f7ea777)
+
+running 7 tests
+test a_hot_shared_expert_sinks_the_routed_weights ... ok
+test weights_and_gammas_sum_to_route_scale_times_global_scale ... ok
+test bias_steers_selection_and_weights_normalise_over_selected_plus_shared ... ok
+test weights_use_raw_sigmoid_scores_not_the_biased_selection_score ... ok
+test ties_break_toward_the_lower_expert_id ... ok
+test nan_logit_is_unselectable_and_does_not_panic_at_n_256 ... ok
+test golden_gate_matches_hf ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_loader.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_loader-e968ed0660d58ae6)
+
+running 18 tests
+test layer_split_covers_every_layer_exactly_once ... ok
+test manifest_rejects_zero_moe_intermediate ... ok
+test manifest_allows_zero_dense_intermediate_without_dense_layers ... ok
+test bf16_bits_copies_bf16_and_narrows_f32_and_f16 ... ok
+test manifest_rejects_nonpositive_mup ... ok
+test manifest_base_is_accepted ... ok
+test manifest_requires_logits_mup_width_multiplier ... ok
+test manifest_rejects_zero_dense_intermediate_when_dense_layers_present ... ok
+test manifest_requires_log_scaling_alpha ... ok
+test manifest_requires_route_scale ... ok
+test mapped_embedding_rows_and_head_math_match_owned_bits ... ok
+test owned_packed_shared_expert_matches_mapping_without_file_read_dispatch ... ok
+test bf16_bits_equals_the_f32_path_narrowed_on_the_tiny_export ... ok
+test mmap_overlapped_reads_match_the_mmap_kernel_bit_for_bit ... ok
+test loader_greedy_matches_hf_reference ... ok
+test staged_runner_single_rank_matches_model ... ok
+test routing_observer_preserves_prefill_and_decode_logits ... ok
+test mmap_model_matches_the_reference_and_the_eager_model ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/inkling_model.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_model-10dfa904c2306111)
+
+running 15 tests
+test golden_moe_block_matches_hf ... ok
+test head_divides_by_mup_bit_exactly_at_the_real_mup_24 ... ok
+test moe_batch_is_bit_identical_to_per_row ... ok
+test pre_attention_prediction_depends_on_current_input_not_attention_state ... ok
+test previous_layer_prediction_cannot_use_predecessor_or_target_sequence_state ... ok
+test prefix_snapshot_restore_is_bit_exact_vs_full_prefill ... ok
+test pre_attention_predictions_preserve_actual_routes_and_logits ... ok
+test prefill_is_bit_identical_to_per_token ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test previous_layer_predictions_preserve_logits_routes_and_precede_computation ... ok
+test greedy_is_deterministic_and_within_unpadded_vocab ... ok
+test golden_layer_hidden_states_and_final_logits_match_hf ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_model ... ok
+test golden_greedy_ids_match_hf_exactly ... ok
+test timing_observers_preserve_prefill_decode_logits_and_can_be_disabled ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/inkling_relpos.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_relpos-bfdf8d7be6261d37)
+
+running 6 tests
+test bias_matches_hand_dot ... ok
+test profile_is_the_whole_bias_row ... ok
+test distinct_relative_states_give_distinct_profiles ... ok
+test bias_is_zero_at_and_beyond_extent ... ok
+test row_zeroes_future_keys_and_far_past ... ok
+test golden_relpos_matches_hf ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_wire.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_wire-97f07b3a2a2496ca)
+
+running 1 test
+test inkling_two_rank_over_real_transport_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/k26_layer0_eval.rs (/private/tmp/inkling-autolab-target/debug/deps/k26_layer0_eval-bd1d3680c891963b)
+
+running 1 test
+test k26_paris_pacific_four ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/k26_native_tiny.rs (/private/tmp/inkling-autolab-target/debug/deps/k26_native_tiny-6d2881428711b0dd)
+
+running 5 tests
+test fixture_selects_the_native_branch ... ok
+test native_last_stage_requires_openvino ... ok
+test native_middle_stage_loads_shells_only ... ok
+test native_forward_is_deterministic ... ok
+test native_first_stage_builds_a_live_engine ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/minimax_m2_eval.rs (/private/tmp/inkling-autolab-target/debug/deps/minimax_m2_eval-2d7b7da2139a67aa)
+
+running 7 tests
+test minimax_m2_tiny_matches_hf_reference ... ok
+test minimax_m2_split_path_matches_monolithic ... ok
+test minimax_m2_two_stage_snapshot_restore_matches_continuous ... ok
+test minimax_m2_full_generate_smoke ... ok
+test minimax_m2_snapshot_restore_matches_continuous ... ok
+test minimax_m2_generate_with_cache_warm_matches_cold ... ok
+test minimax_m2_two_rank_pipeline_matches_hf_reference ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ovmoe_streaming.rs (/private/tmp/inkling-autolab-target/debug/deps/ovmoe_streaming-fb53527afde94b67)
+
+running 8 tests
+test resume_seed_streams_continuation_only ... ok
+test eos_token_is_included_in_output ... ok
+test mid_decode_chain_death_is_an_error_chunk_never_a_final ... ok
+test mid_decode_silent_worker_errors_within_deadline ... ok
+test single_stage_declines_seeded_task_with_sentinel_first_chunk ... ok
+test cancel_mid_decode_clears_active ... ok
+test zero_budget_resume_finals_immediately_length ... ok
+test multi_stage_streams_per_token_with_empty_final ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/prepare_resume.rs (/private/tmp/inkling-autolab-target/debug/deps/prepare_resume-bcd4f24f49442a47)
+
+running 3 tests
+test prepare_resume_none_when_not_resuming ... ok
+test prepare_resume_rejects_out_of_vocab ... ok
+test prepare_resume_seeds_and_appends ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/sparse_streaming.rs (/private/tmp/inkling-autolab-target/debug/deps/sparse_streaming-e317cac43ab296a7)
+
+running 6 tests
+test mid_decode_silent_worker_errors_within_deadline ... ok
+test cancel_mid_decode_clears_active ... ok
+test multi_stage_streams_per_token_with_empty_final ... ok
+test mid_decode_chain_death_is_an_error_chunk_never_a_final ... ok
+test resume_seed_streams_continuation_only ... ok
+test zero_budget_resume_finals_immediately_length ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests cascadia_engine_sparse_moe
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: 1 warning emitted
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

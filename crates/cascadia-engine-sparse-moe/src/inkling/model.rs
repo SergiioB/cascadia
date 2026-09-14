@@ -232,7 +232,7 @@ impl Layer {
     fn forward_token_with_prediction(
         &mut self,
         x: &[f32],
-        supplied: Option<super::predicted_read::PendingRead>,
+        supplied: Option<super::predicted_read::PendingReadGroup>,
         skip_current_prediction: bool,
     ) -> Vec<f32> {
         let start = self.timing_observer.as_ref().map(|_| Instant::now());

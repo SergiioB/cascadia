@@ -146,6 +146,30 @@ impl Drop for Reader {
 }
 
 static READER: OnceLock<Option<Reader>> = OnceLock::new();
+static SECOND_READER: OnceLock<Option<Reader>> = OnceLock::new();
+
+pub(super) fn second_reads_requested() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    // Early mode already overlaps two layers. It takes precedence so combining
+    // flags cannot expand the bound beyond two live predicted reads.
+    !early_reads_requested()
+        && *ENABLED.get_or_init(|| super::env_flag("CASCADIA_INKLING_SECOND_PREDICT_READS"))
+}
+
+pub fn second_prediction_read_statistics() -> PredictionReadStats {
+    SECOND_READER
+        .get()
+        .and_then(Option::as_ref)
+        .map(|reader| reader.counters.snapshot())
+        .unwrap_or_default()
+}
+
+pub fn prediction_read_worker_count() -> usize {
+    [&READER, &SECOND_READER]
+        .iter()
+        .filter(|reader| reader.get().and_then(Option::as_ref).is_some())
+        .count()
+}
 
 pub(super) fn early_reads_requested() -> bool {
     static ENABLED: OnceLock<bool> = OnceLock::new();
@@ -153,11 +177,22 @@ pub(super) fn early_reads_requested() -> bool {
 }
 
 pub fn prediction_read_statistics() -> PredictionReadStats {
-    READER
+    let mut total = READER
         .get()
         .and_then(Option::as_ref)
         .map(|reader| reader.counters.snapshot())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    let second = second_prediction_read_statistics();
+    total.scheduled += second.scheduled;
+    total.successful += second.successful;
+    total.useful += second.useful;
+    total.unused += second.unused;
+    total.read_failures += second.read_failures;
+    total.worker_failures += second.worker_failures;
+    total.dispatch_failures += second.dispatch_failures;
+    total.useful_bytes += second.useful_bytes;
+    total.unused_bytes += second.unused_bytes;
+    total
 }
 
 pub(super) fn start(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
@@ -165,6 +200,38 @@ pub(super) fn start(expert: usize, path: &Path, length: usize) -> Option<Pending
         .get_or_init(|| Reader::new().ok())
         .as_ref()?
         .start(expert, path, length)
+}
+
+pub(super) fn start_second(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
+    SECOND_READER
+        .get_or_init(|| Reader::new().ok())
+        .as_ref()?
+        .start(expert, path, length)
+}
+
+/// At most two independent, complete expert reads for the current layer.
+/// Each request retains its own expert identity and drains on drop.
+pub(super) struct PendingReadGroup {
+    requests: [Option<PendingRead>; 2],
+}
+
+impl PendingReadGroup {
+    pub fn new(first: Option<PendingRead>, second: Option<PendingRead>) -> Option<Self> {
+        if first.is_none() && second.is_none() {
+            return None;
+        }
+        Some(Self {
+            requests: [first, second],
+        })
+    }
+
+    pub fn take_for(&self, expert: usize, destination: &mut ReadBuffer) -> bool {
+        self.requests
+            .iter()
+            .flatten()
+            .find(|request| request.expert == expert)
+            .is_some_and(|request| request.take_for(expert, destination))
+    }
 }
 
 pub(super) struct PendingRead {
@@ -231,6 +298,66 @@ impl Drop for PendingRead {
 mod tests {
     use super::*;
     use std::io::Write;
+
+    #[test]
+    fn two_workers_start_concurrently_and_keep_expert_buffers_distinct() {
+        let mut files = [
+            tempfile::NamedTempFile::new().unwrap(),
+            tempfile::NamedTempFile::new().unwrap(),
+        ];
+        files[0].write_all(&[17; 4096]).unwrap();
+        files[1].write_all(&[93; 4096]).unwrap();
+        let (entered, arrived) = sync_channel(2);
+        let mut releases = Vec::new();
+        let readers: Vec<_> = (0..2)
+            .map(|index| {
+                let entered = entered.clone();
+                let (release, wait) = sync_channel(1);
+                releases.push(release);
+                Reader::with_read_fn(move |buffer, path, length| {
+                    entered.send(index).unwrap();
+                    wait.recv().unwrap();
+                    buffer.read(path, length)
+                })
+                .unwrap()
+            })
+            .collect();
+        let group = PendingReadGroup::new(
+            readers[0].start(3, files[0].path(), 4096),
+            readers[1].start(7, files[1].path(), 4096),
+        )
+        .unwrap();
+        let timeout = std::time::Duration::from_secs(5);
+        let first = arrived.recv_timeout(timeout);
+        let second = arrived.recv_timeout(timeout);
+        // Always release before asserting so failure cannot hang RAII cleanup.
+        for release in releases {
+            release.send(()).unwrap();
+        }
+        assert_ne!(first.unwrap(), second.unwrap());
+        let mut destinations = [ReadBuffer::default(), ReadBuffer::default()];
+        assert!(!group.take_for(4, &mut destinations[0]));
+        // Consume in the reverse order of prediction; routing controls identity.
+        assert!(group.take_for(7, &mut destinations[1]));
+        assert!(group.take_for(3, &mut destinations[0]));
+        assert_eq!(destinations[0].as_slice(), [17; 4096]);
+        assert_eq!(destinations[1].as_slice(), [93; 4096]);
+        assert!(!group.take_for(7, &mut destinations[0]));
+        drop(group);
+        for reader in readers {
+            let stats = reader.counters.snapshot();
+            assert_eq!(
+                (
+                    stats.scheduled,
+                    stats.successful,
+                    stats.useful,
+                    stats.unused
+                ),
+                (1, 1, 1, 0)
+            );
+            assert_eq!(stats.useful_bytes, 4096);
+        }
+    }
 
     #[test]
     fn only_matching_expert_consumes_complete_bytes_once() {

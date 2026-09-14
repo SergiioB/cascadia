@@ -165,13 +165,24 @@ impl MoeLayer {
     pub(super) fn start_predicted_read(
         &self,
         prediction: &GateOut,
-    ) -> Option<super::predicted_read::PendingRead> {
+    ) -> Option<super::predicted_read::PendingReadGroup> {
         if !self.prediction_reads_enabled() {
             return None;
         }
-        let expert = self.expert_cache.first_uncached(&prediction.idx)?;
-        let mapped = self.w.experts[expert].as_mmap()?;
-        super::predicted_read::start(expert, mapped.bin_path(), mapped.bin_len())
+        let selected = if super::predicted_read::second_reads_requested() {
+            self.expert_cache.selective_uncached(&prediction.idx)
+        } else {
+            [self.expert_cache.first_uncached(&prediction.idx), None]
+        };
+        let first = selected[0].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        let second = selected[1].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start_second(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        super::predicted_read::PendingReadGroup::new(first, second)
     }
 
     pub(crate) fn reset_expert_cache_history(&self) {
@@ -368,7 +379,7 @@ impl MoeLayer {
     pub(super) fn forward_with_prediction(
         &self,
         x: &[f32],
-        prediction: Option<super::predicted_read::PendingRead>,
+        prediction: Option<super::predicted_read::PendingReadGroup>,
     ) -> Vec<f32> {
         if self.remote.is_some() {
             return self.forward_remote(x, 1);

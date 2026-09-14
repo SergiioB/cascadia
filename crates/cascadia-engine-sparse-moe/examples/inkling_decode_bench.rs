@@ -462,6 +462,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         u8::from(prefill_read_experts > 0)
     );
     let prediction_reads = cascadia_engine_sparse_moe::inkling::prediction_read_statistics();
+    let second_prediction_reads =
+        cascadia_engine_sparse_moe::inkling::second_prediction_read_statistics();
+    let prediction_read_workers =
+        cascadia_engine_sparse_moe::inkling::prediction_read_worker_count();
+    let second_prediction_reads_effective = second_prediction_reads.scheduled > 0;
+    println!("prediction_read_workers={prediction_read_workers}");
+    println!(
+        "second_prediction_reads_effective={}",
+        u8::from(second_prediction_reads_effective)
+    );
+    for (name, value) in serde_json::to_value(&second_prediction_reads)?
+        .as_object()
+        .unwrap()
+    {
+        println!("second_prediction_read_{name}={value}");
+    }
     let early_prediction_reads_effective =
         model.early_prediction_reads_enabled() && prediction_reads.scheduled > 0;
     println!(
@@ -498,6 +514,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "pipelined_read_layers":pipelined_read_layers,
                 "expert_cache":expert_cache,
                 "prediction_reads":prediction_reads,
+                "second_prediction_reads":second_prediction_reads,
+                "prediction_read_workers":prediction_read_workers,
+                "second_prediction_reads_effective":second_prediction_reads_effective,
                 "early_prediction_reads_effective":early_prediction_reads_effective,
                 "prefill_read_experts":prefill_read_experts,
                 "prefill_uncached_read_bytes":prefill_uncached_read_bytes,

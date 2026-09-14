@@ -79,7 +79,10 @@ mod read_buffers;
 pub use read_buffers::uncached_read_statistics;
 pub use read_buffers::prefill_read_statistics;
 mod predicted_read;
-pub use predicted_read::{prediction_read_statistics, PredictionReadStats};
+pub use predicted_read::{
+    prediction_read_statistics, prediction_read_worker_count, second_prediction_read_statistics,
+    PredictionReadStats,
+};
 pub mod relpos;
 pub mod stage;
 

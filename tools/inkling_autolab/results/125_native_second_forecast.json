@@ -1,0 +1,58 @@
+{
+  "scope": "causal_second_prediction_rank_analysis",
+  "selection_uses_actual_routes": false,
+  "actual_cache_replay_verified": true,
+  "results": [
+    {
+      "group": "all",
+      "second_rank_ceiling_zero_based": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "first_reads": 13,
+      "first_useful": 11,
+      "first_unused": 2,
+      "second_reads": 6,
+      "second_useful": 5,
+      "second_unused": 1,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "unused_reads": 3,
+      "precision": 0.8421052631578947,
+      "second_precision": 0.8333333333333334,
+      "miss_coverage": 1.0,
+      "extra_reads_over_actual_misses": 0.1875,
+      "additional_read_fraction_over_first_only": 0.05555555555555555
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "second_rank_ceiling_zero_based": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "first_reads": 13,
+      "first_useful": 11,
+      "first_unused": 2,
+      "second_reads": 6,
+      "second_useful": 5,
+      "second_unused": 1,
+      "predicted_reads": 19,
+      "useful_reads": 16,
+      "unused_reads": 3,
+      "precision": 0.8421052631578947,
+      "second_precision": 0.8333333333333334,
+      "miss_coverage": 1.0,
+      "extra_reads_over_actual_misses": 0.1875,
+      "additional_read_fraction_over_first_only": 0.05555555555555555
+    }
+  ],
+  "full_model_speedup_measured": false,
+  "caveats": [
+    "Rank is zero based in the predicted gate, before actual routing. First uncached prediction is unchanged.",
+    "Forecasts do not measure overlap, contention, host-memory effects or worker overhead.",
+    "A runtime experiment must verify all read counts, actual routes and output tokens."
+  ],
+  "source_sha256": {
+    "actual": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810",
+    "predictions": "ab83f411f82f8d47d55eb316aa33fd9d5b2214438635e971eb99baf01e1d3e41",
+    "benchmark": "2412557afa9ea388bcc4831fae38451ec041437043f62c56a9cb1dacf9df0838"
+  }
+}

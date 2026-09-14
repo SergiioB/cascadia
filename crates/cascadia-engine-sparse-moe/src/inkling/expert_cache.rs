@@ -118,6 +118,34 @@ impl ExpertCache {
         })
     }
 
+    /// Keep the first uncached prediction, adding the second only when its
+    /// original gate rank is within the top three. Inspect membership once,
+    /// before actual lookup, without changing cache history or counters.
+    pub fn selective_uncached(&self, predictions: &[usize]) -> [Option<usize>; 2] {
+        let state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        let mut selected = [None, None];
+        if state.stats.capacity_bytes == 0 {
+            return selected;
+        }
+        for (rank, &expert) in predictions.iter().enumerate() {
+            if expert >= state.frequency.len()
+                || state.entries.iter().any(|entry| entry.expert == expert)
+                || selected[0] == Some(expert)
+            {
+                continue;
+            }
+            if selected[0].is_none() {
+                selected[0] = Some(expert);
+            } else {
+                if rank <= 2 {
+                    selected[1] = Some(expert);
+                }
+                break;
+            }
+        }
+        selected
+    }
+
     /// Forget a previous sequence's admission preferences, retaining its valid
     /// weight allocations. Counters remain cumulative for workload accounting.
     pub fn reset_history(&self) {
@@ -266,6 +294,37 @@ mod tests {
         assert_eq!(
             ExpertCache::with_policy(3, 0, 4, true).first_uncached(&[0]),
             None
+        );
+    }
+
+    #[test]
+    fn selective_prediction_respects_original_rank_and_preserves_history() {
+        let cache = ExpertCache::with_policy(6, 96, 4, true);
+        drop(cache.lookup(&[0, 1, 2]));
+        for expert in 0..3 {
+            cache.retain(expert, &mut bytes(17, 32));
+        }
+        let before = serde_json::to_value(cache.stats()).unwrap();
+        let history = {
+            let s = cache.0.lock().unwrap();
+            (s.frequency.clone(), s.last.clone(), s.clock)
+        };
+        assert_eq!(cache.selective_uncached(&[3, 4, 5]), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[0, 3, 4, 5]), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[3, 0, 4, 5]), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[0, 1, 3, 4]), [Some(3), None]);
+        assert_eq!(cache.selective_uncached(&[0, 1, 2, 3, 4]), [Some(3), None]);
+        assert_eq!(cache.selective_uncached(&[9, 3, 4]), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[3, 3, 4]), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[3, 3, 3, 4]), [Some(3), None]);
+        assert_eq!(cache.selective_uncached(&[0, 1, 2, 9]), [None, None]);
+        assert_eq!(cache.selective_uncached(&[]), [None, None]);
+        assert_eq!(serde_json::to_value(cache.stats()).unwrap(), before);
+        let s = cache.0.lock().unwrap();
+        assert_eq!((s.frequency.clone(), s.last.clone(), s.clock), history);
+        assert_eq!(
+            ExpertCache::new(6, 0).selective_uncached(&[3, 4]),
+            [None, None]
         );
     }
 
