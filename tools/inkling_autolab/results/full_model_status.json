@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-09-14T09:57:18.515921+00:00",
+  "updated_at": "2026-09-14T10:01:35.715654+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
-  "status": "098_native_build_and_tests_running",
+  "status": "100_full_cache_recency_control_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
@@ -46,14 +46,20 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": null,
+  "active_campaign": "100_full_cache_recency_control",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
-  "active_task_jobs": [],
+  "active_task_jobs": [
+    {
+      "native_pid": 9956,
+      "created_unix": 1789379922.80522,
+      "binary": "full-cache-recency.exe",
+      "campaign": "100_full_cache_recency_control"
+    }
+  ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [
-    "100_full_cache_recency_control",
     "101_full_cache_recency_recent"
   ],
   "sampler_pid": 3036,
@@ -95,17 +101,20 @@
     "modes": 2
   },
   "pending_cache_recency_qualification": {
-    "status": "building_and_testing",
+    "status": "qualified_and_exited",
     "native_pid": 3144,
     "parent_pid": 10896,
     "source_commit": "849a08bde706bad860eb364e3c39e142ae53a167",
     "binary": "full-cache-recency.exe",
-    "launcher_pid": 2616
+    "launcher_pid": 2616,
+    "binary_sha256": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+    "native_tests": 245,
+    "modes": 5
   },
   "next_controller": {
     "session": 70713,
     "script": "/private/tmp/run-inkling-cache-recency-loop.py",
-    "status": "waiting_for098_then100101"
+    "status": "running100_then101"
   },
   "future_prediction_diagnostic": {
     "source_commit": "67973647127ea563f376a71af67e481d694d5f0b",
@@ -116,5 +125,6 @@
     "candidate": 0.9355367858001731,
     "decision": "retain_rows2_4",
     "candidate_over_control": 1.0000581889030975
-  }
+  },
+  "conditional_confirmation": "102_full_cache_recency_confirmation"
 }

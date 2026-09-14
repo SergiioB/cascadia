@@ -1,0 +1,7 @@
+{
+  "control_score": 0.9354823511082949,
+  "candidate_score": 0.9355367858001731,
+  "ratio": 1.0000581889030975,
+  "decision": "retain_BF16rows2_int4rows4",
+  "reason": "Repeated candidate does not establish a material primary-metric gain; exact outputs/counters pass."
+}

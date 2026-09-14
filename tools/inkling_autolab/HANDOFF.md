@@ -1,104 +1,83 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 09:58 UTC. Work is ACTIVE. User requested autonomous
-optimization toward25tok/s. Do not stop after a finite campaign. Target unmet.
+Updated 2026-09-14 10:01 UTC. Work is ACTIVE. User requested autonomous optimization toward
+25 tok/s. Do not stop after a finite campaign. The target remains unmet.
 
-## Current record and active trials
+## Current record
 
-Confirmed campaign074: **0.9382743961tok/s** slowest of nine samples,
-median0.9648021079, fastest1.0329282085.6.933×original and1.652×prior046record.
-All tokens/logits/routes/actual counters match. PERFORMANCE.md and native/local
-ptl-profile.ps1 were promoted. Full CPU backend; no full Arc backend.
+Confirmed074: **0.9382743961 tok/s**, slowest of nine samples; median0.9648021079,
+fastest1.0329282085. This is6.933× the original. All tokens/logits/routes/counters
+match. Selected profile remains16workers, all16CPUs, BF16rows2/int4rows4,
+cache256MiB perMoElayer, historyreset1, decay32, streamedprefill and all prior
+I/O flags. Full CPU backend. No full Arc backend. No Lambda or export needed.
 
-**089–091 affinity sweep COMPLETE; keep all16CPUs/16workers.**
-Scores:089mask65535/thread16=.9268264569;090mask4095/thread12=.8891493949;
-091mask4095/thread16=.8906346900. All numerical/configuration gates and raw
-artifact SHA checks passed. Controller43106 and all native full processes exited.
-089 optional phase resource attribution rejected a1.544745s wall-clock shift;
-089_resources.json is lifetime-only with monotonic elapsed, and089_clock_anomaly
-records the limitation. RustInstant benchmark rates remain valid.
+094/095 repeated row comparison finished:2/4control0.9354823511 versus2/2candidate
+0.9355367858, a0.00582% difference. Retain2/4. Both raw artifacts, all route arrays,
+cache counters and nine output samples are verified.095_repeated_row_comparison.json.
+Native094 PID5132(created1789378071.276495),095 PID7928(created1789378926.7827115),
+and localcontroller95987 exited. Their outputs094-rows-repeated-control.* and
+095-rows-repeated-candidate.* are archived. No new record was promoted.
 
-**092 layout probe COMPLETE AND EXITED**, Python6392,parent10052.
-All30pairs/120files passed SHA; temporary copies removed,260.59GB free afterward.
-Median original/copy physical runs5/1. Copies win4/10,7/10,10/10 for2/4/6files;
-paired median speedups.831/1.058/1.052.2files has large order effects. Modest,
-mixed component result; no original model file relocated. Raw artifacts/state
-and hashes saved in092_artifact_verification.json.
+## Active full cache-recency comparison
 
-**094/095 repeated comparison COMPLETE; retainrows2/4.**
-Control0.9354823511 versuscandidate0.9355367858, only0.00582% gain.
-Controller95987 exited. Nextcontroller70713 waits098 qualification then100/101.
-Native095 PID7928, created1789378926.7827115 exited; outputs095-rows-repeated-candidate.*.
-094/095 raw artifacts/SHA/resources verified; all route arrays/counters identical.
-095_repeated_row_comparison.json records all nine pairs; original record074 remains0.938274.
-Controller95987: /private/tmp/run-inkling-repeated-rows.py.
-Native094 PID5132, created1789378071.276495 exited. Outputs094-rows-repeated-control.*.
-095candidate complete; logs /private/tmp/inkling-CAMPAIGN_NAME.log.
-093Python8176,parent9488 exited; both modes passed, all raw files SHA copied.
-Read native row-affinity-qualification-state.json for status/PID.
-Sourcequalify-row-affinity.py tests rows2/4 and2/2 with mask65535/thread16,
-cache1MiB tiny oracle, decay32/current wrapper; no wrapper mutation.
-It waits for092 complete/exited and no temp files/full process, then queue lock.
-After093 passes, run094_full_rows_repeated_control then095_full_rows_repeated_candidate.
-Each3prompts×3reps,64generated/63decode, exact full hash/IDs/cache/I/O counters.
-094rows2/4,095rows2/2; both all16CPUs/16workers/cache256perlayer/historyreset1/decay32.
-Frozen full-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
-source6b820e83 unchanged. Do not promote2/2 before repeated comparison.
-Continue optimization afterward; finite campaign completion is not task completion.
+**100_full_cache_recency_control RUNNING**, native **PID9956**, created
+**1789379922.80522**. Outputs100-cache-recency-control.json/.log/-routes.json/-layers.json.
+Localcontroller **70713**, script **/private/tmp/run-inkling-cache-recency-loop.py**.
+It runs100 then101_full_cache_recency_recent sequentially, with logs
+/private/tmp/inkling-CAMPAIGN_NAME.log.101 outputs101-cache-recency-recent.*.
+Both3prompts×1rep,64generated/63decode, rows2/4/all16CPUs/16workers/cache256/decay32.
+100CacheRecentTies0;101CacheRecentTies1. Actual counters/hash/IDs are gated.
 
-## Pending cache recency implementation (097/098)
+Qualified frozen **full-cache-recency.exe**, source **849a08bd**,
+SHA **a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40**.
+098 native245 tests andfive tiny wrapper modes passed. Python3144,parent10896,
+cmd2616 exited. All raw098 artifacts andSHA copied;098_artifact_verification.json.
+Native productionrun-full.ps1 promoted after tests and matches local file,
+SHA2217f5076314e4462bc95dbe2e5d6a643981e65d11a2444bd412813d59ed1f97.
+All9 older frozen binaries remain unchanged, including recordfull-cache-decay.exe
+SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8/source6b820e83.
 
-096 causal replay: recent-use admission on frequency ties predicts4.549% fewer
-reads at32/ceil/8slots; every sample4.34–4.85% reduction. Default strict policy
-unchanged. Implemented opt-in CASCADIA_INKLING_CACHE_RECENT_TIES and actual
-recent_tie_admissions statistic, three buffer/ordering/real-byte tests.
-Local241 tests pass, including all10 cache tests. No native build yet.
-Localrun-full.ps1 candidate supportsCacheRecentTies andfull-cache-recency.exe;
-**native run-full.ps1 still old/current and used by094/095**. Never replace it
-mid-sweep. Newqualify-cache-recency.py/test-cache-recency.bat will wait both
-repeated trials finish, then verify previous source/frozen binaries, build/test,
-runfive tiny wrapper modes, and promote wrapper only after qualification.
-Source849a08bd committed/pushed; manifest cache-recency-source.json and tar
-/private/tmp/cache-recency-source.tar built from SHA-verified native baseline.
-All candidate files staged and SHA verified, PowerShell parser passed.
-098 qualifier BUILDING/TESTING, Python3144,parent10896, nativecmd2616, state
-cache-recency-qualification-state.json. Both094/095 are complete.
-100/101 recency control/candidate campaigns PREPARED with rows2/4. Revisit
-rowchoice after095; launch only after098 qualifies/exits. Counter predictions097_cache_recency_counter_predictions.json:
-1rep recent33257hits39319misses26816admit26304evict20015ties,
-uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ties,
-uncached3754377216000/hitbytes3180367577088. Other counters/profile unchanged.
-Rowchoice for futurefullrecency campaigns depends on094/095 repeated outcome.
+Recent-tie admission is opt-in CASCADIA_INKLING_CACHE_RECENT_TIES=1. It admits a
+newer expert on equal frequency, while preserving later current-cohort hits and
+outstanding leases. No arithmetic/weight changes. Actualrecent_tie_admissions
+is cumulative.096 causal replay predicts4.549% fewer reads; no full speedup yet.
+Counter predictions097_cache_recency_counter_predictions.json:
+1rep recent33257hits/39319misses/26816admit/26304evict/20015ties;
+uncached1252329652224, hitbytes1059251945472.
+3rep99853/117875/80366/79854/60045ties; uncached3754377216000,hitbytes3180367577088.
+All other profile/counters unchanged. Control1rep31383hits/41193misses/8629admit/
+8117evict/0ties; uncached1312017481728,hitbytes999564115968.
 
-**Next local controller70713 ACTIVE/WAITING**:
-/private/tmp/run-inkling-cache-recency-loop.py waits098 qualified/exited,
-SHA copies all098 artifacts, requires245native tests, reviews094/095 primary
-ratio (<1.005 retainsrows2/4), then sequential100control/101recent. PrintsSTART
-andVERIFIED; logs/private/tmp/inkling-CAMPAIGN_NAME.log. It does not run a
-confirmation automatically; review and prepare102 if recent wins, thencontinue.
-103 future source67973647 pushed; never confuse it with098 source849a08bd.
+**102_full_cache_recency_confirmation PREPARED, NOT LAUNCHED.**
+After100/101 finish and are compared, run102 only if recent wins.102uses3reps/
+nine samples and exact predicted counters. Controller70713 does not launch102.
+Capture completed runs with the helper below, preserve failures, confirm before
+promoting profile/record, then continue optimization.
 
-## 103 future prediction diagnostic (LOCAL ONLY)
+## Future103 prediction diagnostic and104 qualification
 
-Implemented separate decode-only pre-attention route observer on Layer and
-route_unobserved onMoeLayer. Uses current residual input+existingMLPnorm/router;
-no cache/history/actual-selection changes, no expert prefetch. Benchmark optional
---prediction-trace requires--route-trace; analyzeranalyze-route-prediction.py
-scores1–6uncached predicted experts causally against actual cache state.
-243localtests pass, two new observer/causality tests.3repeatARMfixture outputhash
-5122e042f9b1fb30, actualroutes andcachecountersexact. Invaliddiagnosticsrejected.
-All local raw artifacts103*. No native prediction build yet. **Never include
-these later local files in098's staged source; it must remain849a08bd.**
-After098 and fullrecencycomparison/confirmation, prepare separate native
-predictionbinary+oracle qualification, thenfull diagnostic to assess precision,
-extra reads, and attention overlap headroom. Avoid assuming published other-model
-prediction accuracy applies toInkling. Researchhypothesis/sourcesinJOURNAL.md.
+Source **67973647** is committed/pushed, but not deployed natively. It adds a
+separate decode-only pre-attention observer using current residual input plus
+the existing MLP norm/router. Actual routes/cache history/state are unchanged;
+no speculative reads occur. Benchmark--prediction-trace requires--route-trace.
+analyze-route-prediction.py scores1–6uncached predictions against causal cache
+state.243localtests pass, includingtwo observer/causality tests.3repeatARMfixture
+hash5122e042f9b1fb30, actualroute arrays andcachecountersexact. Invaliddiagnostics
+rejected. Artifacts103*. **Do not confuse this later code with098 binary849a08bd.**
+104 qualification scripts are PREPARED locally:qualify-route-prediction.py,
+test-route-prediction.bat,run-full-prediction.ps1. Package/stage their source
+manifest/tar and launch;104 waits100/101 then builds/tests247native tests and
+four tiny modes. It preserves all10older binaries. Currentproductionwrapper
+remains2217f507; candidatewrapper is a separate file, promoted only aftertests.
+**102must wait104qualified/exited if104is staged.** Then102 may confirmthe
+frozenrecencybinary;105fullpredictiondiagnostic can follow. No105campaign yet.
+Published other-model accuracy is not Inkling evidence. Sources inJOURNAL.md.
 
 ## Completed evidence
 
 076–080 row sweep complete:2/4=.924475,1/4=.927358,4/4=.931144,
 2/1=.929776,2/2=.935296. Last improves everyprompt0.75–1.17% vsfreshcontrol,
-but needs repeatedconfirmation.080_row_comparison.json. Confirmed profile
+but094/095 did not reproduce the gain.080_row_comparison.json. Confirmed profile
 remains2/4/.938274. All raw artifacts/SHA/route/counter comparisons archived.
 079 initial SSH banner failure happened before launch; original failed history
 retained.079b retried after proving no files/process and supplied native079data.
@@ -142,7 +121,7 @@ Uncached1,Pipeline1,cache256perlayer,PrefillReads1,historyreset1,decay32,
 Highpriority,all16CPUaffinity65535. Actual retained16.3096GB,ownedshared4.0769GB.
 Runtime flags remain opt-in; native cache-decay242tests+five tiny modes passed.
 Preserve all frozen binaries, protectedOVMS6728/node8356/CA6344, otherworktrees.
-Originalfeat/inkling rechecked09:12UTC unchanged clean9aaebff0.
+Originalfeat/inkling rechecked09:51UTC unchanged clean9aaebff0.
 No new export/Lambda work needed. Commit AND push as Tate Berenbaum
 <t8@users.noreply.github.com>; no coauthor trailers. Our branch/worktree:
 perf/inkling-panther-autolab at/private/tmp/tahoma-inkling-panther-autolab.

@@ -1,0 +1,59 @@
+{
+  "files": [
+    {
+      "name": "098-cache-recency-qualification.json",
+      "sha256": "7afc297f7a564349b0bbd348b21f70b5b287ffffc4db6501a736b0b42ed5e4e1"
+    },
+    {
+      "name": "cache-recency-qualification-state.json",
+      "sha256": "75651ea0928ac9c0465f43e9f018440d92aa769a59f57e8b444ff41af1383f51"
+    },
+    {
+      "name": "098-cache-recency-tests.log",
+      "sha256": "040481db876ba985b96cf412fbe055b0fd7f2f895612714bfba386c734b74cfb"
+    },
+    {
+      "name": "098-fixture-rows4-recent0-cache1-reset1.json",
+      "sha256": "3a2e1f03618383263081ce081142962343db145a3c0ef238165d34d4885bb38c"
+    },
+    {
+      "name": "098-fixture-rows4-recent0-cache1-reset1.log",
+      "sha256": "f87c82ddff4a55d4c824b35aae01ee1273d8fa18dbda8303cb471bff4857659f"
+    },
+    {
+      "name": "098-fixture-rows4-recent1-cache1-reset1.json",
+      "sha256": "161232c068dc8d9408151226fbbfc4eb53820aa5bed1365e0cd9360184c05b94"
+    },
+    {
+      "name": "098-fixture-rows4-recent1-cache1-reset1.log",
+      "sha256": "7183e98ed3f88729c22362fb1244c98e309c6fee56a08b3670d73fce688a9121"
+    },
+    {
+      "name": "098-fixture-rows2-recent1-cache1-reset1.json",
+      "sha256": "d1f8688cea5ed7a84c3f7f7b3f2eec5890bc664931d782fce5852be2e2d76b79"
+    },
+    {
+      "name": "098-fixture-rows2-recent1-cache1-reset1.log",
+      "sha256": "f01adc6002160020482a4caa32f2b77b86247b9dac0d8112c800735880bbaa9d"
+    },
+    {
+      "name": "098-fixture-rows4-recent0-cache0-reset0.json",
+      "sha256": "2498e15e1b1bc37c63a0b34e65408bad32efd0267276e585801fa20e1d825e93"
+    },
+    {
+      "name": "098-fixture-rows4-recent0-cache0-reset0.log",
+      "sha256": "781e216dae786c542d5ca7ae913f2ecd16f18b567202b1405354a5774c21e78e"
+    },
+    {
+      "name": "098-fixture-rows4-recent1-cache1-reset0.json",
+      "sha256": "5d07f26254f32e1f71d84b5c1f9c9e9a784cacdcb6a493e37b8639c96aa6e4e8"
+    },
+    {
+      "name": "098-fixture-rows4-recent1-cache1-reset0.log",
+      "sha256": "f4685b759c358946916d9ecbf3484410c5e6e259cf7ba2be547fa75a3ac80dba"
+    }
+  ],
+  "binary_sha256": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+  "wrapper_sha256": "2217f5076314e4462bc95dbe2e5d6a643981e65d11a2444bd412813d59ed1f97",
+  "native_tests": 245
+}

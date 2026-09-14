@@ -1,0 +1,76 @@
+{
+  "scope": "full_process_lifetime_sampled_resources",
+  "includes_load_prefill_decode": true,
+  "pid": 9956,
+  "created_unix": 1789379922.80522,
+  "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-recency.exe",
+  "intervals": 31,
+  "sampled_seconds": 310.18800000008196,
+  "cpu_core_equivalents": 6.520591947462396,
+  "kernel_fraction": 0.05001274652946766,
+  "faults_per_second_includes_soft": 43168.94915340523,
+  "machine_disk_read_bytes_per_second": 5660758062.902291,
+  "process_read_bytes_per_second": 5654882292.118124,
+  "min_available_RAM_bytes": 1819639808,
+  "max_private_bytes": 42499493888,
+  "max_rss_bytes": 41489698816,
+  "max_machine_swap_used_bytes": 474419200,
+  "caveats": [
+    "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+    "Page faults include soft faults; they are not all storage reads.",
+    "Sampled lifetime includes loading and prefills; this is not decode-only.",
+    "Only adjacent snapshots containing the same PID and creation time contribute rates."
+  ],
+  "phases": {
+    "prefill": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 9956,
+      "created_unix": 1789379922.80522,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-recency.exe",
+      "intervals": 5,
+      "sampled_seconds": 50.03100000042468,
+      "cpu_core_equivalents": 7.899789630362077,
+      "kernel_fraction": 0.03289187586479542,
+      "faults_per_second_includes_soft": 3304.631128672155,
+      "machine_disk_read_bytes_per_second": 5773607230.667947,
+      "process_read_bytes_per_second": 5771553571.456676,
+      "min_available_RAM_bytes": 1842679808,
+      "max_private_bytes": 42499493888,
+      "max_rss_bytes": 41488908288,
+      "max_machine_swap_used_bytes": 464871424,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    },
+    "decode": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 9956,
+      "created_unix": 1789379922.80522,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-cache-recency.exe",
+      "intervals": 17,
+      "sampled_seconds": 170.0950000002049,
+      "cpu_core_equivalents": 7.20406243568902,
+      "kernel_fraction": 0.03812608385188208,
+      "faults_per_second_includes_soft": 65.26940827176946,
+      "machine_disk_read_bytes_per_second": 6649237337.715028,
+      "process_read_bytes_per_second": 6648729013.025884,
+      "min_available_RAM_bytes": 1819639808,
+      "max_private_bytes": 42495004672,
+      "max_rss_bytes": 41489698816,
+      "max_machine_swap_used_bytes": 474419200,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    }
+  },
+  "benchmark_sha256": "7253ffc80254a4c79b27d4f7adbbe4be4a79a9f11069b5a1f11a38f47220314a",
+  "source_sha256": "202a9aeca97425a2817f1cffce4044ba42b2985b440c4fbe4006d470518c429a"
+}
