@@ -376,6 +376,9 @@ impl MoeLayer {
     /// benchmark's warm-up); returns `(compiled, failed keys)`, or `None`
     /// when no backend is attached.
     pub fn warm_ov(&self) -> Option<(usize, Vec<(u32, u32)>)> {
+        if self.ov_moe.is_some() {
+            return None; // the fused backend serves this layer; its per-expert IRs are only a fallback
+        }
         let (lid, ov) = self.ov.as_ref()?;
         let n = self.w.experts.len() + self.w.shared.len();
         let keys: Vec<(u32, u32)> = (0..n as u32).map(|e| (*lid, e)).collect();

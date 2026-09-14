@@ -320,6 +320,10 @@ impl OvMoe {
                 layer = lid,
                 "inkling fused-MoE IR unusable ({why}); other expert paths for this layer"
             );
+            // Also on stderr: the bench examples run without a tracing
+            // subscriber, and a silent fallback is the one thing a benchmark
+            // must not do.
+            eprintln!("[inkling] fused-MoE layer {lid} unusable: {why}");
         }
     }
 
