@@ -182,6 +182,30 @@ impl Layer {
         }
     }
 
+    /// Route this layer's MoE through a fused-MoE backend (dense layers keep
+    /// their path); `layer` is the global layer index.
+    pub fn attach_ov_moe(&mut self, layer: u32, ov: Arc<super::ov_moe::OvMoe>) {
+        if let LayerMlp::Moe(m) = &mut self.mlp {
+            m.attach_ov_moe(layer, ov);
+        }
+    }
+
+    /// The attached fused-MoE backend, if any.
+    pub fn ov_moe(&self) -> Option<&Arc<super::ov_moe::OvMoe>> {
+        match &self.mlp {
+            LayerMlp::Moe(m) => m.ov_moe().map(|(_, o)| o),
+            LayerMlp::Dense(_) => None,
+        }
+    }
+
+    /// Compile this layer's fused IR ahead of time; `None` without a backend.
+    pub fn warm_ov_moe(&self) -> Option<bool> {
+        match &self.mlp {
+            LayerMlp::Moe(m) => m.warm_ov_moe(),
+            LayerMlp::Dense(_) => None,
+        }
+    }
+
     /// The attached OV backend, if any.
     pub fn ov(&self) -> Option<&Arc<super::ov_expert::OvExperts>> {
         match &self.mlp {
@@ -650,6 +674,16 @@ impl Model {
     pub fn attach_ov(&mut self, ov: Arc<super::ov_expert::OvExperts>) {
         for (i, l) in self.layers.iter_mut().enumerate() {
             l.attach_ov(i as u32, Arc::clone(&ov));
+        }
+    }
+
+    /// Route every MoE layer through a fused-MoE backend (layer index =
+    /// position) — layers whose IR the backend lacks keep their path.
+    pub fn attach_ov_moe(&mut self, ov: Arc<super::ov_moe::OvMoe>) {
+        for (i, l) in self.layers.iter_mut().enumerate() {
+            if ov.has_layer(i as u32) {
+                l.attach_ov_moe(i as u32, Arc::clone(&ov));
+            }
         }
     }
 

@@ -1,0 +1,342 @@
+//! OpenVINO fused-MoE backend for Inkling: one compiled model per MoE layer.
+//!
+//! The per-expert backend ([`super::ov_expert`]) compiles 258 models per layer
+//! and issues eight device calls per token. OpenVINO 2026.3's GPU plugin can
+//! instead fuse a whole MoE layer into its `moe_3gemm_fused_compressed`
+//! kernel: all experts as one expert-major compressed constant, a token's k
+//! experts computed in one launch, rows grouped per expert for prefill. This
+//! backend runs those per-layer IRs — `<model>/moe_ov/layer_NN/openvino_model.xml`,
+//! produced by `tools/inkling_moe_layer_ov.py` from the bins' own nibbles and
+//! scales — with the routing supplied from the Rust gate, so Inkling's routing
+//! stays exact and the graph carries no router.
+//!
+//! Inputs per call: `x [1, rows, hidden]` f32, `topk_indices [rows, K]` i32 and
+//! `routing_weights [rows, K]` f32 with `K = top_k + n_shared` (the shared
+//! experts are the stack's last two ids, always selected with their gammas);
+//! output `y [1, rows, hidden]` — the weighted sum, which the caller adds to
+//! the residual like `MoeLayer::forward`'s.
+//!
+//! Enabled by `CASCADIA_INKLING_OV_MOE=1`; `CASCADIA_INKLING_OV_MOE_DEVICE`
+//! (default `GPU`), `CASCADIA_INKLING_OV_MOE_CACHE_DIR` (compiled-blob cache),
+//! `CASCADIA_INKLING_OV_MOE_OFFLOAD` (the plugin's `OFFLOAD_RATIO`, percent of
+//! routed experts streamed from the IR .bin instead of held on the device;
+//! measured at ~1 GB/s on the Arc B390, so a benchmark knob, not a speed-up).
+//! Layers without an IR keep whatever path they had (per-expert OV or the
+//! Rust kernel), as does any call the device refuses.
+//!
+//! Two plugin behaviours measured on the Arc B390 (driver 32.0.101.8860,
+//! OpenVINO 2026.3.1 and the 2026.5 nightly) shape this backend: the
+//! batched-GEMV decode kernel crashes the process, so the backend routes decode
+//! through the grouped-GEMM path (`OV_GPU_MOE_BATCHED_GEMV_THRESHOLD=0`, set
+//! in the process environment before the first compile unless the operator set
+//! it), and a single-row call still crashes there, so decode is padded to two
+//! rows (the second a copy of the first with zero routing weights).
+
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
+
+use cascadia_ov_genai_shim::{DType, PluginConfig, Runtime};
+use tracing::warn;
+
+fn f32_bytes(v: &[f32]) -> &[u8] {
+    // SAFETY: f32 has no invalid bit patterns; lifetime tied to `v`.
+    unsafe { std::slice::from_raw_parts(v.as_ptr() as *const u8, std::mem::size_of_val(v)) }
+}
+
+fn i32_bytes(v: &[i32]) -> &[u8] {
+    // SAFETY: i32 has no invalid bit patterns; lifetime tied to `v`.
+    unsafe { std::slice::from_raw_parts(v.as_ptr() as *const u8, std::mem::size_of_val(v)) }
+}
+
+/// Per-process counters for the benchmark read-out.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct OvMoeStats {
+    pub calls: u64,
+    pub rows: u64,
+    pub call_ns: u64,
+    pub compiles: u64,
+    pub compile_ns: u64,
+    pub fallbacks: u64,
+}
+
+pub struct OvMoe {
+    dir: PathBuf, // <model>/moe_ov
+    device: String,
+    plugin: PluginConfig,
+    hidden: usize,
+    /// Experts per row the IR expects: `top_k + n_shared`.
+    k_total: usize,
+    offload: Option<String>,
+    layers: Mutex<HashMap<u32, Arc<Mutex<Runtime>>>>,
+    failed: Mutex<std::collections::HashSet<u32>>,
+    calls: AtomicU64,
+    rows: AtomicU64,
+    call_ns: AtomicU64,
+    compiles: AtomicU64,
+    compile_ns: AtomicU64,
+    fallbacks: AtomicU64,
+}
+
+impl OvMoe {
+    /// Construct from the environment, or `None` to keep the other paths:
+    /// requires `CASCADIA_INKLING_OV_MOE` set and `<model>/moe_ov` present.
+    pub fn from_env(model_dir: &Path, hidden: usize, k_total: usize) -> Option<Self> {
+        if !super::env_flag("CASCADIA_INKLING_OV_MOE") {
+            return None;
+        }
+        let dir = model_dir.join("moe_ov");
+        if !dir.is_dir() {
+            warn!(
+                dir = %dir.display(),
+                "CASCADIA_INKLING_OV_MOE set but the model has no moe_ov/ dir \
+                 (tools/inkling_moe_layer_ov.py); keeping the other expert paths"
+            );
+            return None;
+        }
+        let device =
+            std::env::var("CASCADIA_INKLING_OV_MOE_DEVICE").unwrap_or_else(|_| "GPU".into());
+        let cache_dir = std::env::var("CASCADIA_INKLING_OV_MOE_CACHE_DIR").ok();
+        let offload = std::env::var("CASCADIA_INKLING_OV_MOE_OFFLOAD")
+            .ok()
+            .filter(|v| !v.trim().is_empty() && v.trim() != "0");
+        // The plugin's batched-GEMV decode kernel crashes on the Arc B390; the
+        // grouped-GEMM path is selected by this plugin option, read from the
+        // process environment at compile time. Honour an operator's own value.
+        if std::env::var_os("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD").is_none() {
+            std::env::set_var("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
+        }
+        let ov = Self::new(dir, device, hidden, k_total, cache_dir.as_deref(), offload);
+        tracing::info!(
+            target: "cascadia::inkling",
+            event = "ov_moe_config",
+            device = %ov.device,
+            k_total,
+            offload = ov.offload.as_deref().unwrap_or("0"),
+            cache_dir = cache_dir.as_deref().unwrap_or("<unset>"),
+            dir = %ov.dir.display(),
+        );
+        Some(ov)
+    }
+
+    /// Explicit constructor (in-process hosts and tests); `dir` is `moe_ov/`.
+    pub fn new(
+        dir: PathBuf,
+        device: String,
+        hidden: usize,
+        k_total: usize,
+        cache_dir: Option<&str>,
+        offload: Option<String>,
+    ) -> Self {
+        let mut plugin = PluginConfig::new().with("INFERENCE_PRECISION_HINT", "f16");
+        if let Some(cd) = cache_dir {
+            plugin = plugin.with("CACHE_DIR", cd);
+        }
+        if let Some(r) = &offload {
+            plugin = plugin.with("OFFLOAD_RATIO", r.clone());
+        }
+        Self {
+            dir,
+            device,
+            plugin,
+            hidden,
+            k_total,
+            offload,
+            layers: Mutex::new(HashMap::new()),
+            failed: Mutex::new(Default::default()),
+            calls: AtomicU64::new(0),
+            rows: AtomicU64::new(0),
+            call_ns: AtomicU64::new(0),
+            compiles: AtomicU64::new(0),
+            compile_ns: AtomicU64::new(0),
+            fallbacks: AtomicU64::new(0),
+        }
+    }
+
+    pub fn device(&self) -> &str {
+        &self.device
+    }
+
+    pub fn k_total(&self) -> usize {
+        self.k_total
+    }
+
+    pub fn stats(&self) -> OvMoeStats {
+        OvMoeStats {
+            calls: self.calls.load(Ordering::Relaxed),
+            rows: self.rows.load(Ordering::Relaxed),
+            call_ns: self.call_ns.load(Ordering::Relaxed),
+            compiles: self.compiles.load(Ordering::Relaxed),
+            compile_ns: self.compile_ns.load(Ordering::Relaxed),
+            fallbacks: self.fallbacks.load(Ordering::Relaxed),
+        }
+    }
+
+    fn xml(&self, lid: u32) -> PathBuf {
+        self.dir
+            .join(format!("layer_{lid:02}"))
+            .join("openvino_model.xml")
+    }
+
+    /// Whether an IR exists for layer `lid`.
+    pub fn has_layer(&self, lid: u32) -> bool {
+        self.xml(lid).is_file()
+    }
+
+    /// Compiled model for `lid`, compiling on first use; `None` once the IR
+    /// proved unusable.
+    fn compiled(&self, lid: u32) -> Option<Arc<Mutex<Runtime>>> {
+        if self.failed.lock().unwrap().contains(&lid) {
+            return None;
+        }
+        let mut layers = self.layers.lock().expect("OV MoE layer table lock");
+        if let Some(rt) = layers.get(&lid) {
+            return Some(Arc::clone(rt));
+        }
+        let xml = self.xml(lid);
+        let Some(p) = xml.to_str() else {
+            drop(layers);
+            self.mark_failed(lid, "non-utf8 IR path");
+            return None;
+        };
+        let mut plugin = self.plugin.clone();
+        if self.offload.is_some() {
+            // The offload path streams experts from the IR's weights file.
+            let bin = xml.with_extension("bin");
+            plugin = plugin.with("WEIGHTS_PATH", bin.to_string_lossy().to_string());
+        }
+        let t0 = Instant::now();
+        match Runtime::compile(p, &self.device, &plugin) {
+            Ok(rt) => {
+                self.compiles.fetch_add(1, Ordering::Relaxed);
+                self.compile_ns
+                    .fetch_add(t0.elapsed().as_nanos() as u64, Ordering::Relaxed);
+                let rt = Arc::new(Mutex::new(rt));
+                layers.insert(lid, Arc::clone(&rt));
+                Some(rt)
+            }
+            Err(e) => {
+                drop(layers);
+                self.mark_failed(lid, &format!("compile on {}: {e}", self.device));
+                None
+            }
+        }
+    }
+
+    /// Compile layer `lid` ahead of time (a benchmark's warm-up).
+    pub fn warm(&self, lid: u32) -> bool {
+        self.compiled(lid).is_some()
+    }
+
+    /// The MoE output for `rows` rows of `xs` (`[rows, hidden]`) with the
+    /// selected expert ids (`[rows, k_total]`, shared experts as
+    /// `n_routed + s`) and their weights, or `None` when this layer must take
+    /// another path. One row is padded to two (see the module doc).
+    pub fn forward(
+        &self,
+        lid: u32,
+        xs: &[f32],
+        rows: usize,
+        ids: &[i32],
+        weights: &[f32],
+    ) -> Option<Vec<f32>> {
+        debug_assert_eq!(xs.len(), rows * self.hidden);
+        debug_assert_eq!(ids.len(), rows * self.k_total);
+        debug_assert_eq!(weights.len(), rows * self.k_total);
+        if rows == 0 {
+            return Some(Vec::new());
+        }
+        let Some(rt) = self.compiled(lid) else {
+            self.fallbacks.fetch_add(1, Ordering::Relaxed);
+            return None;
+        };
+        let t0 = Instant::now();
+        let (xs_p, ids_p, w_p, prow);
+        let (xs, ids, weights, prow) = if rows == 1 {
+            xs_p = [xs, xs].concat();
+            ids_p = [ids, ids].concat();
+            w_p = [weights.to_vec(), vec![0.0f32; self.k_total]].concat();
+            prow = 2usize;
+            (&xs_p[..], &ids_p[..], &w_p[..], prow)
+        } else {
+            (xs, ids, weights, rows)
+        };
+        let out = {
+            let mut rt = rt.lock().expect("OV MoE runtime lock");
+            let ok = rt
+                .set_input("x", DType::F32, &[1, prow, self.hidden], f32_bytes(xs))
+                .is_ok()
+                && rt
+                    .set_input(
+                        "topk_indices",
+                        DType::I32,
+                        &[prow, self.k_total],
+                        i32_bytes(ids),
+                    )
+                    .is_ok()
+                && rt
+                    .set_input(
+                        "routing_weights",
+                        DType::F32,
+                        &[prow, self.k_total],
+                        f32_bytes(weights),
+                    )
+                    .is_ok()
+                && rt.infer().is_ok();
+            if !ok {
+                self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                return None;
+            }
+            let (_, _, bytes) = rt.output(0).ok()?;
+            bytes
+                .chunks_exact(4)
+                .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+                .collect::<Vec<f32>>()
+        };
+        if out.len() != prow * self.hidden {
+            self.mark_failed(
+                lid,
+                &format!("output len {} != {} x {}", out.len(), prow, self.hidden),
+            );
+            self.fallbacks.fetch_add(1, Ordering::Relaxed);
+            return None;
+        }
+        self.calls.fetch_add(1, Ordering::Relaxed);
+        self.rows.fetch_add(rows as u64, Ordering::Relaxed);
+        self.call_ns
+            .fetch_add(t0.elapsed().as_nanos() as u64, Ordering::Relaxed);
+        Some(if prow != rows {
+            out[..rows * self.hidden].to_vec()
+        } else {
+            out
+        })
+    }
+
+    fn mark_failed(&self, lid: u32, why: &str) {
+        if self.failed.lock().unwrap().insert(lid) {
+            warn!(
+                layer = lid,
+                "inkling fused-MoE IR unusable ({why}); other expert paths for this layer"
+            );
+        }
+    }
+
+    pub fn failed_layers(&self) -> Vec<u32> {
+        let mut v: Vec<u32> = self.failed.lock().unwrap().iter().copied().collect();
+        v.sort_unstable();
+        v
+    }
+}
+
+impl std::fmt::Debug for OvMoe {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OvMoe")
+            .field("dir", &self.dir)
+            .field("device", &self.device)
+            .field("hidden", &self.hidden)
+            .field("k_total", &self.k_total)
+            .finish()
+    }
+}

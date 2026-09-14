@@ -992,3 +992,34 @@ fn ov_backend_falls_back_bit_identically_without_openvino() {
     );
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+/// The fused-MoE backend's wiring on a build without OpenVINO: the layer
+/// declines every call, the model falls back to its other paths bit-identically,
+/// the unusable layers are recorded, and `from_env` stays `None` without the
+/// opt-in.
+#[test]
+fn ov_moe_backend_falls_back_bit_identically_without_openvino() {
+    use cascadia_engine_sparse_moe::inkling::ov_moe::OvMoe;
+    use std::sync::Arc;
+
+    let c = cfg();
+    let tmp = std::env::temp_dir().join(format!("inkling_ov_moe_test_{}", std::process::id()));
+    // One "IR" per MoE layer so has_layer() is true and the (stub) compile is attempted.
+    for l in 0..8u32 {
+        let d = tmp.join(format!("layer_{l:02}"));
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join("openvino_model.xml"), b"<net/>").unwrap();
+    }
+    let mut plain = random_model(11);
+    let mut with_ov = random_model(11);
+    let ov = Arc::new(OvMoe::new(tmp.clone(), "GPU".into(), c.hidden, c.top_k + 2, None, None));
+    with_ov.attach_ov_moe(Arc::clone(&ov));
+    for &t in &[3u32, 11, 5] {
+        assert_eq!(bits(&plain.forward_token(t)), bits(&with_ov.forward_token(t)), "token {t}");
+    }
+    let st = ov.stats();
+    assert!(st.fallbacks > 0 && st.calls == 0, "stub: every fused call must fall back, got {st:?}");
+    assert!(!ov.failed_layers().is_empty());
+    assert!(OvMoe::from_env(&tmp, c.hidden, c.top_k + 2).is_none());
+    let _ = std::fs::remove_dir_all(&tmp);
+}
