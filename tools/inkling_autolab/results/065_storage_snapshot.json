@@ -1,0 +1,21 @@
+{
+  "scope": "read_only_storage_reliability_snapshot",
+  "unix": 1789371785.6827717,
+  "command": "Get-PhysicalDisk | Get-StorageReliabilityCounter",
+  "device": {
+    "DeviceId": "0",
+    "Temperature": 43,
+    "TemperatureMax": 83,
+    "Wear": 0,
+    "PowerOnHours": null,
+    "ReadErrorsTotal": null,
+    "ReadErrorsUncorrected": null,
+    "WriteErrorsTotal": null,
+    "WriteErrorsUncorrected": null
+  },
+  "caveats": [
+    "Error counters were unavailable; null is not zero.",
+    "A temperature snapshot does not establish or exclude throttling across a run.",
+    "TemperatureMax is preserved verbatim without interpreting it as a throttle threshold."
+  ]
+}

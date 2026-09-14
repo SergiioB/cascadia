@@ -3,13 +3,34 @@
 Updated 2026-09-14 07:38UTC. USER RESUMED AUTONOMOUS OPTIMIZATION. Work is ACTIVE;
 do not stop after a completed campaign. The25tok/s target is unmet.
 
+## Latest checkpoint —066running, asyncprobe prepared
+
+064controlcomplete0.9175664024,065workers8complete0.8846400902; allrawdiagnostics
+archived. **066_full_threads_12 ACTIVE**,native**5004**,created**1789372008.120318**,
+observed13threadsafterload. **067threads24/068threads32queued**,controller**67450**.
+Sampler3036continues. Pending066partialfilemustnotbecommittedascomplete.
+
+Prepared**async-read-probe.py**(069),Pythoncompile/diffchecksonly; nativeunvalidated.
+It imports unchangeduncached-read-probe.py, waitsfor064–068/noactivefull,thenholds
+baselinequeue lock. Read-onlyexpertcohorts outsideallactualfullroutes; compares
+sync/asyncwhole/1MiB/4MiB/8MiBchunksat2/4/6files,5blocks,allbytesSHAchecked.
+Canarycoversmissing/short/unalignedreadsanddrain/reuseafterpartiallysubmittedbatch.
+AllOVERLAPPEDobjects/events/buffersretainlifetimeuntilcompletion/canceldrain.
+**ProbeNOTlaunchedyet atthischeckpoint.** Stagedcommandshouldbe:
+python.exe async-read-probe.py --wait --out C:/Users/devcloud/inkling-autolab/069-async-read-probe.json
+LaunchdetachedWin32_Process.CreateafterSHAcheckingprobe/basefile; read
+async-read-probe-state.json forstatus. Do not startnextfulltrialuntilprobefinishes.
+Afterprobe: matchedqualifiedfull-cache-decay.exe4096/32withbestworker,then3repeat
+confirmation. Currentworkerfullsweepremainspriority. Noexport/rentalrequired.
+
 ## Current live work — worker sweep064–068
 
-**064_full_threads_16 RUNNING;065_full_threads_8,066_full_threads_12,
+064control COMPLETE0.9175664024; rawartifacts/SHA/profileverified.
+**065_full_threads_8 RUNNING;066_full_threads_12,
 067_full_threads_24,068_full_threads_32 QUEUED sequentially.**
 Controller tool**67450**,script/private/tmp/run-inkling-thread-loop.py.
-Logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native064PID**688**,
-created**1789371344.1482334**,actual17threadsafterload. Allusefrozen
+Logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native065PID**3924**,
+created**1789371668.766402**,observed9threadsafterload. Allusefrozen
 full-prefill-reads.exe. Nativeoutputs064-threads-16.*,065-threads-8.*,
 066-threads-12.*,067-threads-24.*,068-threads-32.*. Do not launchduplicates.
 
@@ -20,9 +41,10 @@ fresh16controladdressesdrift. Eachtrial3prompts×1pass,64generated/63decode.
 Allrequirefullhashce0fbb9a116d3d09,exactbaselineIDs,cachehits30058/misses42518,
 admissions4141/evictions3629/historyresets192/retained16309550592,decodeuncachedB
 1354219388928,pipeline12096,prefillvisits13635/uncached434281512960B,zero fallback.
-Wrapperconfiguredrayon_threads isgated; resource sampler mustshowthreads+1.
+Wrapperconfiguredrayon_threads isgated. Sampledprocess totals include extra
+runtimethreads:064decodeobserved17and19, so doNOTgateexactlythreads+1.
 
-**Best single-pass result057:0.9157886929tok/s** (water0.931246,binary0.915789,
+**Best single-pass result064:0.9175664024tok/s**; previous0570.9157886929 (water0.931246,binary0.915789,
 story0.941372). Repeatedrecord046remains0.5679137350 untilnew3-repeatverification.
 053control0.586785→054streamedprefill0.709011 (+20.83%). Prefill103–108sec→24–25sec.
 055historyreset64cache0.757562;056historyreset128cache0.813905;057history2560.915789.
@@ -64,7 +86,7 @@ checksIDs/hash,archivesgzipandrunscorrectlayer+phaseanalysis. It currentlyexpect
 prefill/decode, ratesusemonotonicInstant. analyze-host-resources.py --benchmark
 usesonlycompleteadjacentintervalsinsidephases;21Python tests pass.
 Completedartifacts/private/tmp/inkling-NNN-STEM-artifacts;last057is
-/private/tmp/inkling-057-history-256-artifacts. Active064notcapturedyet.
+/private/tmp/inkling-057-history-256-artifacts. 064alsoarchived/private/tmp/inkling-064-threads-16-artifacts. Active065notcapturedyet.
 
 full-prefill-reads.exeSHA
 bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82,

@@ -1,0 +1,16 @@
+{
+  "scope": "sampled_native_process_thread_counts",
+  "configured_rayon_threads": 16,
+  "observed_decode_process_thread_counts": [
+    17,
+    19
+  ],
+  "pid": 688,
+  "created_unix": 1789371344.1482334,
+  "source_sha256": "6842d586d9a96c541e17de87a5b03b0142d4fe259f33446f7a7af9f5acd0fecd",
+  "output_hash": "ce0fbb9a116d3d09",
+  "caveats": [
+    "Process thread totals include threads outside Rayon and do not directly measure the Rayon pool.",
+    "An initial equality check against17 was too strict; final two snapshots report19. Configured-worker and numerical campaign gates pass."
+  ]
+}

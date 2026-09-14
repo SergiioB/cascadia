@@ -1485,3 +1485,43 @@ logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native064PID688created1789371344.148
 actual17threadsafterload. Allusefull-prefill-reads.exe/cache256/historyreset1/
 streamedprefill1. Sampler3036continues. Afterworkercomparison, matchednewbinary
 decay4096/32usingbestworker,then3-repeatconfirmation. Continueoptimization.
+
+q50 follow-up sources reviewed: Microsoft documents that synchronous I/O blocks
+the submitting thread, while OVERLAPPED can release it; async may still execute
+synchronously and can add overhead. Buffers/OVERLAPPED state must outlive all
+completion/cancellation. Source: https://learn.microsoft.com/en-us/windows/win32/fileio/synchronous-and-asynchronous-i-o
+Sector-aligned offset/length/address remain required forNO_BUFFERING:
+https://learn.microsoft.com/en-us/windows/win32/fileio/file-buffering
+038read-onlycomponent already achieved~8GB/s with8synchronousreaders; current
+fulldecode~6.8GB/s with larger cache. Consider componentmeasurement ofasync
+before changingruntime, aftercurrentfullsweeps. No asyncimplementation/probe
+hasbeenwrittenorlaunched. Alsoinspectread-onlystoragethermal/healthtelemetry.
+
+064fresh16controlpasses0.9175664024tok/s,close0570.9157886929; rates0.960523/
+0.917566/0.940705. Rawartifacts,SHAandphaseprofilesarchived. Nativeprocess
+threadtotalsare17for17decodesnapshotsand19forlasttwo; aninitialexact17check
+wasoverstrict becauseprocesstotalsarenotadirectRayonpoolmeasurement. Keep
+configuredrayon_threads gate andreportprocessthreadobservationsseparately.
+065workers8activePID3924created1789371668.766402,observed9threadsafterload;
+066/067/068queuedunder67450. Storagecurrent43C,errorcountersnull/unavailable;
+source065_storage_snapshot preservesrawfieldswithoutinterpretingmax83asthreshold.
+Originalfeat/inklingrechecked07:44UTC still9aaebff0,clean.
+
+069 async-read component hypothesis: with16GBcache, only~3.5uncachedexperts
+remainperlayeronaverage. Smaller independentOVERLAPPEDchunks may raisequeue
+depth versus2/4/6whole synchronousfile reads. Preparedread-onlyprobe at2/4/6
+files, sync/asyncwhole/1MiB/4MiB/8MiB chunks, fiveblocks/mode. Allcohortsdisjoint
+andexcludeactualfullroutes; allbytescheckedagainstmappedoracleoutsidetiming.
+Buffer/event/OVERLAPPEDlifetimesextendthroughcompletionandcancellationdrain;
+canaryincludesmissing/short/unalignedfailuresandbufferreuseafterpartialsubmission.
+Probehasnotbeenlaunched. Itwillwaitfor064–068andtakebaselinequeue lock before
+reading. No model mutation,newexport,or runtimeasyncpath. Sources:
+https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-getoverlappedresult
+https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-cancelioex
+
+065workers8completed0.8846400902tok/s,below064control0.9175664024. AllIDs/hash/
+countersmatch; rawdiagnosticsarchived. 066workers12activePID5004created
+1789372008.120318,observed13threadsafterload;067/068queuedunder67450.
+069asyncprobesourcepassesPythoncompile/diffchecks only; nativecanaryandtiming
+willrunafter068. Do not run anotherfulltrialuntilthatboundedprobeends.
