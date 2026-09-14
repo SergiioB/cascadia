@@ -58,6 +58,32 @@ int8}` knobs are wired through (nncf compress_weights), though INT4
 on the per-layer-scalar buffers sometimes fails — start with `fp16`
 and try INT4 once you've confirmed parity.
 
+## Serving notes
+
+Verified 2026-09-14 on tate-09 (Panther Lake, Arc B390, OpenVINO
+2026.2.1) against an E2B-it int4 two-stage tree.
+
+* **GPU inference precision** — at the GPU plugin's default (f16) the
+  gemma4 engine returns garbage on Arc B390, for `gemma4_cached_v1`
+  and `v1.1` trees alike and even for prompts shorter than the window.
+  `--ov-inference-precision f32` on `cascadia worker` restores the CPU
+  path's output (30/30 greedy tokens equal to HF at 1,514 prompt
+  tokens); `cascadia worker --help` already recommends f32 on
+  Xe2/Battlemage.
+* **Thinking channel** — `/v1/chat/completions` renders Gemma 4 with
+  the thinking channel on by default, so replies open with
+  `thought\nThinking Process:`. Send `chat_template_kwargs:
+  {"enable_thinking": false}` (or `reasoning_effort: "none"`) for a
+  direct answer. For HF-parity checks use `/v1/completions` with the
+  prompt from `tokenizer.apply_chat_template(..., tokenize=False)`
+  minus the leading `<bos>`, which the engine adds itself.
+* **Run command** — a gemma4 tree runs with `--engine gemma4`, not
+  `ov-runtime`. Start rank 1 first: `cascadia worker --rank 1 --total 2
+  --engine gemma4 --device GPU --ov-inference-precision f32 --model
+  <tree> --listen :9101`, then rank 0 with the same flags plus
+  `--listen :9100 --next <rank1-host>:9101 --api :8000`. (`cascadia
+  shard` prints this hint after the export as of this branch.)
+
 ## What the exporter handles (vs the generic export_shards.py)
 
 * **Per-layer-type asymmetric attention** — `head_dim=256` (sliding)
