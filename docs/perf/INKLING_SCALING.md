@@ -107,11 +107,25 @@ Arc B390 iGPU) with the experts as OpenVINO int4 IRs on the iGPU
 | MoE (2) decode | 23.7 ms/token | **7.6 ms/token** | 7.1 ms/token |
 | MoE (2) prefill, 23 tokens | 210 ms | 152 ms | 129 ms |
 
-So the fleet box's MoE layer is 3× faster with the experts on its iGPU, and
-its resident per-token estimate moves from ~1.5 s (CPU) to ~0.5 s. The box
-itself still pages the 975B export from NVMe (the 16 GB/token of expert
-reads are its clock), so this is the per-rank number of a resident pipeline
-(§3), not a single-box tokens/s. One MoE layer of compiled models
+With the fused MoE kernel (OpenVINO 2026.3) and int4 attention projections
+on the iGPU as well, the same layer measures 4.6 ms/token decode and 88 ms
+per 23-token prefill, the dense layers 3.6 ms — 6.6× the CPU kernel, about
+0.3 s per token for the whole model on resident ranks. The box itself still
+pages the 975B export from NVMe (the 16 GB/token of expert reads are its
+clock), so these are per-rank numbers of a resident pipeline (§3), not a
+single-box tokens/s:
+
+| 12 resident ranks, single stream | s/token | tok/s |
+|---|---|---|
+| CPU kernel (30 ms per MoE layer) | ~2.0 | ~0.5 |
+| fused MoE on iGPU, attention on CPU (6.9 ms) | 0.45 | 2.2 |
+| everything on iGPU, int4 attention (4.6 ms) | 0.30 | ~3.3 |
+| bandwidth floor, all int4 at ~105 GB/s | 0.21 | ~4.7 |
+
+Aggregate with concurrent streams: the fused kernel already batches rows
+(2.4 ms per row at 23 rows against 4.5 ms for one), so a rank that decodes
+several streams per step approaches the bandwidth floor per token; the
+engine's per-request scheduler is the remaining piece for that. One MoE layer of compiled models
 (~13 GiB device) is what a 64 GB box holds cleanly: with two, the
 first-allocated layer's experts get paged and its time doubles.
 
