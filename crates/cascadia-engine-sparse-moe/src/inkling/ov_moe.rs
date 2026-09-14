@@ -297,25 +297,30 @@ impl OvMoe {
         if self.compiled(lid).is_none() {
             return false;
         }
-        if self.offload.is_none() {
-            return true; // every expert is on the device already
-        }
         let k = self.k_total;
         let x = vec![0.0f32; self.hidden];
         let w = vec![0.0f32; k];
-        let mut ids: Vec<i32> = (0..self.n_experts as i32).collect();
-        while !ids.len().is_multiple_of(k) {
-            ids.push(ids[0]);
-        }
         let before = (
             self.calls.load(Ordering::Relaxed),
             self.rows.load(Ordering::Relaxed),
             self.call_ns.load(Ordering::Relaxed),
         );
         let mut ok = true;
-        for chunk in ids.chunks(k) {
-            ok &= self.forward(lid, &x, 1, chunk, &w).is_some();
+        if self.offload.is_some() {
+            // Fill the plugin's slot cache: touch every real expert once.
+            let mut ids: Vec<i32> = (0..self.n_experts as i32).collect();
+            while !ids.len().is_multiple_of(k) {
+                ids.push(ids[0]);
+            }
+            for chunk in ids.chunks(k) {
+                ok &= self.forward(lid, &x, 1, chunk, &w).is_some();
+            }
         }
+        // The first call at a row count pays the plugin's kernel setup for
+        // that shape (~140 ms for the padded decode shape on the B390); take
+        // it here so the timed decode calls do not.
+        let ids: Vec<i32> = (0..k as i32).collect();
+        ok &= self.forward(lid, &x, 1, &ids, &w).is_some();
         // Warm-up calls are not benchmark calls.
         self.calls.store(before.0, Ordering::Relaxed);
         self.rows.store(before.1, Ordering::Relaxed);
