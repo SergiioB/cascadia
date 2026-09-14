@@ -472,6 +472,40 @@ The ~3 ms of each layer that remain are the bf16 attention GEMVs on the
 CPU (already at ~80 GB/s), which is why the next step is the int4
 attention-projection backend below rather than a device copy of bf16.
 
+### OpenVINO attention-projection backend (int4 projections on the iGPU)
+
+`tools/inkling_attn_ov.py` re-quantises a layer's five attention GEMVs
+(`q`, `k`, `v`, `r`, `o`; ~264 MB bf16) to int4 on the experts' grid
+(~66 MB) and writes two IRs per layer (`attn_ov/layer_NN/{qkvr,o}`);
+`inkling/ov_attn.rs` runs them (`CASCADIA_INKLING_OV_ATTN=1`,
+`_OV_ATTN_DEVICE`, `_OV_ATTN_DIR` for a variant such as `attn_ov_int8`)
+with outputs rounded to bf16 like the Rust kernel. The head norms, position
+bias, softmax, KV cache and convolutions stay in Rust; prefill projects all
+rows in one call and applies the output projection once per batch. Device
+probe on the B390: int4 qkvr 0.60 ms + o 0.32 ms per layer against ~3 ms on
+the CPU, while a f16 copy of the same weights takes 2.45 ms — the byte count
+is the lever, not the device.
+
+With everything on the iGPU (dense MLPs and the fused MoE as above, plus
+these projections), the same dump on tate-07:
+
+| path | dense layer | MoE layer decode | MoE prefill, 23 tokens | residual vs CPU after 3 layers |
+|---|---|---|---|---|
+| CPU kernel | 9.7 ms/token | 30.1 ms/token | 207 ms | exact |
+| fused MoE on iGPU, attention on CPU | 6.2 ms/token | 6.9 ms/token | 148 ms | rel rms 1.9e-3 |
+| **+ int4 attention on iGPU** | **3.6 ms/token** | **4.6 ms/token** | **88 ms** | rel rms 1.5e-2 |
+
+That is 6.6× the CPU kernel per MoE layer, ~0.3 s per token for the whole
+model on resident ranks (~3 tok/s single stream on a 12-rank pipeline). Two
+costs come with it: the int4 round-to-nearest quantisation of the attention
+weights is what moves the residual stream to 1.5e-2 (the plugin's own error
+on those weights is 2e-4), and the device's f16 GEMV and GEMM paths are not
+bit-identical, so decode and prefill no longer produce the same residual
+stream to the bit (the dump's `dec-vs-pre` column, 3e-4 relative at layer
+2) — the prefix cache and the parity harness still hold, greedy output is
+what decides, and an int8 variant (`--weights int8`, ~132 MB per layer) is
+the middle ground measured next.
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert
