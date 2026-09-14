@@ -1,0 +1,10 @@
+{
+  "staged_sha256": {
+    "early-prediction-source.json": "ba1413e047ad95fe4fe9a2b99ee15ae1d7b4d7ce4d3b8e64a7baa8b3669a41de",
+    "early-prediction-source.tar": "8f1d4ecc3ac7510c256880e1f65ef17e2e50521bb4f008c6b228253ffa74c1f0",
+    "run-full-early-prediction.ps1": "6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04",
+    "test-early-prediction.bat": "7e3e4dae00ec829d5201f1c16be87339cc447f1f6640547b7860c408fead7bea",
+    "qualify-early-prediction.py": "0ad797f4ffbfb979a74a4ffa75b1f30fc80b9decbd8c4f3676cd4fc560cf254d"
+  },
+  "powershell_parse": "passed"
+}

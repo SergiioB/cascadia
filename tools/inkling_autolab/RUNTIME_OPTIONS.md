@@ -1,9 +1,9 @@
 # Inkling runtime experiments on tate-07
 
-The complete large model currently reaches **0.915789 decode tokens/s over one
-pass** across the three reference prompts. This is an exploratory result;
-[PERFORMANCE.md](PERFORMANCE.md) retains the separately confirmed three-repeat
-record. The 25 tokens/s target is unmet. The active loop is in [HANDOFF.md](HANDOFF.md).
+The complete large model's confirmed score is **1.090427 decode tokens/s**,
+the slowest of nine samples. [PERFORMANCE.md](PERFORMANCE.md) retains the
+verification, raw results and selected profile. The25 tokens/s target is unmet.
+The active loop is in [HANDOFF.md](HANDOFF.md).
 
 All options below preserve packed weights and numerical kernels. They affect
 I/O, memory retention, or scheduling. Set environment variables before loading
@@ -19,6 +19,8 @@ a new model, or pass the corresponding argument to `run-full.ps1`.
 | `CASCADIA_INKLING_PREFILL_READS` | `PrefillReads` | 0 | Read prefill experts through bounded reusable buffers. |
 | `CASCADIA_INKLING_CACHE_RESET_HISTORY` | `CacheResetHistory` | 0 | Forget prior-request admission scores while retaining valid cached weights. |
 | `CASCADIA_INKLING_CACHE_DECAY_REQUESTS` | `CacheDecayRequests` | 4096 | Halve frequency scores after this many routed requests per layer. |
+| `CASCADIA_INKLING_CACHE_RECENT_TIES` | `CacheRecentTies` | 0 | Prefer more recent experts on equal-frequency admission ties. |
+| `CASCADIA_INKLING_PREDICT_READS` | `PredictReads` | 0 | Read one predicted uncached expert before attention on a bounded worker. |
 
 The selected cache experiment uses256MiB per layer. Across64 MoE layers, the
 actual retained allocations total16,309,550,592 bytes, including alignment
@@ -33,11 +35,9 @@ cached read. Tiny fixture files exercise that retry, while full-model tests
 verify zero fallback on aligned expert bins.
 
 Cache-decay intervals accept powers of two from4 through65536. Invalid engine
-values use4096; the wrapper rejects invalid arguments. The new `full-cache-decay.exe`
-is natively qualified, including actual decay counters, but has no full-model
-performance result yet. Other active experiments use the frozen
-`full-prefill-reads.exe`; its interval remains4096. The worker sweep changes only
-worker count, retaining the selected cache, streamed prefill and request reset.
+values use4096; the wrapper rejects invalid arguments. The selected profile
+uses32,16 workers, recent-tie admission and one predicted expert read. Use the
+qualified `full-predicted-read.exe` identified in [PERFORMANCE.md](PERFORMANCE.md).
 
 Keep prefill and decode timing distinct. The native benchmark counts63 decode
 steps after the first generated token, which belongs to prefill. Its score is
@@ -74,4 +74,16 @@ the layer returns; failures retain the ordinary complete-read fallback. It does
 not change cache history, expert selection, weights, or arithmetic. Default is
 off. Local248 tests and four tiny modes pass. Native109 qualification passed252
 tests and four tiny modes with exact outputs/routes/cache counters and13
-scheduled/11useful/2unused predicted reads. Full speed measurements are pending. Do not enable it in the selected profile yet.
+scheduled/11useful/2unused predicted reads. Campaign112 confirmed1.090427 tok/s over nine samples, up12.95% from102. All
+35,718 reads completed,34,014 were useful and1,704 unused, with zero failures.
+Extra1.45% readbytes and all stalls remain in the timings. This option is now
+enabled in the selected PTL profile; the library default remains0.
+
+The benchmark's `--prediction-trace` observes current-layer pre-attention routes.
+The separate experimental `--prediction-lead-layers 1` observes the target
+router before its predecessor executes, using that earlier residual input.
+It is decode-only and performs no additional expert I/O. The trace explicitly
+labels its prediction input and lead; layer0 has no predecessor and is omitted.
+Observer time is included in the model benchmark, outside layer timing spans.
+Local115 qualification passes; native116 qualification is pending. Its
+`PredictionLeadLayers` wrapper argument requires the separate candidate binary.

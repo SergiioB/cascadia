@@ -1,0 +1,32 @@
+{
+  "scope": "heldout_comparison_artifacts",
+  "correctness_verified": true,
+  "record_eligible": false,
+  "output_hash": "e396cc533e658e44",
+  "artifacts": [
+    {
+      "source_file": "113-heldout-prefetch-control-routes.json",
+      "source_bytes": 4562524,
+      "source_sha256": "382e88ec813b3402474f83b1ef00f97da659b44401d63c4b69ad8806e03799ea",
+      "compressed_file": "113-heldout-prefetch-control-routes.json.gz",
+      "compressed_bytes": 317778,
+      "compressed_sha256": "96f69522e151571c66822474423d6b8693fb98ed0e5cca206c06e206228110fb"
+    },
+    {
+      "source_file": "113-heldout-prefetch-control-layers.json",
+      "source_bytes": 5405673,
+      "source_sha256": "b9f9fa74fda97e7b56f19fbe51baf479c9440476634f980b852a7f5550b3c855",
+      "compressed_file": "113-heldout-prefetch-control-layers.json.gz",
+      "compressed_bytes": 308805,
+      "compressed_sha256": "59ad6069dd29091bc8ad4ce7a50d4d7825d4aca45b9e99c8f02f9db62065a79a"
+    },
+    {
+      "source_file": "113-host-resources.snapshot.jsonl",
+      "source_bytes": 4185898,
+      "source_sha256": "ee9bd59b1b6961e173dba5b321fb4e595c99550b40b51b068ae9627092deaed5",
+      "compressed_file": "113-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 337862,
+      "compressed_sha256": "1f57c0562a70dd3a4a110501952c3b198af318a3a0567593f0ff316f8f11f3ae"
+    }
+  ]
+}

@@ -26,10 +26,12 @@ completed three prompts × three repetitions, each with 63 decode steps. Its
 slowest rate was 0.135334 tok/s. Candidates must match its saved greedy tokens
 and full-logits hash, `ce0fbb9a116d3d09`. The earlier three-step Paris smoke
 is not the >=32-step/three-repeat target measurement.
-The final repeated candidate046 reaches **0.567914 tok/s** (4.20× baseline),
+The earlier repeated candidate046 reached **0.567914 tok/s** (4.20× baseline),
 with all nine samples matching exact token IDs and logits. Its Autolab campaign
 completed normally; `results/046_final_verification.json` records independent
-artifact and actual-setting checks. The 25 tok/s target is unmet. The current
+artifact and actual-setting checks. Current confirmation112 reaches **1.090427 tok/s**
+(8.06× baseline), with exact outputs/routes and all nine samples retained. See
+`results/112_final_verification.json`. The25 tok/s target remains unmet. The current
 packed export exceeds the SSD bandwidth at that target even with ideal reuse;
 see `results/047_all_RAM_traffic_bound.json`. All task benchmarks and the resource
 sampler have exited; protected services remain running.

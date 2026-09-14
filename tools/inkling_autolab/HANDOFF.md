@@ -1,11 +1,12 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:37UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 11:47UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Current113/114 longer-prompt comparison (11:37UTC)
+## Current113/114 longer-prompt comparison (11:47UTC)
 
-113 RUNNING native8876, creation1789385817.5668454. Controller73146,
+113 COMPLETE/SHA captured, score0.9165585148, all gates pass; native8876 exited.
+114 RUNNING native2540, creation1789386354.6752503. Controller73146,
 /private/tmp/run-inkling-heldout-prefetch-loop.py. It verifies each campaign,
 records native identity, SHA captures with scoped helper
 /private/tmp/capture-inkling-heldout-prefetch.py, then compares all outputs,
@@ -38,8 +39,17 @@ Benchmark--prediction-lead-layers1 explicitly labels this input; current-layer
 prediction remains lead0. Two exact-logit/route/ordering/causality tests pass;
 all250 local tests/13suites and example build pass. Four localfixture modes and analyzer validation pass, including five malformed
 evidence rejections. Tiny firstprediction16scheduled/10useful/6unused; not a
-full-model accuracy estimate. Native116 must wait113/114 exit, preserve12
+full-model accuracy estimate. Native116 waiter4748(created1789386222.7887948), shim3840, detachedparent10316
+waits113/114 exit; preserve12
 frozen binaries and qualify a separate candidate before full diagnostic.
+116 source234122415f292d51519b9f40684b60c30bfc71df, stagedSHA/parser pass.
+Source manifest early-prediction-source.json, tarSHA8f1d4ecc3ac7510c256880e1f65ef17e2e50521bb4f008c6b228253ffa74c1f0.
+Candidatewrapper6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04,
+productionwrapper remains3e until116qualified. Localcontroller11957 script
+/private/tmp/run-inkling-early-prediction-loop.py waits116 and114 comparison,
+archives all native test/artifactSHA, syncs wrapper, then runs117 diagnostic
+(one rep/original3prompts, PredictReads0, PredictionLeadLayers1). It captures
+all raw traces and measures actual causal accuracy; no record promotion.
 This code is not used by current113/114. Continue optimization after finite campaigns.
 
 ## Historical110/111 launch state (both now complete)
