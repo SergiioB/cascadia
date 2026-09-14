@@ -8,7 +8,8 @@ Per layer two graphs, both `x [1, rows, in] f32` in, f32 out:
 The head norms, relative-position bias, softmax, KV cache and the short
 convolutions stay in Rust (`inkling/attn.rs`); only the five GEMVs move.
 
-Weights (`--weights`, default `int4`): the bf16 shells are the ~264 MB per
+Weights (`--weights`, default `int4`; `int8` = per-row symmetric u8, ~132 MB per
+layer, the middle ground; `--dir-name` keeps variants side by side): the bf16 shells are the ~264 MB per
 layer the CPU already streams at ~80 GB/s, so a f16 copy on the iGPU gains
 nothing — the gain is in bytes. `int4` quantises each projection on the same
 grid as the experts (symmetric, per-row groups of 32, scale = max|w|/7 rounded
@@ -99,10 +100,25 @@ def quant_int4(w):
     return q.astype(np.uint8), s
 
 
+def quant_int8(w):
+    """f32 [out, in] -> (u8 [out, in] (q+128), scales f32 [out]) per-row symmetric int8."""
+    mx = np.abs(w).max(-1)
+    s = bf16_round(np.where(mx > 0, mx / 127.0, 1.0).astype(np.float32))
+    q = np.clip(np.round(w / s[:, None]), -127, 127).astype(np.int16) + 128
+    return q.astype(np.uint8), s
+
+
 def weight_node(w, weights):
     out, inn = w.shape
     if weights == "f16":
         return ops.convert(ops.constant(w.astype(np.float16)), Type.f32)
+    if weights == "int8":
+        q, s = quant_int8(w)
+        wc = ops.constant(q)                                             # u8 [out, in]
+        zp = ops.constant(np.full((out, 1), 128, np.uint8))
+        x = ops.subtract(ops.convert(wc, Type.f16), ops.convert(zp, Type.f16))
+        x = ops.multiply(x, ops.constant(s.reshape(out, 1).astype(np.float16)))
+        return ops.convert(x, Type.f32)
     q, s = quant_int4(w)
     ng = inn // GROUP
     n = q.reshape(-1)
@@ -165,8 +181,13 @@ def validate(src, lid, weights, device):
         if weights == "int4":
             q, s = quant_int4(w)
             wref = ((q.astype(np.float32) - 8.0) * s[..., None]).reshape(w.shape)
+        elif weights == "int8":
+            q, s = quant_int8(w)
+            wref = (q.astype(np.float32) - 128.0) * s[:, None]
         else:
             wref = w.astype(np.float16).astype(np.float32)
+        dq = np.abs(wref - w)
+        print(f"  {name} quantisation vs bf16 weights: rel_rms={float(np.sqrt(np.mean(dq*dq))/(np.sqrt(np.mean(w*w))+1e-12)):.3e}")
         ref = x[0] @ wref.T
         d = np.abs(np.array(out).reshape(ref.shape) - ref)
         print(f"  {name}: max_abs={d.max():.3e} rel_rms={float(np.sqrt(np.mean(d*d))/(np.sqrt(np.mean(ref*ref))+1e-12)):.3e}")
@@ -193,7 +214,8 @@ def main():
     ap.add_argument("--src", required=True)
     ap.add_argument("--layers", required=True, help="comma list of layer indices")
     ap.add_argument("--out", default=None)
-    ap.add_argument("--weights", choices=["int4", "f16"], default="int4")
+    ap.add_argument("--weights", choices=["int4", "int8", "f16"], default="int4")
+    ap.add_argument("--dir-name", default="attn_ov", help="output subdirectory under --out (runtime: CASCADIA_INKLING_OV_ATTN_DIR)")
     ap.add_argument("--validate", action="store_true")
     ap.add_argument("--validate-device", default="GPU")
     ap.add_argument("--skip-existing", action="store_true")
@@ -205,7 +227,7 @@ def main():
         if args.validate:
             validate(args.src, lid, args.weights, args.validate_device)
             continue
-        dst = os.path.join(out, "attn_ov", f"layer_{lid:02d}")
+        dst = os.path.join(out, args.dir_name, f"layer_{lid:02d}")
         if args.skip_existing and os.path.exists(os.path.join(dst, "o", "openvino_model.xml")):
             print(f"layer {lid}: exists, skipped")
             continue
