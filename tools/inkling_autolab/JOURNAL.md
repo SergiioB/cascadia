@@ -1215,3 +1215,42 @@ No additional build or trial is queued. The selected profile is reproducible
 from ptl-profile.ps1 and campaign046. Target25 remains unmet; no new export or
 A100 job is needed. Lambda release backup remains verified; no termination or
 billing stop was performed because no account API/console access is available.
+
+
+## 48 hypothesis — resume with an explicit causal expert cache
+
+2026-09-14: User explicitly resumed autonomous optimization. Record046 remains
+0.567914 tok/s; the prior storage bound is not a stopping condition for improving
+this rate. No new export or Lambda work is required. Autolab reports97 recorded
+experiments across20 campaigns. No DISCOVERIES.md exists. Read prior journal,
+research plan, final state and last20 commits; no benchmark was still active.
+
+Hypothesis: retaining a bounded selection of repeatedly routed packed expert
+bytes reduces the approximately11.7GB/token uncached traffic. Test an opt-in,
+model-owned LFU cache using only past routing, with per-layer budgets and exact
+original kernels. Per-layer ownership avoids stale global entries across model
+unloads and a fixed budget limits private-memory growth. No file is changed and
+no future trace is available to the runtime. Compare64/128MiB per MoE layer
+(about4/8GiB total) against the same binary with cache0; reject if whole-model
+latency regresses or any output/configuration gate fails. Tests must cover
+capacity, concurrent leases, eviction, failed reads and model isolation before
+native qualification. This is an algorithmic cache experiment, marked moonshot;
+record I/O saved as well as speed and memory pressure. Cache-policy simulation
+is only a candidate-selection aid, never evidence of a full-model speedup.
+
+Cache implementation passes the local library/Inkling/GLM suite, five focused
+cache tests (including real int4 kernel bits through repeated evictions), and
+seven full tiny-fixture modes. All fixture hashes5122e042f9b1fb30 match;
+cacheon/uncached have110hits and55,296retained bytes, while disabled prerequisite
+modes havezero capacity/hits. Model-owned entries cannot outlive the model or
+collide with a different model's expert number. Outstanding leases cannot be
+evicted, and allocation capacity (including alignment padding) is budgeted.
+Defaultoff; per-layer setting0–256MiB. Misses on the enabled path use a complete
+read even if OS sampling says resident, so that admission has valid bytes; the
+full comparison includes this cost. Counters separate actualhits/bytes/admissions.
+
+Prepared049same-binarycache0,050cache64MiB/layer,051cache128MiB/layer. Each has
+three cases × one pass,63decode steps, exact reference IDs/hash, uncached and
+pipeline gates plus actual cache budget/effectiveness. Only run after native
+qualification and wrapper check. Final winner requires repeated confirmation.
+This loop continues after the cache comparison to further hypotheses.

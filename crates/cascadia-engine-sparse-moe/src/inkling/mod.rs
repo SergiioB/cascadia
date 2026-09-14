@@ -73,6 +73,8 @@ pub mod gate;
 pub mod loader;
 pub mod model;
 pub mod moe;
+mod expert_cache;
+pub use expert_cache::ExpertCacheStats;
 mod read_buffers;
 pub use read_buffers::uncached_read_statistics;
 pub mod relpos;

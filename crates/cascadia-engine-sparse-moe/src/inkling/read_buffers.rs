@@ -39,6 +39,10 @@ enum ReadMode {
 }
 
 impl ReadBuffer {
+    pub(super) fn allocated_bytes(&self) -> usize {
+        self.bytes.capacity()
+    }
+
     pub fn as_slice(&self) -> &[u8] {
         &self.bytes[self.offset..self.offset + self.length]
     }

@@ -52,10 +52,10 @@ questions:
   question: How much time and cost does the designated 8xA100 export host save?
   status: answered
   priority: 9
-  answer: "Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98\
-    \ experts/s in the measured component; seeq12. Estimated whole export15\u201330minutes with local\
-    \ raw source ($4\u20138), initial download+export2\u20133hours ($30\u201345); no full export timed.\
-    \ Host backed up/idle, no termination performed."
+  answer: Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98
+    experts/s in the measured component; seeq12. Estimated whole export15–30minutes with local raw
+    source ($4–8), initial download+export2–3hours ($30–45); no full export timed. Host backed up/idle,
+    no termination performed.
 - id: q10
   question: Can independent SSH jump transports fill PTL Ethernet better than one?
   status: answered
@@ -67,9 +67,9 @@ questions:
   question: How much routed-expert reuse is available within PTL's memory budget?
   status: answered
   priority: 6
-  answer: "Actual routes and causal models are archived in 037; all nine final 046 samples preserve\
-    \ those routes. Even a perfect cache using all nominal 64 GiB still needs 32.5\u201342.5 GB/s\
-    \ at 25 tok/s, beyond the 15.754 GB/s SSD link. Cache models are not measured runtime gains."
+  answer: Actual routes and causal models are archived in 037; all nine final 046 samples preserve
+    those routes. Even a perfect cache using all nominal 64 GiB still needs 32.5–42.5 GB/s at 25 tok/s,
+    beyond the 15.754 GB/s SSD link. Cache models are not measured runtime gains.
 - id: q12
   question: Can separate converter processes improve throughput beyond the A100 GPU thread pool?
   status: answered
@@ -147,3 +147,23 @@ questions:
   answer: 'Matched 044/045 control versus overlap: slowest score +6.12%, all three cases improve.
     Selected PipelineReads1 passes final 046 three repetitions at 0.567914 tok/s slowest with exact
     outputs and 36288 actual pipelined layers. The final campaign is complete; 25 tok/s remains unmet.'
+- id: q48
+  question: Can a bounded causal cache of hot routed expert weights reduce full decode I/O without
+    losing more to memory pressure?
+  status: active
+  priority: 1
+- id: q49
+  question: Can prefill stream experts through reusable uncached buffers to reduce page-fault and
+    file-cache pressure?
+  status: open
+  priority: 2
+- id: q50
+  question: After uncached pipelining, does separating read concurrency from kernel concurrency improve
+    full-model latency?
+  status: open
+  priority: 3
+- id: q51
+  question: Can causal next-layer expert prefetch overlap storage with earlier-layer work while retaining
+    exact routing and outputs?
+  status: open
+  priority: 4

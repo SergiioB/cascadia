@@ -476,6 +476,15 @@ impl Model {
             .sum()
     }
 
+    /// Aggregate actual routed-cache storage and decode hits for this model.
+    pub fn expert_cache_stats(&self) -> super::ExpertCacheStats {
+        let mut total = super::ExpertCacheStats::default();
+        for moe in self.layers.iter().filter_map(Layer::moe) {
+            total.add(moe.expert_cache_stats());
+        }
+        total
+    }
+
     /// Cached positions (every layer agrees).
     pub fn len(&self) -> usize {
         self.layers.first().map_or(0, Layer::len)

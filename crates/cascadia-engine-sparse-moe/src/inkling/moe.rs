@@ -135,9 +135,14 @@ pub struct MoeLayer {
     /// every expert evaluation goes to the workers ([`Self::forward_remote`]).
     remote: Option<(u32, Arc<EpClient>)>,
     route_observer: Option<RouteObserver>,
+    expert_cache: super::expert_cache::ExpertCache,
 }
 
 impl MoeLayer {
+    pub fn expert_cache_stats(&self) -> super::ExpertCacheStats {
+        self.expert_cache.stats()
+    }
+
     /// Owned packed shared-expert bytes, excluding routed experts and scratch.
     pub fn owned_shared_bytes(&self) -> usize {
         self.w.shared.iter().map(AnyExpert::owned_int4_bytes).sum()
@@ -181,6 +186,12 @@ impl MoeLayer {
                 w.shared.len()
             );
         }
+        let cache_bytes =
+            if local && pipeline_reads() && reuse_read_buffers() && !seq_reads() && par_experts() {
+                super::expert_cache::ExpertCache::configured_bytes()
+            } else {
+                0
+            };
         Self {
             hidden,
             n_routed,
@@ -191,6 +202,7 @@ impl MoeLayer {
             w,
             remote: None,
             route_observer: None,
+            expert_cache: super::expert_cache::ExpertCache::new(n_routed, cache_bytes),
         }
     }
 
@@ -338,22 +350,46 @@ impl MoeLayer {
         let ys: Vec<Vec<f32>> = if pipeline_reads() && par_experts() && reused.is_some() {
             use rayon::prelude::*;
             PIPELINED_LAYERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let hits = self.expert_cache.lookup(&gate.idx);
             // A buffer stays exclusively borrowed through both the read and
             // its kernel. Ready experts can compute while other reads finish;
             // indexed collection still preserves gate accumulation order.
-            sel.par_iter()
+            let completed: Vec<(Vec<f32>, bool)> = sel
+                .par_iter()
+                .enumerate()
                 .zip(reused.as_mut().unwrap().buffers.par_iter_mut())
-                .map(|(expert, bytes)| {
+                .map(|((index, expert), bytes)| {
                     if let Some(mapped) = expert.as_mmap() {
-                        if !mapped.mostly_resident()
+                        if let Some(Some(hit)) = hits.as_ref().and_then(|h| h.get(index)) {
+                            return (mapped.swiglu_from(hit.as_slice(), x), false);
+                        }
+                        // With the explicit cache enabled, misses get a complete
+                        // read even if OS sampling reports a resident mapping.
+                        // This gives admission valid bytes and a measurable I/O
+                        // cost; shared owned experts never enter the cache.
+                        if (hits.is_some() || !mapped.mostly_resident())
                             && bytes.read(mapped.bin_path(), mapped.bin_len()).is_ok()
                         {
-                            return mapped.swiglu_from(bytes.as_slice(), x);
+                            return (mapped.swiglu_from(bytes.as_slice(), x), true);
                         }
                     }
-                    expert.forward(x, self.hidden, self.inter)
+                    (expert.forward(x, self.hidden, self.inter), false)
                 })
-                .collect()
+                .collect();
+            let caching = hits.is_some();
+            drop(hits);
+            if caching {
+                // Retain in gate order after all compute, independent of the
+                // parallel I/O schedule. Failed reads and hits are never admitted
+                // from a scratch buffer left over from a different expert.
+                for (index, &expert) in gate.idx.iter().enumerate() {
+                    if completed[index].1 {
+                        self.expert_cache
+                            .retain(expert, &mut reused.as_mut().unwrap().buffers[index]);
+                    }
+                }
+            }
+            completed.into_iter().map(|(y, _)| y).collect()
         } else {
             let ready: Vec<bool> = if let Some(reused) = &mut reused {
                 use rayon::prelude::*;

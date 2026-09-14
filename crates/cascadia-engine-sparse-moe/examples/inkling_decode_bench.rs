@@ -336,6 +336,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "pipeline_reads_effective={}",
         u8::from(pipelined_read_layers > 0)
     );
+    let expert_cache = model.expert_cache_stats();
+    println!(
+        "expert_cache_capacity_bytes={}",
+        expert_cache.capacity_bytes
+    );
+    println!(
+        "expert_cache_retained_bytes={}",
+        expert_cache.retained_bytes
+    );
+    println!("expert_cache_hits={}", expert_cache.hits);
+    println!("expert_cache_hit_bytes={}", expert_cache.hit_bytes);
+    println!("expert_cache_misses={}", expert_cache.misses);
+    println!("expert_cache_admissions={}", expert_cache.admissions);
+    println!("expert_cache_evictions={}", expert_cache.evictions);
+    println!("expert_cache_effective={}", u8::from(expert_cache.hits > 0));
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -349,6 +364,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "uncached_read_fallbacks":uncached_read_fallbacks,
                 "uncached_read_effective":uncached_read_effective,
                 "pipelined_read_layers":pipelined_read_layers,
+                "expert_cache":expert_cache,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;

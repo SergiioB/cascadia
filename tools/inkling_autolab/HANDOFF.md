@@ -1,9 +1,25 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 01:57 UTC. The final campaign is complete. **The user's target
-of 25 decode tok/s for large975B on one PTL machine remains unmet.** No task
-benchmark, qualifier, build, sampler, transfer or export is queued or running.
-Do not restart an old transfer or campaign from historical journal entries.
+Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
+the prior final campaign below is the completed reference, not a stopping point.
+
+## Resumed iteration048 — expert cache
+
+Implementing/qualifying opt-in model-owned LFU routed expert caching. Local
+library/Inkling/GLM suite, five focused cache tests and seven fixture modes pass.
+Source staging completed. Native qualify-expert-cache.py is BUILDING/TESTING,
+PythonPID10336, testlauncher8168, parentcmd1452. State
+expert-cache-qualification-state.json; logtest-expert-cache.log. New binary
+full-expert-cache.exe preserves all six older binaries. No full benchmark is
+yet launched. Read current state before acting; do not launch a second qualifier.
+
+Prepared campaigns049cache0,050cache64MiB/layer,051cache128MiB/layer compare the
+same new binary with exact reference outputs and actual cache budget/hit gates.
+Run sequentially after Windows qualification and production wrapper check.
+Continue analyzing and optimizing after the comparison; 25tok/s bandwidth
+constraint does not mean0.568tok/s is maximized. No Lambda/newexport work needed.
+Questions q48–q51 in research_plan.yaml track cache, prefill streaming, separate
+read concurrency and causal next-layer prefetch. User expects continued work.
 
 ## Verified outcome
 

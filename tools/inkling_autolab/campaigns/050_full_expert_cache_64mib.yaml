@@ -1,0 +1,113 @@
+version: 1
+name: 050_full_expert_cache_64mib
+hypothesis: Measure model-owned LFU routed expert caching against the same binary and exact reference
+  outputs.
+measurement_scope: full_large_model_decode
+validation_metric: correctness_verified
+question: q48
+moonshot: true
+runner:
+  backend: ssh
+  host: inkling-ptl-direct
+  user: devcloud
+  timeout_seconds: 7200
+  ssh_options:
+  - -o
+  - ServerAliveInterval=15
+  - -o
+  - ServerAliveCountMax=3
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1 -Model "{model}"
+    -Cases "{cases}" -Binary full-expert-cache.exe -Reads 0 -Bf16Rows 2 -Int4Rows 4 -MmapEmbed 1 -ReuseBuffers
+    1 -OwnShared 1 -UncachedReads 1 -PipelineReads 1 -ExpertCacheMiB {cache_mib} -SkipBulkPrefetch
+    1 -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/050-cache-64.json -RouteTrace C:/Users/devcloud/inkling-autolab/050-cache-64-routes.json
+    -LayerProfile C:/Users/devcloud/inkling-autolab/050-cache-64-layers.json -Log C:/Users/devcloud/inkling-autolab/050-cache-64.log
+defaults:
+  model: C:/Users/devcloud/inkling-autolab/model
+  cases: C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json
+  expected_hash: ce0fbb9a116d3d09
+grid:
+  cache_mib:
+  - 64
+metrics:
+  primary: decode_tokens_per_s
+  direction: maximize
+  collect:
+  - name: decode_tokens_per_s
+    pattern: (?m)^decode_tokens_per_s=([\d.eE+-]+)
+  - name: output_hash
+    pattern: (?m)^output_hash=([0-9a-f]+)
+    type: str
+  - name: full_model
+    pattern: (?m)^full_model=(\d+)
+    type: int
+  - name: correctness_verified
+    pattern: (?m)^correctness_verified=(\d+)
+    type: int
+  - name: decode_steps_min
+    pattern: (?m)^decode_steps_min=(\d+)
+    type: int
+  - name: repetitions
+    pattern: (?m)^repetitions=(\d+)
+    type: int
+  - name: embedding_mapped
+    pattern: (?m)^embedding_mapped=(\d+)
+    type: int
+  - name: reuse_buffers
+    pattern: (?m)^bf16_rows=.* reuse_buffers=(\d+)
+    type: int
+  - name: owned_shared_bytes
+    pattern: (?m)^owned_shared_bytes=(\d+)
+    type: int
+  - name: uncached_read_bytes
+    pattern: (?m)^uncached_read_bytes=(\d+)
+    type: int
+  - name: uncached_read_fallbacks
+    pattern: (?m)^uncached_read_fallbacks=(\d+)
+    type: int
+  - name: uncached_read_effective
+    pattern: (?m)^uncached_read_effective=(\d+)
+    type: int
+  - name: pipelined_read_layers
+    pattern: (?m)^pipelined_read_layers=(\d+)
+    type: int
+  - name: pipeline_reads_effective
+    pattern: (?m)^pipeline_reads_effective=(\d+)
+    type: int
+  - name: expert_cache_capacity_bytes
+    pattern: (?m)^expert_cache_capacity_bytes=(\d+)
+    type: int
+  - name: expert_cache_retained_bytes
+    pattern: (?m)^expert_cache_retained_bytes=(\d+)
+    type: int
+  - name: expert_cache_hits
+    pattern: (?m)^expert_cache_hits=(\d+)
+    type: int
+  - name: expert_cache_hit_bytes
+    pattern: (?m)^expert_cache_hit_bytes=(\d+)
+    type: int
+  - name: expert_cache_misses
+    pattern: (?m)^expert_cache_misses=(\d+)
+    type: int
+  - name: expert_cache_admissions
+    pattern: (?m)^expert_cache_admissions=(\d+)
+    type: int
+  - name: expert_cache_evictions
+    pattern: (?m)^expert_cache_evictions=(\d+)
+    type: int
+  - name: expert_cache_effective
+    pattern: (?m)^expert_cache_effective=(\d+)
+    type: int
+stopping:
+  window: 100000
+  max_failures: 2
+expected_metrics:
+  owned_shared_bytes: 4076863488
+  embedding_mapped: 1
+  full_model: 1
+  repetitions: 1
+  uncached_read_effective: 1
+  uncached_read_fallbacks: 0
+  pipeline_reads_effective: 1
+  pipelined_read_layers: 12096
+  expert_cache_capacity_bytes: 4294967296
+  expert_cache_effective: 1

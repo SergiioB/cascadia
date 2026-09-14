@@ -1,0 +1,284 @@
+//! Optional model-owned packed routed-weight cache. Admission uses past routing
+//! frequency only. Entries are immutable while leased; no lock covers I/O or GEMV.
+use std::sync::{Arc, Mutex};
+
+use super::read_buffers::ReadBuffer;
+
+#[derive(Clone, Copy, Default, serde::Serialize)]
+pub struct ExpertCacheStats {
+    pub capacity_bytes: usize,
+    pub retained_bytes: usize,
+    pub hits: u64,
+    pub hit_bytes: u64,
+    pub misses: u64,
+    pub admissions: u64,
+    pub evictions: u64,
+}
+
+impl ExpertCacheStats {
+    pub(crate) fn add(&mut self, other: Self) {
+        self.capacity_bytes += other.capacity_bytes;
+        self.retained_bytes += other.retained_bytes;
+        self.hits += other.hits;
+        self.hit_bytes += other.hit_bytes;
+        self.misses += other.misses;
+        self.admissions += other.admissions;
+        self.evictions += other.evictions;
+    }
+}
+
+struct Entry {
+    expert: usize,
+    bytes: Arc<ReadBuffer>,
+}
+
+struct State {
+    frequency: Vec<u64>,
+    last: Vec<u64>,
+    clock: u64,
+    entries: Vec<Entry>,
+    stats: ExpertCacheStats,
+}
+
+pub(super) struct ExpertCache(Mutex<State>);
+
+impl ExpertCache {
+    pub fn new(experts: usize, capacity: usize) -> Self {
+        Self(Mutex::new(State {
+            frequency: vec![0; experts],
+            last: vec![0; experts],
+            clock: 0,
+            entries: Vec::new(),
+            stats: ExpertCacheStats {
+                capacity_bytes: capacity,
+                ..ExpertCacheStats::default()
+            },
+        }))
+    }
+
+    /// Per-MoE-layer MiB; default zero. Invalid or >256 MiB settings disable it.
+    /// Allocations grow only on successful decode reads, never during prefill.
+    pub fn configured_bytes() -> usize {
+        std::env::var("CASCADIA_INKLING_EXPERT_CACHE_MIB")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&mib| mib <= 256)
+            .unwrap_or(0)
+            * 1024
+            * 1024
+    }
+
+    pub fn stats(&self) -> ExpertCacheStats {
+        self.0.lock().unwrap_or_else(|e| e.into_inner()).stats
+    }
+
+    /// Called in gate order before parallel compute, making admission history
+    /// independent of read completion order. Return None for the disabled path.
+    pub fn lookup(&self, experts: &[usize]) -> Option<Vec<Option<Arc<ReadBuffer>>>> {
+        let mut state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        if state.stats.capacity_bytes == 0 {
+            return None;
+        }
+        let mut found = Vec::with_capacity(experts.len());
+        for &expert in experts {
+            assert!(expert < state.frequency.len());
+            state.clock = state.clock.saturating_add(1);
+            // Bounded history adapts to changing requests without future routing.
+            if state.clock.is_multiple_of(4096) {
+                for count in &mut state.frequency {
+                    *count = count.div_ceil(2);
+                }
+            }
+            state.frequency[expert] = state.frequency[expert].saturating_add(1);
+            state.last[expert] = state.clock;
+            let bytes = state
+                .entries
+                .iter()
+                .find(|e| e.expert == expert)
+                .map(|e| e.bytes.clone());
+            if let Some(bytes) = &bytes {
+                state.stats.hits += 1;
+                state.stats.hit_bytes += bytes.as_slice().len() as u64;
+            } else {
+                state.stats.misses += 1;
+            }
+            found.push(bytes);
+        }
+        Some(found)
+    }
+
+    /// Transfer a fully read allocation after its kernel has completed. An
+    /// evicted allocation returns to the caller's scratch lease for reuse.
+    /// Never evict an entry with an outstanding lease: retained plus leased
+    /// expert allocations therefore stay within this layer's capacity.
+    pub fn retain(&self, expert: usize, bytes: &mut ReadBuffer) {
+        let size = bytes.allocated_bytes();
+        let mut state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        if bytes.as_slice().is_empty()
+            || size > state.stats.capacity_bytes
+            || state.frequency[expert] == 0
+            || state.entries.iter().any(|e| e.expert == expert)
+        {
+            return;
+        }
+        let mut replacement = ReadBuffer::default();
+        if size > state.stats.capacity_bytes - state.stats.retained_bytes {
+            let victim = state
+                .entries
+                .iter()
+                .enumerate()
+                .filter(|(_, e)| Arc::strong_count(&e.bytes) == 1)
+                .filter(|(_, e)| {
+                    size <= state.stats.capacity_bytes - state.stats.retained_bytes
+                        + e.bytes.allocated_bytes()
+                })
+                .min_by_key(|(_, e)| (state.frequency[e.expert], state.last[e.expert]))
+                .map(|(i, _)| i);
+            let Some(victim) = victim else { return };
+            if state.frequency[expert] <= state.frequency[state.entries[victim].expert] {
+                return;
+            }
+            let evicted = state.entries.swap_remove(victim);
+            // lookup is serialized by this mutex; no new lease can appear.
+            replacement = Arc::try_unwrap(evicted.bytes).unwrap_or_else(|_| unreachable!());
+            state.stats.retained_bytes -= replacement.allocated_bytes();
+            state.stats.evictions += 1;
+        }
+        let incoming = std::mem::replace(bytes, replacement);
+        state.stats.retained_bytes += size;
+        state.stats.admissions += 1;
+        state.entries.push(Entry {
+            expert,
+            bytes: Arc::new(incoming),
+        });
+        debug_assert!(state.stats.retained_bytes <= state.stats.capacity_bytes);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    fn bytes(value: u8, length: usize) -> ReadBuffer {
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        file.write_all(&vec![value; length]).unwrap();
+        let mut buffer = ReadBuffer::default();
+        buffer.read(file.path(), length).unwrap();
+        buffer
+    }
+
+    #[test]
+    fn disabled_cache_and_unobserved_or_invalid_reads_retain_nothing() {
+        let off = ExpertCache::new(2, 0);
+        assert!(off.lookup(&[0]).is_none());
+        let cache = ExpertCache::new(2, 32);
+        cache.retain(0, &mut bytes(17, 32));
+        assert_eq!(cache.stats().retained_bytes, 0);
+        drop(cache.lookup(&[0]));
+        cache.retain(0, &mut ReadBuffer::default());
+        cache.retain(0, &mut bytes(17, 64));
+        assert_eq!(cache.stats().retained_bytes, 0);
+    }
+
+    #[test]
+    fn lfu_retains_hot_expert_and_recycles_evicted_allocation() {
+        let cache = ExpertCache::new(3, 64);
+        drop(cache.lookup(&[0, 1]));
+        cache.retain(0, &mut bytes(17, 32));
+        cache.retain(1, &mut bytes(93, 32));
+        drop(cache.lookup(&[0, 0, 2, 2]));
+        let mut incoming = bytes(61, 32);
+        cache.retain(2, &mut incoming);
+        assert_eq!(incoming.as_slice(), [93; 32]);
+        let hit = cache.lookup(&[0, 1, 2]).unwrap();
+        assert_eq!(hit[0].as_ref().unwrap().as_slice(), [17; 32]);
+        assert!(hit[1].is_none());
+        assert_eq!(hit[2].as_ref().unwrap().as_slice(), [61; 32]);
+        assert_eq!(cache.stats().retained_bytes, 64);
+        assert_eq!(cache.stats().evictions, 1);
+    }
+
+    #[test]
+    fn outstanding_leases_prevent_eviction_and_keep_capacity_bounded() {
+        let cache = Arc::new(ExpertCache::new(2, 32));
+        drop(cache.lookup(&[0]));
+        cache.retain(0, &mut bytes(17, 32));
+        let held = cache.lookup(&[0]).unwrap();
+        let writer = cache.clone();
+        std::thread::spawn(move || {
+            drop(writer.lookup(&[1, 1, 1]));
+            writer.retain(1, &mut bytes(93, 32));
+        })
+        .join()
+        .unwrap();
+        assert_eq!(held[0].as_ref().unwrap().as_slice(), [17; 32]);
+        assert_eq!(cache.stats().evictions, 0);
+        assert_eq!(cache.stats().retained_bytes, 32);
+        drop(held);
+        cache.retain(1, &mut bytes(93, 32));
+        assert_eq!(cache.stats().evictions, 1);
+    }
+
+    #[test]
+    fn independent_models_never_share_same_numbered_expert_bytes() {
+        let first = ExpertCache::new(1, 32);
+        let second = ExpertCache::new(1, 32);
+        drop(first.lookup(&[0]));
+        drop(second.lookup(&[0]));
+        first.retain(0, &mut bytes(17, 32));
+        second.retain(0, &mut bytes(93, 32));
+        assert_eq!(
+            first.lookup(&[0]).unwrap()[0].as_ref().unwrap().as_slice(),
+            [17; 32]
+        );
+        assert_eq!(
+            second.lookup(&[0]).unwrap()[0].as_ref().unwrap().as_slice(),
+            [93; 32]
+        );
+    }
+
+    #[test]
+    fn real_int4_kernel_remains_exact_across_cache_hits_and_evictions() {
+        use crate::dsv4::expert_mmap::MmapExpert;
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/inkling_export/experts/layer_01");
+        let experts: Vec<_> = ["expert_000.bin", "expert_001.bin"]
+            .iter()
+            .map(|name| MmapExpert::open(&directory.join(name), 64, 32).unwrap())
+            .collect();
+        let mut scratch = ReadBuffer::default();
+        scratch
+            .read(experts[0].bin_path(), experts[0].bin_len())
+            .unwrap();
+        let cache = ExpertCache::new(2, scratch.allocated_bytes());
+        let x: Vec<f32> = (0..64).map(|i| (i as f32 - 7.0) * 0.03125).collect();
+        for id in [0, 1, 1, 0, 0, 0, 1, 1, 1, 1] {
+            let expert = &experts[id];
+            let hit = cache.lookup(&[id]).unwrap();
+            let expected = crate::glm::ffn::swiglu_mmap(expert, &x);
+            let actual = if let Some(bytes) = &hit[0] {
+                expert.swiglu_from(bytes.as_slice(), &x)
+            } else {
+                scratch.read(expert.bin_path(), expert.bin_len()).unwrap();
+                expert.swiglu_from(scratch.as_slice(), &x)
+            };
+            assert_eq!(
+                actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+                expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+            );
+            let missed = hit[0].is_none();
+            drop(hit);
+            if missed {
+                cache.retain(id, &mut scratch);
+            }
+        }
+        assert!(cache.stats().hits > 0 && cache.stats().evictions >= 3);
+        let before = cache.stats().admissions;
+        assert!(scratch
+            .read(&directory.join("missing.bin"), experts[0].bin_len())
+            .is_err());
+        cache.retain(0, &mut scratch);
+        assert_eq!(cache.stats().admissions, before);
+    }
+}

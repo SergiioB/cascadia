@@ -1,0 +1,108 @@
+{
+  "scope": "local_ARM_debug_expert_cache_qualification",
+  "full_model_speedup_measured": false,
+  "library_and_inkling_glm_test_suite_passed": true,
+  "fixture_modes": [
+    {
+      "mode": "off",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "pipelined_read_layers": 63
+    },
+    {
+      "mode": "on",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "pipelined_read_layers": 63
+    },
+    {
+      "mode": "uncached",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "pipelined_read_layers": 63
+    },
+    {
+      "mode": "pipeline_off",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "pipelined_read_layers": 0
+    },
+    {
+      "mode": "reuse_off",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "pipelined_read_layers": 0
+    },
+    {
+      "mode": "direct",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "pipelined_read_layers": 0
+    },
+    {
+      "mode": "serial",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "pipelined_read_layers": 0
+    }
+  ],
+  "binary_sha256": "d091faecc33cdac3d1402593c23755f22b60704d8b54b101c7de552d686d368a",
+  "focused_cache_tests_passed": 5,
+  "controller_routing_tests_passed": 19
+}
