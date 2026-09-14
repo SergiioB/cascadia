@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 12:20UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 12:33UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
@@ -35,21 +35,43 @@ local/nativeptl-profile.ps1 SHA ff9572f5c3889b9678cecf230948efde635aceeefcce2195
 Frozenbinary7b20ee35/source dc4badd3, native/localwrapper3eac49ad unchanged.
 25targetunmet. No export/Lambda work needed.
 
-## Current121/122 runtime comparison (12:20UTC)
+## Current next work125: selective second prefetch (12:33UTC)
 
-121current-prefetch control RUNNING native9348, creation1789388242.4688969,
-full-early-prefetch.exe381c116608c3c9d6cec94861d0f09f66073c79989b750c4aead019d82d4942c6.
-Controller4645 script/private/tmp/run-inkling-early-prefetch-loop.py archives
-all exact outputs/routes/cache/readcounts and runs122early candidate next.
-Bothoriginal3prompts×1rep,64generated/63decode, PredictReads1. Only
-EarlyPredictReads0/1 differs. It saves122_early_prefetch_comparison.json and
-ends for root review before conditional123nine-sample confirmation. Continue
-autonomously after finite campaigns; target25 remains unmet.
-Native121-current-prefetch-control.* and122-early-prefetch-candidate.*.
-Local logs/private/tmp/inkling-121_full_current_prefetch_control.log and122equivalent.
-123_full_early_prefetch_confirmation prepared, notlaunched. Repeatedforecast
-35844scheduled/31168useful/4676unused from fullnine route/cache replay. Do not
-blindly multiply117singlepasscounts. Firstsamples/stalls must stay included.
+121/122 COMPLETE, bothSHAcaptured, controller4645 exited. No full/nativebuild
+active; sampler3036 continues. Current vs early scores1.1043031542 vs1.0659367853.
+Allthree prompts slower withEarly1; rejectearly, retainselectedEarly0. Water
+second-token layer52MLPstall2.4918s remainsincluded, otherpromptsalsoregress.
+122_decision.json;123confirmation NOT launched and should not run. The prepared
+/private/tmp/verify-inkling-123.py and compare-inkling-123.py are unusedtemplates.
+Native1219348/12210772 exited. Confirmedrecord112 remains1.0904267748tok/s.
+
+124 causal analysis complete: analyze-second-prediction.py scores firstuncached
+plus a second only if its predicted rank is atmost2 (topthree). Policy chosen
+from105calibration under1% additionalreadbudget, frozen before107longer check in
+124_second_prediction_policy.json. Calibration first11906/11338/568 plussecond
+5814/5511/303 scheduled/useful/unused =17720/16849/871; additionalreads.7596%,
+coverage42.8521%, precision95.0847%. Longer first24124/22873/1251 plussecond
+12454/11625/829 =36578/34498/2080; additionalreads.9856%,coverage41.6346%,
+precision94.3135%. Noactualtwo-prefetch runtime yet, no speedclaim.
+
+125JOURNAL hypothesis recorded, implementation NOT started. Add default-off
+SecondPredictReads flag for current-layer prefetch only, using a second bounded
+independent reader so two selected predictions can overlap attention. First
+uncached alwaysretained; second onlyif its predicted rank<=2. Atmost2pending
+perlayer. Preserve exactactualgates/cacheadmission andcompletebuffer/drain/fallback
+semantics. Wrapperrejects Early1+Second1; libraryearlymode takesprecedence.
+Plan: nonmutatingcachemethod returns up to2predictions; PendingReadGroup owns
+<=2existingPendingRead objects and take_for matchesactualexpert. OriginalReader
+andnewSECOND_READER haveindependent workers/queues; aggregate original9counter
+fields unchanged, expose secondreader stats separately and actualworker count.
+Defaultfirst-onlyprofile mustremain identical. Add nonmutatingcache-selection
+andtwo-independent-worker/buffer-identity tests; qualifytiny/native beforefull
+comparison. Suggested nextnumbers126nativequalifier,127current/128selective,
+conditional129repeated; nonecreated yet. Do not use currentfirst-onlypredictions
+as runtimecounts without causalreplay (fiveor moretiny modes andnineforecasts).
+Continueoptimizing autonomously;25targetunmet. NoLambda/export needed.
+
+## Latest qualified runtime120 (earlyexperiment rejected)
 
 120 COMPLETE/SHA archived:255 native tests/13suites, fourtiny modes, invalid
 EarlyPredictReads1/PredictReads0 dependency rejected. All13olderbinaries preserved.

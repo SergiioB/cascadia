@@ -1,0 +1,36 @@
+{
+  "scope": "same_binary_current_vs_early_prefetch_comparison",
+  "control_score": 1.1043031542274098,
+  "candidate_score": 1.0659367853464892,
+  "ratio": 0.9652573944626986,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_tok_s": 1.126441052014839,
+      "candidate_tok_s": 1.0659367853464892,
+      "ratio": 0.9462872321990333
+    },
+    {
+      "case": "binary_search",
+      "control_tok_s": 1.1043031542274098,
+      "candidate_tok_s": 1.0874893708918352,
+      "ratio": 0.9847743047086218
+    },
+    {
+      "case": "short_story",
+      "control_tok_s": 1.1373388593029943,
+      "candidate_tok_s": 1.1211988017047212,
+      "ratio": 0.9858089280373623
+    }
+  ],
+  "all_outputs_actual_routes_cache_counters_exact": true,
+  "actual_read_counters_match_forecast": true,
+  "all_samples_included": true,
+  "record_promoted": false,
+  "decision": "review_before_conditional123_confirmation",
+  "caveats": [
+    "Three original prompts and one repetition; no result is promoted without repeated confirmation.",
+    "Both arms use one predicted expert, same binary/cache/math; early arm begins before target predecessor.",
+    "All prediction and unused read costs, first samples and stalls remain included."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "full_early_prefetch_decision",
+  "decision": "reject_early_prefetch_retain_current_layer",
+  "comparison": "122_early_prefetch_comparison.json",
+  "reason": "All three prompts slower; conservative score-3.47%. Water-cycle layer52 second-token2.49s stall remains included, and both other prompts also regress.",
+  "confirmation123_launched": false,
+  "confirmed_record": 1.0904267748485879,
+  "selected_early_predict_reads": 0
+}

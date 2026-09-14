@@ -97,4 +97,6 @@ Actual selection/cache admission stays unchanged; unused requests drain and
 failures use complete ordinary reads. Layer0 retains current-layer prefetch;
 layer-only/staged execution does not use early scheduling. Local251 tests/five
 fixture modes and native255 tests/four modes pass. The selected profile
-explicitly keeps this flag0 while full121/122 comparisons are in progress.
+explicitly keeps this flag0: full121/122 comparisons found every prompt slower
+with earlier prefetch (conservative score-3.47%). The first-sample stall remains
+in the result; the other two prompts also regressed. See122_decision.json.
