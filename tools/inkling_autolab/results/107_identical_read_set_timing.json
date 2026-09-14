@@ -1,0 +1,42 @@
+{
+  "scope": "matched_current_expert_read_sets_diagnostic_not_causal_attribution",
+  "groups": [
+    {
+      "group": "all",
+      "identical_miss_set_visits": 14242,
+      "control_mlp_sum": 188.6103926,
+      "candidate_mlp_sum": 201.4360124,
+      "median_paired_mlp_ratio": 1.0187822534224489,
+      "median_paired_attention_ratio": 1.0555409305415524
+    },
+    {
+      "group": "worked_algebra",
+      "identical_miss_set_visits": 4840,
+      "control_mlp_sum": 63.0694103,
+      "candidate_mlp_sum": 67.9160942,
+      "median_paired_mlp_ratio": 1.0239125636730502,
+      "median_paired_attention_ratio": 1.0660194835429007
+    },
+    {
+      "group": "json_inventory",
+      "identical_miss_set_visits": 4815,
+      "control_mlp_sum": 61.8538479,
+      "candidate_mlp_sum": 67.6345149,
+      "median_paired_mlp_ratio": 1.0288391706688533,
+      "median_paired_attention_ratio": 1.0533690915186054
+    },
+    {
+      "group": "planning_dialogue",
+      "identical_miss_set_visits": 4587,
+      "control_mlp_sum": 63.6871344,
+      "candidate_mlp_sum": 65.8854033,
+      "median_paired_mlp_ratio": 1.0076232286806408,
+      "median_paired_attention_ratio": 1.0485369574261545
+    }
+  ],
+  "actual_routes_and_cache_counters_verified": true,
+  "caveats": [
+    "Pairs have identical actual experts, position, and missing-expert set, but run at different times and may differ in cache allocation/OS state.",
+    "The prediction observer runs before attention, yet most slowdown is in MLP. This check does not establish its cause or justify dropping samples."
+  ]
+}

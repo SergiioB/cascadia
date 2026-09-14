@@ -1,0 +1,228 @@
+{
+  "scope": "raw_layer_stall_inspection",
+  "samples": [
+    {
+      "trial": "106",
+      "case": "worked_algebra",
+      "max_mlp": [
+        {
+          "layer": 7,
+          "step": 4,
+          "mlp": 0.0842588,
+          "attention": 0.0037113
+        },
+        {
+          "layer": 42,
+          "step": 0,
+          "mlp": 0.071604,
+          "attention": 0.0030838
+        },
+        {
+          "layer": 39,
+          "step": 0,
+          "mlp": 0.0664652,
+          "attention": 0.0031058
+        },
+        {
+          "layer": 27,
+          "step": 0,
+          "mlp": 0.0621814,
+          "attention": 0.0029458
+        },
+        {
+          "layer": 9,
+          "step": 0,
+          "mlp": 0.0612241,
+          "attention": 0.0029048
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    },
+    {
+      "trial": "106",
+      "case": "json_inventory",
+      "max_mlp": [
+        {
+          "layer": 2,
+          "step": 14,
+          "mlp": 0.0274207,
+          "attention": 0.0028491
+        },
+        {
+          "layer": 22,
+          "step": 35,
+          "mlp": 0.0265187,
+          "attention": 0.0029647
+        },
+        {
+          "layer": 15,
+          "step": 49,
+          "mlp": 0.0238792,
+          "attention": 0.0030024
+        },
+        {
+          "layer": 6,
+          "step": 110,
+          "mlp": 0.0237823,
+          "attention": 0.0031364
+        },
+        {
+          "layer": 2,
+          "step": 114,
+          "mlp": 0.0234937,
+          "attention": 0.0032344
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    },
+    {
+      "trial": "106",
+      "case": "planning_dialogue",
+      "max_mlp": [
+        {
+          "layer": 28,
+          "step": 45,
+          "mlp": 0.0244977,
+          "attention": 0.0029447
+        },
+        {
+          "layer": 25,
+          "step": 88,
+          "mlp": 0.0244587,
+          "attention": 0.0029807
+        },
+        {
+          "layer": 4,
+          "step": 11,
+          "mlp": 0.024016,
+          "attention": 0.0030183
+        },
+        {
+          "layer": 8,
+          "step": 7,
+          "mlp": 0.0234591,
+          "attention": 0.0029021
+        },
+        {
+          "layer": 16,
+          "step": 16,
+          "mlp": 0.0233409,
+          "attention": 0.0028731
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    },
+    {
+      "trial": "107",
+      "case": "worked_algebra",
+      "max_mlp": [
+        {
+          "layer": 55,
+          "step": 90,
+          "mlp": 0.068071,
+          "attention": 0.0033738
+        },
+        {
+          "layer": 2,
+          "step": 1,
+          "mlp": 0.0658221,
+          "attention": 0.0031745
+        },
+        {
+          "layer": 50,
+          "step": 0,
+          "mlp": 0.0644617,
+          "attention": 0.0032768
+        },
+        {
+          "layer": 7,
+          "step": 0,
+          "mlp": 0.0604339,
+          "attention": 0.0029436
+        },
+        {
+          "layer": 54,
+          "step": 0,
+          "mlp": 0.0601731,
+          "attention": 0.0033693
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    },
+    {
+      "trial": "107",
+      "case": "json_inventory",
+      "max_mlp": [
+        {
+          "layer": 4,
+          "step": 66,
+          "mlp": 0.0271707,
+          "attention": 0.0031448
+        },
+        {
+          "layer": 3,
+          "step": 111,
+          "mlp": 0.0270621,
+          "attention": 0.0031705
+        },
+        {
+          "layer": 10,
+          "step": 58,
+          "mlp": 0.0269869,
+          "attention": 0.0031352
+        },
+        {
+          "layer": 2,
+          "step": 93,
+          "mlp": 0.0269184,
+          "attention": 0.0033549
+        },
+        {
+          "layer": 4,
+          "step": 101,
+          "mlp": 0.0268646,
+          "attention": 0.00314
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    },
+    {
+      "trial": "107",
+      "case": "planning_dialogue",
+      "max_mlp": [
+        {
+          "layer": 25,
+          "step": 41,
+          "mlp": 0.0374867,
+          "attention": 0.003108
+        },
+        {
+          "layer": 26,
+          "step": 37,
+          "mlp": 0.027649,
+          "attention": 0.0031299
+        },
+        {
+          "layer": 15,
+          "step": 61,
+          "mlp": 0.0273828,
+          "attention": 0.0032638
+        },
+        {
+          "layer": 3,
+          "step": 58,
+          "mlp": 0.0270268,
+          "attention": 0.0032149
+        },
+        {
+          "layer": 7,
+          "step": 79,
+          "mlp": 0.0268571,
+          "attention": 0.0032265
+        }
+      ],
+      "mlp_events_over_half_second": 0
+    }
+  ],
+  "excludes_nothing_from_scores": true
+}

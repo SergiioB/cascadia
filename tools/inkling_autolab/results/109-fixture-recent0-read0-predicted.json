@@ -1,0 +1,335 @@
+{
+  "actual_routing_changed": false,
+  "correctness_verified": true,
+  "export": "C:\\Users\\devcloud\\inkling-autolab\\repo\\crates\\cascadia-engine-sparse-moe\\tests\\fixtures\\inkling_export",
+  "full_model": false,
+  "generation_scope": "fixture_model_decode",
+  "observer_overhead_included_in_benchmark_time": true,
+  "output_hash": "1f7cd0eb14a22662",
+  "prediction_input": "current_layer_residual_before_attention_with_existing_mlp_norm_and_router",
+  "prefetch_performed": false,
+  "samples": [
+    {
+      "case": "tiny_hf_greedy",
+      "decode_positions": 7,
+      "layers": [
+        {
+          "layer": 1,
+          "routed_experts_per_position": [
+            [
+              2,
+              7
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 2,
+          "routed_experts_per_position": [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 3,
+          "routed_experts_per_position": [
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        }
+      ],
+      "prefill_positions": 0,
+      "repetition": 0
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_positions": 7,
+      "layers": [
+        {
+          "layer": 1,
+          "routed_experts_per_position": [
+            [
+              2,
+              7
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 2,
+          "routed_experts_per_position": [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 3,
+          "routed_experts_per_position": [
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        }
+      ],
+      "prefill_positions": 0,
+      "repetition": 1
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_positions": 7,
+      "layers": [
+        {
+          "layer": 1,
+          "routed_experts_per_position": [
+            [
+              2,
+              7
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 2,
+          "routed_experts_per_position": [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              3
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        {
+          "layer": 3,
+          "routed_experts_per_position": [
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        }
+      ],
+      "prefill_positions": 0,
+      "repetition": 2
+    }
+  ],
+  "scope": "pre_attention_route_prediction_diagnostics"
+}

@@ -1,0 +1,74 @@
+{
+  "scope": "unseen_prompt_cache_and_prediction_diagnostics",
+  "record_eligible": false,
+  "output_hash": "e396cc533e658e44",
+  "all128_ids_and_all_actual_routes_exact": true,
+  "actual_read_reduction": 0.04836338578155508,
+  "cases": [
+    {
+      "case": "worked_algebra",
+      "reference_tok_s": 0.9420412503188643,
+      "diagnostic_tok_s": 0.9021516374803067,
+      "ratio": 0.9576561930541198,
+      "reference_phase_seconds": {
+        "attention_seconds": 25.349186199999995,
+        "mlp_seconds": 106.29499239999993,
+        "total_seconds": 131.6441785999998,
+        "outside_layers_seconds": 3.1694508000001917,
+        "wall_seconds": 134.8136294
+      },
+      "diagnostic_phase_seconds": {
+        "attention_seconds": 27.230734200000082,
+        "mlp_seconds": 110.3468920000004,
+        "total_seconds": 137.57762619999954,
+        "outside_layers_seconds": 3.1969340000004536,
+        "wall_seconds": 140.7745602
+      }
+    },
+    {
+      "case": "json_inventory",
+      "reference_tok_s": 0.9458496896873467,
+      "diagnostic_tok_s": 0.9012513129351066,
+      "ratio": 0.9528483465835018,
+      "reference_phase_seconds": {
+        "attention_seconds": 25.217442900000083,
+        "mlp_seconds": 105.95828329999983,
+        "total_seconds": 131.1757262000001,
+        "outside_layers_seconds": 3.095079599999906,
+        "wall_seconds": 134.2708058
+      },
+      "diagnostic_phase_seconds": {
+        "attention_seconds": 26.57625029999997,
+        "mlp_seconds": 111.23574779999971,
+        "total_seconds": 137.81199810000015,
+        "outside_layers_seconds": 3.1031918999998425,
+        "wall_seconds": 140.91519
+      }
+    },
+    {
+      "case": "planning_dialogue",
+      "reference_tok_s": 0.8853413417788336,
+      "diagnostic_tok_s": 0.8851388422968413,
+      "ratio": 0.9997712752444323,
+      "reference_phase_seconds": {
+        "attention_seconds": 25.277515700000077,
+        "mlp_seconds": 115.07490400000013,
+        "total_seconds": 140.3524196999998,
+        "outside_layers_seconds": 3.0950779000001774,
+        "wall_seconds": 143.4474976
+      },
+      "diagnostic_phase_seconds": {
+        "attention_seconds": 26.46367630000002,
+        "mlp_seconds": 113.91661490000072,
+        "total_seconds": 140.38029119999993,
+        "outside_layers_seconds": 3.1000239000000818,
+        "wall_seconds": 143.4803151
+      }
+    }
+  ],
+  "caveats": [
+    "Candidate timing includes pre-attention prediction diagnostics absent from106; this is not an isolated cache-policy speed comparison.",
+    "No actual prefetch occurred. Frozen one-expert prediction policy was chosen before these traces were viewed.",
+    "Three128-token continuations; no established benchmark record change."
+  ]
+}

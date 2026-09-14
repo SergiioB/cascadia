@@ -1,131 +1,116 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 10:33 UTC. Work is ACTIVE. User requested autonomous optimization toward
-25 tok/s. Do not stop after a finite campaign. The target remains unmet.
+Updated2026-09-14 11:14UTC. Work is ACTIVE. User requested autonomous optimization
+toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Latest active state (2026-09-14 10:53 UTC)
+## Current confirmed record
 
-107b_heldout_recency_prediction_retry is RUNNING, local controller12159, log
-/private/tmp/inkling-107b_heldout_recency_prediction_retry.log. Native4424,
-created1789383292.9362197. Original107 controller34086 failed SSH banner before
-launch; failure/history preserved, native no-file/process proof107_transport_failure.json. Outputs107-heldout-prediction.* plus -predicted.json.
-Frozen full-route-prediction.exe/source32e2de69. Exact referencehash
- e396cc533e658e44, three128-generated/127-decode-token unseen cases.
-106 native596(created1789382341.9607809), Python3092 and launcher5324 exited.
-106 artifacts/SHA/resources are captured. Text reviewed coherent truncated
-prefixes; initial reference stays correctness_verified=false/record_eligible=false.
-107 usesheldout-cases.reference.json and predicted recent cache counters:
-63445hits/82859misses/58482admit/57970evict/45872ties;4.836% fewerreads.
-Timing includes prediction observer overhead; not an isolated cache A/B.
+102: **0.9654120906tok/s**, slowest of nine samples; median0.9916481036,
+fastest1.0604665236.7.1336×original and2.8923% above074. All nine samples improved;
+The canonical grid is64generated/63decode tokens, three prompts ×
+three repetitions. Every generated ID/full-logits hash/actual route/cache counter
+matches.102_final_verification.json and102_repeated_recency_comparison.json.
+Selected profile16workers/all16CPUs, rows2/4, cache256MiB per MoE layer,
+historyreset1/decay32/recentties1, streamed prefill and prior I/O flags. CPU only.
+No actual prefetch is selected yet. No new export or Lambda work needed.
 
-Capture107 after exit using /private/tmp/capture-inkling-heldout.py107
-107-heldout-prediction PID CREATED (spaces between every argument).
-This scoped helper accepts held-out cases and128token counts, keeps reference106
-unverified/ineligible, and also SHA-captures/gzips predicted traces. Then run
-analyze-route-prediction.py against107 raw/routes/predicted --recent-ties1.
-Compare actual routes and IDs/hash with106 exactly. Established record stays102.
+## Active110/111 prefetch comparison
 
-105 completed and all raw artifacts/SHA/counters/routes verified. First uncached
-prediction:95.229% precision,28.836% miss coverage,1.4446% extra reads
-(11338 useful,568 unused,11906 scheduled).105_pre_attention_prediction.json.
-No prefetch occurred; diagnostic score.947160 is not a promoted record.
+**110_full_predicted_read_control RUNNING**, native **PID7308**, created
+**1789384238.1766171**, frozenfull-predicted-read.exe. Localcontroller **92370**,
+script **/private/tmp/run-inkling-predicted-read-loop.py**. It runs110 then111
+sequentially and stops for review before conditional112. Logs
+/private/tmp/inkling-110_full_predicted_read_control.log and
+/private/tmp/inkling-111_full_predicted_read_prefetch.log.
+Native outputs110-predicted-read-control.* then111-predicted-read-prefetch.*.
+Both canonicalthree prompts × onerep,64generated/63decode, selectedrecentcache.
+110PredictReads0;111PredictReads1. Full exact output and actual-counter gates.
 
-108 prefetch implementation committeddb496530 (push initially failed transiently;
-retry succeeded). Native sources/binaries remain unchanged while107 runs.
-Newpredicted_read.rs: bounded channel, one independent background reader,
-one predicted uncached expert per layer, actual-ID-only consumption, normal
-fallback, unused reads drained, explicit counters. Cache query read-only;
-actual math/routes/admission order unchanged. All248 local tests/13suites plus
-four complete tiny modes pass. Enabled tiny13reads/11useful/2unused/0failures,
-exact outputs/routes/cache counters; native104 replay predicts same counts.
-One-prediction choice frozen before viewing held-out traces. No full speed claim.
+109 COMPLETE:252 native tests/13suites and four tiny read/recency modes pass.
+All outputs/routes/cache counters match. Tiny13scheduled/11useful/2unused with
+0failures, matching independent native104 causal replay. All11 older frozen
+binaries unchanged. Python8624 and launcher9300 exited (parent3856).
+New full-predicted-read.exe SHA
+7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a,
+source **dc4badd3d21e5be1be7bfd542019cb9c3527b09a**.109_artifact_verification.json.
+Native/local production run-full.ps1 now both match candidatewrapper SHA
+3eac49ad3042d50a4425f372e24fed12ff9b8b5b983974dfe0d3ee4d3262a7a7.
+Earlier controller58085 failed only while copying the last109 artifact after
+qualification.92370 resumed SHA-verified files, copied the missing final file,
+archived109, synced localwrapper, then started110. No experiment was bypassed.
 
-109 qualifier staged and launch requested (detached parent3856): qualify-predicted-read.py,
-run-full-prefetch.ps1, test-predicted-read.bat. Waits106/107 complete/exited, then
-checks frozen sources/binaries, builds252native tests, four tiny read/recency
-modes and13/11/2actual counters. Createsnewfull-predicted-read.exe; promotes
-wrapper only after exact checks. All staged files and previous native sources SHA verified; PS parser passes.
-Source dc4badd3; predicted-read-source.json and/private/tmp/predicted-read-source.tar.
-NativePython8624 is waiting_for_heldout_comparison; parent3856.
-Read predicted-read-qualification-state.json for current status. After109nativepromotion,
-sync localrun-full.ps1 to candidate. Full110control/111prefetch A/B and conditional112confirmation are prepared.
-All use runner.connect_timeout30. Control prediction counters all0;111
-scheduled11906/useful11338/unused568, uncached1270420733952;112
-scheduled35718/useful34014/unused1704, uncached3808650461184. Cache counters
-stay the confirmed recent policy.112 repeats observed105 prediction selections
-for identical reset inputs in causal replay; actual counters must confirm.
+Expected111: prediction_read_scheduled11906,successful11906,useful11338,
+unused568. Use the campaign YAML as the exact byte-counter source;
+uncached_read_bytes1270420733952. Failures0, allcache counters same101.
+110prediction counters0 anduncached1252329652224. All future campaigns use
+**runner.connect_timeout:30**, not a duplicate ssh_options setting.
 
-109 candidatewrapper SHA3eac49ad3042d50a4425f372e24fed12ff9b8b5b983974dfe0d3ee4d3262a7a7.
-Current native/localproductionwrapper SHA b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
-Updated profile with recent ties1 SHA deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304 synced.
-106 artifacts/107 and107b campaigns/109 qualifier checkpoint commit next.
-SSH note: ssh_options ConnectTimeout30 came after runner default10, so it did
-not apply. Use runner.connect_timeout:30 in future campaigns; do not rewrite
-completed/running configurations. Local ssh -G proved first option wins. Update this
-section as work advances; old active descriptions below are historical.
+**112_full_predicted_read_confirmation PREPARED, not launched.** Conditional on
+verified111 gain; three repetitions, scheduled35718/useful34014/unused1704,
+uncached3808650461184, allcache counters same102. Forecast repeats observed105
+predictions for identical reset inputs; actual counters must verify determinism.
+No promotion until complete repeated score and exact artifacts are checked.
 
-## Current record
+Capture110/111 with /private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED.
+It supports the original63decode/ce0fbb9a116d3d09 grid. Record actual111PID+creation
+when it starts; do not assume110 identity carries over. Use--repetitions3 for112.
+Snapshot, SHA copies, exact grid/IDs/full shape, layer/resource analysis included.
+No broad process kills; preserve OVMS6728/node8356/CA6344 and sampler3036.
 
-Confirmed102: **0.9654120906 tok/s**, slowest of nine samples; median0.9916481036,
-fastest1.0604665236. This is7.1336× original and2.8923% above074. All nine samples
-improved and all output IDs/full-logits hashes/routes/counters match. See
-102_final_verification.json and102_repeated_recency_comparison.json.
+## Prefetch implementation and completed diagnostic evidence
 
-Selected profile:16workers, all16CPUs, BF16rows2/int4rows4, cache256MiB per MoE
-layer, historyreset1, decay32, **recent ties1**, streamed prefill and prior I/O
-flags. Full CPU backend; Arc unused. No new export or Lambda work needed.
-Frozen full-cache-recency.exe source849a08bd, SHA
- a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40.
-098 qualification passed245 native tests and five tiny modes.
+108 code committeddb496530, included in native dc4badd3.248 local tests/13suites
+and four complete tiny modes passed. Newpredicted_read.rs uses one bounded
+background reader independent of Rayon and one predicted uncached expert per
+layer. Layer launches before attention; actual MoE selection alone consumes
+complete bytes via normal scratch slots. Unused reads drain before return;
+failures keep ordinary full-read fallback. Cache membership query is read-only;
+math/routes/cache admission order unchanged. Defaultoff, flag
+CASCADIA_INKLING_PREDICT_READS=1. Explicit counters distinguish scheduled,
+successful/useful/unused bytes, read/worker/dispatch failures. No speed claim yet.
 
-102 native8204(created1789380877.6939435) and controller94756 exited normally.
-Raw outputs102-cache-recency-confirmation.* are captured with SHA manifests.
-Actual reads3.754TB (4.549% less), hits99853/misses117875/admit80366/evict79854/
-recent_tie_admissions60045. MinavailableRAM1.70GB, peakprivate42.51GB.
-Earlier101 first-water second-token stall remains included in101 score;
-it did not recur in102. No token or sample was discarded. Target25 is unmet.
+105 diagnostic (no reads) verified first-uncached prediction precision95.229%,
+28.836% miss coverage,1.4446% extra reads;11338useful/568unused. Canonicalthree
+prompts ×1rep; alloutputs/routes/cache counters exact. Diagnostic score.947160.
+105_pre_attention_prediction.json, raw/SHA archives. Source32e2de69, frozen
+full-route-prediction.exe SHA89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984.
 
-## Active105 full-model prediction diagnostic
+106/107 unseen-prompt validation COMPLETE. Three frozen new128generated/
+127decode-token prefixes (algebra,JSON inventory,dialogue), hash
+**e396cc533e658e44**. Alloutputs/routes exact; text reviewed coherent truncated
+prefixes (JSON is not a completed JSON document). Initial106 correctness flag
+remainsfalse/reference-only;107 verifies its IDs/hash. No canonicalrecord claim.
+106strict cache87070misses;107recentcache82859, down4.836%.107prediction precision
+94.814%,27.605% miss coverage,1.510% extra reads(24124/22873/1251).
 
-**105_full_pre_attention_prediction_diagnostic RUNNING**, local controller34745.
-Native **PID9432**, created**1789381862.621628**, full-route-prediction.exe.
-Local log/private/tmp/inkling-105_full_pre_attention_prediction_diagnostic.log.
-Native outputs105-route-prediction.json/.log/-routes.json/-layers.json plus
-105-route-prediction-predicted.json. Three prompts × one repetition, same
-selected recent-tie profile, full exact output and actual counter gates.
-No expert prefetch or changed actual routing; explicit diagnostic_only and
-promotion_allowed=false prevent it from claiming a performance record.
+107diagnostic ratesalgebra.90215vs106.94204,JSON.90125vs.94585,dialogue.885139vs
+.885341. It includes prediction overhead absent106, so not a purecacheA/B.
+NoMLPevent>.5s in either run. Matched14242 identical actual read-set visits show
+medianMLP ratio1.0188 andattention1.0555; cause ofremaining variation unestablished.
+No samples excluded.107_heldout_comparison.json/107_identical_read_set_timing.json.
+Finisher63210 completed /private/tmp/finish-inkling-heldout.py; do not rerun its
+exclusive-output writes. Scopedcapture/private/tmp/capture-inkling-heldout.py
+is only for106/107, handles128tokens/newhash and reference-only labels.
 
-104 qualified247 native tests/13suites and four tiny modes. All actual routes,
-cache counters and native fixture hash1f7cd0eb14a22662 matched. Python2468 exited;
-all10 older frozen binaries unchanged.104_artifact_verification.json holds SHA
-archive and source32e2de69. New prediction binary SHA
-89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984.
-Native/local production wrapper SHA
-b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
+107 initialSSHbanner failure beforelaunch is preserved. Identical107b retry
+controller12159 succeeded, native4424(created1789383292.9362197) exited.
+106native596(created1789382341.9607809)/Python3092 also exited. Autolab default
+connect_timeout10 precedes ssh_options, so extraConnectTimeout30 had no effect;
+localssh-G proved it. Futurecampaigns use dedicated connect_timeout30.
 
-After105 exit, capture with helper using9432/1789381862.621628 and default1rep.
-Separately SHA-copy105-route-prediction-predicted.json, then run
-analyze-route-prediction.py --trace ACTUAL --predictions PREDICTED
---benchmark RAW --recent-ties1 --out FRESH_REPORT. Review precision and extra
-reads before implementing prefetch. Full-model prediction accuracy is unknown.
+## Restart and source pointers
 
-## Prepared106/107 unseen-prompt validation
-
-heldout-prompts.json freezes three new tasks and128 generated tokens before
-viewing their routes: worked algebra, JSON inventory, engineering dialogue.
-record-heldout-reference.py records a strict-cache reference using the qualified
-frozen recency binary; it requires105 complete/no active full processes and
-owns the native queue lock. **Staged, not launched.** See106_heldout_staging.json
-for SHA state. Launch only after105 capture/review, detached Win32_Process.Create.
-It uses transformer tokenizer already on PTL; no export or build.
-
-Native stateheldout-reference-state.json captures launcher/native PID+creation.
-Outputs106-heldout-control.* plus106-heldout-reference.json and
-heldout-cases.json/heldout-cases.reference.json. Initial reference has no supplied
-oracle and cannot establish a record. Review text and use its IDs/hash to prepare
-107 recent-policy prediction campaign, with exact causal cache counter predictions.
-No107 campaign yet. These new prompts stay separate from the established score.
+Our worktree/private/tmp/tahoma-inkling-panther-autolab, branch
+perf/inkling-panther-autolab. Latest pushed checkpointa15e27e5;107/109 completion
+checkpoint next. Run git log -1 for currentHEAD. Author AND committer
+Tate Berenbaum<t8@users.noreply.github.com>, no coauthor. User authorizedpush.
+Native source manifestpredicted-read-source.json; tar/private/tmp/predicted-read-source.tar,
+SHA d2100c0cfecb8e4b6c4b3ec6951322240f78c4888a4d3aaba8c57462eb2ec14c.
+Selected ptl-profile.ps1 recentties1 SHA
+deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304 synced.
+Sampler3036 remains active,048-host-resources.jsonl, expiry~18:13UTC.
+Read-only memory ownership099 explains20.03GB sharedGPU use by existingOVMS;
+do not stop it. No global power/affinity/service changes. Details/history follow.
 
 ## Completed evidence
 

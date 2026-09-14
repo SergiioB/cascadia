@@ -72,5 +72,6 @@ attention and reads its complete bytes on one bounded background worker. Actual
 routing alone determines whether those bytes are used. Unused reads drain before
 the layer returns; failures retain the ordinary complete-read fallback. It does
 not change cache history, expert selection, weights, or arithmetic. Default is
-off. Local248 tests and four tiny modes pass; native qualification and full
-speed measurements are pending. Do not enable it in the selected profile yet.
+off. Local248 tests and four tiny modes pass. Native109 qualification passed252
+tests and four tiny modes with exact outputs/routes/cache counters and13
+scheduled/11useful/2unused predicted reads. Full speed measurements are pending. Do not enable it in the selected profile yet.

@@ -1,0 +1,40 @@
+{
+  "scope": "heldout_comparison_artifacts",
+  "correctness_verified": true,
+  "record_eligible": false,
+  "output_hash": "e396cc533e658e44",
+  "artifacts": [
+    {
+      "source_file": "107-heldout-prediction-routes.json",
+      "source_bytes": 4562524,
+      "source_sha256": "382e88ec813b3402474f83b1ef00f97da659b44401d63c4b69ad8806e03799ea",
+      "compressed_file": "107-heldout-prediction-routes.json.gz",
+      "compressed_bytes": 317778,
+      "compressed_sha256": "96f69522e151571c66822474423d6b8693fb98ed0e5cca206c06e206228110fb"
+    },
+    {
+      "source_file": "107-heldout-prediction-layers.json",
+      "source_bytes": 5405754,
+      "source_sha256": "dc5d23994ee4428d16a5682aa20713d2dafa46500a9a8758897f5fc84aa36bd6",
+      "compressed_file": "107-heldout-prediction-layers.json.gz",
+      "compressed_bytes": 312489,
+      "compressed_sha256": "c1aa5a5f72f0e33adf33ec3a4843734f6bc5f4ffa5eb71ea69d937a1ef35d716"
+    },
+    {
+      "source_file": "107-host-resources.snapshot.jsonl",
+      "source_bytes": 3681967,
+      "source_sha256": "8c96409bed52296381a141a3c0229011741317d579adc514195c5686dd91752a",
+      "compressed_file": "107-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 298762,
+      "compressed_sha256": "6e52c5567d400b312b4fd1afe3b35254e295a3a12e22bcb7ab663d09afb4bfdd"
+    },
+    {
+      "source_file": "107-heldout-prediction-predicted.json",
+      "source_bytes": 3420336,
+      "source_sha256": "e93caba3d814eacbdb298f93ac11a2fea042f0a5ae9f39d6c46b235f22dc307d",
+      "compressed_file": "107-heldout-prediction-predicted.json.gz",
+      "compressed_bytes": 240746,
+      "compressed_sha256": "0ce43b1c76adeb6fae6cb8470b06e500cc556eb3e18654ca2d3a88a7d36b9786"
+    }
+  ]
+}
