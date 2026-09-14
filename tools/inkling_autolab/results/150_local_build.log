@@ -1,0 +1,70 @@
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: `cascadia-int4-gemm` (lib) generated 2 warnings (run `cargo fix --lib -p cascadia-int4-gemm` to apply 1 suggestion)
+warning: `cascadia-ov-genai-shim` (lib) generated 4 warnings (run `cargo fix --lib -p cascadia-ov-genai-shim` to apply 4 suggestions)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: method `selective_uncached` is never used
+   --> crates/cascadia-engine-sparse-moe/src/inkling/expert_cache.rs:124:12
+    |
+ 53 | impl ExpertCache {
+    | ---------------- method in this implementation
+...
+124 |     pub fn selective_uncached(
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `cascadia-engine-sparse-moe` (lib) generated 2 warnings
+   Compiling cascadia-engine-sparse-moe v0.2.3 (/private/tmp/tahoma-inkling-panther-autolab/crates/cascadia-engine-sparse-moe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s

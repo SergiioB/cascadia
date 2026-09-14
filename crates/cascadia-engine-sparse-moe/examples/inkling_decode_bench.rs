@@ -487,6 +487,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let read_buffer_idle_limit_bytes =
         cascadia_engine_sparse_moe::inkling::read_buffer_idle_limit_bytes();
     println!("read_buffer_idle_limit_bytes={read_buffer_idle_limit_bytes}");
+    let bf16_gemv_min_rows_configured =
+        cascadia_engine_sparse_moe::dsv4::math::bf16_gemv_min_rows();
+    println!("bf16_gemv_min_rows_configured={bf16_gemv_min_rows_configured}");
     println!(
         "third_prediction_reads_effective={}",
         u8::from(third_prediction_reads_effective)
@@ -539,6 +542,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "third_prediction_reads":third_prediction_reads,
                 "third_prediction_reads_effective":third_prediction_reads_effective,
                 "read_buffer_idle_limit_bytes":read_buffer_idle_limit_bytes,
+                "bf16_gemv_min_rows_configured":bf16_gemv_min_rows_configured,
                 "second_prediction_reads_effective":second_prediction_reads_effective,
                 "early_prediction_reads_effective":early_prediction_reads_effective,
                 "prefill_read_experts":prefill_read_experts,

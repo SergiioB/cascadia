@@ -23,6 +23,16 @@ Allraw/SHA/qualification proofs committed8fade069; originalthirdcontroller ended
 everycaseworse; no globalruntime implemented. Currentworker hypothesis records
 that earlier064–068sweep predatespreloading. No export/Lambda needed;25target unmet.
 
+##150 BF16 task grain implemented locally;151 not staged
+
+Two sourcefiles changed:dsv4/math.rs andexamples/inkling_decode_bench.rs.
+Opt-inCASCADIA_BF16_GEMV_MIN_ROWS1/16/32/64(default1), tiledAVX2rows2/4 only.
+257localtests/13suites and9fixtures pass; noAVX2execution onARM.
+Prepared run-full-bf16-grain.ps1,test-bf16-grain.bat,qualify-bf16-grain.py.
+151 expected264nativepasses/16sections,17fixturemodes,8guards, preserve17bins.
+Source manifest/archive/stager/fullcampaigns NOTpreparedyet. Do notstage orbuild
+until146–148 and any149confirmation finish. Review latest workercomparison first.
+
 ## Confirmed129 record; completed132–135 rank sweep
 
 126 QUALIFIED:257 native tests/13suites, five exact fixture modes, three invalid

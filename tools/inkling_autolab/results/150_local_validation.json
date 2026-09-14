@@ -1,0 +1,199 @@
+{
+  "scope": "local_bf16_grain_qualification",
+  "architecture": "aarch64-darwin",
+  "local_tests": 257,
+  "modes": [
+    {
+      "rows": 2,
+      "grain": 1,
+      "third": 0,
+      "configured_min_rows": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain1-third0.json",
+          "sha256": "15c126ee586ad7f4c11cf426afc83a7ff3c9d30771240ec2c0f8c9593b841e0e"
+        },
+        {
+          "name": "150-fixture-rows2-grain1-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain1-third0.log",
+          "sha256": "2fcfade41039d47ef794bb6973433d1e0e96bcc3fa9b4f1d418accbe098b4447"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 16,
+      "third": 0,
+      "configured_min_rows": 16,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain16-third0.json",
+          "sha256": "ab3bd49d11cba51fe491757b271fc2ad78c1c804b7be3721b7de92bd91e07bd9"
+        },
+        {
+          "name": "150-fixture-rows2-grain16-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain16-third0.log",
+          "sha256": "687681182077a523eb8a962d7252a20f15b75902890f279f0823d6a54d73a35e"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 32,
+      "third": 0,
+      "configured_min_rows": 32,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain32-third0.json",
+          "sha256": "15793a2eeebf774e55cbdf58f0d6f0f0d3fef33497cd0c40c785f93ebe48ceb5"
+        },
+        {
+          "name": "150-fixture-rows2-grain32-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain32-third0.log",
+          "sha256": "2762570c0c32f2c64f47aedf2a359cd29fc57668e8936cb1f588564f6e17a296"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 64,
+      "third": 0,
+      "configured_min_rows": 64,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain64-third0.json",
+          "sha256": "9ff29dc790f35bd32731624ad2d8689bc73751b4311aa5f5d72f4ff0a83be884"
+        },
+        {
+          "name": "150-fixture-rows2-grain64-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain64-third0.log",
+          "sha256": "7dd228d8e4dd523240292ef2c3ce191c89b4f859355a9a94e8ece74a12dccd72"
+        }
+      ]
+    },
+    {
+      "rows": 4,
+      "grain": 32,
+      "third": 0,
+      "configured_min_rows": 32,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows4-grain32-third0.json",
+          "sha256": "90447284c4b7df409325bb24b6c4b7443f65027459938d0286a9a6c385f16b46"
+        },
+        {
+          "name": "150-fixture-rows4-grain32-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows4-grain32-third0.log",
+          "sha256": "d0b4e65ca4b073a1b9148e60472ad2d12a2d1fad9a5ed40226524c6f2002a25c"
+        }
+      ]
+    },
+    {
+      "rows": 1,
+      "grain": 32,
+      "third": 0,
+      "configured_min_rows": 32,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows1-grain32-third0.json",
+          "sha256": "c34b5065353249eba3e13bdd40f8797cf7c7f2a789de3fcdc47b2c29074aa66e"
+        },
+        {
+          "name": "150-fixture-rows1-grain32-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows1-grain32-third0.log",
+          "sha256": "b68b3fe5a63bd0a3291e6e00eabbe06cca4b3cdabf092e5854b9f2664578607e"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 0,
+      "third": 0,
+      "configured_min_rows": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain0-third0.json",
+          "sha256": "ead41a20f2b6422aa0a2feaa524158724931c5912e2d2dbc9c06295aca1571b9"
+        },
+        {
+          "name": "150-fixture-rows2-grain0-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain0-third0.log",
+          "sha256": "06a8d8e028a64cffdbcc5abead46cb8691f6c0da73fc2b4f2f2148213e3594f9"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 17,
+      "third": 0,
+      "configured_min_rows": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain17-third0.json",
+          "sha256": "495324358cbbc4058fd5758ea0ad48d74782c1615ec09fe3b0f97f624ac14e43"
+        },
+        {
+          "name": "150-fixture-rows2-grain17-third0-routes.json",
+          "sha256": "8553c628fbbe544b878ef3631cbd35d9fc62c72f0272b6a687fb7c2e0e38a32a"
+        },
+        {
+          "name": "150-fixture-rows2-grain17-third0.log",
+          "sha256": "fc9ba35bd287a315fc6e7cca026b922f02b560e37b9d1707a796a3d0043437a8"
+        }
+      ]
+    },
+    {
+      "rows": 2,
+      "grain": 32,
+      "third": 1,
+      "configured_min_rows": 32,
+      "output_hash": "cab94449a78517d3",
+      "artifacts": [
+        {
+          "name": "150-fixture-rows2-grain32-third1.json",
+          "sha256": "5567e37ea5f0f92c4cc5e1dc73c850d190cabf1f18c955efc283044169e3a1ed"
+        },
+        {
+          "name": "150-fixture-rows2-grain32-third1-routes.json",
+          "sha256": "751590d761f90160c535f1f670a0a767330fb712583011d7b86a570311d58293"
+        },
+        {
+          "name": "150-fixture-rows2-grain32-third1.log",
+          "sha256": "a11fba7cf925546b85f148a91d78fc5d525f1fb266f5a253ca1abbc3c497a1bc"
+        }
+      ]
+    }
+  ],
+  "avx2_math_executed": false,
+  "native_qualification_pending": true,
+  "full_model_speedup_measured": false
+}

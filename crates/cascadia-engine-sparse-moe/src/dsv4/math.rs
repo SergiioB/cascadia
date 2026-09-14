@@ -463,26 +463,44 @@ pub fn linear_f32(x: &[f32], w: &[f32], out_dim: usize, in_dim: usize, y: &mut [
     });
 }
 
-/// Share activation loads across independent output rows. Each row retains
-/// dot_bf16w_avx2's two accumulator chains and horizontal reduction exactly.
+/// Minimum output rows per Rayon task in the tiled AVX2 BF16 path. This only
+/// controls subdivision; matrix tails and per-row arithmetic are unchanged.
+/// One preserves the original scheduling, including on unsupported paths.
+pub fn bf16_gemv_min_rows() -> usize {
+    use std::sync::OnceLock;
+    static MIN_ROWS: OnceLock<usize> = OnceLock::new();
+    *MIN_ROWS.get_or_init(|| {
+        std::env::var("CASCADIA_BF16_GEMV_MIN_ROWS")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|r| matches!(r, 1 | 16 | 32 | 64))
+            .unwrap_or(1)
+    })
+}
+
+/// Share activation loads across independent output rows, retaining the exact
+/// two accumulator chains and horizontal reduction of dot_bf16w_avx2.
 #[cfg(target_arch = "x86_64")]
 fn linear_bf16_w_tiled<const ROWS: usize>(x: &[f32], w: &[u16], in_dim: usize, y: &mut [f32]) {
     use rayon::prelude::*;
-    y.par_chunks_mut(ROWS).enumerate().for_each(|(tile, out)| {
-        let start = tile * ROWS * in_dim;
-        if out.len() == ROWS {
-            // SAFETY: caller checks AVX2/FMA. The validated matrix and activation
-            // dimensions cover all ROWS rows; the kernel bounds every vector load.
-            unsafe { bf16_rows_avx2::<ROWS>(&w[start..start + ROWS * in_dim], x, out) };
-        } else {
-            for (r, value) in out.iter_mut().enumerate() {
-                *value = to_bf16(dot_bf16w(
-                    &w[start + r * in_dim..start + (r + 1) * in_dim],
-                    x,
-                ));
+    y.par_chunks_mut(ROWS)
+        .with_min_len(bf16_gemv_min_rows().div_ceil(ROWS))
+        .enumerate()
+        .for_each(|(tile, out)| {
+            let start = tile * ROWS * in_dim;
+            if out.len() == ROWS {
+                // SAFETY: caller checks AVX2/FMA. The validated matrix and activation
+                // dimensions cover all ROWS rows; the kernel bounds every vector load.
+                unsafe { bf16_rows_avx2::<ROWS>(&w[start..start + ROWS * in_dim], x, out) };
+            } else {
+                for (r, value) in out.iter_mut().enumerate() {
+                    *value = to_bf16(dot_bf16w(
+                        &w[start + r * in_dim..start + (r + 1) * in_dim],
+                        x,
+                    ));
+                }
             }
-        }
-    });
+        });
 }
 
 #[cfg(target_arch = "x86_64")]
@@ -545,7 +563,7 @@ mod bf16_tiled_tests {
             ((seed >> 40) as f32 / 16777216.0 - 0.5) * 0.3
         };
         for n in [0, 1, 7, 8, 15, 16, 17, 31, 32, 33, 127, 256, 3072, 6144] {
-            for rows in [1, 2, 3, 4, 5, 17] {
+            for rows in [1, 2, 3, 4, 5, 17, 65, 129] {
                 // Offset the slices to cover unaligned loads, including odd rows.
                 let storage: Vec<u16> = (0..rows * n + 1)
                     .map(|_| bf16::from_f32(next()).to_bits())
