@@ -1,0 +1,16 @@
+{
+  "scope": "rank_sweep_decision",
+  "selected_rank": 2,
+  "selected_record129": 1.1161344306111156,
+  "decision": "retain_rank2_skip137_confirmation",
+  "all_alternatives_slower_on_all_cases": true,
+  "correctness_and_forecast_gates_pass": true,
+  "all_samples_included": true,
+  "control_score": 1.1182391857883942,
+  "candidate_scores": {
+    "1": 1.1078773694760213,
+    "3": 1.1103680144527475,
+    "5": 1.1033624070903834
+  },
+  "next_step": "139 local selective-third-reader implementation with dedicated three-expert fixture, then native qualification before full trials."
+}

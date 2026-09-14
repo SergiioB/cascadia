@@ -1,0 +1,160 @@
+{
+  "scope": "same_binary_second_rank_sweep",
+  "control_rank": 2,
+  "control_score": 1.1182391857883942,
+  "candidates": [
+    {
+      "number": "133",
+      "rank_ceiling": 1,
+      "score": 1.1078773694760213,
+      "ratio": 0.9907338104011554,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "control_tok_s": 1.1461055000373157,
+          "candidate_tok_s": 1.1331885418162222,
+          "ratio": 0.9887296952848816
+        },
+        {
+          "case": "binary_search",
+          "control_tok_s": 1.1182391857883942,
+          "candidate_tok_s": 1.1078773694760213,
+          "ratio": 0.9907338104011554
+        },
+        {
+          "case": "short_story",
+          "control_tok_s": 1.151102385357118,
+          "candidate_tok_s": 1.142487138682254,
+          "ratio": 0.9925156556146034
+        }
+      ],
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 14934,
+        "successful": 14934,
+        "unused": 688,
+        "unused_bytes": 21913141248,
+        "useful": 14246,
+        "useful_bytes": 453742166016,
+        "worker_failures": 0
+      },
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 3028,
+        "successful": 3028,
+        "unused": 120,
+        "unused_bytes": 3822059520,
+        "useful": 2908,
+        "useful_bytes": 92621242368,
+        "worker_failures": 0
+      }
+    },
+    {
+      "number": "134",
+      "rank_ceiling": 3,
+      "score": 1.1103680144527475,
+      "ratio": 0.9929611022081136,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "control_tok_s": 1.1461055000373157,
+          "candidate_tok_s": 1.1351350328707177,
+          "ratio": 0.9904280477091849
+        },
+        {
+          "case": "binary_search",
+          "control_tok_s": 1.1182391857883942,
+          "candidate_tok_s": 1.1103680144527475,
+          "ratio": 0.9929611022081136
+        },
+        {
+          "case": "short_story",
+          "control_tok_s": 1.151102385357118,
+          "candidate_tok_s": 1.145915638989362,
+          "ratio": 0.9954941050998283
+        }
+      ],
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 19957,
+        "successful": 19957,
+        "unused": 1215,
+        "unused_bytes": 38698352640,
+        "useful": 18742,
+        "useful_bytes": 596941996032,
+        "worker_failures": 0
+      },
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 8051,
+        "successful": 8051,
+        "unused": 647,
+        "unused_bytes": 20607270912,
+        "useful": 7404,
+        "useful_bytes": 235821072384,
+        "worker_failures": 0
+      }
+    },
+    {
+      "number": "135",
+      "rank_ceiling": 5,
+      "score": 1.1033624070903834,
+      "ratio": 0.9866962463066233,
+      "cases": [
+        {
+          "case": "water_cycle",
+          "control_tok_s": 1.1461055000373157,
+          "candidate_tok_s": 1.1318654389642047,
+          "ratio": 0.9875752615508369
+        },
+        {
+          "case": "binary_search",
+          "control_tok_s": 1.1182391857883942,
+          "candidate_tok_s": 1.1033624070903834,
+          "ratio": 0.9866962463066234
+        },
+        {
+          "case": "short_story",
+          "control_tok_s": 1.151102385357118,
+          "candidate_tok_s": 1.138762786073751,
+          "ratio": 0.9892801896335756
+        }
+      ],
+      "prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 22854,
+        "successful": 22854,
+        "unused": 2191,
+        "unused_bytes": 69784436736,
+        "useful": 20663,
+        "useful_bytes": 658126798848,
+        "worker_failures": 0
+      },
+      "second_prediction_reads": {
+        "dispatch_failures": 0,
+        "read_failures": 0,
+        "scheduled": 10948,
+        "successful": 10948,
+        "unused": 1623,
+        "unused_bytes": 51693355008,
+        "useful": 9325,
+        "useful_bytes": 297005875200,
+        "worker_failures": 0
+      }
+    }
+  ],
+  "all_outputs_actual_routes_cache_counters_exact": true,
+  "actual_read_counters_match_forecast": true,
+  "all_samples_included": true,
+  "record_promoted": false,
+  "decision": "review_before_any_repeated_confirmation",
+  "caveats": [
+    "One repetition per case, fixed candidate order; repeated confirmation required for promotion.",
+    "All first samples, unused reads, memory costs and stalls remain included."
+  ]
+}

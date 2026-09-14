@@ -1,0 +1,159 @@
+{
+  "scope": "rank_sweep_phase_resources",
+  "rows": [
+    {
+      "number": "132",
+      "rank": 2,
+      "median_seconds_per_token": {
+        "attention_seconds": 0.21112937301587362,
+        "mlp_seconds": 0.6335354682539677,
+        "total_seconds": 0.8473242952380969,
+        "outside_layers_seconds": 0.02432889365079333,
+        "wall_seconds": 0.8725200253968254
+      },
+      "decode_resources": {
+        "scope": "phase_sampled_resources",
+        "includes_load_prefill_decode": false,
+        "pid": 4248,
+        "created_unix": 1789391471.5424938,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-rank.exe",
+        "intervals": 15,
+        "sampled_seconds": 150.1239999998361,
+        "cpu_core_equivalents": 9.058241020766065,
+        "kernel_fraction": 0.06866518826624995,
+        "faults_per_second_includes_soft": 10895.066744836175,
+        "machine_disk_read_bytes_per_second": 7746364557.0946,
+        "process_read_bytes_per_second": 7745583037.817202,
+        "min_available_RAM_bytes": 1860202496,
+        "max_private_bytes": 42495377408,
+        "max_rss_bytes": 41490276352,
+        "max_machine_swap_used_bytes": 459358208,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ]
+      },
+      "min_available_RAM_bytes": 1860202496,
+      "max_private_bytes": 42499768320,
+      "mlp_stalls_over_half_second": []
+    },
+    {
+      "number": "133",
+      "rank": 1,
+      "median_seconds_per_token": {
+        "attention_seconds": 0.21842902857142799,
+        "mlp_seconds": 0.634352984126984,
+        "total_seconds": 0.8570006031746018,
+        "outside_layers_seconds": 0.02447278730158658,
+        "wall_seconds": 0.8824656825396825
+      },
+      "decode_resources": {
+        "scope": "phase_sampled_resources",
+        "includes_load_prefill_decode": false,
+        "pid": 6736,
+        "created_unix": 1789391748.78917,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-rank.exe",
+        "intervals": 15,
+        "sampled_seconds": 150.12500000046566,
+        "cpu_core_equivalents": 9.006452955842171,
+        "kernel_fraction": 0.061686735849492684,
+        "faults_per_second_includes_soft": 345.27227310467424,
+        "machine_disk_read_bytes_per_second": 7673559734.0111685,
+        "process_read_bytes_per_second": 7672548458.554053,
+        "min_available_RAM_bytes": 1931173888,
+        "max_private_bytes": 42495373312,
+        "max_rss_bytes": 41490018304,
+        "max_machine_swap_used_bytes": 471506944,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ]
+      },
+      "min_available_RAM_bytes": 1931173888,
+      "max_private_bytes": 42499846144,
+      "mlp_stalls_over_half_second": []
+    },
+    {
+      "number": "134",
+      "rank": 3,
+      "median_seconds_per_token": {
+        "attention_seconds": 0.2210727698412695,
+        "mlp_seconds": 0.6285086095238104,
+        "total_seconds": 0.8555910587301595,
+        "outside_layers_seconds": 0.0244404238095226,
+        "wall_seconds": 0.8809524603174603
+      },
+      "decode_resources": {
+        "scope": "phase_sampled_resources",
+        "includes_load_prefill_decode": false,
+        "pid": 9888,
+        "created_unix": 1789392029.1779904,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-rank.exe",
+        "intervals": 15,
+        "sampled_seconds": 150.0950000002049,
+        "cpu_core_equivalents": 9.185120257157921,
+        "kernel_fraction": 0.06411433363934128,
+        "faults_per_second_includes_soft": 345.24800959345254,
+        "machine_disk_read_bytes_per_second": 7794448910.879129,
+        "process_read_bytes_per_second": 7793976265.581153,
+        "min_available_RAM_bytes": 1936371712,
+        "max_private_bytes": 42495176704,
+        "max_rss_bytes": 41489833984,
+        "max_machine_swap_used_bytes": 521789440,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ]
+      },
+      "min_available_RAM_bytes": 1902030848,
+      "max_private_bytes": 42499604480,
+      "mlp_stalls_over_half_second": []
+    },
+    {
+      "number": "135",
+      "rank": 5,
+      "median_seconds_per_token": {
+        "attention_seconds": 0.21403609523809472,
+        "mlp_seconds": 0.6397147587301553,
+        "total_seconds": 0.8581548031746019,
+        "outside_layers_seconds": 0.024395158730159877,
+        "wall_seconds": 0.8834972476190476
+      },
+      "decode_resources": {
+        "scope": "phase_sampled_resources",
+        "includes_load_prefill_decode": false,
+        "pid": 10892,
+        "created_unix": 1789392308.9044845,
+        "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-rank.exe",
+        "intervals": 14,
+        "sampled_seconds": 140.09399999957532,
+        "cpu_core_equivalents": 8.816736441273319,
+        "kernel_fraction": 0.0725987021037052,
+        "faults_per_second_includes_soft": 78.98982112034453,
+        "machine_disk_read_bytes_per_second": 7969933231.8256645,
+        "process_read_bytes_per_second": 7968648798.687911,
+        "min_available_RAM_bytes": 1989775360,
+        "max_private_bytes": 42495401984,
+        "max_rss_bytes": 41489936384,
+        "max_machine_swap_used_bytes": 485203968,
+        "caveats": [
+          "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+          "Page faults include soft faults; they are not all storage reads.",
+          "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+          "Only adjacent snapshots containing the same PID and creation time contribute rates."
+        ]
+      },
+      "min_available_RAM_bytes": 1989013504,
+      "max_private_bytes": 42499780608,
+      "mlp_stalls_over_half_second": []
+    }
+  ],
+  "all_stalls_included": true,
+  "caveat": "Phase and sampled I/O counters do not isolate causes or establish the maximum SSD bandwidth."
+}
