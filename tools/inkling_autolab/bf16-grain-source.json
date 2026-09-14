@@ -1,0 +1,37 @@
+{
+  "source_commit": "735e4ca9149f1c2673b27c3ffdbcccce7da22269",
+  "files": [
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/dsv4/math.rs",
+      "previous_sha256": "7338988ebb80ff659413570b158d10f6f2b734bedba222566bb20b226ca2b409",
+      "candidate_sha256": "ab89af060ef3d2a258bbef9bea62fe5161c486fe0df45040d65b04cc0eb55326"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/examples/inkling_decode_bench.rs",
+      "previous_sha256": "22465bc28b39adf59207bc8830b903cfca711dc4f47e16d81257368ecf7f893e",
+      "candidate_sha256": "26ae1e441d616307770ebfd0bf9bf876f00d48f66cb02f81b6d96ff626535c93"
+    }
+  ],
+  "frozen_binaries": {
+    "full-prefill-reads.exe": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+    "full-expert-cache.exe": "fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88",
+    "full-pipeline.exe": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+    "full-uncached.exe": "9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2",
+    "full-owned-shared.exe": "0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb",
+    "full-decode.exe": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a",
+    "full-read-buffers.exe": "497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861",
+    "full-mmap-embed.exe": "95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d",
+    "full-cache-decay.exe": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+    "full-cache-recency.exe": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+    "full-route-prediction.exe": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984",
+    "full-predicted-read.exe": "7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a",
+    "full-early-prediction.exe": "853c4cbe2ecfb5e35f0f948cfff3196686e779d66c4c62fd152fc00b6cbd9d9d",
+    "full-early-prefetch.exe": "381c116608c3c9d6cec94861d0f09f66073c79989b750c4aead019d82d4942c6",
+    "full-second-prefetch.exe": "71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476",
+    "full-second-rank.exe": "83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2",
+    "full-third-prefetch.exe": "f91e4e0e7002e0aa54a496d2ae24d1f706ed9b38003a568956bd1ae8d647cd03"
+  },
+  "archive_sha256": "e4e1515c47c139547078d7681045d5b1c16e1c776074cb3d081c1838d0dcacea",
+  "previous_wrapper_sha256": "c18b8446bf4eb7c8fafadebe510bf6de81480c2b0122e524479d15257ce385bc",
+  "candidate_wrapper_sha256": "c172f39107a48b42967d5ed5fae7437c273a919fda39c97de82b9c6b51262265"
+}

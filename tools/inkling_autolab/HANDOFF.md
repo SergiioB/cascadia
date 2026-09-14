@@ -30,8 +30,15 @@ Opt-inCASCADIA_BF16_GEMV_MIN_ROWS1/16/32/64(default1), tiledAVX2rows2/4 only.
 257localtests/13suites and9fixtures pass; noAVX2execution onARM.
 Prepared run-full-bf16-grain.ps1,test-bf16-grain.bat,qualify-bf16-grain.py.
 151 expected264nativepasses/16sections,17fixturemodes,8guards, preserve17bins.
-Source manifest/archive/stager/fullcampaigns NOTpreparedyet. Do notstage orbuild
-until146–148 and any149confirmation finish. Review latest workercomparison first.
+Source735e4ca9149f1c2673b27c3ffdbcccce7da22269; bf16-grain-source.json prepared,
+archive/private/tmp/bf16-grain-source.tar SHAe4e1515c47c139547078d7681045d5b1c16e1c776074cb3d081c1838d0dcacea.
+Candidatewrapperc172f39107a48b42967d5ed5fae7437c273a919fda39c97de82b9c6b51262265.
+Stager/private/tmp/stage-inkling-151.py requires148_decision ready_for_next_runtime=true.
+Controller/private/tmp/run-inkling-bf16-grain-loop.py prepared; NOTlaunched.
+152grain1control/153grain16/154grain32/155grain64 campaigns prepared, Threads16.
+Update theirthreadgrid+expectedmetric only if149confirms/promotes another count.
+Do notstage/build until146–148 and any149confirmation finish. Thenstage151,
+launch151archive/152–155controller, review155beforeconditional156confirmation.
 
 ## Confirmed129 record; completed132–135 rank sweep
 
