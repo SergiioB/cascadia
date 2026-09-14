@@ -320,6 +320,36 @@ impl MoeLayer {
         }
     }
 
+    /// In Probe mode the residency probe (`mincore` / `QueryWorkingSetEx`) may be
+    /// unavailable — an unsupported target, or a failing syscall — in which case
+    /// `resident_pages_sampled` returns `(0, 0)`, `expert_cold` reports every
+    /// expert resident, and the whole hot/cold split silently becomes a no-op
+    /// (all-hot, no overlap). Warn once so the operator who opted into the
+    /// overlap knows it is not happening. ForceCold does not probe, so skip it.
+    fn warn_if_probe_unavailable(&self, mode: HotCold) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        if mode != HotCold::Probe {
+            return;
+        }
+        W.call_once(|| {
+            // Probe any mmap routed expert; `probed == 0` means the OS query is
+            // dead. No mmap experts -> nothing to probe, not a failure.
+            let probe_dead = self
+                .w
+                .experts
+                .iter()
+                .find_map(AnyExpert::as_mmap)
+                .is_some_and(|m| m.resident_pages_sampled(8).1 == 0);
+            if probe_dead {
+                eprintln!(
+                    "[glm5] hotcold: residency probe unavailable on this platform; \
+                     running all-hot (no read overlap)"
+                );
+            }
+        });
+    }
+
     /// This layer's routed-expert bin table for the LOOKAHEAD worker (paths + sizes;
     /// `None` per expert on the non-mmap path).
     pub fn expert_bins(&self) -> super::lookahead::LayerBins {
@@ -427,6 +457,7 @@ impl MoeLayer {
                 .collect();
             let ncold = is_cold.iter().filter(|&&c| c).count();
             prof::note_hotcold(k - ncold, ncold);
+            self.warn_if_probe_unavailable(mode);
             if ncold == 0 {
                 // Everything resident: plain mmap compute — no threads, no
                 // buffer copies. The zero-overhead steady state.
