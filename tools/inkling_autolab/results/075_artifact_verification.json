@@ -1,0 +1,54 @@
+[
+  {
+    "name": "075-row-retune-qualification.json",
+    "sha256": "5c4e89e7f959200c945d4e2570952a6ef41f5715a029d9ce02d9565e8abc6a43"
+  },
+  {
+    "name": "075-row-retune-qualification.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "row-retune-qualification-state.json",
+    "sha256": "9c5d74ada6c9e636d7bc077dccbb2ba1e4f0913815d489932f9d3fc79174ba9c"
+  },
+  {
+    "name": "075-fixture-rows-2-4.json",
+    "sha256": "ff0f07db4325b95ecaa14abeb155940bdb88f78d95dc87a9e6f8e374200fb649"
+  },
+  {
+    "name": "075-fixture-rows-2-4.log",
+    "sha256": "b9064683664ee9047c4d72a2ff48472cac45866899692833eb83cafb2ffbff10"
+  },
+  {
+    "name": "075-fixture-rows-1-4.json",
+    "sha256": "7b3f41e3d97aba8e63f47ce41f4d4e82fe7d1a6d834057388e25e6dcdf5d2331"
+  },
+  {
+    "name": "075-fixture-rows-1-4.log",
+    "sha256": "63c38abe0ffc3e7e53d6f83dfb004be9ce0a994e7fb3f6196c82957ea7ca37d2"
+  },
+  {
+    "name": "075-fixture-rows-4-4.json",
+    "sha256": "b309862e13f028d33dd14d91c762e5c0cef03cfcfe7c0cbae69cd92024dbdbf3"
+  },
+  {
+    "name": "075-fixture-rows-4-4.log",
+    "sha256": "80ceb8081465d8ae8a9ccf3ab923a50fa92c80da2afd0dc50f9c88d115f62fe6"
+  },
+  {
+    "name": "075-fixture-rows-2-1.json",
+    "sha256": "90188a433d1981af0173fd5f34228b56dbd0a88a48f6b148e0c67a2fd5e30d14"
+  },
+  {
+    "name": "075-fixture-rows-2-1.log",
+    "sha256": "1e653c842f7694f4a355bf3318b68b8f28e58de8c371e419adafe1d6217b2292"
+  },
+  {
+    "name": "075-fixture-rows-2-2.json",
+    "sha256": "8006bd571774207028a835dcc933dc06607df03749ae5e97ace4ea69f8201b4f"
+  },
+  {
+    "name": "075-fixture-rows-2-2.log",
+    "sha256": "b331cb528b4c5dc71811c81e43558adb94a755cb2179a970ec42bcfbd5234280"
+  }
+]

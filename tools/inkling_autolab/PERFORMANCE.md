@@ -1,105 +1,99 @@
 # Inkling large975B on Panther Lake
 
-The confirmed three-repeat record is **0.567914 decode tokens/s** on tate-07,
-**4.20× the original baseline**. All nine samples passed exact token and logits
-checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
-**The 25 tokens/s target has not been reached.**
+The confirmed record is **0.938274 decode tokens/s**, the slowest of nine samples,
+**6.93× the original baseline** and **65.2% above the prior repeated record**.
+The median is 0.964802 and the fastest sample is 1.032928. All saved tokens,
+full-logits hashes and routing decisions match. **The 25 tokens/s target is unmet.**
 
-The resumed loop has reached **0.937041 tok/s over one pass** with streamed
-prefill, a 16.31 GB routed cache, request-history reset and cache-frequency decay
-at 32 routed requests. All three prompts improved against the matched default
-decay control; [the comparison](results/072_cache_decay_comparison.json) records
-exact output and route equality. Prefill takes 24–25 seconds. The worker sweep
-selected 16 threads, and the paired storage probe found no consistent async gain.
-
-Three-repeat confirmation campaign 074 is running. See [HANDOFF.md](HANDOFF.md)
-for active jobs and [RUNTIME_OPTIONS.md](RUNTIME_OPTIONS.md) for opt-in settings.
-The three-repeat record above remains the confirmed result until this finishes.
+[Campaign074 verification](results/074_final_verification.json) confirms three
+prompts × three repetitions, with 64 generated tokens and 63 decode steps each.
+Prefill takes 23.82–25.13 seconds. The score includes the first decode run and
+output checking; decode timing excludes prefill. Optimization remains active:
+the next trials retest existing matrix row tiles under this improved profile.
+See [HANDOFF.md](HANDOFF.md) for current jobs.
 
 ## What was measured
 
-The complete 548,985,140,942-byte int4 export is on tate-07, with all 16,654 files
-SHA-256 verified. The production Inkling loader and decoder run all 66 layers,
-embeddings, attention, routed/shared experts, and output head. These results use
-the CPU backend with 16 threads on a Core Ultra X7 358H and 64 GB of RAM.
-The Arc B390 is not used by these full-model runs.
+The complete 548,985,140,942-byte int4 export is on tate-07. All 16,654 files
+were SHA-256 verified. The production loader and decoder execute all 66 layers,
+embeddings, attention, routed/shared experts and output head. These are CPU
+results on a Core Ultra X7 358H with 64 GB RAM and 16 worker threads. The
+Arc B390 is not used by these full-model runs.
 
-Each pass contains three prompts: a water-cycle explanation, binary search, and
-a short story. Each case generates 64 tokens, of which 63 belong to decode; the
-first token belongs to prefill. The score is the slowest case/repetition,
-including the first decode run and output checking. Every candidate must match
-the baseline's saved greedy IDs and full-logits hash `ce0fbb9a116d3d09`.
-Separate tiny-model tests check the port against the Hugging Face fixture.
+The three prompts cover the water cycle, binary search and a short story.
+Every candidate must match baseline greedy IDs and full-logits hash
+`ce0fbb9a116d3d09`. Separate tiny-model tests compare against the Hugging Face
+fixture. Full outputs, actual configuration counters, binary identity, route
+identity and the complete case/repetition grid are checked before promotion.
 
-| Profile | Passes | Slowest decode tokens/s | Change from original |
-| --- | ---: | ---: | ---: |
-| [Original baseline](results/033_large-baseline.json) | 3 | 0.135334 | 1.00× |
-| [Reusable buffers, row tiles, mapped embedding](results/036-buffered.json) | 3 | 0.196934 | 1.46× |
-| [Also own the shared expert bytes](results/040-owned-shared.json) | 1 | 0.235890 | 1.74× |
-| [Also use uncached expert reads](results/042-uncached.json) | 1 | 0.515177 | 3.81× |
-| [Control for read/compute overlap](results/044-pipeline-control.json) | 1 | 0.537715 | 3.97× |
-| [Overlap each expert's read and compute](results/045-pipeline-overlap.json) | 1 | 0.570649 | 4.22× |
-| [Final repeated overlap profile](results/046-final.json) | 3 | **0.567914** | **4.20×** |
+| Profile | Passes | Slowest decode tok/s |
+| --- | ---: | ---: |
+| [Original baseline](results/033_large-baseline.json) | 3 | 0.135334 |
+| [Reusable buffers, row tiles, mapped embedding](results/036-buffered.json) | 3 | 0.196934 |
+| [Owned shared expert bytes](results/040-owned-shared.json) | 1 | 0.235890 |
+| [Uncached expert reads](results/042-uncached.json) | 1 | 0.515177 |
+| [Repeated read/compute overlap](results/046-final.json) | 3 | 0.567914 |
+| [Streamed prefill with 4 GB routed cache](results/054-prefill-1.json) | 1 | 0.709011 |
+| [16 GB routed cache and request-history reset](results/057-history-256.json) | 1 | 0.915789 |
+| [Shorter cache frequency history](results/072-decay-32.json) | 1 | 0.937041 |
+| [Selected profile, repeated confirmation](results/074-cache-confirmation.json) | 3 | **0.938274** |
 
-The 036 SSH connection did not return after native completion. Its transport
-failure remains in Autolab history; its complete native results were separately
-[verified against the saved artifacts](results/036_completed_artifact_verification.json).
-The full campaigns 040, 042, 044, 045 and 046 completed through Autolab normally. The final
-[verification report](results/046_final_verification.json) checks all nine
-case/repetition pairs, native logs, reference IDs, logits hash, binary identity,
-and actual configuration counters. Those046 jobs exited; the resumed loop has
-new full-model trials and a resource sampler running.
+The 036 SSH connection failed to return after native completion. That transport
+failure remains in Autolab history; its complete native artifacts were
+[verified separately](results/036_completed_artifact_verification.json).
+Campaign074 completed normally through Autolab. Its native benchmark process
+exited; the resource sampler continues for subsequent trials. Protected OVMS
+and Cascadia services remain running.
 
 ## What improved
 
-Reusing destination allocations avoids repeatedly faulting in newly allocated
-read buffers. Mapping the sparsely accessed embedding table reduces private
-memory, and the row tiles retain the same numerical accumulation. Owning the
-always-used shared experts adds about 4.08 GB of private weights but avoids
-repeated shared-file reads.
+Reusable aligned destination buffers avoid repeated allocation faults. Mapping
+the embedding reduces private memory. Owning the always-used shared experts
+retains about 4.08 GB of packed weights and avoids repeated shared-file reads.
+Uncached Windows reads bypass the file-cache path for routed experts, and
+pipelining overlaps each expert's read and compute. Invalid or failed direct
+reads retry a complete cached read before any bytes reach a kernel.
 
-Uncached Windows reads bypass the file-cache path for nonresident routed
-experts, using aligned reusable buffers and the same packed bytes and kernels.
-The final repeated run recorded 6.638 TB of successful uncached reads with zero fallbacks.
-Mapped execution still handles experts selected by the residency check. Failed
-or unsupported uncached reads retry a complete cached read; partial buffers are
-never consumed. These are ordinary private allocations, not physically pinned
-pages. All options remain opt-in.
+Streamed prefill reads each unique current-block expert through a bounded pool
+of reusable buffers. In the [matched comparison](results/054_prefill_comparison.json),
+prefill fell from 103–108 seconds to 24–25 seconds and decode improved 20.8%.
+This removed paging pressure and made a larger routed cache useful: increasing
+its retained weights from 4 to 8 to 16 GB improved every measured prompt.
 
-Median expert-block time fell from 3.801 seconds/token in 040 to 1.495 in 042;
-attention was 0.364 and work outside the layers was 0.025 seconds/token in 042.
-Prefill still takes roughly two minutes for these short prompts, with transient
-memory pressure. Decode speed does not include that prefill latency.
+The routed cache uses observed routing frequency, resets its admission history
+at each request and halves those counts every 32 routed requests. Weight bytes
+remain unchanged. [Shorter history](results/072_cache_decay_comparison.json)
+removed 3.12% of remaining decode reads and improved all three prompts against
+the matched default-history control. A worker sweep selected 16 threads over
+8, 12, 24 and 32. Matched asynchronous-read probes found no consistent benefit.
 
-The matched overlap comparison improved the slowest-case score by 6.1%, with
-each case improving by 4.2–12.0%. The overlap arm completed 2.72% more uncached
-expert bytes, so its gain did not come from reading fewer expert bytes.
-The [comparison report](results/045_pipeline_comparison.json) retains both arms.
-The final three-repeat run confirms the selected profile at 0.567914 tokens/s.
-Median seconds per decode token are 0.373 for attention, 1.305 for the expert
-block and 0.025 outside layers. Prefill takes 100–114 seconds per prompt.
-The sampled lifetime still shows transient memory pressure (minimum available
-RAM 1.09 MB); it includes loading and prefills, not just decode. Protected
-OVMS and Cascadia services remained running throughout.
+Campaign074 retained 16.31 GB of routed weights, recorded 94,235 cache hits and
+123,493 misses, and completed 3.933 TB of uncached decode reads with zero
+fallbacks. Streamed prefill completed 1.303 TB of reads with zero fallbacks.
+Median time per decoded token is 0.184 seconds in attention, 0.829 in the
+expert blocks and 0.024 outside the layers. The sampled process peak was
+42.52 GB private memory; minimum available machine RAM was 1.81 GB.
+See the [layer profile](results/074_layer_profile.json) and
+[resource report](results/074_resources.json). Machine disk counters include
+other processes, and page-fault counters include soft faults.
 
 ## Reproduce the selected profile
 
-Dot-source [ptl-profile.ps1](ptl-profile.ps1) before launching a new Inkling engine
-process on tate-07. It sets process environment variables only. The benchmark
-also uses High process priority and all 16 logical processors; the production
-launcher [run-full.ps1](run-full.ps1) applies those conditions to its own child.
+Dot-source [ptl-profile.ps1](ptl-profile.ps1) before starting a new Inkling
+process. It sets process environment variables only. Cache256 MiB is per MoE
+layer, not a model-wide budget. The benchmark uses High process priority and
+all 16 logical processors; [run-full.ps1](run-full.ps1) applies those settings
+to its own child. See [runtime options](RUNTIME_OPTIONS.md) for dependencies.
 
-The qualified `full-pipeline.exe` SHA-256 is
-`8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b`.
-Its source is commit `18f8becb`. The exact repeated benchmark command is saved in
-[campaign 046](campaigns/046_full_final_confirmation.yaml). All 233 native
-qualification tests passed before this binary was used for full-model trials.
-The selected process profile is verified; it does not meet the 25 tokens/s target.
+The frozen `full-cache-decay.exe` SHA-256 is
+`3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8`,
+built from source `6b820e83`. Qualification passed 242 native tests, five tiny
+fixture modes and the production wrapper's exact oracle before full trials.
+The exact repeated command and expected counters are in
+[campaign074](campaigns/074_full_cache_confirmation.yaml).
 
-The [journal](JOURNAL.md) records hypotheses, tests, and rejected approaches.
-Raw layer/routing traces and sampled host resources are archived under
-`results/` with SHA manifests. Machine disk counters include other processes;
-page-fault counters include soft faults.
+All raw traces and resource snapshots are archived with SHA manifests.
+[The journal](JOURNAL.md) records hypotheses, measured results and rejected ideas.
 
 ## Why 25 tokens/s requires a different setup
 

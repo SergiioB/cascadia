@@ -1,0 +1,125 @@
+{
+  "scope": "completed_full_model_repeated_confirmation",
+  "campaign": "074_full_cache_confirmation",
+  "native_source_commit": "6b820e83",
+  "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+  "native_pid": 6112,
+  "created_unix": 1789373844.4969847,
+  "autolab_status": "completed",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "repetitions": 3,
+  "decode_steps_min": 63,
+  "slowest_decode_tokens_per_s": 0.9382743961161363,
+  "median_decode_tokens_per_s": 0.9648021078775927,
+  "fastest_decode_tokens_per_s": 1.032928208451392,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 6.933031059648188,
+  "speedup_over_prior_repeated_record": 1.6521424614899909,
+  "prefill_seconds_range": [
+    23.8165833,
+    25.1302368
+  ],
+  "actual_metrics": {
+    "decode_tokens_per_s": 0.9382743961161363,
+    "output_hash": "ce0fbb9a116d3d09",
+    "full_model": 1,
+    "correctness_verified": 1,
+    "decode_steps_min": 63,
+    "repetitions": 3,
+    "embedding_mapped": 1,
+    "reuse_buffers": 1,
+    "owned_shared_bytes": 4076863488,
+    "uncached_read_bytes": 3933313302528,
+    "uncached_read_fallbacks": 0,
+    "uncached_read_effective": 1,
+    "pipelined_read_layers": 36288,
+    "pipeline_reads_effective": 1,
+    "expert_cache_capacity_bytes": 17179869184,
+    "expert_cache_retained_bytes": 16309550592,
+    "expert_cache_hits": 94235,
+    "expert_cache_hit_bytes": 3001431490560,
+    "expert_cache_misses": 123493,
+    "expert_cache_admissions": 25801,
+    "expert_cache_evictions": 25289,
+    "expert_cache_effective": 1,
+    "expert_cache_history_resets": 576,
+    "prefill_read_experts": 40905,
+    "prefill_uncached_read_bytes": 1302844538880,
+    "prefill_uncached_read_fallbacks": 0,
+    "prefill_reads_effective": 1,
+    "rayon_threads": 16,
+    "expert_cache_frequency_decays": 6336
+  },
+  "per_sample": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.9746513783408404,
+      "prefill_seconds": 24.5122278
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.938522516091449,
+      "prefill_seconds": 25.1302368
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.9623921336193425,
+      "prefill_seconds": 24.2246884
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.032928208451392,
+      "prefill_seconds": 24.0281047
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.9382743961161363,
+      "prefill_seconds": 25.0935175
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.9651673123893875,
+      "prefill_seconds": 24.1368164
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.0307494686715544,
+      "prefill_seconds": 23.8165833
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.938384256800607,
+      "prefill_seconds": 25.1108193
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.9648021078775927,
+      "prefill_seconds": 24.2293123
+    }
+  ],
+  "all_prefill_and_decode_routes_match_046": true,
+  "native_trial_exited": true,
+  "sampler_remains_running": true,
+  "target_reached": false,
+  "caveats": [
+    "Full CPU backend; Arc B390 is not used.",
+    "Three prompts and three repetitions with natural OS cache state and protected background services.",
+    "Decode excludes prefill; timings include output checking and diagnostics.",
+    "Best tested profile is not a claim of mathematical optimality."
+  ],
+  "artifact_sha256": {
+    "074-cache-confirmation.json": "68b9c430b195429f1ce828ce32f995203aba8ba3a5b18dd84a08445f4d72292a",
+    "074-cache-confirmation.log": "4130405368f0e0b68928c4855fdd89f4ff23ed46ecb87124d09bf4675f2b2238"
+  }
+}

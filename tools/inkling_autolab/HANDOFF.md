@@ -1,109 +1,82 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 08:25 UTC. User resumed autonomous optimization.
-Work is ACTIVE. Do not stop after a finite campaign. Target 25 tok/s is unmet.
+Updated2026-09-14 08:35UTC. User resumed autonomous optimization.
+Work is ACTIVE; do not stop after a finite campaign. Target25tok/s is unmet.
 
-## Active work
+## Current record and live work
 
-**074_full_cache_confirmation RUNNING**, local tool session **54245**.
-Native **full-cache-decay.exe PID 6112**, created **1789373844.4969847**.
-Controller log `/private/tmp/inkling-074_full_cache_confirmation.log`.
-Native outputs `074-cache-confirmation.json/.log/-routes.json/-layers.json`.
-Three prompts × three repetitions; 64 generated / 63 decode tokens each.
-Settings: 16 workers, BF16 rows2, int4 rows4, Reads0, Reuse1, SkipBulk1,
-OwnShared1, MmapEmbed1, Uncached1, Pipeline1, cache256 MiB PER MoE layer,
-PrefillReads1, CacheResetHistory1, CacheDecayRequests32, High priority,
-affinity65535. Binary SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
-source6b820e83. No new runtime changes before confirmation.
+**Confirmed074 record:0.9382743961tok/s**, slowest of nine samples,
+median0.9648021079,fastest1.0329282085.6.933×original,1.652×prior046 record.
+All baseline IDs/hash, all046 prefill+decode routes, all actual cache/I/O counters
+match. Native6112 exited. Verification074_final_verification.json, raw artifacts
+and SHA manifests committed with this handoff. PERFORMANCE.md and ptl-profile.ps1
+promoted; native profile copy SHA verified. Sampler remains active.
 
-Expected actual nine-sample counters are in campaign074, predicted causally
-from verified046 routes in070: hits94235/misses123493, admissions25801,
-evictions25289, frequency decays6336, history resets576, pipeline36288,
-prefill expert visits40905, prefill uncached1302844538880B, retained16309550592B,
-capacity17179869184B, owned shared4076863488B, zero uncached fallbacks.
-Require full hashce0fbb9a116d3d09 and exact saved baseline IDs in all nine samples.
+**076_full_rows_2_4 RUNNING**, **077/078/079/080 QUEUED sequentially**.
+Controller tool **36811**, script`/private/tmp/run-inkling-row-loop.py`.
+Logs`/private/tmp/inkling-076_full_rows_2_4.log` and equivalent campaign names.
+Native076 **PID2208**, created**1789374854.695914**.
+Outputs076-rows-2-4.json/.log/-routes.json/-layers.json, then077-rows-1-4.*,
+078-rows-4-4.*,079-rows-2-1.*,080-rows-2-2.*.
+Frozenfull-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
+source6b820e83. All have16workers/cache256MiBperlayer/PrefillReads1/
+CacheResetHistory1/CacheDecayRequests32, other selected flags unchanged.
+Each3prompts×1rep,64generated/63decode; only row tile knobs vary.
+Exact hashce0fbb9a116d3d09, IDs/counters/config gates remain enabled.
 
-Capture after native process exits:
-`python3 /private/tmp/capture-inkling-trial.py 074 074-cache-confirmation 6112 1789373844.4969847 --repetitions 3`
-It checks PID AND creation lifetime, Cartesian case/repetition coverage, IDs,
-full dimensions/hash, and SHA-checks copied logs/traces/resource snapshot.
-Then write formal verification, update PERFORMANCE.md and ptl-profile.ps1.
+075native row qualification passed all five modes, tiny hash1f7cd0eb14a22662,
+IDs[28,48,106,84,28,48,106,84]×3. Binary/wrapper unchanged. Native9864,parent3504
+exited; all reports/logs copied and SHA verified. Sourcequalify-row-retune.py,
+commite6881951 (pushed). Controller refuses to start without074 formal and075
+qualification reports. Capture each full trial after its PID/lifetime exits:
+`python3 /private/tmp/capture-inkling-trial.py 076 076-rows-2-4 2208 1789374854.695914`
+Future3-repeat capture uses`--repetitions3`. Helper checks exact grid/IDs/full
+shape/hash; copies and SHA checks reports, log, traces and whole-line sampler
+snapshot; archives gzip plus layer/phase-resource analyses. Outputdir
+/private/tmp/inkling-STEM-artifacts. Do not overwrite immutable snapshots.
 
-**075 row qualifier is staged and waiting**: nativePython9864, parent3504,
-state`row-retune-qualification-state.json`. It waits for074 full exit, then
-qualifies five existing row combinations using the frozen binary and wrapper.
-Source`qualify-row-retune.py`, commite6881951 (pushed). Outputs075-row-retune-
-qualification.json/.log and075-fixture-rows-BF16-INT4.json/.log. No wrapper
-mutation. After074 formal verification and075 qualified/exited, launch
-prepared076–080 campaigns sequentially. No full row campaign launched yet.
-Continue with further optimization; prepared next hypothesis is to retest
-existing BF16/int4 row tiling under the new cache/prefill profile. Qualify the
-frozen binary on native tiny fixtures before full trials, after074 exits.
+After row sweep, select best candidate and continue. **084 compressed-read
+component probe is PLANNED, NOT WRITTEN OR LAUNCHED.** PTL already has
+C:/msys64/mingw64/bin/libzstd.dll and zstd.EXE, plus include/zstd.h; nativePython
+3.11.9 has no zstandard package. Repo has no zstd dependency. Use existingDLL
+throughctypes, separate decompression contexts/preallocated buffers, original
+uncached read vs temporary padded compressed uncached read+decompression,
+matched cohorts/balanced order/exact bytes. Wait until080/full processes exit;
+never overlap component benchmark with full trial. No runtime compression code.
 
-## Latest completed evidence
+## Evidence and remaining experiments
 
-071 default decay4096: **0.9193077063** tok/s slowest, rates0.960814/0.919308/0.943939.
-072 decay32: **0.9370410437** tok/s slowest, rates0.975015/0.937041/0.963865.
-Each one pass. Same outputs/hash/routes; all actual counters pass. Decay32 reads
-3.116% fewer routed bytes and improves every prompt1.48–2.11%. Selected for074.
-All raw artifacts, SHA manifests, layer and resource profiles archived.
-`072_cache_decay_comparison.json` records the matched comparison.
-Bestsingle-pass0.937041; formal repeated record remains0460.5679137350 until074.
+071defaultdecay4096 onepass0.9193077063;072decay32 onepass0.9370410437.
+Allthree prompts improved1.48–2.11%; reads3.116%lower. Report072comparison.
+074 repeated score0.938274 is the selected profile; record details above.
+064–068workers16/8/12/24/32 select16; scores.917566/.884640/.901151/.869538/.858327.
+069async75cohorts and073matched30pairs passed all bytes/error canaries but show
+no consistent gain. Defer async/chunked runtime. Both exited; artifacts verified.
+081 causal prefill-cache seeding removes only0.610%remaining reads at8slots/32;
+history-only0.053%. Defer runtime prefill admission. All simulator controls match.
+082 shorterdecays4/8/16/32 have139809/128331/123825/123493 misses over9samples;
+32 remains best, so no extra short-decay full tests needed.
+083 source-host compressibility probe:18experts across6layers, Zstd1 ratio.874644,
+Zstd3 .868844.36byte-exact decompressions. Compressed bytes stayed in memory;
+no model export or files written. Report083_source_compressibility.json. Miner
+onlyread existing /mnt/external_ssd/inkling/out; no Lambda used. Need084 PTL
+read+decompression comparison before treating13%bytesaved as a speed gain.
+Current scratch pool already global/capped256MiB; no per-layer consolidation.
 
-064–068 worker sweep complete:16=.917566,8=.884640,12=.901151,24=.869538,
-32=.858327. Select16. Same cache/read/route counters; all artifacts archived.
-069 async component75 cohorts/300 files passed bytes and error canary.
-073 matched follow-up30 pairs (10 each2/4/6 files), balanced AB/BA, passed all
-SHA checks; actualPython2520 and parent2460 exited. Async wins5/10 eachsize,
-median paired speedups1.001/1.108/.875 with strong order effects at4/6 files.
-No consistent benefit: defer runtime async/chunked reads. Reports073-* and
-073_artifact_verification.json; copied bytes match native SHA exactly.
-Controller51214 for071/072 exited normally; push11420395 completed.
+Sampler3036(shim9352,parent10880) ACTIVE,048-host-resources.jsonl,
+stopmarkerstop-048-sampler,12h expiry~18:13UTC. Do not stop while loopcontinues.
+Resource analyzer uses only whole adjacent intervals within exact phasewindows.
+Process thread totals include other runtime threads; do not assertRayon+1.
+Selected flags:16workers,BF16rows2,int4rows4,Reads0,MmapEmbed1,Reuse1,SkipBulk1,
+OwnShared1,Uncached1,Pipeline1,cache256perlayer,PrefillReads1,historyreset1,decay32,
+Highpriority,affinity65535. Actual cache16.3096GB,ownedshared4.0769GB.
+All runtime flags opt-in. Cache-decay native qualification242tests+five modes+
+productionwrapper passed; preserve all frozen olderbinaries.
 
-Sampler **3036** remains ACTIVE (shim9352,parent10880), follows trial PIDs,
-`048-host-resources.jsonl`, stopmarker`stop-048-sampler`, expires~18:13UTC.
-Do not stop it while the loop continues. Capturehelper accepts --repetitions3.
-Layer diagnostics use actual phase timestamps; resource analyzer ignores
-intervals crossing phase boundaries. Process thread totals include non-Rayon
-threads; do not assert total=Rayon+1. Configured thread count remains gated.
-
-Current scratch pool is already process-wide and capped at256MiB; per-layer
-scratch consolidation offers no gain. Current cache, reset, prefill, decay
-features are opt-in and native qualified.242 native tests and five tiny modes
-plus production-wrapper oracle passed for frozen cache-decay binary.
-
-No new export or Lambda rental is needed. Preserve protected services and
+No new export or Lambda rental required. Preserve OVMS6728/node8356/CA6344 and
 other agents' worktrees. Commit AND push as Tate Berenbaum
-<t8@users.noreply.github.com>, no coauthor trailers. Current branch
-perf/inkling-panther-autolab in /private/tmp/tahoma-inkling-panther-autolab.
-Canonical history and earlier details follow; the active state above takes precedence.
-
-## Verified outcome
-
-Final campaign046: **0.5679137350 decode tok/s**, slowest of nine samples;
-median0.5837513204, fastest0.5938149418. This is **4.196×** the original repeated
-baseline0.1353339381. Three prompts × three repetitions, 64 generated tokens
-with63 decode steps each. All saved greedy IDs and full-logits hash
-**ce0fbb9a116d3d09** match. Autolab returned normally and passed all gates.
-Full CPU backend, all66 layers; this is not an Arc B390 or component rate.
-
-See **PERFORMANCE.md**, results/046_final_verification.json,
-046_full_final_confirmation.json, 046_final_layer_profile.json,
-046_final_resources.json and 046_final_host_state.json. Raw traces/resources
-are compressed with source/compressed SHA manifests. Stable originals:
-`/private/tmp/inkling-full-final-artifacts` and native task root046-final*.
-The ignored tools/inkling_autolab/.autolab/state.json reports verified/full
-checkpoint available/targetfalse. Local results.db contains campaign history.
-
-All576 final case/repetition/layer route arrays match034, including prefill.
-The current packed export requires32.5–42.5GB/s at25tok/s even with an ideal
-initial cache using ALL nominal64GiB RAM and ignoring other memory/compute.
-The observed PCIe5x4 SSD link ceiling is15.754GB/s before protocol overhead.
-See037_full_span_traffic_bound.json,047_all_RAM_traffic_bound.json and
-046_route_identity.json. This rules out ordinary tuning to25 for this export,
-SSD and workload. It does NOT prove mathematical optimality of0.568tok/s or
-rule out gains from a different representation/backend/hardware. No new compression or full GPU backend has been implemented; an optional
-routed cache is now under evaluation in the resumed loop.
+<t8@users.noreply.github.com>, no coauthor trailers. Branchperf/inkling-panther-autolab,
+worktree/private/tmp/tahoma-inkling-panther-autolab. Historical details below.
 
 ## Ownership and repositories
 
