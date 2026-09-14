@@ -1,0 +1,45 @@
+# Inkling runtime experiments on tate-07
+
+The complete large model currently reaches **0.915789 decode tokens/s over one
+pass** across the three reference prompts. This is an exploratory result;
+[PERFORMANCE.md](PERFORMANCE.md) retains the separately confirmed three-repeat
+record. The 25 tokens/s target is unmet. The active loop is in [HANDOFF.md](HANDOFF.md).
+
+All options below preserve packed weights and numerical kernels. They affect
+I/O, memory retention, or scheduling. Set environment variables before loading
+a new model, or pass the corresponding argument to `run-full.ps1`.
+
+| Environment variable | Wrapper argument | Default | Purpose |
+| --- | --- | ---: | --- |
+| `RAYON_NUM_THREADS` | `Threads` | Wrapper:16 | Workers shared by expert reads and row kernels. |
+| `CASCADIA_INKLING_REUSE_READ_BUFFERS` | `ReuseBuffers` | 0 | Reuse scratch allocations, with a 256MiB process-wide idle limit. |
+| `CASCADIA_INKLING_UNCACHED_READS` | `UncachedReads` | 0 | Aligned Windows reads, with complete cached retry on failure. |
+| `CASCADIA_INKLING_PIPELINE_READS` | `PipelineReads` | 0 | Compute an expert as its read completes, preserving accumulation order. |
+| `CASCADIA_INKLING_EXPERT_CACHE_MIB` | `ExpertCacheMiB` | 0 | Retained packed routed weights per MoE layer; maximum256MiB. |
+| `CASCADIA_INKLING_PREFILL_READS` | `PrefillReads` | 0 | Read prefill experts through bounded reusable buffers. |
+| `CASCADIA_INKLING_CACHE_RESET_HISTORY` | `CacheResetHistory` | 0 | Forget prior-request admission scores while retaining valid cached weights. |
+| `CASCADIA_INKLING_CACHE_DECAY_REQUESTS` | `CacheDecayRequests` | 4096 | Halve frequency scores after this many routed requests per layer. |
+
+The selected cache experiment uses256MiB per layer. Across64 MoE layers, the
+actual retained allocations total16,309,550,592 bytes, including alignment
+padding. Allocations grow from successful decode reads. Prefill does not admit
+weights. Entries with outstanding read leases cannot be evicted. Model instances
+own separate caches, so equal expert indices cannot mix weights across models.
+
+Cached/pipelined reads require `Reads0`, parallel experts, and `ReuseBuffers1`.
+Prefill reads require `Reads0` and `ReuseBuffers1`. The wrapper validates these
+dependencies. Uncached mode is Windows-specific; unsupported sizes retry a full
+cached read. Tiny fixture files exercise that retry, while full-model tests
+verify zero fallback on aligned expert bins.
+
+Cache-decay intervals accept powers of two from4 through65536. Invalid engine
+values use4096; the wrapper rejects invalid arguments. The new `full-cache-decay.exe`
+is natively qualified, including actual decay counters, but has no full-model
+performance result yet. Other active experiments use the frozen
+`full-prefill-reads.exe`; its interval remains4096. The worker sweep changes only
+worker count, retaining the selected cache, streamed prefill and request reset.
+
+Keep prefill and decode timing distinct. The native benchmark counts63 decode
+steps after the first generated token, which belongs to prefill. Its score is
+the slowest case/repetition and includes logits hashing. Exact baseline IDs,
+full-logits hash and actual I/O/cache counters gate every full-model result.

@@ -1458,3 +1458,30 @@ Default4096preservesbehavior. Rustfmt/diffchecks pass. Prepared063nativequalifie
 thatwaitsforall055/056/057andnoactivefullprocessbeforetests/build; frozen
 full-prefillbinarypreserved. Worker sweeps must waitforqualificationtoend,then
 canuseoriginalfull-prefillbinary. Newdecaycontrol/candidatefulltrialcomeslater.
+
+057history256passesallgates,slowest0.9157886929tok/s; select256MiBperlayer
+(16.3096GBactualretained). 30058hits/42518misses/4141admissions/3629evictions,
+1.354219TBdecodeuncached. Controller16120endednormally. Prepared064–068
+worker16/8/12/24/32 comparisons, samefrozenfull-prefillbinaryandselectedcache,
+historyreset1/streamedprefill1. Fresh16controladdressespossibletime/thermaldrift.
+Do not launch untilnativecache-decayqualifier1952(parent9604) completes;
+qualifierwaswaitingfor057andautomaticallystartsnowthatfulltrialended.
+
+057retains16.3096GB,privatepeak42.500GB,minavailable1.996GB,maxmachineswap
+0.508GB. Decodefaults73.48/s, machine6.809GB/s,CPU7.126cores. Largerbudget
+gainswithoutreturningtoearlierprefillpaging. 057comparisonreportarchivesall3
+budgets; repeatedrecord046unchanged.
+
+063nativecache-decayqualificationPASSED242tests,fivefixturemodesandproduction
+wrapper; hash1f7cd0eb14a22662. Newfrozenfull-cache-decay.exe SHA
+3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,source6b820e83.
+Alleightpreviousbinariesunchanged. Qualifier1952,parent9604,launcher8620ended.
+CurrentnativewrappernowacceptsCacheDecayRequests,default4096,olderbinaries
+retained. No full-modeldecaygainmeasuredyet.
+
+064threads16controlACTIVE,065threads8/066threads12/067threads24/068threads32
+queued sequentiallyundercontrollertool67450. Script/private/tmp/run-inkling-thread-loop.py,
+logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native064PID688created1789371344.1482334,
+actual17threadsafterload. Allusefull-prefill-reads.exe/cache256/historyreset1/
+streamedprefill1. Sampler3036continues. Afterworkercomparison, matchednewbinary
+decay4096/32usingbestworker,then3-repeatconfirmation. Continueoptimization.

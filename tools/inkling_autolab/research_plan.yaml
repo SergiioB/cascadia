@@ -147,9 +147,11 @@ questions:
 - id: q48
   question: Can a bounded causal cache of hot routed expert weights reduce full decode I/O without losing
     more to memory pressure?
-  status: active
+  status: answered
   priority: 1
-  reason: 055/056/057 comparehistoryreset with64/128/256MiBperlayer afterprefillpagingreduction.
+  answer: Afterstreamedprefillandhistoryreset,055/056/057cache64/128/256MiBperlayer score0.757562/0.813905/0.915789;
+    allcasesimprovewithlargerbudget. Select256MiB,16.3096GBactualretained,41.4%cachehits,lowpaging. Onepass;
+    repeatedverificationpending.
 - id: q49
   question: Can prefill stream experts through reusable uncached buffers to reduce page-fault and file-cache
     pressure?
@@ -161,10 +163,17 @@ questions:
 - id: q50
   question: After uncached pipelining, does separating read concurrency from kernel concurrency improve
     full-model latency?
-  status: open
+  status: active
   priority: 3
+  reason: "064\u2013068samebinaryfullworker16/8/12/24/32sweep aftercache/prefill improvements."
 - id: q51
   question: Can causal next-layer expert prefetch overlap storage with earlier-layer work while retaining
     exact routing and outputs?
   status: open
   priority: 4
+  reason: "061previous-routepredictoradds11\u201339%extraI/O,so deferred; otherpredictorsunexplored."
+- id: q62
+  question: Can shorter frequency history adapt the routed cache within a response?
+  status: active
+  priority: 4
+  reason: 058causalreplaypredictssmallmissreduction;063nativecandidatequalified. Fullmatched4096/32comparisonfollowstheworkersweep.

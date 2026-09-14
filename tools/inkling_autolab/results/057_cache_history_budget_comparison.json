@@ -1,0 +1,110 @@
+{
+  "scope": "same_binary_full_cache_budget_comparison_with_streamed_prefill_and_history_reset",
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_and_routes_match": true,
+  "passes_per_setting": 1,
+  "reports": [
+    {
+      "trial": "055",
+      "cache_mib_per_layer": 64,
+      "slowest": 0.7575615883682715,
+      "rates": {
+        "water_cycle": 0.7813483274160047,
+        "binary_search": 0.7582801274146043,
+        "short_story": 0.7575615883682715
+      },
+      "uncached_read_bytes": 1891632807936,
+      "expert_cache": {
+        "admissions": 1271,
+        "capacity_bytes": 4294967296,
+        "evictions": 1143,
+        "history_resets": 192,
+        "hit_bytes": 419948789760,
+        "hits": 13185,
+        "misses": 59391,
+        "retained_bytes": 4077387648
+      },
+      "resources": {
+        "min_available_RAM_bytes": 13986766848,
+        "max_private_bytes": 30241427456,
+        "max_machine_swap_used_bytes": 527388672
+      },
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.1921777492063489,
+        "mlp_seconds": 1.1025955031746033,
+        "total_seconds": 1.2940629015872969,
+        "outside_layers_seconds": 0.02471094444444908,
+        "wall_seconds": 1.318773846031746
+      }
+    },
+    {
+      "trial": "056",
+      "cache_mib_per_layer": 128,
+      "slowest": 0.8139052439810225,
+      "rates": {
+        "water_cycle": 0.8568024908962016,
+        "binary_search": 0.8139052439810225,
+        "short_story": 0.8252026973874734
+      },
+      "uncached_read_bytes": 1642052321280,
+      "expert_cache": {
+        "admissions": 2380,
+        "capacity_bytes": 8589934592,
+        "evictions": 2124,
+        "history_resets": 192,
+        "hit_bytes": 669529276416,
+        "hits": 21021,
+        "misses": 51555,
+        "retained_bytes": 8154775296
+      },
+      "resources": {
+        "min_available_RAM_bytes": 10026586112,
+        "max_private_bytes": 34327605248,
+        "max_machine_swap_used_bytes": 497405952
+      },
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.19182032063492085,
+        "mlp_seconds": 0.995280965079365,
+        "total_seconds": 1.187101285714283,
+        "outside_layers_seconds": 0.02472500000000276,
+        "wall_seconds": 1.2118234746031746
+      }
+    },
+    {
+      "trial": "057",
+      "cache_mib_per_layer": 256,
+      "slowest": 0.9157886928997555,
+      "rates": {
+        "water_cycle": 0.9312459489877364,
+        "binary_search": 0.9157886928997555,
+        "short_story": 0.9413718709101594
+      },
+      "uncached_read_bytes": 1354219388928,
+      "expert_cache": {
+        "admissions": 4141,
+        "capacity_bytes": 17179869184,
+        "evictions": 3629,
+        "history_resets": 192,
+        "hit_bytes": 957362208768,
+        "hits": 30058,
+        "misses": 42518,
+        "retained_bytes": 16309550592
+      },
+      "resources": {
+        "min_available_RAM_bytes": 1995665408,
+        "max_private_bytes": 42499665920,
+        "max_machine_swap_used_bytes": 508239872
+      },
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.18445705238095275,
+        "mlp_seconds": 0.8611568476190475,
+        "total_seconds": 1.0489041507936543,
+        "outside_layers_seconds": 0.024564968253965872,
+        "wall_seconds": 1.0738301746031746
+      }
+    }
+  ],
+  "selected_cache_mib_per_layer": 256,
+  "repeated_record_046_unchanged": true,
+  "target_reached": false
+}

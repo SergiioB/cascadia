@@ -1,101 +1,78 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
-the prior final campaign below is the completed reference, not a stopping point.
+Updated 2026-09-14 07:38UTC. USER RESUMED AUTONOMOUS OPTIMIZATION. Work is ACTIVE;
+do not stop after a completed campaign. The25tok/s target is unmet.
 
-## Latest update —057running, decayqualification prepared
+## Current live work — worker sweep064–068
 
-055/056bothcompleteandverified. 055historyreset64slowest0.7575615884;
-056historyreset128slowest0.8139052440 (allcasesimprove). Rawartifacts/SHAand
-phaseprofilesarchived. **057_full_history_reset_256mib RUNNING** under16120,
-native**2956**,created**1789370890.016268**. Outputs057-history-256.*.
-**No furtherfullcampaignqueued yet.** Sampler3036continues.
+**064_full_threads_16 RUNNING;065_full_threads_8,066_full_threads_12,
+067_full_threads_24,068_full_threads_32 QUEUED sequentially.**
+Controller tool**67450**,script/private/tmp/run-inkling-thread-loop.py.
+Logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native064PID**688**,
+created**1789371344.1482334**,actual17threadsafterload. Allusefrozen
+full-prefill-reads.exe. Nativeoutputs064-threads-16.*,065-threads-8.*,
+066-threads-12.*,067-threads-24.*,068-threads-32.*. Do not launchduplicates.
 
-062cache-decaylocalcandidate:163tests+fivefixturemodes exactARMhash; actual
-frequencydecays27/3/0asexpected. EnvCASCADIA_INKLING_CACHE_DECAY_REQUESTS
-powersoftwo4..65536,default4096. OnlytwoRustfileschanged, noarithmeticchange.
-Preparedqualify-cache-decay.py,test-cache-decay.bat,run-full.ps1 supportfuture
-full-cache-decay.exe. Nativeglobalwrapper STILLqualifiedthreadversion5e0a29a4...
-untilnewqualificationpasses. **NativequalifierNOTlaunchedyet atthischeckpoint.**
-Sourcearchive/private/tmp/inkling-cache-decay-source.tar/json has2SHAguarded
-Rustfiles; nativebase72cb6f05. Stageasrootcache-decay-source.tar/json; stagewrapper
-asrun-full-cache-decay.ps1, plusqualifier/bat. LaunchdetachedWin32_Process.Create;
-qualifierwaitsfor055/056/057complete/noactivefullbeforebuilding. Newbinarymust
-befrozenandold8binariesSHAunchanged. DoNOTlaunchthreadswhilequalifierbuilds.
-Afterqualified, select057/056winner andworker8/12/24/32sweep canretainold
-full-prefillbinary; thenmatchednewbinarydecay4096/32trial,repeatselectedwinner.
-060globalcacheprediction~1–2%missgain/deferred;061prefetchadds11–39%reads/deferred.
+Selectedsettings: cache256MiBperlayer (16.3096GBactual),PrefillReads1,
+CacheResetHistory1,Reads0,Reuse1,OwnShared1,Uncached1,Pipeline1,SkipBulk1,
+MmapEmbed1,BF16Rows2,Int4Rows4,Highpriority,affinity65535. Onlyworkercountvaries;
+fresh16controladdressesdrift. Eachtrial3prompts×1pass,64generated/63decode.
+Allrequirefullhashce0fbb9a116d3d09,exactbaselineIDs,cachehits30058/misses42518,
+admissions4141/evictions3629/historyresets192/retained16309550592,decodeuncachedB
+1354219388928,pipeline12096,prefillvisits13635/uncached434281512960B,zero fallback.
+Wrapperconfiguredrayon_threads isgated; resource sampler mustshowthreads+1.
 
-## Current live work — cache history and budget055/056/057
+**Best single-pass result057:0.9157886929tok/s** (water0.931246,binary0.915789,
+story0.941372). Repeatedrecord046remains0.5679137350 untilnew3-repeatverification.
+053control0.586785→054streamedprefill0.709011 (+20.83%). Prefill103–108sec→24–25sec.
+055historyreset64cache0.757562;056historyreset128cache0.813905;057history2560.915789.
+AllIDs/logits/routesandactualcountersmatch. 057privatepeak42.500GB,minavailable
+1.996GB,maxmachineswap0.508GB;decodefaults73/s. See054/055/057comparisonreports.
+All053–057rawresults/traces/resource snapshotsarchivedandSHAverified.
 
-The loop is ACTIVE. Do not stop after one completed campaign. 053/054prefillpair
-finishedandverified. SelectPrefillReads1: slowest0.7090110419 versus0.5867846190
-control (+20.83%), allcasesimprove. Prefill24–25sec versus103–108sec. SameIDs,
-fullhash,routes,cachecountersanddecodebytes. MinavailableRAM14.183GB; decode
-faults58/s versus48341/scontrol. See054_prefill_comparison.json andarchives.
-Repeatedrecord046stays0.5679137350 untilanotherthree-repeatconfirmation.
+**063nativecache-decayQUALIFIED**,242tests,fivefixturemodes+productionwrapper.
+Newfrozenfull-cache-decay.exeSHA
+3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
+source6b820e83. Alleightolderbinariespreserved. Qualifier1952,parent9604,
+launcher8620ended. Report063_cache_decay_windows_validation.jsonandcompressedtestlog.
+EnvCASCADIA_INKLING_CACHE_DECAY_REQUESTS takespowersoftwo4..65536,default4096;
+invalidenginevaluesdefault4096,wrapperrejectsinvalid. Actualfrequency_decays
+counterseparatefromhistoryresets. Nativewrapperwaspromotedafterqualification;
+latestrepo run-full.ps1matchesit. 062local163tests+fivefixtures also pass.
+Full-modeldecaygainNOTmeasured. ActiveworkersweepusesOLDfull-prefillbinary,
+whoseintervalremains4096. Do not rerunnativequalification orrebuildfrozenbinaries.
+Sourcearchive/private/tmp/inkling-cache-decay-source.tar/json2SHAguardedRustfiles;
+nativebase72cb6f05,candidate6b820e83. Stagednativefilescache-decay-source.tar/json,
+run-full-cache-decay.ps1,qualify-cache-decay.py/test-cache-decay.bat preserved.
 
-**055_full_history_reset_64mib RUNNING;056_full_history_reset_128mib and
-057_full_history_reset_256mib QUEUED sequentially**. Controllertool**16120**,
-script/private/tmp/run-inkling-cache-history-loop.py.
-Logs/private/tmp/inkling-CAMPAIGN_NAME.log. Native055PID**10436**,
-created**1789370179.2082949**,full-prefill-reads.exe. Outputs055-history-64.*,
-056-history-128.*,057-history-256.*. Same16workers,PrefillReads1,historyreset1;
-3prompts×1pass,63decodepositions. **Do not launchduplicates.**
+Nextafterworkercomparison: choosebestworker;matchedfull-cache-decaybinary
+control4096versus32,keepingcache256/historyreset1/prefill1. Prediction058at8slots:
+4096hits30058,misses42518,admissions4141,evictions3629;32hits31383,misses41193,
+admissions8629,evictions8117. Decay32shouldperform2112actualhalvings across3cases;
+control4096zero. Readbytes=misses*31850496. Then3-repeatbest-profileconfirmation.
+Continuewithfurthermeaningfuloptimization;do not stopjustbecausethequeuefinished.
+060globalcachepredictionremovesonly1–2%misses/deferred.061naiveprefetchadds11–39%
+reads/deferred. Thesearecausalreplays,notimplemented/measuredspeedgains.
 
-Causaladmissiongates (all128/256slotbudgetsinclude4095paddingbytes/expert):
--055cache64: hits13185,misses59391,admissions1271,evictions1143,retained4077387648.
--056cache128: hits21021,misses51555,admissions2380,evictions2124,retained8154775296.
--057cache256: hits30058,misses42518,admissions4141,evictions3629,retained16309550592.
-Allrequire192historyresets,13635prefillreads/434281512960uncachedprefillB,
-decodeuncachedbytes=misses*31850496,zero fallback,baselinehash/IDs.
-Replaymatchesallfourmeasured050/051counters; source055predictionJSON.
+Sampler3036/shim9352,parent10880 ACTIVE,048-host-resources.jsonl,
+stopmarkerstop-048-sampler.12-hourlimitfrom06:13UTC (~18:13UTCexpiry).
+Do not stopwhileloopcontinues. Capturehelper
+/private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED
+refusesactivePID+creation, snapshotswholelines, copies/SHAchecks nativefiles,
+checksIDs/hash,archivesgzipandrunscorrectlayer+phaseanalysis. It currentlyexpects
+3case/1pass;extendforfuture3-repeatverification. Native samplestimestampsseparate
+prefill/decode, ratesusemonotonicInstant. analyze-host-resources.py --benchmark
+usesonlycompleteadjacentintervalsinsidephases;21Python tests pass.
+Completedartifacts/private/tmp/inkling-NNN-STEM-artifacts;last057is
+/private/tmp/inkling-057-history-256-artifacts. Active064notcapturedyet.
 
-**059nativeworkerqualification passed8/12/16/24/32**,report059_threads_windows_validation.
-Currentrun-full.ps1SHA5e0a29a4a3ec041ad1c93a44cfcf942e1df2db8dbce6c2a795ec86b5600a259b;
-newThreads1–64parameterdefault16. Samefrozenfull-prefillbinary,exacttinyhash/IDs.
-Nativequalify-threads.py alreadyfinished; do not rerun. Distinctstagingwrapper
-run-full-threads.ps1 andthreads-source.json retained. Nextaftercachetrials:
-selectbestbudget,runthread8/12/24/32versus16,checkactualsamplerthreadcounts,
-thenrepeatedbestprofileconfirmation. Continuewithreadconcurrency/prefetch.
-058offlinefrequencydecaypredictsmodesthitgainat32requestintervalbutmoreadmissions;
-no runtime change yet (native remains4096). Potentiallatercacheexperiment.
-
-Capturehelper/private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED
-snapshotsresources,copies/SHAchecks nativefiles,checksIDs/hash,archivesgzip,
-runslayer+phase-aware resourceanalysis. RefusesactivePID+creationpair.
-Completed053/054artifacts/private/tmp/inkling-053-prefill-0-artifacts and
-/private/tmp/inkling-054-prefill-1-artifacts. New055/056/057notcapturedyet.
-Sampler3036continues. No newexport/rentalneeded. Keepiterating.
-
-**052nativeQUALIFIED**,241tests,sevenfixture modes andproductionwrapper pass.
-Binaryfull-prefill-reads.exe SHA
+full-prefill-reads.exeSHA
 bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82,
-source72cb6f05. Allsevenolderbinariespreserved. Qualifier5952/parent11020 ended.
-Evidence052_prefill_reads_windows_validation.json. Nativewrapper has new
-PrefillReads andCacheResetHistory switches; default0,ownedcachebudgetrequired
-forhistoryreset. Fixture actualhistoryresets9,cachehits110,prefillreads63;
-unalignedtinybins correctly usecachedfallback (prefill63/decode16).
-
-Sampler3036/shim9352,parent10880 ACTIVE:
-048-host-resources.jsonl,stopmarkerstop-048-sampler,12-hour limit from06:13UTC.
-Do not stop it while the loop continues. Snapshot completed trials by reading
-whole lines to a newNNN-host-resources.snapshot.jsonl, then copy/archive SHA.
-Native sample JSON now includes explicitUnixphase timestamps; throughputstill
-usesmonotonicInstant. analyze-host-resources.py --benchmark RESULT.json adds
-separateprefill/decoderates,keepingoriginalsamplingadjacency.21Python tests pass.
-
-Next: finish053/054; compareprefilllatency anddecodespeed plusphase-specific
-memory/I/O. Then testCacheResetHistory1 against selectedprefill/cacheprofile,
-and reconsidercache128 ifprefillmemorypressurefalls. Historyreset clears old
-admissionfrequencies onsequence reset,retainsvalidcachedweights/cumulativecounters,
-no arithmeticchange. It is independentlyopt-in andalreadyqualified, buthasNO
-full-model measurementyet. Afterthat q50thread/readconcurrency andq51causal
-prefetch remainopen. No Lambda/newexport required. Preserveprotectedservices.
-
-Cachebinaryfull-expert-cache.exe remainsfrozen,source049034de,SHA
-fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88.
-Originalsourceworktreefeat/inkling rechecked06:32UTC unchanged9aaebff0.
+source72cb6f05. Native052241tests/sevenfixturemodes;059workerqualification
+8/12/16/24/32 passed. full-expert-cache.exeSHA
+fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88,source049034de.
+No Lambda/newexportrequired. Preserveprotectedservices/otherworktrees.
+Originalfeat/inklinglastchecked06:32UTC unchanged9aaebff0.
 
 ## Verified outcome
 

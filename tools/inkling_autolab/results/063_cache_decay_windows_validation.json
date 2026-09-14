@@ -1,0 +1,93 @@
+{
+  "status": "qualified_needs_full_trial",
+  "pid": 1952,
+  "unix": 1789371297.071502,
+  "fixture_hash": "1f7cd0eb14a22662",
+  "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+  "full_model_speedup_measured": false,
+  "fixture_modes": [
+    {
+      "mode": "default",
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      }
+    },
+    {
+      "mode": "short",
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 27,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      }
+    },
+    {
+      "mode": "continued",
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 3,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      }
+    },
+    {
+      "mode": "disabled",
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      }
+    },
+    {
+      "mode": "invalid",
+      "output_hash": "1f7cd0eb14a22662",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      }
+    }
+  ],
+  "production_wrapper_verified": true,
+  "scope": "native_MSVC_release_cache_decay_qualification",
+  "source_commit": "6b820e83",
+  "tests_passed": 242,
+  "original_native_state_sha256": "352247eea8225456fe0945039e58420d2306b00a19d3e478f98e9b8bfb583a14",
+  "test_log_source_sha256": "75f5c5bec2189c76f94f1e53a5fdf8599a35aaa7f8d1b6aaa67a7a341e61e9d0",
+  "test_log_compressed_file": "063-cache-decay-tests.log.gz",
+  "all_eight_prior_binaries_unchanged": true
+}
