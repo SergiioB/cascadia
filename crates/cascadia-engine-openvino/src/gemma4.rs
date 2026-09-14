@@ -40,7 +40,9 @@ use cascadia_ov_genai_shim::{
 use cascadia_transport::{
     ActivationClient, ActivationServer, DType as WireDType, Tensor as WireTensor, MAX_RANK,
 };
-use cascadia_types::{Chunk, GenerationTask, LoadProgress, PeerLayout, ShardSpec, TaskId};
+use cascadia_types::{
+    Chunk, FinishReason, GenerationTask, LoadProgress, PeerLayout, ShardSpec, TaskId,
+};
 use futures::stream;
 use serde::Deserialize;
 use tokenizers::Tokenizer;
@@ -471,6 +473,40 @@ fn prefill_chunk() -> usize {
         1
     } else {
         usize::MAX
+    }
+}
+
+/// The task's last chunk. The API reads `prompt_tokens` and `finish_reason` off
+/// the chunk with `is_final` set, so leaving them None reported
+/// `usage.prompt_tokens: 0` and a hardcoded `"stop"` on every gemma4 response.
+///
+/// `n_tokens` is THIS chunk's increment, not the running total: the API sums
+/// per-chunk counts (falling back to 1 per non-empty chunk), so a cumulative
+/// value double-counts every interim token. It is set explicitly so an empty
+/// final delta (EOS decoding to "") still counts its token. Mirrors
+/// `runtime.rs` / `qwen36.rs`.
+fn final_chunk(
+    task_id: TaskId,
+    token: i64,
+    delta: String,
+    prompt_len: usize,
+    is_eos: bool,
+) -> Chunk {
+    Chunk {
+        task_id,
+        token_id: token,
+        text: delta,
+        is_final: true,
+        logprobs: None,
+        n_tokens: Some(1),
+        prompt_tokens: Some(prompt_len as u32),
+        error: None,
+        token_ids: Vec::new(),
+        finish_reason: Some(if is_eos {
+            FinishReason::Stop
+        } else {
+            FinishReason::Length
+        }),
     }
 }
 
@@ -1307,18 +1343,13 @@ impl Gemma4Engine {
 
         let task_id = active.task.task_id.clone();
         let chunk = if is_final {
-            Chunk {
-                task_id: task_id.clone(),
-                token_id: next_token as i64,
-                text: delta,
-                is_final: true,
-                logprobs: None,
-                n_tokens: None,
-                prompt_tokens: None,
-                error: None,
-                token_ids: Vec::new(),
-                finish_reason: None,
-            }
+            final_chunk(
+                task_id.clone(),
+                next_token as i64,
+                delta,
+                active.prompt_ids.len(),
+                is_eos,
+            )
         } else {
             Chunk::token(task_id.clone(), next_token as i64, delta)
                 .with_token_ids(vec![next_token as i64])
@@ -2532,5 +2563,40 @@ mod tests {
         // remaining token folds at T=1.
         assert_eq!(prefill_span_end(0, usize::MAX, 0), 1);
         assert_eq!(prefill_span_end(1, usize::MAX, 0), 2);
+    }
+
+    /// The EOS path carries the usage the API reads off the final chunk. Every
+    /// gemma4 response reported `usage.prompt_tokens: 0` because these three
+    /// fields were left None.
+    #[test]
+    fn final_chunk_on_eos_carries_usage_and_stop() {
+        let c = final_chunk("t1".to_string(), 106, "!".to_string(), 93, true);
+        assert!(c.is_final);
+        assert_eq!(c.finish_reason, Some(FinishReason::Stop));
+        assert_eq!(c.prompt_tokens, Some(93));
+        assert_eq!(c.n_tokens, Some(1));
+        // The wire shape of the chunk is otherwise unchanged.
+        assert_eq!(c.token_id, 106);
+        assert_eq!(c.text, "!");
+    }
+
+    /// A max_tokens stop must not read as a natural stop — the API maps
+    /// `finish_reason` straight through, and client retry logic keys on
+    /// `"length"`.
+    #[test]
+    fn final_chunk_on_max_tokens_reports_length() {
+        let c = final_chunk("t1".to_string(), 42, "x".to_string(), 7, false);
+        assert_eq!(c.finish_reason, Some(FinishReason::Length));
+        assert_eq!(c.prompt_tokens, Some(7));
+    }
+
+    /// EOS usually detokenizes to "", and the API's fallback counts a non-empty
+    /// chunk as 1 token — so the last token would go uncounted unless
+    /// `n_tokens` is explicit.
+    #[test]
+    fn final_chunk_with_an_empty_delta_still_counts_its_token() {
+        let c = final_chunk("t1".to_string(), 106, String::new(), 93, true);
+        assert_eq!(c.n_tokens, Some(1));
+        assert_eq!(c.token_count(), 1);
     }
 }
