@@ -9,14 +9,14 @@ toward25tok/s. The target is unmet; do not stop after a finite campaign.
 wrapper dependency guards, all14 older binaries preserved. Sourceede10f98;
 full-second-prefetch.exe SHA71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476.
 Wrapper local/native09f20b18. All22 native proof artifacts SHA archived.
-127 control native2584(created1789389969.340804), launched12:46:09UTC.
-Controller/private/tmp/run-inkling-second-prefetch-loop.py active, log
-/private/tmp/inkling-second-prefetch-loop.log; runs127 then128 sequentially,
-checks exact metrics/PID/creation, SHA captures raw results, compares routes/IDs/cache.
-Only SecondPredictReads differs; both same new binary, Early0/Predict1.
-129 prepared but NOT launched; only after127/128 gain review. Its replay forecast
-53152scheduled/50539useful/2613unused, second17434/16525/909. Helpers
-/private/tmp/verify-inkling-129.py and compare-inkling-129.py are prepared.
+127/128 COMPLETE, all raw/SHA artifacts captured, native2584/8836 exited.
+Matchedscore1.1036037599→1.1181528314,+1.3183%,allthree+1.2–1.5%.
+EveryID/fullhash/route/cache/readcounter exact; additionalreads.759646%.
+NoMLPevent>.5s eitherarm; medianattention.21167/MLP.63307/outside.02444.
+129 nine-sample confirmation LAUNCHING via/private/tmp/run-inkling-129.py;
+log/private/tmp/inkling-129-controller.log, nativeidentity written129_native_identity.json.
+It runs Autolab then verify/compare129 helpers; fullrecord/profile not promoted yet.
+Forecast53152scheduled/50539useful/2613unused, second17434/16525/909.
 Selected profile remains first-only, explicitSecond0; new local/nativeSHA
 4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad,
 proof126_profile_default_guard.json. No new export/Lambda work.

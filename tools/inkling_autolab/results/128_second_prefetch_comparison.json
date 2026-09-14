@@ -1,0 +1,36 @@
+{
+  "scope": "same_binary_current_vs_second_prefetch_comparison",
+  "control_score": 1.103603759919852,
+  "candidate_score": 1.1181528314007985,
+  "ratio": 1.0131832384133985,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_tok_s": 1.12576943325309,
+      "candidate_tok_s": 1.142566871800221,
+      "ratio": 1.0149208515091692
+    },
+    {
+      "case": "binary_search",
+      "control_tok_s": 1.103603759919852,
+      "candidate_tok_s": 1.1181528314007985,
+      "ratio": 1.0131832384133987
+    },
+    {
+      "case": "short_story",
+      "control_tok_s": 1.137554436719607,
+      "candidate_tok_s": 1.1516793914107835,
+      "ratio": 1.0124169483544971
+    }
+  ],
+  "all_outputs_actual_routes_cache_counters_exact": true,
+  "actual_read_counters_match_forecast": true,
+  "all_samples_included": true,
+  "record_promoted": false,
+  "decision": "review_before_conditional129_confirmation",
+  "caveats": [
+    "Three original prompts and one repetition; no result is promoted without repeated confirmation.",
+    "Both arms preserve the first prediction; candidate adds a concurrent second only when its predicted rank is at most2. Same binary/cache/math.",
+    "All prediction and unused read costs, first samples and stalls remain included."
+  ]
+}

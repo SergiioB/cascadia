@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "128-second-prefetch-candidate-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "128-second-prefetch-candidate-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "128-second-prefetch-candidate-layers.json",
+      "source_bytes": 2710948,
+      "source_sha256": "e794173497bdf898a226d6be5d77190aea28b93d2a4da8be390223bdfea5d37a",
+      "compressed_file": "128-second-prefetch-candidate-layers.json.gz",
+      "compressed_bytes": 156104,
+      "compressed_sha256": "9dbe38874b3f94b5b8696da97176c6cca1ecb59e841fd0f398bd1dc320014d15"
+    },
+    {
+      "source_file": "128-host-resources.snapshot.jsonl",
+      "source_bytes": 4944091,
+      "source_sha256": "321a79d24fa23fe0caa3c0fe7441ba6af74fe3010c3113eade01b3a4255b8b51",
+      "compressed_file": "128-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 391078,
+      "compressed_sha256": "5c1580b8cf710d91deb9ea9852deac3a0416ecd769742d2822f1189f05a1719d"
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "scope": "same_binary_selective_second_prefetch_phase_resource_comparison",
+  "all_stalls_included": true,
+  "caveats": [
+    "Submission is included in attention timings; total time includes draining unused reads. Phase shifts do not individually isolate SSD or CPU effects.",
+    "Machine disk counters include background services. All samples, including first samples and long MLP events, remain in scores."
+  ],
+  "control": {
+    "median_seconds_per_token": {
+      "attention_seconds": 0.2158302158730156,
+      "mlp_seconds": 0.6406380333333338,
+      "total_seconds": 0.8628008428571442,
+      "outside_layers_seconds": 0.02446849999999914,
+      "wall_seconds": 0.8882813571428572
+    },
+    "lifetime": {
+      "min_available_RAM_bytes": 1819758592,
+      "max_private_bytes": 42498936832,
+      "max_rss_bytes": 41490202624,
+      "max_machine_swap_used_bytes": 450326528
+    },
+    "decode_resources": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 2584,
+      "created_unix": 1789389969.340804,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-prefetch.exe",
+      "intervals": 15,
+      "sampled_seconds": 150.1089999997057,
+      "cpu_core_equivalents": 8.980037006459591,
+      "kernel_fraction": 0.06117930706726478,
+      "faults_per_second_includes_soft": 7729.263401943086,
+      "machine_disk_read_bytes_per_second": 7602415002.020115,
+      "process_read_bytes_per_second": 7601436417.551493,
+      "min_available_RAM_bytes": 1819758592,
+      "max_private_bytes": 42495471616,
+      "max_rss_bytes": 41490202624,
+      "max_machine_swap_used_bytes": 450326528,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    },
+    "prediction_reads": {
+      "dispatch_failures": 0,
+      "read_failures": 0,
+      "scheduled": 11906,
+      "successful": 11906,
+      "unused": 568,
+      "unused_bytes": 18091081728,
+      "useful": 11338,
+      "useful_bytes": 361120923648,
+      "worker_failures": 0
+    },
+    "second_prediction_reads": {
+      "dispatch_failures": 0,
+      "read_failures": 0,
+      "scheduled": 0,
+      "successful": 0,
+      "unused": 0,
+      "unused_bytes": 0,
+      "useful": 0,
+      "useful_bytes": 0,
+      "worker_failures": 0
+    },
+    "worker_count": 1,
+    "mlp_events_over_half_second": []
+  },
+  "second": {
+    "median_seconds_per_token": {
+      "attention_seconds": 0.2116745539682535,
+      "mlp_seconds": 0.6330731396825393,
+      "total_seconds": 0.8500393539682516,
+      "outside_layers_seconds": 0.02444196825396953,
+      "wall_seconds": 0.8752222952380952
+    },
+    "lifetime": {
+      "min_available_RAM_bytes": 1878638592,
+      "max_private_bytes": 42500313088,
+      "max_rss_bytes": 41490350080,
+      "max_machine_swap_used_bytes": 464486400
+    },
+    "decode_resources": {
+      "scope": "phase_sampled_resources",
+      "includes_load_prefill_decode": false,
+      "pid": 8836,
+      "created_unix": 1789390250.5071673,
+      "executable": "C:\\Users\\devcloud\\inkling-autolab\\bin\\full-second-prefetch.exe",
+      "intervals": 15,
+      "sampled_seconds": 150.09299999987707,
+      "cpu_core_equivalents": 9.029609975156136,
+      "kernel_fraction": 0.06744448799833982,
+      "faults_per_second_includes_soft": 9539.985209178129,
+      "machine_disk_read_bytes_per_second": 7746327245.753982,
+      "process_read_bytes_per_second": 7745485159.207639,
+      "min_available_RAM_bytes": 1878638592,
+      "max_private_bytes": 42495746048,
+      "max_rss_bytes": 41490350080,
+      "max_machine_swap_used_bytes": 464486400,
+      "caveats": [
+        "Disk counters are machine-wide and cannot be exclusively attributed to the model.",
+        "Page faults include soft faults; they are not all storage reads.",
+        "Only complete adjacent intervals inside the supplied phase windows contribute rates.",
+        "Only adjacent snapshots containing the same PID and creation time contribute rates."
+      ]
+    },
+    "prediction_reads": {
+      "dispatch_failures": 0,
+      "read_failures": 0,
+      "scheduled": 17720,
+      "successful": 17720,
+      "unused": 871,
+      "unused_bytes": 27741782016,
+      "useful": 16849,
+      "useful_bytes": 536649007104,
+      "worker_failures": 0
+    },
+    "second_prediction_reads": {
+      "dispatch_failures": 0,
+      "read_failures": 0,
+      "scheduled": 5814,
+      "successful": 5814,
+      "unused": 303,
+      "unused_bytes": 9650700288,
+      "useful": 5511,
+      "useful_bytes": 175528083456,
+      "worker_failures": 0
+    },
+    "worker_count": 2,
+    "mlp_events_over_half_second": []
+  },
+  "source_sha256": {
+    "127_layer_profile.json": "7d48fdef0776fa1def0c3b79cd6bb0a6316fb1de1926e589bab7dcdd3a157c40",
+    "128_layer_profile.json": "2480f6224dc43e2883762d346cf81cd18137d77efab94723fe9ce6c656a76dc1",
+    "127_resources.json": "d0a1251495c6a50668f0ad415066b90d9c2a78179efb05b00207c6a476cb29de",
+    "128_resources.json": "2f9e0e35678464436fd289f0fec2bd402add1d5b871b70495440691aa549d525"
+  }
+}

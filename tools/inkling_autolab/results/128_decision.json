@@ -1,0 +1,10 @@
+{
+  "scope": "selective_second_prediction_trial_decision",
+  "decision": "run129_repeated_confirmation",
+  "matched_gain": 0.013183238413398524,
+  "all_three_improve": true,
+  "all_correctness_and_counter_gates_pass": true,
+  "selected_profile_promoted": false,
+  "record112_retained": 1.0904267748485879,
+  "all_first_samples_and_stalls_included": true
+}
