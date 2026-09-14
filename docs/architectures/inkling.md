@@ -512,12 +512,17 @@ are the paged CPU layers' (5–22 minutes per prompt), so this is the
 correctness gate for the device paths inside the real serving loop, not a
 speed measurement.
 
-**Rank budget.** A 64 GB box holds five fused MoE layers with headroom;
-with six (50 GB of compiled models plus the model copies made while
-compiling) Windows pages the device allocations and every call balloons
-(300–430 ms per MoE layer in the 8-layer dump). So a 64 GB rank carries
-five MoE layers (the two dense layers are small): 13 such ranks for the
-975B model, or 12 with one 96 GB box.
+**Rank budget.** The limit on a 64 GB Windows box is not RAM but the
+iGPU's shared-memory budget, which Windows sets to half the RAM: OpenVINO
+reports `GPU_DEVICE_TOTAL_MEM_SIZE` = 33.5 GiB on tate-07. A fused MoE
+layer is 8.3 GB of device allocations, so three layers (25 GB) run at the
+per-layer numbers above, four (33.2 GB) sit at the cap and decode falls to
+50–145 ms per MoE layer, and five or six page every call (250–430 ms).
+So a 64 GB Windows rank carries **three** fused MoE layers on the iGPU
+(the two dense layers are small) — 22 such ranks for the 975B model — a
+96 GB box five and a 128 GB box seven. Linux ranks are not under the 50%
+policy (Level Zero shared allocations can use most of the RAM) and are
+the way to get five or six layers per 64 GB; that is unmeasured here.
 
 ## Open follow-ups
 
