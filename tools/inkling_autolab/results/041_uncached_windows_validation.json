@@ -1,0 +1,18 @@
+{
+  "scope": "uncached_native_validation",
+  "state": {
+    "status": "qualified_needs_full_trial",
+    "pid": 10532,
+    "unix": 1789346281.9033196,
+    "fixture_hash": "1f7cd0eb14a22662",
+    "binary_sha256": "9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2",
+    "full_model_speedup_measured": false
+  },
+  "native_tests_passed": 233,
+  "native_uncached_exact_bytes_and_kernel_canaries_passed": true,
+  "fixture_and_wrapper_passed": true,
+  "fixture_uncached_effective": false,
+  "fixture_note": "Tiny unaligned expert bins use cached fallback; native aligned canaries validate actual uncached path.",
+  "full_model_speedup_measured": false,
+  "log_sha256": "03a8f435c9cebe3dc855772c5b34d427ee850c1931a875200acb4dd4398ba2b7"
+}

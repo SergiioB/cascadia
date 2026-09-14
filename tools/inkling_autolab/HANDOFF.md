@@ -1,13 +1,13 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 00:18 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
+Updated 2026-09-14 00:42 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
 PTL machine**, not a component rate, aggregate throughput or remote inference.
 **Target has not been reached.** Continue in this session autonomously.
 
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `47867911` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `18f8becb` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,30 +65,36 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Current live state (2026-09-14 00:18 UTC; refresh before any action):
+Current live state (2026-09-14 00:42 UTC; refresh before any action):
 
-- **040_full_owned_shared_diagnostics is RUNNING**, controller session69544,
-  log`/private/tmp/inkling-full-owned-shared-campaign.log`.
-- Full-owned-shared.exe SHA0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb.
-- Three cases x1 repetition,63 decode steps each; same036 knobs plusOwnShared1.
-  Expectedfullhashce0fbb9a116d3d09 and actual owned bytes4076863488.
-  Native`040-owned-shared*.json` and`.log`. SSH keepalives enabled.
-- **036 completed and independently verified**: nine samples, slowest
-  **0.1969341563127117tok/s**,45.52% over baseline; range0.196934–0.200669.
-  Exact reference IDs and full-logits hash match. Median attention0.368731,
-  MLP4.628557,outside-layers0.024826seconds/token. Target25 remains unmet.
-- The036 native process9472 and wrappers exited, but its original SSH client
-  did not return. Closed exact local SSH23331 after copying native artifacts.
-  Autolab036 transport failure is retained; do not rerun it or rewrite history.
-  **036_completed_artifact_verification.json** records verified actual results.
-- Native038 uncached probe COMPLETE: cached38.7819ms vsuncached31.7165ms per
-  255MB =1.2228x read throughput, all96 expert SHAs/canaries pass. No full gain.
-- Native039 shared-storage qualification COMPLETE:229 tests plus plain/owned
-  and production wrapper fixtures allhash1f7cd0eb14a22662,ownedbytes0/20736.
-- Sampler4208,parent1420 remains active with`host-trials-resources.jsonl`,
-  six-hour limit from22:38 UTC, stop marker`stop-trials-sampler`.
-- No other native task build/probe active. Prepare uncached-read code locally
-  while040 runs; no native build until it ends. Preserve all frozen binaries.
+- **042_full_uncached_diagnostics is RUNNING**, controller session45505,
+  log`/private/tmp/inkling-full-uncached-campaign.log`.
+- Native full-uncached.exe **PID5024**,created1789346344.4633756.
+  SHA9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2,
+  source06bc834f. Three cases x1rep,63 decode steps each.
+- Same040 profile: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1;
+  nowUncachedReads1. Expectedhashce0fbb9a116d3d09,ownedbytes4076863488,
+  uncached_read_effective1 andfallbacks0. Native042-uncached*.json/.log.
+- **043 pipeline qualifier QUEUED under parent9672**, state
+  pipeline-qualification-state.json,logpipeline-qualification.log. It waits for
+  verified042 and native exit before applying two SHA-checked source changes,
+  building/testing full-pipeline.exe once, preserving all five frozen binaries.
+  No pipeline full trial is queued; decide its cached/uncached setting from042.
+- **040 completed/Autolab verified**: slowest0.2358904278568449tok/s across
+  three cases x1rep; rates0.237332/0.237696/0.235890. Exact tokens/logits. This is
+  single-pass evidence,19.78% above036 slowest, not the repeated record.
+- **Repeated record036:0.1969341563127117tok/s**,9samples,45.52% overbaseline.
+  Exact IDs/hash. Original SSH client stayed open after native/wrapper exit;
+  closed exact local23331, kept Autolab transport failure. Complete native
+  artifacts independently verified in036_completed_artifact_verification.json.
+- Native041 uncached qualification COMPLETE:233 tests including actual aligned
+  byte/kernel canaries, three fixture modes plus production wrapper allpass.
+  Tiny fixture uses expected cached fallback for unaligned bins. Full path042
+  must report actual uncached reads and zero fallbacks; no speedup claimed yet.
+- Sampler4208,parent1420 active;host-trials-resources.jsonl, six-hour limit from
+  22:38UTC,stopmarkerstop-trials-sampler. Stop when campaign sequence ends.
+- Target25 remains unmet; current export/workload/SSD bandwidth bound rules out
+  ordinary tuning to25. Continue useful measured improvements without false wins.
 
 ## Baseline and qualified candidates
 
@@ -152,12 +158,16 @@ shows transient pressure remains despite low decode faults. Machine-wide disk
 2.940GB/s is not exclusively attributable to model. Resource analyzer exactly
 reproduces the prior033 baseline aggregates and keys on PID+creation time.
 
-Finish040 and assess actual owned bytes, reference hash/IDs, layer timings and
-memory. Prepare opt-in uncached reads from038 evidence with safe aligned scratch
-and cached fallback; native qualification must wait for040. Reconfirm a winning
-full configuration with >=3 repetitions before reporting a new repeated record.
-Stop the sampler with its marker when the campaign sequence ends. No new export
-or A100 job is needed. Do not stop protected services.
+040 artifacts under`/private/tmp/inkling-full-owned-shared-artifacts` and
+committed040 results. Medianattention0.388156,MLP3.800657,outside0.024941s/token.
+Private peak26.093GB,minavailable188MB,swap peak16.092GB; lifetimefaults126252/s
+include prefill/soft faults. Decode gains despite additional private memory.
+
+Finish042 and assess actual uncached-effectiveness, reference hash/IDs, layer
+timings and memory. Queued043 builds only after042 exit. Then choose the better
+cached/uncached base for a pipeline diagnostic. Reconfirm a winning full profile
+with >=3repetitions before reporting a new repeated record. No new export/A100
+job needed. Do not stop protected services.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads
@@ -241,34 +251,27 @@ physical page locking; its full memory/performance tradeoff is measured by040.
 Controller expected_metrics gates ensure the candidate is actually enabled.
 
 
-## Queued uncached production candidate41
+## Uncached candidate41, active42, queued pipeline43
 
 Opt-inCASCADIA_INKLING_UNCACHED_READS requires ReuseBuffers1/Reads0. Aligned
-padded Vec slices; cached full-read retry on unsupported input/I/O. No new
-unsafe Rust; ordinary private memory, not physical pinning.229 local tests plus
-six focused checks pass; fixturehash5122e042f9b1fb30. Native tests pending.
-
-Four source SHAs checked/deployed. **Qualifier parent8796** waits for040 final
-verified3samples/ownedbytes and no activefull. Stateuncached-qualification-state.json,
-loguncached-qualification.log; futurefull-uncached.exe. Build/tests once, preserve
-all four frozen binaries, then SHA-checked staged wrapper installation. Do NOT
-start another full trial/build until it is terminal. Source archive/manifest
-/private/tmp/inkling-uncached-source.{tar,json}, nativeuncached-source.*.
-
-Prepared042_full_uncached_diagnostics is NOT launched; same040 profile plus
-UncachedReads1, threecases/one repetition. Gates require ownedbytes4076863488,
-full model,mapped embedding,actualuncached_read_effective1 andfallbacks0.
-After native qualification, validate production wrapper fixture, then run042.
-040 nativePID11216,created1789345010.6515927. Firstwatercase0.2373318713tok/s,
-remaining cases pending. Keep036 as verified repeated record until reconfirmation.
-
-
-## Local-only pipeline candidate43
+padded Vec slices; complete cached retry on unsupported input/I/O. No new unsafe
+Rust or physical pinning. File lengths checked before/after direct I/O. Counters
+report actual completed uncached bytes and all fallback attempts.229 local tests
+plus six focused buffer checks and233 native tests pass. Fixturehash5122e042f9b1fb30
+on ARMdebug and1f7cd0eb14a22662 onMSVCrelease. Do not mix architectures.
+Native aligned byte and actual int4 kernel canaries pass; tiny fixture correctly
+falls back because its bins are unaligned. Native full-uncached.exe is qualified.
 
 CASCADIA_INKLING_PIPELINE_READS overlaps each expert's read with its compute,
 requires parallel experts/reusable buffers, keeps indexed gate order.221 local
-tests plus five fixture modes pass hash5122e042f9b1fb30; actual pipeline counts
-0/63off/on and0 under each escape hatch. Native/full validation pending.
-**NOT deployed or queued.** Native041 still uses staged06bc834f uncached source
-and wrapper. After042 results, decide its cached/uncached setting before native
-pipeline qualification; preserve full-uncached.exe and prior frozen binaries.
+tests plus five fixture modes pass ARMhash5122e042f9b1fb30. Actual pipeline layer
+counts0/63off/on;0 with reuse disabled,directmaps orserialexperts. No native/full
+performance claim yet. Source18f8becb prepared; deferred archives
+/private/tmp/inkling-pipeline-source.{tar,json},nativepipeline-source.*.
+
+Queued qualifier applies only two source files AFTER042 full verification and
+native exit; previous SHAs correspond to06bc834f. It preserves all five frozen
+binaries and installs stagedrun-full-pipeline.ps1 only after native tests and
+priorwrapperSHAcheck. Statepipeline-qualification-state.json; parent9672.
+Do NOT start another build/fullrun until this queued job is terminal. Future
+full-pipeline.exe is NOT YET QUALIFIED. No044 campaign exists yet.

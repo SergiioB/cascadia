@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "040-owned-shared-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "040-owned-shared-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "040-owned-shared-layers.json",
+      "source_bytes": 2711124,
+      "source_sha256": "4e6b2f50f0547b9e0e1a3edf363d3c5119ccc145ca3109e08f04f6fcdaae42f9",
+      "compressed_file": "040-owned-shared-layers.json.gz",
+      "compressed_bytes": 162425,
+      "compressed_sha256": "41982dbcb551c5ede0c0d0f9468661730ed0ff63b20ac2a43f78f39ee889e569"
+    },
+    {
+      "source_file": "host-trials-resources.jsonl",
+      "source_bytes": 1552638,
+      "source_sha256": "c953b41cbbaec69775ac11dd5e5f0b99246e7292cc4f77d02e9b353238229e0d",
+      "compressed_file": "040-host-trials-resources.jsonl.gz",
+      "compressed_bytes": 125810,
+      "compressed_sha256": "ffa307928f9e6f7228e682f88d02eb8dfe77a106e434a8067f82bf48af1ea84a"
+    }
+  ]
+}

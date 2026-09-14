@@ -1074,3 +1074,33 @@ hash5122e042f9b1fb30: pipelineoff/on actual counts0/63; disabling reuse, enablin
 direct maps, or serial experts each yields0 and exact outputs. Native validation
 and full performance remain pending. Pipeline source is local only; the queued
 uncached build uses the previously staged06bc834f source and wrapper.
+
+
+## 40 completed — shared-expert ownership improves full decode
+
+All three cases preserve full hashce0fbb9a116d3d09 and exact reference IDs.
+Rates0.237332/0.237696/0.235890tok/s; slowest0.2358904279,19.78% above036
+repeated slowest. This is ONE pass, so036 remains the repeated record.
+Autolab completed/verified normally with SSH keepalives. Median seconds/token:
+attention0.388156,MLP3.800657,outside0.024941,total4.213509.
+
+Private peak26.093GB (03622.078GB), minimum available RAM188MB, machine swap
+peak16.092GB. Lifetimefaults126252/s vs036107292/s include prefill/soft faults.
+MLP improves despite added private storage; transient prefill pressure remains.
+Machine reads2.654GB/s sampled lifetime cannot be exclusively attributed to model.
+All full reports/traces/resources archived with SHA manifest. Native041 build
+started automatically after040 exit; no concurrent full benchmark.
+
+
+041 native qualification complete:233 tests, actual aligned byte/reuse/kernel
+canaries, all fixture modes and production wrapper pass. Tiny unaligned bins
+correctly fall back (three observed attempts); no native full gain yet. Binary
+full-uncached.exe SHA9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2.
+042 launched,controller45505,log/private/tmp/inkling-full-uncached-campaign.log,
+nativePID5024,created1789346344.4633756. Three full cases,one repetition; gate
+actualuncached_read_effective1/fallbacks0,ownedbytes4076863488 andfullhash/IDs.
+
+Pipeline qualifier is now queued under parent9672 after042. It applies staged
+source only after previousSHAs plus full042 verification/native exit; builds/tests
+once and preserves all five frozen binaries. No pipeline full test queued; choose
+its cached/uncached base from042 versus040. Statepipeline-qualification-state.json.
