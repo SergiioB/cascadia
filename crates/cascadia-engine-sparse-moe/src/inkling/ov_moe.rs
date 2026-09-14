@@ -68,6 +68,19 @@ fn set_process_env(name: &str, value: &str) {
     }
 }
 
+/// Row count a device call is padded to: the plugin pays a kernel-setup
+/// cost the first time it sees a row count (~55–140 ms, ~1 s at the 32-row
+/// boundary on the B390), so calls use a few fixed shapes — 2 (decode), then
+/// multiples of 8 up to 32, then multiples of 32 — and the padding rows are
+/// ignored on the way out.
+pub(crate) fn bucket_rows(rows: usize) -> usize {
+    match rows {
+        0..=2 => 2,
+        3..=32 => rows.div_ceil(8) * 8,
+        _ => rows.div_ceil(32) * 32,
+    }
+}
+
 fn f32_bytes(v: &[f32]) -> &[u8] {
     // SAFETY: f32 has no invalid bit patterns; lifetime tied to `v`.
     unsafe { std::slice::from_raw_parts(v.as_ptr() as *const u8, std::mem::size_of_val(v)) }
@@ -329,9 +342,13 @@ impl OvMoe {
         }
         // The first call at a row count pays the plugin's kernel setup for
         // that shape (~140 ms for the padded decode shape on the B390); take
-        // it here so the timed decode calls do not.
+        // the decode bucket and the smallest prefill bucket here.
         let ids: Vec<i32> = (0..k as i32).collect();
         ok &= self.forward(lid, &x, 1, &ids, &w).is_some();
+        let x8 = vec![0.0f32; 8 * self.hidden];
+        let ids8: Vec<i32> = ids.iter().copied().cycle().take(8 * k).collect();
+        let w8 = vec![0.0f32; 8 * k];
+        ok &= self.forward(lid, &x8, 8, &ids8, &w8).is_some();
         // Warm-up calls are not benchmark calls.
         self.calls.store(before.0, Ordering::Relaxed);
         self.rows.store(before.1, Ordering::Relaxed);
@@ -362,15 +379,27 @@ impl OvMoe {
             return None;
         };
         let t0 = Instant::now();
-        let (xs_p, ids_p, w_p, prow);
-        let (xs, ids, weights, prow) = if rows == 1 {
-            xs_p = [xs, xs].concat();
-            ids_p = [ids, ids].concat();
-            w_p = [weights.to_vec(), vec![0.0f32; self.k_total]].concat();
-            prow = 2usize;
-            (&xs_p[..], &ids_p[..], &w_p[..], prow)
+        // Pad to the shape bucket: copies of the last row with zero weights
+        // (the kernel still touches their experts, which are the same ones).
+        let prow = bucket_rows(rows);
+        let (xs_p, ids_p, w_p);
+        let (xs, ids, weights) = if prow != rows {
+            let h = self.hidden;
+            let k = self.k_total;
+            let mut x2 = xs.to_vec();
+            let mut i2 = ids.to_vec();
+            let mut w2 = weights.to_vec();
+            for _ in rows..prow {
+                x2.extend_from_slice(&xs[(rows - 1) * h..rows * h]);
+                i2.extend_from_slice(&ids[(rows - 1) * k..rows * k]);
+                w2.extend(std::iter::repeat_n(0.0f32, k));
+            }
+            xs_p = x2;
+            ids_p = i2;
+            w_p = w2;
+            (&xs_p[..], &ids_p[..], &w_p[..])
         } else {
-            (xs, ids, weights, rows)
+            (xs, ids, weights)
         };
         let out = {
             let mut rt = rt.lock().expect("OV MoE runtime lock");
