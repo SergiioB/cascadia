@@ -30,7 +30,8 @@ four invalid dependency guards; all15 older binaries preserved.
 New full-second-rank.exe SHA83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2,
 source6c40e442, local/nativewrapperbe0b9fb0. Allproof artifacts SHA archived.
 132rank2control COMPLETE/SHA captured1.1182391858, native4248 exited.
-133rank1 active native6736(created1789391748.78917), then134rank3,135rank5. Guarded45173 log/private/tmp/inkling-after-129.log.
+133rank1 COMPLETE/SHA captured1.1078773695, allthree slower; native6736 exited.
+134rank3 active9888(created1789392029.1779904), then135rank5. Guarded45173 log/private/tmp/inkling-after-129.log.
 Do not launch duplicate native qualifiers or controllers.
 125 local full crate suite387 tests plus eight fixture modes all exact.
 Two readers use independent bounded workers, same original predicted rank ceiling2.
@@ -65,6 +66,18 @@ currentcap3 coverage47.67%,1215unused; cap5hybrid also worse read tradeoff.
 No hybrid runtime implemented, no speed claim.136_hybrid_decision.json defers
 it; earlier lead time remains unmeasured. Finish132–135 before next decision.
 Number137 is available for a winning-rank repeated confirmation.
+
+##138 third-read forecast eligible for later experiment
+
+Fixed third predicted rank ceiling2 before replay, only when all leadingthree
+predictions are uncached.105 adds2058reads/1770useful/288unused:4.50points
+misscoverage,.7166% extra overtwo. Reused107longer adds4200/3669/531:
+4.43points,.6252% extra. Both pass predefined>=3point and<=1% budgets.
+No third runtime implemented. Finishrank sweep and any137confirmation first.
+Then139 may implement third reader with independent ownership/fallback/drain
+and bounded scratch memory; current256MiB idle pool may cause extra allocations
+with three pending buffers. Qualification must precede native speed tests.
+138_third_read_decision.json preserves forecasts and scope. Do not claim a speedup.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
 
