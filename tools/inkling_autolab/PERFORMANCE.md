@@ -1,0 +1,87 @@
+# Inkling large975B on Panther Lake
+
+The best completed single-pass profile reaches **0.515177 decode tokens/s** on
+tate-07. The confirmed three-repeat record is **0.196934 tokens/s**; a matched
+scheduling comparison and final repeated confirmation are in progress.
+**The 25 tokens/s target has not been reached.**
+
+## What was measured
+
+The complete 548,985,140,942-byte int4 export is on tate-07, with all 16,654 files
+SHA-256 verified. The production Inkling loader and decoder run all 66 layers,
+embeddings, attention, routed/shared experts, and output head. These results use
+the CPU backend with 16 threads on a Core Ultra X7 358H and 64 GB of RAM.
+The Arc B390 is not used by these full-model runs.
+
+Each pass contains three prompts: a water-cycle explanation, binary search, and
+a short story. Each case generates 64 tokens, of which 63 belong to decode; the
+first token belongs to prefill. The score is the slowest case/repetition,
+including the first decode run and output checking. Every candidate must match
+the baseline's saved greedy IDs and full-logits hash `ce0fbb9a116d3d09`.
+Separate tiny-model tests check the port against the Hugging Face fixture.
+
+| Profile | Passes | Slowest decode tokens/s | Change from original |
+| --- | ---: | ---: | ---: |
+| [Original baseline](results/033_large-baseline.json) | 3 | 0.135334 | 1.00× |
+| [Reusable buffers, row tiles, mapped embedding](results/036-buffered.json) | 3 | 0.196934 | 1.46× |
+| [Also own the shared expert bytes](results/040-owned-shared.json) | 1 | 0.235890 | 1.74× |
+| [Also use uncached expert reads](results/042-uncached.json) | 1 | 0.515177 | 3.81× |
+
+The 036 SSH connection did not return after native completion. Its transport
+failure remains in Autolab history; its complete native results were separately
+[verified against the saved artifacts](results/036_completed_artifact_verification.json).
+040 and 042 completed through Autolab normally. Single-pass improvements need
+the pending repeated confirmation before becoming the repeated record.
+
+## What improved
+
+Reusing destination allocations avoids repeatedly faulting in newly allocated
+read buffers. Mapping the sparsely accessed embedding table reduces private
+memory, and the row tiles retain the same numerical accumulation. Owning the
+always-used shared experts adds about 4.08 GB of private weights but avoids
+repeated shared-file reads.
+
+Uncached Windows reads bypass the file-cache path for nonresident routed
+experts, using aligned reusable buffers and the same packed bytes and kernels.
+The full run recorded 2.209 TB of successful uncached reads with zero fallbacks.
+Mapped execution still handles experts selected by the residency check. Failed
+or unsupported uncached reads retry a complete cached read; partial buffers are
+never consumed. These are ordinary private allocations, not physically pinned
+pages. All options remain opt-in.
+
+Median expert-block time fell from 3.801 seconds/token in 040 to 1.495 in 042;
+attention was 0.364 and work outside the layers was 0.025 seconds/token in 042.
+Prefill still takes roughly two minutes for these short prompts, with transient
+memory pressure. Decode speed does not include that prefill latency.
+
+The [journal](JOURNAL.md) records hypotheses, tests, and rejected approaches.
+Raw layer/routing traces and sampled host resources are archived under
+`results/` with SHA manifests. Machine disk counters include other processes;
+page-fault counters include soft faults.
+
+## Why 25 tokens/s requires a different setup
+
+The [whole-continuation traffic bound](results/037_full_span_traffic_bound.json)
+allows perfect reuse across all 63 decode positions and an optimistic initial
+32 GiB cache of routed experts. Even then, 25 tokens/s would require **46–56 GB/s**
+of routed-weight reads for these cases. The observed PCIe 5.0 ×4 SSD link has a
+theoretical maximum of **15.754 GB/s before protocol overhead**. The bound also
+omits all computation and fixed/shared weights.
+
+This rules out reaching 25 tokens/s by ordinary tuning of this packed export on
+this SSD. It does not claim a limit for a different representation, model, or
+hardware configuration. Current measured speed remains well below the ideal
+disk-only bound; that bound is not a performance prediction.
+
+## Export rental
+
+These runtime experiments require no new export or A100 work. The Lambda host
+at `129.146.170.51` is backed up and ready for release; no termination has been
+performed. Lambda requires instance termination to stop billing, and termination
+erases its local disk. See [Lambda's instance documentation](https://docs.lambda.ai/public-cloud/on-demand/creating-managing-instances/).
+
+The [export-host guide](EXPORT_HOST.md) contains the verified backup and rebuild
+recipe. With raw weights already local, a complete export is estimated at
+15–30 minutes, about $4–8 at $15/hour. First download plus export is estimated at
+2–3 hours, about $30–45. These are estimates from measured component/download
+rates, not a timed full export. The current PTL export is already complete.
