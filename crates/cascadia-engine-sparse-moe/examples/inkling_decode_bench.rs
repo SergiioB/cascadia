@@ -466,6 +466,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         cascadia_engine_sparse_moe::inkling::second_prediction_read_statistics();
     let prediction_read_workers =
         cascadia_engine_sparse_moe::inkling::prediction_read_worker_count();
+    let second_prediction_rank_ceiling =
+        cascadia_engine_sparse_moe::inkling::second_prediction_rank_ceiling();
+    println!("second_prediction_rank_ceiling={second_prediction_rank_ceiling}");
     let second_prediction_reads_effective = second_prediction_reads.scheduled > 0;
     println!("prediction_read_workers={prediction_read_workers}");
     println!(
@@ -515,6 +518,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "expert_cache":expert_cache,
                 "prediction_reads":prediction_reads,
                 "second_prediction_reads":second_prediction_reads,
+                "second_prediction_rank_ceiling":second_prediction_rank_ceiling,
                 "prediction_read_workers":prediction_read_workers,
                 "second_prediction_reads_effective":second_prediction_reads_effective,
                 "early_prediction_reads_effective":early_prediction_reads_effective,

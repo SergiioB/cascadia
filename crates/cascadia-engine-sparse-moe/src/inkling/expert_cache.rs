@@ -119,9 +119,13 @@ impl ExpertCache {
     }
 
     /// Keep the first uncached prediction, adding the second only when its
-    /// original gate rank is within the top three. Inspect membership once,
+    /// original gate rank is within the supplied ceiling. Inspect membership once,
     /// before actual lookup, without changing cache history or counters.
-    pub fn selective_uncached(&self, predictions: &[usize]) -> [Option<usize>; 2] {
+    pub fn selective_uncached(
+        &self,
+        predictions: &[usize],
+        second_rank_ceiling: usize,
+    ) -> [Option<usize>; 2] {
         let state = self.0.lock().unwrap_or_else(|e| e.into_inner());
         let mut selected = [None, None];
         if state.stats.capacity_bytes == 0 {
@@ -137,7 +141,7 @@ impl ExpertCache {
             if selected[0].is_none() {
                 selected[0] = Some(expert);
             } else {
-                if rank <= 2 {
+                if rank <= second_rank_ceiling {
                     selected[1] = Some(expert);
                 }
                 break;
@@ -309,23 +313,62 @@ mod tests {
             let s = cache.0.lock().unwrap();
             (s.frequency.clone(), s.last.clone(), s.clock)
         };
-        assert_eq!(cache.selective_uncached(&[3, 4, 5]), [Some(3), Some(4)]);
-        assert_eq!(cache.selective_uncached(&[0, 3, 4, 5]), [Some(3), Some(4)]);
-        assert_eq!(cache.selective_uncached(&[3, 0, 4, 5]), [Some(3), Some(4)]);
-        assert_eq!(cache.selective_uncached(&[0, 1, 3, 4]), [Some(3), None]);
-        assert_eq!(cache.selective_uncached(&[0, 1, 2, 3, 4]), [Some(3), None]);
-        assert_eq!(cache.selective_uncached(&[9, 3, 4]), [Some(3), Some(4)]);
-        assert_eq!(cache.selective_uncached(&[3, 3, 4]), [Some(3), Some(4)]);
-        assert_eq!(cache.selective_uncached(&[3, 3, 3, 4]), [Some(3), None]);
-        assert_eq!(cache.selective_uncached(&[0, 1, 2, 9]), [None, None]);
-        assert_eq!(cache.selective_uncached(&[]), [None, None]);
+        assert_eq!(cache.selective_uncached(&[3, 4, 5], 2), [Some(3), Some(4)]);
+        assert_eq!(
+            cache.selective_uncached(&[0, 3, 4, 5], 2),
+            [Some(3), Some(4)]
+        );
+        assert_eq!(
+            cache.selective_uncached(&[3, 0, 4, 5], 2),
+            [Some(3), Some(4)]
+        );
+        assert_eq!(cache.selective_uncached(&[0, 1, 3, 4], 2), [Some(3), None]);
+        assert_eq!(
+            cache.selective_uncached(&[0, 1, 2, 3, 4], 2),
+            [Some(3), None]
+        );
+        assert_eq!(cache.selective_uncached(&[9, 3, 4], 2), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[3, 3, 4], 2), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[3, 3, 3, 4], 2), [Some(3), None]);
+        assert_eq!(cache.selective_uncached(&[0, 1, 2, 9], 2), [None, None]);
+        assert_eq!(cache.selective_uncached(&[], 2), [None, None]);
         assert_eq!(serde_json::to_value(cache.stats()).unwrap(), before);
         let s = cache.0.lock().unwrap();
         assert_eq!((s.frequency.clone(), s.last.clone(), s.clock), history);
         assert_eq!(
-            ExpertCache::new(6, 0).selective_uncached(&[3, 4]),
+            ExpertCache::new(6, 0).selective_uncached(&[3, 4], 2),
             [None, None]
         );
+    }
+
+    #[test]
+    fn second_rank_ceiling_changes_only_the_second_prediction() {
+        let cache = ExpertCache::with_policy(6, 96, 4, true);
+        drop(cache.lookup(&[0, 1, 2]));
+        for expert in 0..3 {
+            cache.retain(expert, &mut bytes(17, 32));
+        }
+        assert_eq!(cache.selective_uncached(&[0, 3, 4], 1), [Some(3), None]);
+        assert_eq!(cache.selective_uncached(&[0, 3, 4], 2), [Some(3), Some(4)]);
+        assert_eq!(cache.selective_uncached(&[0, 1, 3, 4], 2), [Some(3), None]);
+        assert_eq!(
+            cache.selective_uncached(&[0, 1, 3, 4], 3),
+            [Some(3), Some(4)]
+        );
+        assert_eq!(
+            cache.selective_uncached(&[0, 1, 2, 3, 3, 4], 4),
+            [Some(3), None]
+        );
+        assert_eq!(
+            cache.selective_uncached(&[0, 1, 2, 3, 3, 4], 5),
+            [Some(3), Some(4)]
+        );
+        for ceiling in 1..=5 {
+            assert_eq!(
+                cache.selective_uncached(&[0, 1, 2, 3], ceiling),
+                [Some(3), None]
+            );
+        }
     }
 
     #[test]

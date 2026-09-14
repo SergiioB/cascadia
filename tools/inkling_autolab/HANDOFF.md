@@ -24,6 +24,18 @@ proof126_profile_default_guard.json. No new export/Lambda work.
 Two readers use independent bounded workers, same original predicted rank ceiling2.
 Early flag takes precedence in library; wrapper rejects combined flags.
 
+## Prepared130 rank-selection experiment (not native yet)
+
+Local runtime accepts CASCADIA_INKLING_SECOND_PREDICT_RANK1..5, default2;
+selection only changes the second candidate, two-worker bound unchanged.
+255 tests/13suites and ten tiny modes pass; source not deployed while129 runs.
+Candidatewrapper run-full-second-rank.ps1; productionwrapper stays09f20b18.
+131 qualifier expects259 native tests/13suites, seven fixture modes and four
+invalid dependency guards; must preserve15 frozen binaries and wait until129
+completed and its artifacts/verification captured before staging/launching.
+Prepared132rank2control,133rank1,134rank3,135rank5 samebinary single passes.
+All forecast counters from124; no new exports, no full speed claim yet.
+
 ## Completed113/114 longer-prompt comparison (11:55UTC)
 
 113 COMPLETE/SHA captured, score0.9165585148, all gates pass; native8876 exited.

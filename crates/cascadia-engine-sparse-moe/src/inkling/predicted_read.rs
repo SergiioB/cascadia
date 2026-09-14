@@ -148,6 +148,25 @@ impl Drop for Reader {
 static READER: OnceLock<Option<Reader>> = OnceLock::new();
 static SECOND_READER: OnceLock<Option<Reader>> = OnceLock::new();
 
+fn parse_second_rank(raw: Option<&str>) -> usize {
+    raw.and_then(|value| value.parse::<usize>().ok())
+        .filter(|value| (1..=5).contains(value))
+        .unwrap_or(2)
+}
+
+/// Original predicted gate rank, zero based. Default2 retains the qualified
+/// top-three policy; the experiment changes selection only, never read bounds.
+pub fn second_prediction_rank_ceiling() -> usize {
+    static CEILING: OnceLock<usize> = OnceLock::new();
+    *CEILING.get_or_init(|| {
+        parse_second_rank(
+            std::env::var("CASCADIA_INKLING_SECOND_PREDICT_RANK")
+                .ok()
+                .as_deref(),
+        )
+    })
+}
+
 pub(super) fn second_reads_requested() -> bool {
     static ENABLED: OnceLock<bool> = OnceLock::new();
     // Early mode already overlaps two layers. It takes precedence so combining
@@ -298,6 +317,24 @@ impl Drop for PendingRead {
 mod tests {
     use super::*;
     use std::io::Write;
+
+    #[test]
+    fn rank_configuration_is_bounded_and_defaults_to_qualified_policy() {
+        for rank in 1..=5 {
+            assert_eq!(parse_second_rank(Some(&rank.to_string())), rank);
+        }
+        for raw in [
+            None,
+            Some(""),
+            Some("0"),
+            Some("6"),
+            Some("-1"),
+            Some("bad"),
+            Some("9999999999999999999999999999"),
+        ] {
+            assert_eq!(parse_second_rank(raw), 2);
+        }
+    }
 
     #[test]
     fn two_workers_start_concurrently_and_keep_expert_buffers_distinct() {

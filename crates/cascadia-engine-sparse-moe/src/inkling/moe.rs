@@ -170,7 +170,10 @@ impl MoeLayer {
             return None;
         }
         let selected = if super::predicted_read::second_reads_requested() {
-            self.expert_cache.selective_uncached(&prediction.idx)
+            self.expert_cache.selective_uncached(
+                &prediction.idx,
+                super::predicted_read::second_prediction_rank_ceiling(),
+            )
         } else {
             [self.expert_cache.first_uncached(&prediction.idx), None]
         };

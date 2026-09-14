@@ -80,7 +80,8 @@ pub use read_buffers::uncached_read_statistics;
 pub use read_buffers::prefill_read_statistics;
 mod predicted_read;
 pub use predicted_read::{
-    prediction_read_statistics, prediction_read_worker_count, second_prediction_read_statistics,
+    prediction_read_statistics, prediction_read_worker_count, second_prediction_rank_ceiling,
+    second_prediction_read_statistics,
     PredictionReadStats,
 };
 pub mod relpos;
