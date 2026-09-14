@@ -329,6 +329,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "uncached_read_effective={}",
         u8::from(uncached_read_effective)
     );
+    let pipelined_read_layers =
+        cascadia_engine_sparse_moe::inkling::moe::pipeline_read_layer_count();
+    println!("pipelined_read_layers={pipelined_read_layers}");
+    println!(
+        "pipeline_reads_effective={}",
+        u8::from(pipelined_read_layers > 0)
+    );
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -341,6 +348,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "uncached_read_bytes":uncached_read_bytes,
                 "uncached_read_fallbacks":uncached_read_fallbacks,
                 "uncached_read_effective":uncached_read_effective,
+                "pipelined_read_layers":pipelined_read_layers,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;

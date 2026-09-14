@@ -261,3 +261,14 @@ full model,mapped embedding,actualuncached_read_effective1 andfallbacks0.
 After native qualification, validate production wrapper fixture, then run042.
 040 nativePID11216,created1789345010.6515927. Firstwatercase0.2373318713tok/s,
 remaining cases pending. Keep036 as verified repeated record until reconfirmation.
+
+
+## Local-only pipeline candidate43
+
+CASCADIA_INKLING_PIPELINE_READS overlaps each expert's read with its compute,
+requires parallel experts/reusable buffers, keeps indexed gate order.221 local
+tests plus five fixture modes pass hash5122e042f9b1fb30; actual pipeline counts
+0/63off/on and0 under each escape hatch. Native/full validation pending.
+**NOT deployed or queued.** Native041 still uses staged06bc834f uncached source
+and wrapper. After042 results, decide its cached/uncached setting before native
+pipeline qualification; preserve full-uncached.exe and prior frozen binaries.

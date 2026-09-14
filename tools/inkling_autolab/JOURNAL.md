@@ -1057,3 +1057,20 @@ wrapper only after native success and the previous wrapper SHA check.
 042 full three-case single-pass campaign prepared/parsed, NOT launched.
 040 first water case0.2373318713tok/s,18.90% above036 same case, exact IDs;
 remaining cases pending. No new repeated record claimed.
+
+
+## 43 hypothesis — overlap expert reads with ready-expert compute
+
+Prepare opt-inCASCADIA_INKLING_PIPELINE_READS for reusable buffers plus parallel
+experts. Each expert retains its mutable buffer borrow across read and kernel;
+indexed Rayon collection preserves gate order. Ready experts may compute while
+remaining I/O completes; defaults/direct/serial escapes retain the old schedule.
+Actual pipelined layer count is reported, so a disabled path cannot look tested.
+No native deployment or performance claim yet; first finish040/041/042 and choose
+whether to retain uncached reads from full-model evidence.
+
+221 local library/Inkling tests pass. Five fixture modes preserve the ARMdebug
+hash5122e042f9b1fb30: pipelineoff/on actual counts0/63; disabling reuse, enabling
+direct maps, or serial experts each yields0 and exact outputs. Native validation
+and full performance remain pending. Pipeline source is local only; the queued
+uncached build uses the previously staged06bc834f source and wrapper.

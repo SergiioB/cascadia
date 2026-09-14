@@ -1,0 +1,17 @@
+{
+  "scope": "pipelined_reads_local_validation",
+  "local_tests_passed": 221,
+  "fixture_hash": "5122e042f9b1fb30",
+  "fixture_pipelined_layers_off_on": [
+    0,
+    63
+  ],
+  "escape_hatches_verified": [
+    "reuse disabled",
+    "direct mapped reads",
+    "serial experts"
+  ],
+  "native_validation_pending": true,
+  "full_model_speedup_measured": false,
+  "local_test_log_sha256": "7a84ade2e27b75881ab16f0d11f8640306b0a4153f4493303b75a4859e497454"
+}
