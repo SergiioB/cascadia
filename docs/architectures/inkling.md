@@ -338,6 +338,16 @@ its CPU kernel — a 3× that a 64 GB box cannot cash on its own (the
 clock), but which every rank of a resident pipeline would see. Warming the
 260 IRs of three layers takes ~30 s from the blob cache (~13 GiB device).
 
+Resident-set limit of this design on a 64 GB box: a second MoE layer on the
+device (518 compiled models, ~26 GiB of driver allocations on top of the
+bins' page cache) pushes the box into memory pressure — the 4-layer run
+kept layer 3 at 7.7 ms/token (f32) / 6.8 (f16) but the first-allocated
+layer 2 fell to 16.8 / 21.7 ms/token, and the CPU pass of that sequence ran
+at 31–32 ms/token instead of 23.7 (one run each, the box hot from the
+previous sequence). Numerics and routing stayed as above (rel rms 5.5e-4
+after four layers). One MoE layer per 64 GB is the clean comparison; a
+resident pipeline rank holds one or two layers anyway.
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert

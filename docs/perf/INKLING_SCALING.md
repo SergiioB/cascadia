@@ -111,7 +111,9 @@ So the fleet box's MoE layer is 3× faster with the experts on its iGPU, and
 its resident per-token estimate moves from ~1.5 s (CPU) to ~0.5 s. The box
 itself still pages the 975B export from NVMe (the 16 GB/token of expert
 reads are its clock), so this is the per-rank number of a resident pipeline
-(§3), not a single-box tokens/s.
+(§3), not a single-box tokens/s. One MoE layer of compiled models
+(~13 GiB device) is what a 64 GB box holds cleanly: with two, the
+first-allocated layer's experts get paged and its time doubles.
 
 ## 3. Why a pipeline does not multiply per-box bandwidth
 
