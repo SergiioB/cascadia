@@ -1351,7 +1351,10 @@ impl Gemma4Engine {
                 is_eos,
             )
         } else {
+            // Explicit count: a token whose text lands in the next chunk (BPE
+            // splitting a glyph) would otherwise count 0 via the non-empty fallback.
             Chunk::token(task_id.clone(), next_token as i64, delta)
+                .with_n_tokens(1)
                 .with_token_ids(vec![next_token as i64])
         };
 
