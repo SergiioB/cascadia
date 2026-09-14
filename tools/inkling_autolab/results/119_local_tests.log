@@ -1,0 +1,448 @@
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: `cascadia-int4-gemm` (lib) generated 2 warnings (run `cargo fix --lib -p cascadia-int4-gemm` to apply 1 suggestion)
+warning: `cascadia-ov-genai-shim` (lib) generated 4 warnings (run `cargo fix --lib -p cascadia-ov-genai-shim` to apply 4 suggestions)
+   Compiling cascadia-engine-sparse-moe v0.2.3 (/private/tmp/tahoma-inkling-panther-autolab/crates/cascadia-engine-sparse-moe)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: `cascadia-engine-sparse-moe` (lib test) generated 1 warning
+warning: `cascadia-engine-sparse-moe` (lib) generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.41s
+     Running unittests src/lib.rs (/private/tmp/inkling-autolab-target/debug/deps/cascadia_engine_sparse_moe-5c012738683cfa6c)
+
+running 161 tests
+test dist::capture_frame_tests::capture_frame_bytes_empty_tokens ... ok
+test dist::capture_frame_tests::capture_v2_code_is_appended_and_distinct ... ok
+test dist::capture_frame_tests::restore_frame_bytes_layout ... ok
+test dist::capture_frame_tests::restore_ack_bytes_verdict_roundtrips ... ok
+test dist::capture_frame_tests::restore_and_ack_codes_are_distinct_and_recognized ... ok
+test dist::expert_frame_tests::expert_codes_are_appended_and_distinct ... ok
+test dist::capture_frame_tests::restore_carry_bytes_layout_roundtrips ... ok
+test dist::capture_frame_tests::capture_frame_bytes_layout_roundtrips ... ok
+test dist::capture_frame_tests::capture_v2_frame_bytes_layout_roundtrips ... ok
+test dist::expert_frame_tests::ids_tensor_roundtrips_including_pad ... ok
+test dsv4::expert_mmap::tests::fused_dequant_dot_matches_reference ... ok
+test engine::tests::even_moe_split_uniform ... ok
+test engine::tests::even_moe_split_with_remainder ... ok
+test engine::tests::per_token_budget_beats_the_gateway_inter_token_deadline ... ok
+test engine::tests::prefill_reply_budget_ceiling_clamp_never_underflows ... ok
+test engine::tests::prefill_reply_budget_clamps_below_the_frame_idle_ceiling ... ok
+test engine::tests::prefill_reply_budget_exceeds_the_per_token_reply_deadline ... ok
+test engine::tests::prefill_reply_budget_leaves_the_default_config_unclamped ... ok
+test engine::tests::prefill_reply_budget_saturates_instead_of_panicking ... ok
+test engine::tests::prefill_reply_budget_unclamped_when_no_ceiling_is_configured ... ok
+test engine::tests::prefill_reply_budget_widens_by_the_documented_factor ... ok
+test engine::tests::resume_max_new_is_unchanged_when_not_resuming ... ok
+test engine::tests::resume_max_new_at_full_budget_is_zero ... ok
+test engine::tests::resume_max_new_saturates_when_prefix_exceeds_budget ... ok
+test engine::tests::resume_max_new_subtracts_prefix_len ... ok
+test engine::tests::single_stage_yields_full_range ... ok
+test engine::tests::pipeline_engine_declines_seeded_task_with_sentinel_first_chunk ... ok
+test engine::tests::worker_disconnect_reports_fatal_once ... ok
+test engine::tests::utf8_safe_delta_ascii_is_one_suffix_per_step ... ok
+test engine::tests::utf8_safe_delta_streams_full_text_across_multibyte_split ... ok
+test glm::attn::kv_tests::kvstore_bf16_tracks_f32 ... ok
+test glm::env_flag_tests::zero_and_false_mean_off_not_on ... ok
+test glm::gate::tests::tie_breaks_toward_lower_id_and_normalises ... ok
+test glm::gate::tests::no_norm_keeps_raw_scaled_scores ... ok
+test glm::kv_cache::tests::prefix_cache_longest_match ... ok
+test glm::kv_cache::tests::slice_cache_disabled_when_cap_zero ... ok
+test glm::kv_cache::tests::slice_cache_get_take_lru ... ok
+test glm::kv_cache::tests::slice_cache_reinserting_a_live_key_moves_it_to_mru ... ok
+test glm::loader::int3_tests::dequant_int3_matches_pack_layout ... ok
+test glm::ov_expert::tests::fatal_classifier_matches_only_terminal_exhaustion ... ok
+test glm::ov_expert::tests::from_env_is_none_when_disabled ... ok
+test glm::residency::tests::autopin_ramps_with_confidence ... ok
+test glm::residency::tests::budget_reserves_slack_and_page_cache ... ok
+test glm::moe::tests::predict_topk_selects_the_router_topk ... ok
+test glm::stage::tests::widetable_bf16_tracks_f32 ... ok
+test inkling::ep::tests::expert_home_is_modulo_and_covers_every_worker ... ok
+test inkling::ep::tests::reply_deadline_widens_for_batches_but_stays_under_the_ceiling ... ok
+test glm::indexer::tests::select_prunes_once_past_topk ... ok
+test dsv4::st::tests::oversized_header_returns_error_without_overflow ... ok
+test dsv4::st::tests::tensor_metadata_mutation_cannot_create_out_of_bounds_view ... ok
+test dsv4::st::tests::mapped_bf16_owns_lifetime_and_preserves_all_bit_patterns ... ok
+test inkling::expert_cache::tests::independent_models_never_share_same_numbered_expert_bytes ... ok
+test dsv4::st::tests::mapped_bf16_rejects_mismatched_or_overflowing_shape ... ok
+test dsv4::st::tests::unaligned_and_f32_tensors_use_copy_fallback ... ok
+test inkling::expert_cache::tests::disabled_cache_and_unobserved_or_invalid_reads_retain_nothing ... ok
+test inkling::expert_cache::tests::predicted_membership_query_preserves_history_and_actual_counters ... ok
+test inkling::expert_cache::tests::lfu_retains_hot_expert_and_recycles_evicted_allocation ... ok
+test inkling::expert_cache::tests::new_sequence_can_replace_stale_favorites_without_discarding_warm_weights ... ok
+test inkling::expert_cache::tests::outstanding_leases_prevent_eviction_and_keep_capacity_bounded ... ok
+test inkling::expert_cache::tests::recent_ties_cannot_evict_a_leased_buffer_or_exceed_capacity ... ok
+test inkling::expert_cache::tests::recent_tie_evictions_preserve_real_packed_kernel_bytes ... ok
+test inkling::expert_cache::tests::real_int4_kernel_remains_exact_across_cache_hits_and_evictions ... ok
+test inkling::ffn::tests::w13_even_rows_are_gate_odd_rows_are_up ... ok
+test inkling::predicted_read::tests::disconnected_worker_falls_back_without_exposing_bytes_or_hanging ... ok
+test inkling::predicted_read::tests::blocked_worker_accepts_two_queued_requests_without_losing_ownership ... ok
+test inkling::predicted_read::tests::unused_drop_drains_in_flight_read_before_returning ... ok
+test glm::ov_expert::tests::expert_cost_scales_with_bin_and_floors ... ok
+test glm::residency::tests::usage_records_hottest_and_roundtrips ... ok
+test inkling::read_buffers::tests::overlapping_leases_own_disjoint_buffers ... ok
+test dsv4::st::tests::malformed_offsets_are_errors_for_owned_and_mapped_readers ... ok
+test inkling::moe::prefill_read_tests::streamed_prefill_preserves_real_int4_bits_across_multiple_cohorts ... ok
+test inkling::predicted_read::tests::failed_prediction_leaves_destination_intact_and_worker_can_continue ... ok
+test inkling::predicted_read::tests::only_matching_expert_consumes_complete_bytes_once ... ok
+test inkling::read_buffers::tests::reusable_real_int4_bytes_match_mapped_kernel_after_expert_changes ... ok
+test inkling::tests::rmsnorm_f32_matches_definition_per_row ... ok
+test kv_prefix_cache::tests::disabled_cache_is_a_noop ... ok
+test kv_prefix_cache::tests::clear_empties_cache ... ok
+test kv_prefix_cache::tests::evicting_a_pulled_entry_leaves_a_local_mark ... ok
+test inkling::read_buffers::tests::small_leases_leave_other_idle_allocations_available ... ok
+test kv_prefix_cache::tests::fingerprint_digest_is_deterministic ... ok
+test kv_prefix_cache::tests::fingerprint_ignores_sampling_params ... ok
+test inkling::read_buffers::tests::incompatible_length_falls_back_and_failed_read_exposes_no_bytes ... ok
+test kv_prefix_cache::tests::insert_dedup_is_scoped_to_partner ... ok
+test inkling::read_buffers::tests::rejects_missing_short_and_oversized_experts ... ok
+test kv_prefix_cache::tests::insert_same_key_replaces_in_place ... ok
+test kv_prefix_cache::tests::insert_then_lookup_returns_same_snapshot ... ok
+test kv_prefix_cache::tests::lookup_misses_on_different_model_fingerprint ... ok
+test kv_prefix_cache::tests::lookup_misses_when_prefix_differs ... ok
+test kv_prefix_cache::tests::lookup_ns_does_not_let_a_longer_other_tenant_entry_mask_the_callers_own_hit ... ok
+test kv_prefix_cache::tests::lookup_ns_is_confined_to_the_callers_namespace ... ok
+test kv_prefix_cache::tests::lookup_promotes_entry_to_mru ... ok
+test kv_prefix_cache::tests::lookup_rejects_exact_match_no_suffix ... ok
+test kv_prefix_cache::tests::lookup_reports_entry_provenance ... ok
+test kv_prefix_cache::tests::lookup_returns_longest_matching_prefix ... ok
+test kv_prefix_cache::tests::lru_eviction_drops_oldest ... ok
+test kv_prefix_cache::tests::plane_digest_ignores_stage_slice_but_not_model ... ok
+test kv_prefix_cache::tests::snapshot_approx_bytes_counts_layer0_and_shells ... ok
+test ngram_draft::tests::append_extends_history_and_indexes ... ok
+test ngram_draft::tests::draft_k_default_and_clamp ... ok
+test inkling::read_buffers::tests::overwrites_previous_expert_without_reallocating ... ok
+test ngram_draft::tests::empty_draft_proposes_nothing ... ok
+test inkling::expert_cache::tests::recent_ties_replace_stale_entries_but_preserve_later_cohort_hits ... ok
+test ngram_draft::tests::longer_kgram_match_wins_over_shorter ... ok
+test inkling::expert_cache::tests::short_frequency_history_adapts_within_a_sequence ... ok
+test ngram_draft::tests::reset_clears_state ... ok
+test ngram_draft::tests::propose_walks_repeated_sequence ... ok
+test ngram_draft::tests::rewind_past_history_clamps_to_zero ... ok
+test ngram_draft::tests::rewind_truncates_history_but_keeps_table ... ok
+test ngram_draft::tests::warm_with_prompt_indexes_kgrams ... ok
+test ov_kv_cache::tests::disabled_cache_never_hits ... ok
+test ov_kv_cache::tests::evicting_a_pulled_entry_leaves_a_local_mark ... ok
+test ov_kv_cache::tests::full_prompt_match_is_rejected_strict_prefix ... ok
+test ov_kv_cache::tests::insert_dedup_is_scoped_to_partner ... ok
+test ov_kv_cache::tests::insert_then_lookup_returns_same_snapshot ... ok
+test ov_kv_cache::tests::lookup_ns_does_not_let_a_longer_other_tenant_entry_mask_the_callers_own_hit ... ok
+test ov_kv_cache::tests::lookup_ns_is_confined_to_the_callers_namespace ... ok
+test ov_kv_cache::tests::lookup_reports_entry_provenance ... ok
+test ov_kv_cache::tests::lookup_returns_longest_matching_prefix ... ok
+test runner::tests::argmax_i64_all_non_finite_returns_zero ... ok
+test runner::tests::argmax_i64_finds_max_index ... ok
+test runner::tests::argmax_i64_skips_non_finite ... ok
+test runner::tests::expert_lru_bounded_evicts_least_recently_used ... ok
+test runner::tests::resolve_runner_options_from_config ... ok
+test runner::tests::write_present_kv_into_empty_slot ... ok
+test runner::tests::unpack_rejects_wrong_length_slice ... ok
+test runner::tests::write_present_kv_into_middle_slot ... ok
+test sampling::tests::frequency_penalty_demotes_repeated_token_greedy ... ok
+test sampling::tests::greedy_picks_max ... ok
+test sampling::tests::presence_penalty_is_count_independent ... ok
+test runner::tests::grow_kv_buffer_doubles_and_preserves_data ... ok
+test sampling::tests::repetition_penalty_avoids_repeat_with_temp_zero ... ok
+test sampling::tests::temperature_above_zero_does_advance_the_rng ... ok
+test sampling::tests::temperature_does_not_panic_on_uniform ... ok
+test runner::tests::expert_lru_unbounded_never_evicts ... ok
+test sampling::tests::temperature_zero_does_not_advance_the_rng ... ok
+test sampling::tests::top_k_one_forces_argmax_under_temperature ... ok
+test sampling::tests::top_p_does_not_pick_long_tail ... ok
+test spec_decode::tests::count_accepted_all_match ... ok
+test spec_decode::tests::count_accepted_first_mismatch ... ok
+test spec_decode::tests::count_accepted_no_match ... ok
+test spec_decode::tests::count_accepted_unequal_lens ... ok
+test spec_decode::tests::end_to_end_round_math_is_invariant ... ok
+test spec_decode::tests::reconcile_all_accepted_with_bonus_forward ... ok
+test runner::tests::grow_kv_buffer_from_empty_is_zero_filled ... ok
+test spec_decode::tests::reconcile_partial_accept ... ok
+test spec_decode::tests::reconcile_pending_token_all_accepted ... ok
+test spec_decode::tests::reconcile_pending_token_partial_accept ... ok
+test ov_moe::tests::int4_bin_expert_matches_fp32_within_tolerance ... ok
+test spec_decode::tests::reconcile_pending_token_zero_accepted ... ok
+test spec_decode::tests::reconcile_single_draft_accepted ... ok
+test spec_decode::tests::reconcile_zero_accepted ... ok
+test spec_decode::tests::simulated_runner_pending_session_matches_sequential_greedy ... ok
+test spec_decode::tests::simulated_session_matches_sequential_greedy ... ok
+test tensors::tests::bf16_roundtrip ... ok
+test tensors::tests::causal_mask_seq1_past0 ... ok
+test tensors::tests::causal_mask_seq1_past5 ... ok
+test tensors::tests::causal_mask_seq3_past0 ... ok
+test tensors::tests::concat_axis2 ... ok
+test runner::tests::unpack_into_larger_capacity_preserves_layout ... ok
+test runner::tests::pack_unpack_roundtrip_is_bit_identical ... ok
+test inkling::read_buffers::tests::alignment_survives_resizing_and_reuse ... ok
+
+test result: ok. 161 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/glm5_expert_mmap.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_expert_mmap-d165768a59f84ed6)
+
+running 1 test
+test eager_and_mmap_experts_agree ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/glm5_layer.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_layer-8b45e51d80ec3afb)
+
+running 3 tests
+test layer_attn_stage_matches_reference ... ok
+test layer_moe_stage_on_ref_h_matches_reference ... ok
+test transformer_layer_matches_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/glm5_loader.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_loader-1c6daa2d022c6c5b)
+
+running 1 test
+test loader_greedy_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/glm5_moe.rs (/private/tmp/inkling-autolab-target/debug/deps/glm5_moe-9fd440f197f2bc01)
+
+running 3 tests
+test moe_records_routing_into_usage ... ok
+test moe_block_matches_reference ... ok
+test moe_batch_union_bit_exact_vs_per_token ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/inkling_attn.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_attn-db6f7347e923bbe6)
+
+running 15 tests
+test relative_bias_steers_the_softmax ... ok
+test log_scaling_scales_the_bias_on_global_layers_only ... ok
+test sliding_truncate_beyond_the_ring_slack_panics - should panic ... ok
+test log_scaling_scales_q_and_scale_is_one_over_d ... ok
+test sliding_window_attends_only_to_the_last_window_keys ... ok
+test sliding_consecutive_truncates_cannot_creep_past_the_slack - should panic ... ok
+test sliding_truncate_snapshot_restore_truncate_beyond_the_slack_panics - should panic ... ok
+test golden_global_attention_layer3_matches_hf ... ok
+test sliding_consecutive_truncates_within_the_slack_redecode_exactly ... ok
+test golden_sliding_attention_layer0_matches_hf ... ok
+test sliding_truncate_snapshot_restore_truncate_within_the_slack_is_exact ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test prefill_is_bit_identical_to_per_token ... ok
+test snapshot_restore_roundtrip_then_rewind ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_layer ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/inkling_conv.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_conv-f28c4ef6aa225738)
+
+running 15 tests
+test impulse_response_is_reversed_kernel_plus_residual ... ok
+test rewind_slack_exactly_at_the_bound_is_allowed ... ok
+test rewind_to_zero_before_the_ring_wraps_is_allowed ... ok
+test snapshot_restore_roundtrip_and_rewind_after_restore ... ok
+test prefill_is_bit_identical_to_sequential_decode ... ok
+test multichannel_matches_the_spec_formula ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_conv ... ok
+test consecutive_truncates_cannot_creep_past_the_slack - should panic ... ok
+test truncate_beyond_the_rewind_slack_panics - should panic ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test truncate_snapshot_restore_truncate_within_the_slack_is_exact ... ok
+test zero_kernel_is_the_identity_through_the_residual ... ok
+test truncate_snapshot_restore_truncate_beyond_the_slack_panics - should panic ... ok
+test consecutive_truncates_within_the_slack_redecode_exactly ... ok
+test golden_sconv_matches_hf ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_ep.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_ep-6b23c2404d661e65)
+
+running 5 tests
+test expert_frames_round_trip_over_loopback_with_padding_ok_and_error ... ok
+test a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_message ... ok
+test placement_homes_every_expert_on_exactly_one_worker_and_banks_hold_exactly_those ... ok
+test driver_with_two_workers_matches_single_process_on_mmap_experts ... ok
+test driver_with_two_workers_over_loopback_matches_single_process_bit_for_bit ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.25s
+
+     Running tests/inkling_gate.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_gate-5bd777f62f7ea777)
+
+running 7 tests
+test weights_and_gammas_sum_to_route_scale_times_global_scale ... ok
+test bias_steers_selection_and_weights_normalise_over_selected_plus_shared ... ok
+test ties_break_toward_the_lower_expert_id ... ok
+test weights_use_raw_sigmoid_scores_not_the_biased_selection_score ... ok
+test a_hot_shared_expert_sinks_the_routed_weights ... ok
+test nan_logit_is_unselectable_and_does_not_panic_at_n_256 ... ok
+test golden_gate_matches_hf ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_loader.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_loader-e968ed0660d58ae6)
+
+running 18 tests
+test layer_split_covers_every_layer_exactly_once ... ok
+test manifest_base_is_accepted ... ok
+test manifest_allows_zero_dense_intermediate_without_dense_layers ... ok
+test manifest_requires_route_scale ... ok
+test manifest_requires_logits_mup_width_multiplier ... ok
+test manifest_rejects_nonpositive_mup ... ok
+test manifest_rejects_zero_moe_intermediate ... ok
+test manifest_requires_log_scaling_alpha ... ok
+test manifest_rejects_zero_dense_intermediate_when_dense_layers_present ... ok
+test bf16_bits_copies_bf16_and_narrows_f32_and_f16 ... ok
+test mapped_embedding_rows_and_head_math_match_owned_bits ... ok
+test owned_packed_shared_expert_matches_mapping_without_file_read_dispatch ... ok
+test bf16_bits_equals_the_f32_path_narrowed_on_the_tiny_export ... ok
+test mmap_overlapped_reads_match_the_mmap_kernel_bit_for_bit ... ok
+test loader_greedy_matches_hf_reference ... ok
+test staged_runner_single_rank_matches_model ... ok
+test routing_observer_preserves_prefill_and_decode_logits ... ok
+test mmap_model_matches_the_reference_and_the_eager_model ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/inkling_model.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_model-10dfa904c2306111)
+
+running 15 tests
+test head_divides_by_mup_bit_exactly_at_the_real_mup_24 ... ok
+test golden_moe_block_matches_hf ... ok
+test moe_batch_is_bit_identical_to_per_row ... ok
+test pre_attention_prediction_depends_on_current_input_not_attention_state ... ok
+test previous_layer_prediction_cannot_use_predecessor_or_target_sequence_state ... ok
+test previous_layer_predictions_preserve_logits_routes_and_precede_computation ... ok
+test prefix_snapshot_restore_is_bit_exact_vs_full_prefill ... ok
+test prefill_is_bit_identical_to_per_token ... ok
+test pre_attention_predictions_preserve_actual_routes_and_logits ... ok
+test truncate_then_redecode_matches_uninterrupted ... ok
+test greedy_is_deterministic_and_within_unpadded_vocab ... ok
+test golden_layer_hidden_states_and_final_logits_match_hf ... ok
+test reset_then_decode_is_bit_identical_to_a_fresh_model ... ok
+test golden_greedy_ids_match_hf_exactly ... ok
+test timing_observers_preserve_prefill_decode_logits_and_can_be_disabled ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/inkling_relpos.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_relpos-bfdf8d7be6261d37)
+
+running 6 tests
+test bias_is_zero_at_and_beyond_extent ... ok
+test bias_matches_hand_dot ... ok
+test profile_is_the_whole_bias_row ... ok
+test distinct_relative_states_give_distinct_profiles ... ok
+test row_zeroes_future_keys_and_far_past ... ok
+test golden_relpos_matches_hf ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inkling_wire.rs (/private/tmp/inkling-autolab-target/debug/deps/inkling_wire-97f07b3a2a2496ca)
+
+running 1 test
+test inkling_two_rank_over_real_transport_matches_reference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: `cascadia-int4-gemm` (lib) generated 2 warnings (run `cargo fix --lib -p cascadia-int4-gemm` to apply 1 suggestion)
+warning: `cascadia-ov-genai-shim` (lib) generated 4 warnings (run `cargo fix --lib -p cascadia-ov-genai-shim` to apply 4 suggestions)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: `cascadia-engine-sparse-moe` (lib) generated 1 warning
+   Compiling cascadia-engine-sparse-moe v0.2.3 (/private/tmp/tahoma-inkling-panther-autolab/crates/cascadia-engine-sparse-moe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s

@@ -1,4 +1,4 @@
-//! One bounded background expert read, consumed only after actual routing.
+//! Bounded background expert reads, consumed only after actual routing.
 //! No cache/history mutation. Dropping a pending request drains its I/O before
 //! its buffers return to the scratch pool, including on unwind or misprediction.
 use std::io;
@@ -78,9 +78,9 @@ impl Reader {
     fn with_read_fn(
         mut read: impl FnMut(&mut ReadBuffer, &Path, usize) -> io::Result<()> + Send + 'static,
     ) -> io::Result<Self> {
-        // One worker and one queued request. The reader is independent of
-        // Rayon, so waiting for a prediction cannot exhaust Rayon's workers.
-        let (sender, requests) = sync_channel::<Request>(1);
+        // Two queued requests let a model submit current + next without waiting
+        // for worker dispatch. One independent worker avoids Rayon starvation.
+        let (sender, requests) = sync_channel::<Request>(2);
         let counters = Arc::new(Counters::default());
         let counts = counters.clone();
         let thread = std::thread::Builder::new()
@@ -146,6 +146,11 @@ impl Drop for Reader {
 }
 
 static READER: OnceLock<Option<Reader>> = OnceLock::new();
+
+pub(super) fn early_reads_requested() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| super::env_flag("CASCADIA_INKLING_EARLY_PREDICT_READS"))
+}
 
 pub fn prediction_read_statistics() -> PredictionReadStats {
     READER
@@ -295,6 +300,48 @@ mod tests {
         done.recv().unwrap();
         thread.join().unwrap();
         assert_eq!(reader.counters.snapshot().read_failures, 1);
+    }
+
+    #[test]
+    fn blocked_worker_accepts_two_queued_requests_without_losing_ownership() {
+        let (entered, arrived) = sync_channel(1);
+        let (release, wait) = sync_channel(1);
+        let mut first = true;
+        let reader = Reader::with_read_fn(move |_, _, _| {
+            if first {
+                first = false;
+                entered.send(()).unwrap();
+                wait.recv().unwrap();
+            }
+            Err(io::Error::other("injected failure"))
+        })
+        .unwrap();
+        let active = reader.start(0, Path::new("first"), 4096).unwrap();
+        arrived.recv().unwrap();
+        let (queued, received) = sync_channel(1);
+        let thread = std::thread::spawn(move || {
+            let second = reader.start(1, Path::new("second"), 4096).unwrap();
+            let third = reader.start(2, Path::new("third"), 4096).unwrap();
+            queued.send(()).unwrap();
+            drop(second);
+            drop(third);
+            reader
+        });
+        let accepted = received.recv_timeout(std::time::Duration::from_secs(5));
+        // Release even on test failure, so a queue-size regression cannot hang.
+        release.send(()).unwrap();
+        drop(active);
+        let reader = thread.join().unwrap();
+        assert!(accepted.is_ok(), "queued submission blocked on file I/O");
+        let stats = reader.counters.snapshot();
+        assert_eq!(
+            (
+                stats.scheduled,
+                stats.read_failures,
+                stats.dispatch_failures
+            ),
+            (3, 3, 0)
+        );
     }
 
     #[test]
