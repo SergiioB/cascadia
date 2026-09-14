@@ -3,6 +3,38 @@
 Updated 2026-09-14 10:33 UTC. Work is ACTIVE. User requested autonomous optimization toward
 25 tok/s. Do not stop after a finite campaign. The target remains unmet.
 
+## Latest active state (2026-09-14 10:44 UTC)
+
+105 completed and all raw artifacts/SHA/counters/routes verified. First uncached
+prediction:95.229% precision,28.836% miss coverage,1.4446% extra reads
+(11338 useful,568 unused,11906 scheduled).105_pre_attention_prediction.json.
+No prefetch occurred; diagnostic score.947160 is not a promoted record.
+
+106 held-out strict reference finished generation; capture4863 is RUNNING: native596 created1789382341.9607809,
+Python3092, launcher5324, detached parent10768. Native state
+heldout-reference-state.json preserves identities. Outputs106-heldout-control.*;
+128generated tokens on three frozen unseen prompts. Wait for completion, review
+106-heldout-reference.json text, build107 recent-policy prediction campaign
+using reference IDs/hash and causal cache counters. Initial106 lacks an oracle
+and is not record eligible. Do not use normal capture helper blindly: it assumes
+original three case names,64tokens,ce0fbb9a116d3d09; prepare scoped106 capture.
+
+108 prefetch implementation is LOCAL ONLY; native sources/binaries stay
+unchanged while106/107 run. New predicted_read.rs: bounded channel, one background
+reader, one predicted uncached expert per layer, actual-ID-only consumption,
+normal fallback, unused reads drained, explicit counters. Cache query is read-only;
+actual route/math/admission order unchanged. Layer starts I/O before attention;
+MoE consumes in its parallel read/compute branch.All248 local tests/13suites and example build pass. Four tiny modes preserve
+exact outputs/routes/cache counters; enabled mode13reads/11useful/2unused, all
+failures0. Native104 replay predicts the same counts. Still needs native252
+tests and wrapper qualification,
+then full110/111 A/B and confirmation if it wins. Do not claim speedup from105.
+One-prediction runtime choice frozen before observing held-out routes.
+
+Commit/push105 artifacts and108 implementation checkpoint now; run git log -1
+for latest source. Native sources remain32e2de69 until109 qualifies later.
+Update this top section on progress; older active descriptions below are historical.
+
 ## Current record
 
 Confirmed102: **0.9654120906 tok/s**, slowest of nine samples; median0.9916481036,

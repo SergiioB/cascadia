@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T10:32:02.541942+00:00",
+  "updated_at": "2026-09-14T10:44:49.571943+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9654120906178267,
-  "status": "105_prediction_diagnostic_running",
+  "status": "106_heldout_reference_running_108_local_implementation",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Capture105 and measure causal prediction accuracy; prepare106 held-out reference and107 candidate to validate new prompts; continue performance optimization.",
+  "next_action": "Finish106, prepare107 held-out exact prediction comparison; locally validate108 one-expert asynchronous prefetch; native qualification only after106/107 exit.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,15 +46,17 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9654120906178267,
   "last_verified_campaign": "102_full_cache_recency_confirmation",
-  "active_campaign": "105_full_pre_attention_prediction_diagnostic",
+  "active_campaign": "106_heldout_reference",
   "record_verification": "102_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 9432,
-      "created_unix": 1789381862.621628,
-      "binary": "full-route-prediction.exe",
-      "campaign": "105_full_pre_attention_prediction_diagnostic"
+      "native_pid": 596,
+      "created_unix": 1789382341.9607809,
+      "binary": "full-cache-recency.exe",
+      "campaign": "106_heldout_reference",
+      "python_pid": 3092,
+      "launcher_pid": 5324
     }
   ],
   "sampler_stopped": false,
@@ -62,7 +64,7 @@
   "queued_campaigns": [],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 34745,
+  "controller_session": null,
   "pending_storage_probe": {
     "status": "092_complete_and_exited",
     "native_pid": 6392,
@@ -109,10 +111,7 @@
     "native_tests": 245,
     "modes": 5
   },
-  "next_controller": {
-    "session": 34745,
-    "status": "running105"
-  },
+  "next_controller": null,
   "future_prediction_diagnostic": {
     "status": "105_prepared_not_launched",
     "native_qualification": "104_artifact_verification.json"

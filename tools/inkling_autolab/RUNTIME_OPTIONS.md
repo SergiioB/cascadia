@@ -65,3 +65,12 @@ statistic counts actual replacements by this rule. Native qualification098
 passed245 tests and five tiny modes. Campaign102 confirmed0.965412 tok/s over
 three prompts × three repetitions, with exact outputs and4.55% fewer reads.
 This option is enabled in the selected PTL profile; the library default stays0.
+
+`CASCADIA_INKLING_PREDICT_READS=1` is an experimental decode-only option requiring
+the pipelined local expert cache. It predicts the first uncached expert before
+attention and reads its complete bytes on one bounded background worker. Actual
+routing alone determines whether those bytes are used. Unused reads drain before
+the layer returns; failures retain the ordinary complete-read fallback. It does
+not change cache history, expert selection, weights, or arithmetic. Default is
+off. Local248 tests and four tiny modes pass; native qualification and full
+speed measurements are pending. Do not enable it in the selected profile yet.

@@ -1,0 +1,16 @@
+{
+  "105-route-prediction-predicted.json": {
+    "sha256": "7f4e49890a11df34d463a577f620404ff1471e9afaa675d5f642246f5fef4804",
+    "size": 1706956
+  },
+  "bin/full-route-prediction.exe": {
+    "sha256": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984",
+    "size": 1272320
+  },
+  "run-full.ps1": {
+    "sha256": "b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c",
+    "size": 7626
+  },
+  "actual_routes_exactly_match101": true,
+  "archive_sha256": "ca759be0a51778b17f7c8ae1921c944bc54ae74d1cff8c332b6123d315902b1b"
+}

@@ -106,6 +106,18 @@ impl ExpertCache {
         self.0.lock().unwrap_or_else(|e| e.into_inner()).stats
     }
 
+    /// Select a prediction using only current cache membership. Unlike lookup,
+    /// this neither observes routing nor changes admission history/counters.
+    pub fn first_uncached(&self, predictions: &[usize]) -> Option<usize> {
+        let state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        if state.stats.capacity_bytes == 0 {
+            return None;
+        }
+        predictions.iter().copied().find(|&expert| {
+            expert < state.frequency.len() && !state.entries.iter().any(|e| e.expert == expert)
+        })
+    }
+
     /// Forget a previous sequence's admission preferences, retaining its valid
     /// weight allocations. Counters remain cumulative for workload accounting.
     pub fn reset_history(&self) {
@@ -233,6 +245,28 @@ mod tests {
         cache.retain(0, &mut ReadBuffer::default());
         cache.retain(0, &mut bytes(17, 64));
         assert_eq!(cache.stats().retained_bytes, 0);
+    }
+
+    #[test]
+    fn predicted_membership_query_preserves_history_and_actual_counters() {
+        let cache = ExpertCache::with_policy(3, 32, 4, true);
+        drop(cache.lookup(&[1]));
+        cache.retain(1, &mut bytes(17, 32));
+        let before = serde_json::to_value(cache.stats()).unwrap();
+        let history = {
+            let s = cache.0.lock().unwrap();
+            (s.frequency.clone(), s.last.clone(), s.clock)
+        };
+        assert_eq!(cache.first_uncached(&[1, 2, 0]), Some(2));
+        assert_eq!(cache.first_uncached(&[1]), None);
+        assert_eq!(cache.first_uncached(&[9, 0]), Some(0));
+        assert_eq!(serde_json::to_value(cache.stats()).unwrap(), before);
+        let s = cache.0.lock().unwrap();
+        assert_eq!((s.frequency.clone(), s.last.clone(), s.clock), history);
+        assert_eq!(
+            ExpertCache::with_policy(3, 0, 4, true).first_uncached(&[0]),
+            None
+        );
     }
 
     #[test]
@@ -458,11 +492,9 @@ mod tests {
         }
         assert!(cache.stats().hits > 0 && cache.stats().evictions >= 3);
         let before = cache.stats().admissions;
-        assert!(
-            scratch
-                .read(&directory.join("missing.bin"), experts[0].bin_len())
-                .is_err()
-        );
+        assert!(scratch
+            .read(&directory.join("missing.bin"), experts[0].bin_len())
+            .is_err());
         cache.retain(0, &mut scratch);
         assert_eq!(cache.stats().admissions, before);
     }

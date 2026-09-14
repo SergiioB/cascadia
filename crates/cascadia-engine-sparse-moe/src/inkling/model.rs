@@ -225,11 +225,18 @@ impl Layer {
     pub fn forward_token(&mut self, x: &[f32]) -> Vec<f32> {
         let start = self.timing_observer.as_ref().map(|_| Instant::now());
         assert_eq!(x.len(), self.hidden, "layer forward_token: x len");
-        if let (Some(observer), Some(moe)) = (&self.pre_attention_route_observer, self.moe()) {
+        let pending_read = self.moe().and_then(|moe| {
+            if self.pre_attention_route_observer.is_none() && !moe.prediction_reads_enabled() {
+                return None;
+            }
             let mut predicted_input = x.to_vec();
             rmsnorm_f32(&mut predicted_input, &self.mlp_norm, self.eps);
-            observer(&moe.route_unobserved(&predicted_input));
-        }
+            let prediction = moe.route_unobserved(&predicted_input);
+            if let Some(observer) = &self.pre_attention_route_observer {
+                observer(&prediction);
+            }
+            moe.start_predicted_read(&prediction)
+        });
         // x1 = x + attn_sconv(attention(rmsnorm(x, attn_norm)))
         let mut h = x.to_vec();
         rmsnorm_f32(&mut h, &self.attn_norm, self.eps);
@@ -241,7 +248,7 @@ impl Layer {
         let mut h2 = x1.clone();
         rmsnorm_f32(&mut h2, &self.mlp_norm, self.eps);
         let m = match &self.mlp {
-            LayerMlp::Moe(m) => m.forward(&h2),
+            LayerMlp::Moe(m) => m.forward_with_prediction(&h2, pending_read),
             LayerMlp::Dense(d) => d.forward(&h2, self.hidden),
         };
         let m = self.mlp_sconv.decode(&m);

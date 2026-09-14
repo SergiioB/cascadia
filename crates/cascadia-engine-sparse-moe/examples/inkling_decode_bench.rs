@@ -442,6 +442,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "prefill_reads_effective={}",
         u8::from(prefill_read_experts > 0)
     );
+    let prediction_reads = cascadia_engine_sparse_moe::inkling::prediction_read_statistics();
+    for (name, value) in serde_json::to_value(&prediction_reads)?
+        .as_object()
+        .unwrap()
+    {
+        println!("prediction_read_{name}={value}");
+    }
+    println!(
+        "prediction_read_effective={}",
+        u8::from(
+            prediction_reads.scheduled > 0
+                && prediction_reads.read_failures == 0
+                && prediction_reads.worker_failures == 0
+                && prediction_reads.dispatch_failures == 0
+        )
+    );
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -456,6 +472,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "uncached_read_effective":uncached_read_effective,
                 "pipelined_read_layers":pipelined_read_layers,
                 "expert_cache":expert_cache,
+                "prediction_reads":prediction_reads,
                 "prefill_read_experts":prefill_read_experts,
                 "prefill_uncached_read_bytes":prefill_uncached_read_bytes,
                 "prefill_uncached_read_fallbacks":prefill_uncached_read_fallbacks,
@@ -493,7 +510,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "full_model": full_model, "correctness_verified": correctness_verified,
                 "output_hash": hash, "export": export,
                 "prediction_input": "current_layer_residual_before_attention_with_existing_mlp_norm_and_router",
-                "actual_routing_changed": false, "prefetch_performed": false,
+                "actual_routing_changed": false, "prefetch_performed": prediction_reads.scheduled > 0,
                 "observer_overhead_included_in_benchmark_time": true,
                 "samples": prediction_samples,
             }),

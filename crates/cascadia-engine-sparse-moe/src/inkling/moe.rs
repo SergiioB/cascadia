@@ -153,6 +153,27 @@ impl MoeLayer {
         self.expert_cache.stats()
     }
 
+    pub(super) fn prediction_reads_enabled(&self) -> bool {
+        use std::sync::OnceLock;
+        static ENABLED: OnceLock<bool> = OnceLock::new();
+        *ENABLED.get_or_init(|| env_flag("CASCADIA_INKLING_PREDICT_READS"))
+            && self.remote.is_none()
+            && self.has_local_experts()
+            && self.expert_cache.stats().capacity_bytes > 0
+    }
+
+    pub(super) fn start_predicted_read(
+        &self,
+        prediction: &GateOut,
+    ) -> Option<super::predicted_read::PendingRead> {
+        if !self.prediction_reads_enabled() {
+            return None;
+        }
+        let expert = self.expert_cache.first_uncached(&prediction.idx)?;
+        let mapped = self.w.experts[expert].as_mmap()?;
+        super::predicted_read::start(expert, mapped.bin_path(), mapped.bin_len())
+    }
+
     pub(crate) fn reset_expert_cache_history(&self) {
         use std::sync::OnceLock;
         static ENABLED: OnceLock<bool> = OnceLock::new();
@@ -341,6 +362,14 @@ impl MoeLayer {
     /// `[hidden]`. Routed experts accumulate in gate order, then the shared
     /// experts — the order [`Self::forward_batch`] reproduces per row.
     pub fn forward(&self, x: &[f32]) -> Vec<f32> {
+        self.forward_with_prediction(x, None)
+    }
+
+    pub(super) fn forward_with_prediction(
+        &self,
+        x: &[f32],
+        prediction: Option<super::predicted_read::PendingRead>,
+    ) -> Vec<f32> {
         if self.remote.is_some() {
             return self.forward_remote(x, 1);
         }
@@ -386,6 +415,11 @@ impl MoeLayer {
                     if let Some(mapped) = expert.as_mmap() {
                         if let Some(Some(hit)) = hits.as_ref().and_then(|h| h.get(index)) {
                             return (mapped.swiglu_from(hit.as_slice(), x), false);
+                        }
+                        if let (Some(pending), Some(&expert)) = (&prediction, gate.idx.get(index)) {
+                            if pending.take_for(expert, bytes) {
+                                return (mapped.swiglu_from(bytes.as_slice(), x), true);
+                            }
                         }
                         // With the explicit cache enabled, misses get a complete
                         // read even if OS sampling reports a resident mapping.
