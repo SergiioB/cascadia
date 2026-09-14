@@ -13,7 +13,8 @@ Wrapper local/native09f20b18. All22 native proof artifacts SHA archived.
 Matchedscore1.1036037599→1.1181528314,+1.3183%,allthree+1.2–1.5%.
 EveryID/fullhash/route/cache/readcounter exact; additionalreads.759646%.
 NoMLPevent>.5s eitherarm; medianattention.21167/MLP.63307/outside.02444.
-129 nine-sample confirmation LAUNCHING via/private/tmp/run-inkling-129.py;
+129 nine-sample confirmation ACTIVE native5360(created1789390588.1517277),
+controller/private/tmp/run-inkling-129.py;
 log/private/tmp/inkling-129-controller.log, nativeidentity written129_native_identity.json.
 It runs Autolab then verify/compare129 helpers; fullrecord/profile not promoted yet.
 Forecast53152scheduled/50539useful/2613unused, second17434/16525/909.
@@ -34,6 +35,11 @@ Candidatewrapper run-full-second-rank.ps1; productionwrapper stays09f20b18.
 invalid dependency guards; must preserve15 frozen binaries and wait until129
 completed and its artifacts/verification captured before staging/launching.
 Prepared132rank2control,133rank1,134rank3,135rank5 samebinary single passes.
+Source6c40e442, second-rank-source.json/tar prepared locally (not staged),
+archive dc847164e96086c61ee0d039482c658384a2dffb694a52bd0bb093c44c3007e2.
+Candidatewrapper be0b9fb02ff1dd2b58ed908adac1bc745d471a5b39229c5ebfa243c4ffcce4ba.
+/private/tmp/stage-inkling-131.py requires129verification+comparison before staging.
+Then run/private/tmp/run-inkling-second-rank-loop.py to archive131+run132–135.
 All forecast counters from124; no new exports, no full speed claim yet.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)

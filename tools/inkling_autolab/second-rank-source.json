@@ -1,0 +1,50 @@
+{
+  "source_commit": "6c40e44241dbd9dc57c91812eeb60df96a2ab2f3",
+  "files": [
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/predicted_read.rs",
+      "previous_sha256": "f8365ed30ae2e4019b487724a6bfbb8bcfcc9497619deb8114479d9eec30607f",
+      "candidate_sha256": "f511da650d1717b15cb072cfab0e3c81de4fdc225a1eaff2628514865772902c"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/expert_cache.rs",
+      "previous_sha256": "ea9d3f8edca8aa3431eab719afd408d21640f4a585bfb7c5c4bea809b7391177",
+      "candidate_sha256": "7de21f256257a2bd27dbb5ba5ee8912d241e23e1195aa664445ce04887a35dbc"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/moe.rs",
+      "previous_sha256": "57d68609ef2c43e06ad4ff5be81db47f9a64ef3dca34b46bb638f307e548eddf",
+      "candidate_sha256": "7b9ed6ff67d4de3f08f585fd5b7de457b037b71efccf9d9f1df8b3f6a9fa5283"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/src/inkling/mod.rs",
+      "previous_sha256": "907d04307ed2bfe152d72d4a573068458154b26dc04d5522624643cc44c8358e",
+      "candidate_sha256": "3eca81ed843792f67e6bea4e1f699290f8969d8b2f20b94ffc79d0540e18dbb3"
+    },
+    {
+      "path": "crates/cascadia-engine-sparse-moe/examples/inkling_decode_bench.rs",
+      "previous_sha256": "61c6a1d865b693ea4bb37d9792fa15402916976d4286161ad479c53d8f888c2b",
+      "candidate_sha256": "21fe74ce5aa1ea42fe95d7051a432391e9db022747f4c4112002e5f847c08afb"
+    }
+  ],
+  "frozen_binaries": {
+    "full-prefill-reads.exe": "bb44392b9a4d3f29b845e115c4e01a724477a374cc56de10043712509e5aaf82",
+    "full-expert-cache.exe": "fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88",
+    "full-pipeline.exe": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+    "full-uncached.exe": "9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2",
+    "full-owned-shared.exe": "0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb",
+    "full-decode.exe": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a",
+    "full-read-buffers.exe": "497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861",
+    "full-mmap-embed.exe": "95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d",
+    "full-cache-decay.exe": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+    "full-cache-recency.exe": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+    "full-route-prediction.exe": "89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984",
+    "full-predicted-read.exe": "7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a",
+    "full-early-prediction.exe": "853c4cbe2ecfb5e35f0f948cfff3196686e779d66c4c62fd152fc00b6cbd9d9d",
+    "full-early-prefetch.exe": "381c116608c3c9d6cec94861d0f09f66073c79989b750c4aead019d82d4942c6",
+    "full-second-prefetch.exe": "71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476"
+  },
+  "previous_wrapper_sha256": "09f20b18d6bddc63358d142022e038b85fd265dc6d2657fac75d3cfc0aaf8226",
+  "candidate_wrapper_sha256": "be0b9fb02ff1dd2b58ed908adac1bc745d471a5b39229c5ebfa243c4ffcce4ba",
+  "archive_sha256": "dc847164e96086c61ee0d039482c658384a2dffb694a52bd0bb093c44c3007e2"
+}

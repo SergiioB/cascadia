@@ -209,3 +209,9 @@ questions:
   status: active
   priority: 4
   reason: Frozen policy124 forecasts43% miss coverage with less than1% additional reads over current prefetch on both calibration and longer prompts.125 exact local qualification passes;126 native qualification precedes127/128 matched full trials.
+
+- id: q130
+  question: Which original predicted-rank ceiling best balances second-read overlap and wasted reads?
+  status: active
+  priority: 4
+  reason: Matched127/128 improves1.2–1.5% for ceiling2.130 exposes bounded ceilings1..5 with unchanged default2;255 local tests and ten exact fixture modes pass.131 native qualification waits for129 verification, then132–135 compare ceilings2/1/3/5 with frozen forecasts.
