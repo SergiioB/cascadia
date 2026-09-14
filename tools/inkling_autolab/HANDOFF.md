@@ -1,12 +1,16 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:47UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 11:55UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Current113/114 longer-prompt comparison (11:47UTC)
+## Completed113/114 longer-prompt comparison (11:55UTC)
 
 113 COMPLETE/SHA captured, score0.9165585148, all gates pass; native8876 exited.
-114 RUNNING native2540, creation1789386354.6752503. Controller73146,
+114 COMPLETE/SHA captured; native2540 exited. Controller73146 exited normally.
+114score1.0570071611, allthreeheldoutprompts+15.02/16.15/15.32%. Every128ID,
+fullhash e396cc533e658e44, actualroutes/cache/readcounts exact.24124successful,
+22873useful/1251unused, zero failures; minavailableRAM1.69GB. NoMLPevents>.5s
+in eitherarm.114_heldout_prefetch_comparison.json, notcanonicalrecord. Controller was
 /private/tmp/run-inkling-heldout-prefetch-loop.py. It verifies each campaign,
 records native identity, SHA captures with scoped helper
 /private/tmp/capture-inkling-heldout-prefetch.py, then compares all outputs,
@@ -40,7 +44,7 @@ prediction remains lead0. Two exact-logit/route/ordering/causality tests pass;
 all250 local tests/13suites and example build pass. Four localfixture modes and analyzer validation pass, including five malformed
 evidence rejections. Tiny firstprediction16scheduled/10useful/6unused; not a
 full-model accuracy estimate. Native116 waiter4748(created1789386222.7887948), shim3840, detachedparent10316
-waits113/114 exit; preserve12
+now BUILDING/TESTING after113/114 exit; preserve12
 frozen binaries and qualify a separate candidate before full diagnostic.
 116 source234122415f292d51519b9f40684b60c30bfc71df, stagedSHA/parser pass.
 Source manifest early-prediction-source.json, tarSHA8f1d4ecc3ac7510c256880e1f65ef17e2e50521bb4f008c6b228253ffa74c1f0.

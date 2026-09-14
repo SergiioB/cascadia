@@ -19,7 +19,12 @@ complete bytes only if actual routing selects that expert; otherwise the read
 is drained. Normal routing, cache admission and arithmetic remain unchanged.
 Across112,35,718 predictions completed:34,014 useful and1,704 unused, with zero
 read or worker failures. Extra reads cost1.45% over102 and remain in all timings.
-See [HANDOFF.md](HANDOFF.md) for current jobs; optimization remains active.
+A separate [113/114 comparison](results/114_heldout_prefetch_comparison.json)
+used three frozen longer prompts and128-token continuations. Each gained15–16%,
+with exact outputs/routes/cache counters and zero read failures. Its slowest
+rate rose from0.916559 to1.057007 tok/s. These single-pass results are separate
+from the nine-sample canonical record. See [HANDOFF.md](HANDOFF.md) for current
+jobs; optimization remains active.
 
 ## What was measured
 

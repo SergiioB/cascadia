@@ -1,0 +1,25 @@
+{
+  "scope": "same_binary_prefetch_phase_comparison",
+  "control": {
+    "attention_seconds": 0.1836453952380951,
+    "mlp_seconds": 0.7998257682539678,
+    "total_seconds": 0.9834711634920625,
+    "outside_layers_seconds": 0.024415871428572364,
+    "wall_seconds": 1.0078870349206348
+  },
+  "prefetch": {
+    "attention_seconds": 0.2157499809523813,
+    "mlp_seconds": 0.6444009952380948,
+    "total_seconds": 0.8804036349206346,
+    "outside_layers_seconds": 0.02466366666666604,
+    "wall_seconds": 0.9049036095238094
+  },
+  "repeated_prefetch": {
+    "attention_seconds": 0.20738682222222232,
+    "mlp_seconds": 0.6396713714285713,
+    "total_seconds": 0.846354684126983,
+    "outside_layers_seconds": 0.023854752380951742,
+    "wall_seconds": 0.8701649492063492
+  },
+  "caveat": "Prediction submission is included in attention; total model time includes all costs. Timings cannot isolate SSD and CPU effects."
+}

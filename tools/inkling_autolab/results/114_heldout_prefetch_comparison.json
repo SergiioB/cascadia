@@ -1,0 +1,35 @@
+{
+  "scope": "same_binary_heldout_predicted_read_comparison",
+  "control_score": 0.9165585148067351,
+  "candidate_score": 1.0570071610603875,
+  "ratio": 1.1532347842333528,
+  "cases": [
+    {
+      "case": "worked_algebra",
+      "control_tok_s": 0.9702980912894171,
+      "candidate_tok_s": 1.116025349568512,
+      "ratio": 1.1501881324794112
+    },
+    {
+      "case": "json_inventory",
+      "control_tok_s": 0.9727083324667357,
+      "candidate_tok_s": 1.1297825478885197,
+      "ratio": 1.1614813096372398
+    },
+    {
+      "case": "planning_dialogue",
+      "control_tok_s": 0.9165585148067351,
+      "candidate_tok_s": 1.0570071610603875,
+      "ratio": 1.1532347842333528
+    }
+  ],
+  "all_outputs_actual_routes_cache_counters_exact": true,
+  "actual_read_counters_match_forecast": true,
+  "record_eligible": false,
+  "all_samples_included": true,
+  "caveats": [
+    "Three frozen held-out prompts,128 generated tokens,one repetition.",
+    "Same binary,cache policy and diagnostics; only actual prefetch differs.",
+    "The canonical record remains the nine-sample112 confirmation."
+  ]
+}
