@@ -3,5 +3,5 @@ research_directive: Optimize the production Inkling engine on tate-07 with corre
 strategy:
   moonshot_ratio: 0.5
   enforce: soft
-measurement_scope: synthetic resident 975B-sized layer; full checkpoint unavailable
-host: cascadia-tate-07-ts
+measurement_scope: full_large_model_decode
+host: inkling-ptl-direct

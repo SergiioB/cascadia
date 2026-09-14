@@ -25,9 +25,9 @@ questions:
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
   status: answered
-  answer: Original full baseline0.135334tok/s slowest over9samples. Repeated036 improves to0.196934.
-    Latest full single-pass042 reaches0.515177 with exact IDs/logits; matched scheduling comparison
-    and final repetition pending. Target25 remains unmet.
+  answer: 'Original full baseline: 0.135334 tok/s slowest over nine samples. Repeated 036: 0.196934
+    tok/s. Best single pass 045: 0.570649 tok/s, with exact tokens and logits. Final nine-sample
+    confirmation 046 is running. Target 25 tok/s remains unmet.'
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?
@@ -55,10 +55,10 @@ questions:
   question: How much time and cost does the designated 8xA100 export host save?
   status: answered
   priority: 9
-  answer: "Designated8xA100 host is qualified for CUDA exports. Final default is8 processes\
-    \ x1 worker,58.98 experts/s in the measured component; seeq12. Estimated whole export15\u2013\
-    30minutes with local raw source ($4\u20138), initial download+export2\u20133hours ($30\u2013\
-    45); no full export timed. Host backed up/idle, no termination performed."
+  answer: Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1
+    worker,58.98 experts/s in the measured component; seeq12. Estimated whole export15–30minutes
+    with local raw source ($4–8), initial download+export2–3hours ($30–45); no full export timed.
+    Host backed up/idle, no termination performed.
 - id: q10
   question: Can independent SSH jump transports fill PTL Ethernet better than one?
   status: answered
@@ -71,9 +71,9 @@ questions:
   question: How much routed-expert reuse is available within PTL's memory budget?
   status: answered
   priority: 6
-  answer: "Actual034 routes and causal cache models saved in037. Best8GiB policies simulate7.96\u2013\
-    8.77GB routed reads/token; no actual cache speedup measured. Whole-span32GiB ideal reuse\
-    \ still needs46\u201356GB/s at25tok/s, beyond15.754GB/s NVMe link."
+  answer: Actual034 routes and causal cache models saved in037. Best8GiB policies simulate7.96–8.77GB
+    routed reads/token; no actual cache speedup measured. Whole-span32GiB ideal reuse still
+    needs46–56GB/s at25tok/s, beyond15.754GB/s NVMe link.
 - id: q12
   question: Can separate converter processes improve throughput beyond the A100 GPU thread pool?
   status: answered
@@ -86,9 +86,10 @@ questions:
   question: Does the full-model PTL baseline spend most time on compute or paging?
   status: answered
   priority: 6
-  answer: Baseline sampled lifetime is78.7% kernel CPU with494348 faults/s and2.218GB/s machine
-    reads.036 reduces faults to107292/s and private peak24.536GB to22.078GB; includes load/prefill
-    and soft faults. Transient RAM pressure persists.
+  answer: The original sampled lifetime was 78.7% kernel CPU with 494,348 faults/s and 2.218
+    GB/s machine reads. Uncached profile 042 was 41.8% kernel CPU with 4.320 GB/s machine reads.
+    These include loading, prefills and soft faults; they are not decode-only rates. Transient
+    prefill memory pressure persists.
 - id: q14
   question: Does batching Windows prefetch ranges improve expert page-in latency?
   status: answered
@@ -107,8 +108,9 @@ questions:
   question: How much full-model time is spent in attention versus expert execution?
   status: answered
   priority: 6
-  answer: 034 median attention0.674s/MLP5.567s/outside0.085s per token.036 combination reaches0.369/4.629/0.025
-    respectively; expert processing dominates.
+  answer: 'Median attention / MLP / outside-layer seconds per decode token: 034 = 0.674 / 5.567
+    / 0.085; 042 = 0.364 / 1.495 / 0.025; 045 overlap = 0.357 / 1.289 / 0.025. Expert work remains
+    the largest portion.'
 - id: q17
   question: Does mapping the sparse embedding table reduce private memory and paging?
   status: answered
@@ -148,5 +150,6 @@ questions:
   question: Does overlapping each expert read with ready-expert compute improve full decode?
   status: active
   priority: 7
-  reason: 221 local and233 native tests plus actual-path fixtures pass.044 control then045 overlap
-    running in the same binary. Full performance not yet established.
+  reason: 'Matched control 044: 0.537715 tok/s; overlap 045: 0.570649, a 6.12% slowest-score
+    gain. All three cases improve with exact outputs and actual-path counters. Final nine-sample
+    confirmation 046 is running.'
