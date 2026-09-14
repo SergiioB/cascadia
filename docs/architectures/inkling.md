@@ -405,6 +405,20 @@ export before any Inkling graph was involved:
   Rust `set_var` does not update on Windows; the backend uses `_putenv_s`
   there.
 
+Measured on tate-07 with the fused backend in the engine (same dump, real
+layer 2, 23-token prompt, one run each, all with zero fallbacks):
+
+| path | MoE layer decode | prefill, 23 tokens | fused call mean | residual vs CPU |
+|---|---|---|---|---|
+| CPU kernel | 30.1 ms/token | 207 ms | — | exact |
+| per-expert iGPU, f32 | 7.4 ms/token | 153 ms | 4.5 ms × 8 in flight | rel rms 5.0e-4 |
+| fused iGPU, materialised | 6.8 ms/token | 148 ms | 6.7 ms (≈4.5 decode, 55 prefill) | rel rms 1.9e-3 |
+| fused iGPU, offload 1% | 6.7 ms/token | 148 ms | 6.7 ms | rel rms 1.9e-3 |
+
+The ~3 ms of each layer that remain are the bf16 attention GEMVs on the
+CPU (already at ~80 GB/s), which is why the next step is the int4
+attention-projection backend below rather than a device copy of bf16.
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert
