@@ -1,0 +1,10 @@
+{
+  "native_sha256": "4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad",
+  "verified_unix": 1789390045.9847558,
+  "previous_sha256": "5f7a0440f22312a9586d5b64fdc268f5b8c2cce058abb9f283228bd96633fbf1",
+  "local_sha256": "4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad",
+  "selected_predict_reads": 1,
+  "selected_early_predict_reads": 0,
+  "selected_second_predict_reads": 0,
+  "reason": "Explicitly retain confirmed first-only behavior in future shells while experimental second-reader binary is qualified. No active process configuration changes."
+}

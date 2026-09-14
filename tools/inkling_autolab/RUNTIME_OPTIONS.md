@@ -100,3 +100,15 @@ fixture modes and native255 tests/four modes pass. The selected profile
 explicitly keeps this flag0: full121/122 comparisons found every prompt slower
 with earlier prefetch (conservative score-3.47%). The first-sample stall remains
 in the result; the other two prompts also regressed. See122_decision.json.
+
+`CASCADIA_INKLING_SECOND_PREDICT_READS=1` (`SecondPredictReads1`) requires
+`PredictReads1` and qualified `full-second-prefetch.exe`. Keep the first uncached
+prediction and add a second only if its original predicted gate rank is within
+the top three. Two independent bounded workers overlap these reads with current
+attention. Actual routing, full expert bytes and cache admission order remain
+unchanged. Aggregate nine-field read counters include both workers; separate
+`second_prediction_reads` and `prediction_read_workers` expose the additional
+work. Early mode takes precedence in the library; the wrapper rejects combined
+flags. Native126 qualification passes257 tests and five exact tiny modes.
+Full127/128 speed comparison is active; selected profile explicitly keepsSecond0
+until a gain survives repeated confirmation.

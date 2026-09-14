@@ -1,21 +1,28 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 12:44UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 12:49UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Active125/126 selective second read
+## Active127/128 selective second read comparison
 
-125 runtime implemented and qualified locally:387 tests/full crate suite, eight
-fixture modes, all exact. Second19/16/3 aggregate;6/5/1 on independent secondworker.
-Early+second library precedence tested; wrapper rejects combination. Selected
-profile stays first-only. Native126 staging next, then127/128 same-binary A/B.
-Candidate full-second-prefetch.exe, source manifest second-prefetch-source.json.
-126 native qualifier9852(created1789389869.1730728), launcher10892 building.
+126 QUALIFIED:257 native tests/13suites, five exact fixture modes, three invalid
+wrapper dependency guards, all14 older binaries preserved. Sourceede10f98;
+full-second-prefetch.exe SHA71f7e4ef0364ab7ed030ca12400479deeb4f8e44c9cbe9818875a3b199d66476.
+Wrapper local/native09f20b18. All22 native proof artifacts SHA archived.
+127 control native2584(created1789389969.340804), launched12:46:09UTC.
 Controller/private/tmp/run-inkling-second-prefetch-loop.py active, log
-/private/tmp/inkling-second-prefetch-loop.log; archives126 then runs127/128.
-129 prepared but conditional, forecast53152/50539/2613 aggregate.
-Candidate sourceede10f98; archive db3e4521; wrapper09f20b18. Native prior sourceb53a984b;
-14 frozen binaries must remain byte-identical. Autonomy target remains unmet.
+/private/tmp/inkling-second-prefetch-loop.log; runs127 then128 sequentially,
+checks exact metrics/PID/creation, SHA captures raw results, compares routes/IDs/cache.
+Only SecondPredictReads differs; both same new binary, Early0/Predict1.
+129 prepared but NOT launched; only after127/128 gain review. Its replay forecast
+53152scheduled/50539useful/2613unused, second17434/16525/909. Helpers
+/private/tmp/verify-inkling-129.py and compare-inkling-129.py are prepared.
+Selected profile remains first-only, explicitSecond0; new local/nativeSHA
+4b076b91eba0f67efd0ca015d64552251738a459390ec569302be157c2b03bad,
+proof126_profile_default_guard.json. No new export/Lambda work.
+125 local full crate suite387 tests plus eight fixture modes all exact.
+Two readers use independent bounded workers, same original predicted rank ceiling2.
+Early flag takes precedence in library; wrapper rejects combined flags.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
 

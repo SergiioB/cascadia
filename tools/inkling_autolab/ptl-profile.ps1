@@ -27,3 +27,5 @@ $env:CASCADIA_INKLING_CACHE_RECENT_TIES = '1'
 $env:CASCADIA_INKLING_PREDICT_READS = '1'
 # Earlier prediction remains experimental; retain the confirmed current-layer path.
 $env:CASCADIA_INKLING_EARLY_PREDICT_READS = '0'
+# Selective second prediction remains experimental until repeated full confirmation.
+$env:CASCADIA_INKLING_SECOND_PREDICT_READS = '0'
