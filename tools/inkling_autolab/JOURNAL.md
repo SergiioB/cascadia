@@ -1299,3 +1299,31 @@ Controller73582 remains active;051 follows on success. Sampler3036/shim9352,
 parent10880. Fixed controller telemetry: unobserved full-checkpoint availability
 is now null rather than falsely reporting a missing deployment for empty new
 campaign history. Target/correctness gates unchanged;19 tests pass.
+
+050 cache64MiB/layer passes all three prompts and actual counters. Slowest
+0.5770554937tok/s versus0490.5666387288 (+1.84%). Actualcachehits8582/72576
+(11.825%), retained4,077,387,648B includingalignmentpadding, uncachedbytes
+2,038,240,641,024 (9.38% less thancontrol),zero fallback. Water improves14.28%,
+binary is nearlyunchanged; gains are notuniform.051cache128 startedautomatically.
+
+Additional causal cache hypothesis: accumulated frequencies from a previous
+request delay admission for a new topic. Add opt-in frequency-history reset on
+model sequence reset while retaining immutable cached allocations and cumulative
+I/O counters. This changes cache admission only, not model state or logits.
+Compare within the next qualified binary with the optiondefaultoff; actual
+history-reset counters must prove activation. It may complement streamed
+prefill, which targets independent memory pressure. Keep these knobs separate.
+
+050 profiling: medianattention0.393843 vs0490.366418 seconds/token; MLP1.298811
+vs1.343450. Privatepeak30.180GB and machine swappeak20.035GB, comparedwith
+26.093/16.447GBcontrol. Aggregate lifetime counters include prefills; new
+benchmark timestamps will permit actual phase-specific interval accounting.
+051native8084,created1789367822.7529976 is active. Cache048single-passresults
+remain preliminary untilrepeatconfirmation; two050cases regressedslightly.
+
+Prefill/history candidate now includes phaseUnix timestamps with throughput
+still timed by monotonicInstant. Separate optionalhistoryreset retainsweights,
+clears oldfrequency scores atLayer.reset, and countsactualresets. Local237unique
+tests pass, plus eight prefill fixturemodes and three history/timestampmodes.
+Sixsourcefiles and updatedqualifier/wrapper/tests are staged but NOT launched.
+Expected native suite241 tests and seven fixturemodes; do not build until051ends.

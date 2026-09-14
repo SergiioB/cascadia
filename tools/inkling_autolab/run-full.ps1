@@ -10,6 +10,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [ValidateSet(0,1)][int]$PipelineReads=0,
       [ValidateRange(0,256)][int]$ExpertCacheMiB=0,
       [ValidateSet(0,1)][int]$PrefillReads=0,
+      [ValidateSet(0,1)][int]$CacheResetHistory=0,
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
@@ -27,6 +28,7 @@ if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.ex
 if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
 if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
 if ($PrefillReads -and ($Binary -ne 'full-prefill-reads.exe' -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
+if ($CacheResetHistory -and ($Binary -ne 'full-prefill-reads.exe' -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
 $env:RAYON_NUM_THREADS = '16'
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
@@ -39,6 +41,7 @@ $env:CASCADIA_INKLING_UNCACHED_READS = "$UncachedReads"
 $env:CASCADIA_INKLING_PIPELINE_READS = "$PipelineReads"
 $env:CASCADIA_INKLING_EXPERT_CACHE_MIB = "$ExpertCacheMiB"
 $env:CASCADIA_INKLING_PREFILL_READS = "$PrefillReads"
+$env:CASCADIA_INKLING_CACHE_RESET_HISTORY = "$CacheResetHistory"
 $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
@@ -57,7 +60,7 @@ $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassT
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory"
     $p.WaitForExit()
     if ($Log) {
         Get-Content -LiteralPath $Log -Encoding UTF8

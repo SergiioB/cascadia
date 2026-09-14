@@ -153,6 +153,14 @@ impl MoeLayer {
         self.expert_cache.stats()
     }
 
+    pub(crate) fn reset_expert_cache_history(&self) {
+        use std::sync::OnceLock;
+        static ENABLED: OnceLock<bool> = OnceLock::new();
+        if *ENABLED.get_or_init(|| env_flag("CASCADIA_INKLING_CACHE_RESET_HISTORY")) {
+            self.expert_cache.reset_history();
+        }
+    }
+
     /// Owned packed shared-expert bytes, excluding routed experts and scratch.
     pub fn owned_shared_bytes(&self) -> usize {
         self.w.shared.iter().map(AnyExpert::owned_int4_bytes).sum()

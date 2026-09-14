@@ -12,7 +12,7 @@
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
 use cascadia_engine_sparse_moe::inkling::loader::{load_model_with, read_manifest};
@@ -33,6 +33,10 @@ struct Sample {
     repetition: usize,
     prefill_seconds: f64,
     decode_seconds: f64,
+    prefill_started_unix: f64,
+    prefill_ended_unix: f64,
+    decode_started_unix: f64,
+    decode_ended_unix: f64,
     decode_steps: usize,
     generated_ids: Vec<u32>,
 }
@@ -85,12 +89,15 @@ fn hash_logits(hash: &mut u64, logits: &[f32]) {
 
 fn generate(model: &mut Model, case: &Case, tokens: usize, eos: &[u32], hash: &mut u64) -> Sample {
     model.reset();
+    let prefill_started_unix = unix_seconds();
     let start = Instant::now();
     let logits = model.prefill(&case.prompt_ids);
     let mut next = argmax(&logits) as u32;
     let prefill_seconds = start.elapsed().as_secs_f64();
+    let prefill_ended_unix = unix_seconds();
     hash_logits(hash, &logits);
     let mut generated_ids = vec![next];
+    let decode_started_unix = unix_seconds();
     let start = Instant::now();
     while generated_ids.len() < tokens && !eos.contains(&next) {
         let logits = model.forward_token(next);
@@ -99,6 +106,7 @@ fn generate(model: &mut Model, case: &Case, tokens: usize, eos: &[u32], hash: &m
         generated_ids.push(next);
     }
     let decode_seconds = start.elapsed().as_secs_f64();
+    let decode_ended_unix = unix_seconds();
     if let Some(expected) = &case.greedy_ids {
         assert_eq!(&generated_ids, expected, "greedy mismatch: {}", case.name);
     }
@@ -107,9 +115,22 @@ fn generate(model: &mut Model, case: &Case, tokens: usize, eos: &[u32], hash: &m
         repetition: 0,
         prefill_seconds,
         decode_seconds,
+        prefill_started_unix,
+        prefill_ended_unix,
+        decode_started_unix,
+        decode_ended_unix,
         decode_steps: generated_ids.len() - 1,
         generated_ids,
     }
+}
+
+// Wall timestamps align diagnostic resource samples with phases. Throughput
+// still uses monotonic Instant durations, independently of wall-clock changes.
+fn unix_seconds() -> f64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system clock before Unix epoch")
+        .as_secs_f64()
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -350,6 +371,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("expert_cache_misses={}", expert_cache.misses);
     println!("expert_cache_admissions={}", expert_cache.admissions);
     println!("expert_cache_evictions={}", expert_cache.evictions);
+    println!(
+        "expert_cache_history_resets={}",
+        expert_cache.history_resets
+    );
     println!("expert_cache_effective={}", u8::from(expert_cache.hits > 0));
     let (prefill_read_experts, prefill_uncached_read_bytes, prefill_uncached_read_fallbacks) =
         cascadia_engine_sparse_moe::inkling::prefill_read_statistics();

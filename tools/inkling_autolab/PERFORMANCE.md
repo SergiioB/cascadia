@@ -5,6 +5,12 @@ The confirmed three-repeat record is **0.567914 decode tokens/s** on tate-07,
 checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
 **The 25 tokens/s target has not been reached.**
 
+Autonomous optimization has resumed. Cache control049 completed at0.566639;
+4GBcache050 reached0.577055 over one pass, with mixed changes across prompts.
+The8GBcache trial051 is running. New prefill and cache-admission experiments
+are prepared; see[HANDOFF.md](HANDOFF.md) for current jobs. The repeated record
+above remains the confirmed result until another three-repeat verification.
+
 ## What was measured
 
 The complete 548,985,140,942-byte int4 export is on tate-07, with all 16,654 files
@@ -36,7 +42,8 @@ failure remains in Autolab history; its complete native results were separately
 The full campaigns 040, 042, 044, 045 and 046 completed through Autolab normally. The final
 [verification report](results/046_final_verification.json) checks all nine
 case/repetition pairs, native logs, reference IDs, logits hash, binary identity,
-and actual configuration counters. The benchmark and sampler have exited.
+and actual configuration counters. Those046 jobs exited; the resumed loop has
+new full-model trials and a resource sampler running.
 
 ## What improved
 

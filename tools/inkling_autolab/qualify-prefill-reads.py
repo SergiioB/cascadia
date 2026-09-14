@@ -97,16 +97,18 @@ def main():
                     if process.poll() is None:
                         subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'], check=False)
                         process.wait()
-            for mode in ('off', 'on', 'uncached', 'cache_off', 'pipeline_off', 'direct'):
+            for mode in ('off', 'on', 'uncached', 'cache_off', 'pipeline_off', 'direct', 'history_reset'):
                 result = json.loads((ROOT / f'fixture-prefill-reads-{mode}.json').read_text())
                 assert result['scope'] == 'fixture_model_decode' and result['correctness_verified']
                 assert result['output_hash'] == '1f7cd0eb14a22662' and len(result['samples']) == 3
                 assert result['embedding_mapped'] and result['owned_shared_bytes'] == 20736
                 enabled = mode not in ('off', 'direct')
                 assert result['prefill_read_experts'] == (63 if enabled else 0)
-                assert result['prefill_uncached_read_fallbacks'] == (63 if mode == 'uncached' else 0)
+                assert result['prefill_uncached_read_fallbacks'] == (63 if mode in ('uncached', 'history_reset') else 0)
                 assert (result['expert_cache']['hits'] > 0) == (mode not in ('cache_off', 'pipeline_off', 'direct'))
+                assert result['expert_cache']['history_resets'] == (9 if mode == 'history_reset' else 0)
                 for sample in result['samples']:
+                    assert sample['prefill_started_unix'] <= sample['prefill_ended_unix'] <= sample['decode_started_unix'] <= sample['decode_ended_unix']
                     assert sample['generated_ids'] == [28, 48, 106, 84, 28, 48, 106, 84]
             check_frozen()
             assert hashlib.sha256((ROOT / 'run-full.ps1').read_bytes()).hexdigest() == 'ad240b6679ad63bc0bcd2d3ba563a0cbc4dedd0ff49db6d9225d04df4e484f24', 'Wrapper changed; inspect before replacing'

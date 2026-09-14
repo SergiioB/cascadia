@@ -179,6 +179,9 @@ impl Layer {
         self.attn.reset();
         self.attn_sconv.reset();
         self.mlp_sconv.reset();
+        if let Some(moe) = self.moe() {
+            moe.reset_expert_cache_history();
+        }
     }
 
     /// Roll all sequence state back to `len` positions (spec-decode reject).

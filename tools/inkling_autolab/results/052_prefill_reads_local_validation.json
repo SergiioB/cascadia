@@ -117,5 +117,56 @@
     }
   ],
   "additional_multi_cohort_real_int4_test_passed": true,
-  "total_distinct_local_tests_passed": 236
+  "total_distinct_local_tests_passed": 237,
+  "cache_history_fixture_modes": [
+    {
+      "mode": "history_reset",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "prefill_read_experts": 63,
+      "phase_timestamps_ordered": true
+    },
+    {
+      "mode": "history_off",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "prefill_read_experts": 63,
+      "phase_timestamps_ordered": true
+    },
+    {
+      "mode": "history_cache_off",
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "prefill_read_experts": 63,
+      "phase_timestamps_ordered": true
+    }
+  ],
+  "cache_history_and_model_tests_passed": 180
 }

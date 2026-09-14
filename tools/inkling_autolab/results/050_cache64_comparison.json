@@ -1,0 +1,44 @@
+{
+  "scope": "same_binary_full_cache64_comparison",
+  "binary_sha256": "fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88",
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_match": true,
+  "repetitions": 1,
+  "control_slowest": 0.5666387287690013,
+  "cache64_slowest": 0.5770554937203956,
+  "slowest_score_speedup": 1.0183834327279822,
+  "uncached_bytes_ratio": 0.9061995525220199,
+  "logical_hit_fraction": 0.11824845679012345,
+  "exact_cache_hit_miss_read_accounting": true,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_rate": 0.5666387287690013,
+      "cache_rate": 0.6475467198123129,
+      "speedup": 1.1427858473759476,
+      "control_prefill": 97.0088842,
+      "cache_prefill": 97.6724345
+    },
+    {
+      "case": "binary_search",
+      "control_rate": 0.5815790958435723,
+      "cache_rate": 0.5809802390997615,
+      "speedup": 0.9989702918346092,
+      "control_prefill": 104.9289477,
+      "cache_prefill": 115.060548
+    },
+    {
+      "case": "short_story",
+      "control_rate": 0.5864884838936625,
+      "cache_rate": 0.5770554937203956,
+      "speedup": 0.9839161544815991,
+      "control_prefill": 108.2425878,
+      "cache_prefill": 110.3418814
+    }
+  ],
+  "caveats": [
+    "Single pass; repeated record046 remains until final confirmation.",
+    "Natural cache and background conditions differ.",
+    "Explicit cache miss path also reads experts that OS sampling might otherwise execute from mappings."
+  ]
+}

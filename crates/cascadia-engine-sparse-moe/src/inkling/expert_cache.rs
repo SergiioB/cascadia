@@ -13,6 +13,7 @@ pub struct ExpertCacheStats {
     pub misses: u64,
     pub admissions: u64,
     pub evictions: u64,
+    pub history_resets: u64,
 }
 
 impl ExpertCacheStats {
@@ -24,6 +25,7 @@ impl ExpertCacheStats {
         self.misses += other.misses;
         self.admissions += other.admissions;
         self.evictions += other.evictions;
+        self.history_resets += other.history_resets;
     }
 }
 
@@ -70,6 +72,18 @@ impl ExpertCache {
 
     pub fn stats(&self) -> ExpertCacheStats {
         self.0.lock().unwrap_or_else(|e| e.into_inner()).stats
+    }
+
+    /// Forget a previous sequence's admission preferences, retaining its valid
+    /// weight allocations. Counters remain cumulative for workload accounting.
+    pub fn reset_history(&self) {
+        let mut state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        if state.stats.capacity_bytes != 0 {
+            state.frequency.fill(0);
+            state.last.fill(0);
+            state.clock = 0;
+            state.stats.history_resets += 1;
+        }
     }
 
     /// Called in gate order before parallel compute, making admission history
@@ -236,6 +250,29 @@ mod tests {
             second.lookup(&[0]).unwrap()[0].as_ref().unwrap().as_slice(),
             [93; 32]
         );
+    }
+
+    #[test]
+    fn new_sequence_can_replace_stale_favorites_without_discarding_warm_weights() {
+        let cache = ExpertCache::new(3, 64);
+        drop(cache.lookup(&[0, 1]));
+        cache.retain(0, &mut bytes(17, 32));
+        cache.retain(1, &mut bytes(93, 32));
+        for _ in 0..20 {
+            drop(cache.lookup(&[0, 1]));
+        }
+        let hits_before = cache.stats().hits;
+        cache.reset_history();
+        assert_eq!(cache.stats().retained_bytes, 64);
+        assert_eq!(cache.stats().hits, hits_before);
+        let warm = cache.lookup(&[0]).unwrap();
+        assert_eq!(warm[0].as_ref().unwrap().as_slice(), [17; 32]);
+        drop(warm);
+        drop(cache.lookup(&[2]));
+        cache.retain(2, &mut bytes(61, 32));
+        let hit = cache.lookup(&[0, 1, 2]).unwrap();
+        assert!(hit[0].is_some() && hit[1].is_none() && hit[2].is_some());
+        assert_eq!(cache.stats().history_resets, 1);
     }
 
     #[test]

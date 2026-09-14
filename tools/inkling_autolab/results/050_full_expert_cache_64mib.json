@@ -1,0 +1,44 @@
+[
+  {
+    "run_id": "050_full_expert_cache_64mib_cache_mib=64_e1b20c39",
+    "timestamp": "2026-09-14T06:37:02.351047+00:00",
+    "campaign_name": "050_full_expert_cache_64mib",
+    "experiment_name": "050_full_expert_cache_64mib_cache_mib=64",
+    "status": "completed",
+    "wall_time_s": 686.2465385410469,
+    "raw_output": "bf16_rows=2 int4_rows=4 reads=0 mmap_embed=1 reuse_buffers=1 skip_bulk_prefetch=1 own_shared=1 uncached_reads=1 pipeline_reads=1 expert_cache_mib=64\r\nload_seconds=39.1565002\r\nembedding_mapped=1\r\nowned_shared_bytes=4076863488\r\nfull_model=1\r\nsample_json={\"case\":\"water_cycle\",\"repetition\":0,\"prefill_seconds\":97.6724345,\"decode_seconds\":97.2902774,\"decode_steps\":63,\"generated_ids\":[200004,16,13,623,7334,130824,22410,328,3411,1299,101882,11,60387,11,326,54935,11,24297,20032,3411,316,3716,1511,49667,3411,46102,13,1328,2273,382,4358,172012,11,326,480,40246,36036,26555,1511,290,22137,364,17,13,1877,290,3411,46102,67628,7266,1511,290,17307,11,480,8157,82,326,55580,1602,1511,20049,20032,177617]}\r\nsample_json={\"case\":\"binary_search\",\"repetition\":0,\"prefill_seconds\":115.060548,\"decode_seconds\":108.4374231,\"decode_steps\":63,\"generated_ids\":[200004,410,25872,3684,410,382,448,12430,22184,395,12129,261,4857,1432,350,3086,425,10857,8162,3518,261,20099,5801,13,21050,328,19141,1753,3577,1001,23541,28925,11,480,45605,144028,290,3684,4918,306,6375,364,103995,31639,220,16,13,16309,4744,394,40977,198,2653,15600,3684,316,1101,20323,11,290,1238,2804,413,734]}\r\nsample_json={\"case\":\"short_story\",\"repetition\":0,\"prefill_seconds\":110.3418814,\"decode_seconds\":109.1749419,\"decode_steps\":63,\"generated_ids\":[200004,976,21975,18157,483,290,69214,11,31313,5083,2870,24266,359,1084,35257,540,290,180069,802,3611,13,137034,11,86333,395,37650,2101,11,20418,290,8851,11022,10731,2322,493,2222,11,17154,2887,8193,11,37361,483,11485,5960,12848,656,16345,326,1058,364,38621,11,290,6651,673,9952,11,6692,88658,10701,13,623,22045]}\r\nscope=full_large_model_decode\r\noutput_hash=ce0fbb9a116d3d09\r\ncorrectness_verified=1\r\ndecode_steps_min=63\r\nrepetitions=1\r\ndecode_tokens_per_s=0.5770554937203956\r\nuncached_read_bytes=2038240641024\r\nuncached_read_fallbacks=0\r\nuncached_read_effective=1\r\npipelined_read_layers=12096\r\npipeline_reads_effective=1\r\nexpert_cache_capacity_bytes=4294967296\r\nexpert_cache_retained_bytes=4077387648\r\nexpert_cache_hits=8582\r\nexpert_cache_hit_bytes=273340956672\r\nexpert_cache_misses=63994\r\nexpert_cache_admissions=512\r\nexpert_cache_evictions=384\r\nexpert_cache_effective=1\r\n",
+    "error": null,
+    "metrics": {
+      "decode_tokens_per_s": 0.5770554937203956,
+      "output_hash": "ce0fbb9a116d3d09",
+      "full_model": 1,
+      "correctness_verified": 1,
+      "decode_steps_min": 63,
+      "repetitions": 1,
+      "embedding_mapped": 1,
+      "reuse_buffers": 1,
+      "owned_shared_bytes": 4076863488,
+      "uncached_read_bytes": 2038240641024,
+      "uncached_read_fallbacks": 0,
+      "uncached_read_effective": 1,
+      "pipelined_read_layers": 12096,
+      "pipeline_reads_effective": 1,
+      "expert_cache_capacity_bytes": 4294967296,
+      "expert_cache_retained_bytes": 4077387648,
+      "expert_cache_hits": 8582,
+      "expert_cache_hit_bytes": 273340956672,
+      "expert_cache_misses": 63994,
+      "expert_cache_admissions": 512,
+      "expert_cache_evictions": 384,
+      "expert_cache_effective": 1
+    },
+    "config": {
+      "model": "C:/Users/devcloud/inkling-autolab/model",
+      "cases": "C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json",
+      "expected_hash": "ce0fbb9a116d3d09",
+      "cache_mib": 64,
+      "name": "050_full_expert_cache_64mib_cache_mib=64",
+      "campaign_name": "050_full_expert_cache_64mib"
+    }
+  }
+]
