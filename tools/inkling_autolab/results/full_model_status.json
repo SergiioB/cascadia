@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T11:58:55.284329+00:00",
+  "updated_at": "2026-09-14T12:08:59.765875+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 1.0904267748485879,
-  "status": "117_full_early_prediction_diagnostic_running",
+  "status": "119_early_prefetch_implementation_pending",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Capture117 and measure causal first-uncached predictions; decide whether runtime earlier prefetch is justified. Continue optimizing toward25.",
+  "next_action": "Implement119 bounded early runtime prefetch, qualify locally/native then full A/B.117 shows86.96% prediction precision/3.96% extra reads;118handle reuse rejected. Target25 unmet.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,22 +46,16 @@
   "best_single_pass_full_model_decode_tokens_per_s": 1.0607746934234432,
   "best_repeated_full_model_decode_tokens_per_s": 1.0904267748485879,
   "last_verified_campaign": "112_full_predicted_read_confirmation",
-  "active_campaign": "117_full_early_prediction_diagnostic",
+  "active_campaign": null,
   "record_verification": "112_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
-  "active_task_jobs": [
-    {
-      "pid": 10960,
-      "created_unix": 1789387032.1257544,
-      "name": "full-early-prediction.exe"
-    }
-  ],
+  "active_task_jobs": [],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
   "queued_campaigns": [],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 18569,
+  "controller_session": null,
   "pending_storage_probe": {
     "status": "092_complete_and_exited",
     "native_pid": 6392,
@@ -108,11 +102,7 @@
     "native_tests": 245,
     "modes": 5
   },
-  "next_controller": {
-    "session": 18569,
-    "script": "/private/tmp/run-inkling-early-prediction-loop.py",
-    "status": "running117_then_accuracy"
-  },
+  "next_controller": null,
   "future_prediction_diagnostic": {
     "status": "105_completed_and_verified",
     "native_qualification": "104_artifact_verification.json"
@@ -181,5 +171,14 @@
     "candidate_score": 1.0570071610603875,
     "ratio": 1.1532347842333528,
     "record_eligible": false
+  },
+  "early_prediction_diagnostic": {
+    "status": "completed_and_sha_verified",
+    "accuracy_report": "117_early_prediction_accuracy.json",
+    "record_eligible": false
+  },
+  "handle_reuse_probe": {
+    "status": "completed_and_rejected",
+    "decision": "118_decision.json"
   }
 }

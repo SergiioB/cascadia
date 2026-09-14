@@ -1,0 +1,51 @@
+{
+  "scope": "handle_reuse_probe_decision",
+  "decision": "do_not_implement_handle_cache",
+  "reason": "No robust paired win; median gains0\u20131.24% vary with test order, even before paying cache lookup and misses.",
+  "summaries": [
+    {
+      "files": 2,
+      "pairs": 10,
+      "reuse_wins": 5,
+      "median_pair_speedup": 0.9994215473829307,
+      "median_seconds": {
+        "fresh": 0.007294150069355965,
+        "reused": 0.00734440004453063
+      },
+      "median_pair_speedup_by_first_mode": {
+        "fresh": 0.9965147200852672,
+        "reused": 1.0023283746805942
+      }
+    },
+    {
+      "files": 4,
+      "pairs": 10,
+      "reuse_wins": 5,
+      "median_pair_speedup": 1.0078480323471632,
+      "median_seconds": {
+        "fresh": 0.012672800105065107,
+        "reused": 0.012698299949988723
+      },
+      "median_pair_speedup_by_first_mode": {
+        "fresh": 0.970719674974668,
+        "reused": 1.0324002356450028
+      }
+    },
+    {
+      "files": 6,
+      "pairs": 10,
+      "reuse_wins": 6,
+      "median_pair_speedup": 1.0124167923795788,
+      "median_seconds": {
+        "fresh": 0.018585050012916327,
+        "reused": 0.018478200072422624
+      },
+      "median_pair_speedup_by_first_mode": {
+        "fresh": 0.9935679450134702,
+        "reused": 1.015864199962525
+      }
+    }
+  ],
+  "all_pairs_retained": true,
+  "full_model_speedup_measured": false
+}

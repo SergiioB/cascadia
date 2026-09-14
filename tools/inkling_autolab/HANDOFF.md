@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:58UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 12:09UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
@@ -35,40 +35,56 @@ local/nativeptl-profile.ps1 SHA ff9572f5c3889b9678cecf230948efde635aceeefcce2195
 Frozenbinary7b20ee35/source dc4badd3, native/localwrapper3eac49ad unchanged.
 25targetunmet. No export/Lambda work needed.
 
-## Current117 one-layer-early diagnostic RUNNING (11:58UTC)
+## Current next work119: early prefetch implementation (12:09UTC)
 
-Native10960, creation1789387032.1257544, full-early-prediction.exe SHA
-853c4cbe2ecfb5e35f0f948cfff3196686e779d66c4c62fd152fc00b6cbd9d9d,
-source234122415f292d51519b9f40684b60c30bfc71df. Controller18569 script
-/private/tmp/run-inkling-early-prediction-loop.py. It SHA archives all117
-artifacts and runs analyze-route-prediction.py after completion, yielding
-117_early_prediction_accuracy.json. Original3prompts×1rep,64generated/63decode,
-PredictReads0,PredictionLeadLayers1. This is diagnostic-only and cannot promote
-performance. Native117-early-prediction.{json,log}, -routes/-layers/-predicted.json;
-localcontrollerlog/private/tmp/inkling-117_full_early_prediction_diagnostic.log.
+117 and118 COMPLETE; no full/native qualification process running. Sampler3036
+continues. Root must now implement and test119 runtime early prefetch from the
+JOURNAL hypothesis; no early-runtime code exists yet. Target25 remains unmet.
 
-116 COMPLETE:254 native tests/13suites and four tiny modes pass, all12 older
-binaries unchanged. Every output/actual route/cache and currentprefetchcounter
-matches109. One-layer-early tiny16predicted/10useful/6unused; no fullaccuracy
-inference. 116_artifact_verification.json SHA archives all evidence. Native
-4748/launcher8928/parent10316 exited. Native/localrun-full.ps1 now both
-6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04.
-Selectedptl-profile remainsff9572f5 with current-layerPredictReads1 and record112.
+117 one-layer-early diagnostic: all original3×1rep/64IDs/hash/actual routes/cache
+and zeroactualprefetch counters exact. Rates.9772436894/.9468468067/.9711400874,
+diagnostic-only. Firstuncached forecast11948predicted/10390useful/1558extra,
+precision86.9602%, coverage26.4249%, extra3.9625%. More thanone prediction has
+largeamplification; focusone. Source23412241/full-early-prediction.exe853c4cbe.
+117_early_prediction_accuracy.json and allraw/SHA/resources are archived.
+Native10960(created1789387032.1257544)/controller18569 exited.
 
-116 originalcontroller11957 failed copying only the final tiny predictionfile
-at jump-host SSH reset; all previous copies SHA valid,117 not launched then.
-Resume18569 reused valid copies and enabled a dedicated SSH ControlMaster
-socket/private/tmp/inkling-early-ctl-%C,ControlPersist60 to reduce handshakes.
-Transfer succeeded; no native tests repeated and no correctness gate bypassed.
+118 exclusivefilehandle read-onlyprobe:30balancedpairs/120full-sizedexpertfiles,
+botharmsSHAchecked vs mmap, canaryvalid and removed, handles/buffersreleased.
+Median ratios2/4/6files .99942/1.00785/1.01242; sensitive tofirstmode. Reject
+runtimehandlecache;118_decision.json. Source68f515fc, capture17451 complete.
+Probe73373 ended and nativeidentity is in118_artifact_verification.json.
 
-115 local250tests and four tiny modes passed, including exact-logit/route,
-causality and predecessor-ordering tests. Code adds default-off Model observer,
-using target MLP norm/router before predecessor executes, without extra I/O.
-Trace explicitly labels the earlier residual and lead; analyzer rejects
-inconsistent source/lead, missing positions, changed hashes and actualprefetch.
-No code is implemented for runtime early prefetch yet. After117, assess useful
-prediction accuracy/read amplification before a runtime experiment. Continue
-optimizing after this finite diagnostic;25target is still unmet.
+119 design to implement: default-off earlyflag (e.g.EarlyPredictReads requiring
+PredictReads1). At Model decode step, start the target layer's firstuncached
+prediction from the residual entering its predecessor, then carry that owned
+PendingRead into the target Layer. Suppress duplicatecurrent-layerprefetch even
+when earlyprediction selected no uncachedexpert. Keep separate current-route
+observers working without changing actual gates/cache admission. Layer0 has no
+predecessor, so it retains current behavior. At mosttwo pending expertbuffers
+per model (current+next), drained on misprediction/unwind as existing RAII.
+Current Reader uses blocking SyncSender.send and requestqueuecapacity1 (not
+try_send); increase to2 to avoid a submit stall when current and next requests
+queue before worker dispatch. One worker and responsequeuecapacity1 remain.
+Add a test with a deliberately blocked worker to prove queued submissions and
+ownership/fallback. Qualify complete tiny off/current/early modes before native
+full A/B against selected current-layerprefetch. Forecast earlycounts from117
+must match actual. For repeatedforecast replay allnine routes/cachehistory;
+do not blindly multiply11948by3. No newexports needed.
+
+116 qualified254native tests/fourtiny modes; all12older binaries preserved.
+Native/localrun-full.ps1 both6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04.
+Current nativeRust source234122415f292d51519b9f40684b60c30bfc71df, frozen
+full-early-prediction.exe853c4cbe2ecfb5e35f0f948cfff3196686e779d66c4c62fd152fc00b6cbd9d9d.
+Record remains112/frozenfull-predicted-read.exe7b20ee35, selectedprofileff9572f5.
+Preserve all13frozenbinaries in nextqualifier. Qualified115 diagnostic source,
+250localtests/fourmodes. Native116rawproof in116_artifact_verification.json.
+
+SSH transport:116 initialcontroller11957 failed copying only finaltinyfile;
+all prior copiesSHA valid. Resume18569 reusedvalidcopies, enabled dedicated
+ControlMaster socket/private/tmp/inkling-early-ctl-%C,ControlPersist60, and
+completedtransfer+117. Connection reuse reduces bursts of handshakes; exact
+jump-host reset cause not established. No gates bypassed or tests repeated.
 
 ## Historical110/111 launch state (both now complete)
 
