@@ -375,6 +375,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "expert_cache_history_resets={}",
         expert_cache.history_resets
     );
+    println!(
+        "expert_cache_frequency_decays={}",
+        expert_cache.frequency_decays
+    );
     println!("expert_cache_effective={}", u8::from(expert_cache.hits > 0));
     let (prefill_read_experts, prefill_uncached_read_bytes, prefill_uncached_read_fallbacks) =
         cascadia_engine_sparse_moe::inkling::prefill_read_statistics();

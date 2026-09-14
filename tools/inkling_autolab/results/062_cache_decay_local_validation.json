@@ -1,0 +1,103 @@
+{
+  "scope": "local_ARM_debug_cache_decay_qualification",
+  "full_model_speedup_measured": false,
+  "tests_passed": 163,
+  "fixture_modes": [
+    {
+      "mode": "default",
+      "decay_requests": "4096",
+      "history_reset": 1,
+      "cache_mib": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "native_json_sha256": "33d56b3a7c170dd2b07bf4bbded74939b2ea341a399ce1cf0dc7c37d68153358"
+    },
+    {
+      "mode": "short",
+      "decay_requests": "4",
+      "history_reset": 1,
+      "cache_mib": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 27,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "native_json_sha256": "27da56739ab7817a08a1feaa03b89e5c6a380985086e965571ecd0d97c15d34a"
+    },
+    {
+      "mode": "continued",
+      "decay_requests": "32",
+      "history_reset": 0,
+      "cache_mib": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 3,
+        "history_resets": 0,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "native_json_sha256": "239fef298ab842508110254bdf14a643a6ca629c12d61eb4d228b6e14082e330"
+    },
+    {
+      "mode": "disabled",
+      "decay_requests": "4",
+      "history_reset": 1,
+      "cache_mib": 0,
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 0,
+        "capacity_bytes": 0,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 0,
+        "hit_bytes": 0,
+        "hits": 0,
+        "misses": 0,
+        "retained_bytes": 0
+      },
+      "native_json_sha256": "03192177bb05deb836c93e28e4764dea7491ec34391345232de55ee3ef963dee"
+    },
+    {
+      "mode": "invalid",
+      "decay_requests": "5",
+      "history_reset": 1,
+      "cache_mib": 1,
+      "output_hash": "5122e042f9b1fb30",
+      "expert_cache": {
+        "admissions": 16,
+        "capacity_bytes": 3145728,
+        "evictions": 0,
+        "frequency_decays": 0,
+        "history_resets": 9,
+        "hit_bytes": 380160,
+        "hits": 110,
+        "misses": 16,
+        "retained_bytes": 55296
+      },
+      "native_json_sha256": "0df8d7d572fdda7e85ed63973e95f97fb52afa86fbac9dd863c3716672ebb945"
+    }
+  ],
+  "initial_test_adjustment": "Strict greater-than admission retains ties: regression uses eight new observations, giving eighteen actual decays, to demonstrate adaptation versus the static cache."
+}

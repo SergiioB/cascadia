@@ -1406,3 +1406,55 @@ runqualifiedworkercomparison,thenrepeatbest3passes. Keepoptimizingafterthat.
 31383hits at2/4/8slots versus13185/21021/30058with4096. Admissionsroughlydouble.
 This suggests a modestfutureexperiment, not animplementedgain. Currentnative
 cachedecay remains4096; nofuture/hardcodedroutesenterinference.
+
+Offline global-cache hypothesis before simulation: routing concentration differs
+by layer, so equal per-layer budgets may spend RAM on less reusable experts.
+Replay a model-owned global LFU cache at the same total capacity and current
+request-history reset. Preserve chronological token/layer/gate order; no future
+routes or prefill admission. Evaluate hit counts before considering implementation.
+
+060 global LFU replay predicts14279/22017/30505hits for128/256/512totalentries,
+versus13185/21021/30058withfixedper-layer budgets. This removes only1.84/1.93/
+1.05% of remaining misses. Defer cross-layer runtime-cache complexity behind
+worker/concurrency tuning; no global cache is implemented.
+
+q51 offlineprefetch hypothesis before replay: predictoneortwo uncached experts
+fromthepreviousposition's route, rankedbycausalfrequency/lastuse. Countfuture
+selection onlyaftermakingtheprediction; excludeweightsalreadyintheroutedcache.
+Measureusefulprefetchesandadditionalreads before spendingI/O on a runtimepath.
+Predictionswillnotmodifycacheadmission or modelrouting.
+
+061 previous-route prefetch replay at2/4/8cacheentriesperlayer: onepredicted
+expert adds10.8/14.9/19.8% reads; two add23.6/31.4/38.6%. At8entries,onepredictor
+has3007usefulof11428predictions (26.3% precision). TheSSD alreadyserves~7.94GB/s
+duringdecode. Deferthispredictor: extraI/Oisunlikelytojustifyoverlap; thecausal
+modeldoesnotestablishperformance. No runtimeprefetch or cachechangeimplemented.
+
+Prepare an opt-in shorter cache-decay interval locally while056/057run.
+Default4096 preserves all measured behavior. A32-request interval has causal
+miss-reduction evidence (058); add actualdecay counters and a stale-frequency
+regression test, then qualify a new frozen binary only after current full trials
+finish. No nativebuild/deployment now. Worker sweeps retain the qualified
+full-prefill binary until the separate decay comparison is scheduled.
+
+055historyreset64passed:0.781348/0.758280/0.757562tok/s; slowest+6.85%over054.
+Waterregresses1.5%,othertwogain6.3/6.8%. Actual13185hits/59391misses/1271admissions/
+1143evictions/192resets exactlymatchpredeclaredreplay,1.891633TBdecodeuncached.
+Minavailable13.987GB,maxmachineswap0.527GB. Savedrawartifactsandresourceanalysis;
+routearraysidentical054. 056cache128activePID10104created1789370544.0585535;
+057cache256queued,controller16120.
+
+056history128passed:0.856802/0.813905/0.825203tok/s, allcasesimproveover055;
+slowest+7.44%. Actual21021hits/51555misses/2380admissions/2124evictions/192resets,
+1.642052TBuncached. Rawartifactsandphaseprofilesarchived. 057history256active
+PID2956created1789370890.016268,controller16120.
+
+062localcache-decaycandidate passes163library/modeltests andfivefixturemodes;
+exactARMhash5122e042f9b1fb30. Actualdecays27 (4requests/reset),3 (32/noreset),
+0(default4096/disabled/invalid5). Newtestshowsadmissionadaptationwhilepreserving
+immutablebytes; initialfour-observationtesthitatieunderstrictgreater-than
+admission, correctedtoeightobservationsand18decays. No runtime defectfound.
+Default4096preservesbehavior. Rustfmt/diffchecks pass. Prepared063nativequalifier
+thatwaitsforall055/056/057andnoactivefullprocessbeforetests/build; frozen
+full-prefillbinarypreserved. Worker sweeps must waitforqualificationtoend,then
+canuseoriginalfull-prefillbinary. Newdecaycontrol/candidatefulltrialcomeslater.

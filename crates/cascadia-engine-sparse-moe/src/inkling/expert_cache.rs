@@ -14,6 +14,7 @@ pub struct ExpertCacheStats {
     pub admissions: u64,
     pub evictions: u64,
     pub history_resets: u64,
+    pub frequency_decays: u64,
 }
 
 impl ExpertCacheStats {
@@ -26,6 +27,7 @@ impl ExpertCacheStats {
         self.admissions += other.admissions;
         self.evictions += other.evictions;
         self.history_resets += other.history_resets;
+        self.frequency_decays += other.frequency_decays;
     }
 }
 
@@ -38,6 +40,7 @@ struct State {
     frequency: Vec<u64>,
     last: Vec<u64>,
     clock: u64,
+    decay_requests: u64,
     entries: Vec<Entry>,
     stats: ExpertCacheStats,
 }
@@ -46,10 +49,20 @@ pub(super) struct ExpertCache(Mutex<State>);
 
 impl ExpertCache {
     pub fn new(experts: usize, capacity: usize) -> Self {
+        let decay_requests = std::env::var("CASCADIA_INKLING_CACHE_DECAY_REQUESTS")
+            .ok()
+            .and_then(|s| s.parse::<u64>().ok())
+            .filter(|n| (4..=65536).contains(n) && n.is_power_of_two())
+            .unwrap_or(4096);
+        Self::with_decay(experts, capacity, decay_requests)
+    }
+
+    fn with_decay(experts: usize, capacity: usize, decay_requests: u64) -> Self {
         Self(Mutex::new(State {
             frequency: vec![0; experts],
             last: vec![0; experts],
             clock: 0,
+            decay_requests,
             entries: Vec::new(),
             stats: ExpertCacheStats {
                 capacity_bytes: capacity,
@@ -98,10 +111,11 @@ impl ExpertCache {
             assert!(expert < state.frequency.len());
             state.clock = state.clock.saturating_add(1);
             // Bounded history adapts to changing requests without future routing.
-            if state.clock.is_multiple_of(4096) {
+            if state.clock.is_multiple_of(state.decay_requests) {
                 for count in &mut state.frequency {
                     *count = count.div_ceil(2);
                 }
+                state.stats.frequency_decays += 1;
             }
             state.frequency[expert] = state.frequency[expert].saturating_add(1);
             state.last[expert] = state.clock;
@@ -211,6 +225,29 @@ mod tests {
         assert_eq!(hit[2].as_ref().unwrap().as_slice(), [61; 32]);
         assert_eq!(cache.stats().retained_bytes, 64);
         assert_eq!(cache.stats().evictions, 1);
+    }
+
+    #[test]
+    fn short_frequency_history_adapts_within_a_sequence() {
+        let adaptive = ExpertCache::with_decay(2, 32, 4);
+        let long_history = ExpertCache::with_decay(2, 32, 4096);
+        for cache in [&adaptive, &long_history] {
+            drop(cache.lookup(&[0; 64]));
+            cache.retain(0, &mut bytes(17, 32));
+            drop(cache.lookup(&[1; 8]));
+            cache.retain(1, &mut bytes(93, 32));
+        }
+        assert_eq!(adaptive.stats().frequency_decays, 18);
+        assert_eq!(long_history.stats().frequency_decays, 0);
+        let adapted = adaptive.lookup(&[0, 1]).unwrap();
+        assert!(adapted[0].is_none());
+        assert_eq!(adapted[1].as_ref().unwrap().as_slice(), [93; 32]);
+        let old = long_history.lookup(&[0, 1]).unwrap();
+        assert_eq!(old[0].as_ref().unwrap().as_slice(), [17; 32]);
+        assert!(old[1].is_none());
+        adaptive.reset_history();
+        assert_eq!(adaptive.stats().frequency_decays, 18);
+        assert_eq!(adaptive.stats().retained_bytes, 32);
     }
 
     #[test]

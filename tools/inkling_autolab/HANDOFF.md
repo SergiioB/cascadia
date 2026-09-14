@@ -3,6 +3,29 @@
 Updated 2026-09-14: USER RESUMED AUTONOMOUS OPTIMIZATION. Work is active again;
 the prior final campaign below is the completed reference, not a stopping point.
 
+## Latest update —057running, decayqualification prepared
+
+055/056bothcompleteandverified. 055historyreset64slowest0.7575615884;
+056historyreset128slowest0.8139052440 (allcasesimprove). Rawartifacts/SHAand
+phaseprofilesarchived. **057_full_history_reset_256mib RUNNING** under16120,
+native**2956**,created**1789370890.016268**. Outputs057-history-256.*.
+**No furtherfullcampaignqueued yet.** Sampler3036continues.
+
+062cache-decaylocalcandidate:163tests+fivefixturemodes exactARMhash; actual
+frequencydecays27/3/0asexpected. EnvCASCADIA_INKLING_CACHE_DECAY_REQUESTS
+powersoftwo4..65536,default4096. OnlytwoRustfileschanged, noarithmeticchange.
+Preparedqualify-cache-decay.py,test-cache-decay.bat,run-full.ps1 supportfuture
+full-cache-decay.exe. Nativeglobalwrapper STILLqualifiedthreadversion5e0a29a4...
+untilnewqualificationpasses. **NativequalifierNOTlaunchedyet atthischeckpoint.**
+Sourcearchive/private/tmp/inkling-cache-decay-source.tar/json has2SHAguarded
+Rustfiles; nativebase72cb6f05. Stageasrootcache-decay-source.tar/json; stagewrapper
+asrun-full-cache-decay.ps1, plusqualifier/bat. LaunchdetachedWin32_Process.Create;
+qualifierwaitsfor055/056/057complete/noactivefullbeforebuilding. Newbinarymust
+befrozenandold8binariesSHAunchanged. DoNOTlaunchthreadswhilequalifierbuilds.
+Afterqualified, select057/056winner andworker8/12/24/32sweep canretainold
+full-prefillbinary; thenmatchednewbinarydecay4096/32trial,repeatselectedwinner.
+060globalcacheprediction~1–2%missgain/deferred;061prefetchadds11–39%reads/deferred.
+
 ## Current live work — cache history and budget055/056/057
 
 The loop is ACTIVE. Do not stop after one completed campaign. 053/054prefillpair

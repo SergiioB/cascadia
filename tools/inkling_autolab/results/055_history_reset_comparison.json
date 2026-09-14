@@ -1,0 +1,31 @@
+{
+  "scope": "same_binary_cache_history_reset_comparison",
+  "output_hash": "ce0fbb9a116d3d09",
+  "all_ids_and_routes_match": true,
+  "passes_per_setting": 1,
+  "slowest_score_ratio": 1.0684764320798166,
+  "decode_read_ratio": 0.9280713816920336,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_rate": 0.7931011519723735,
+      "reset_rate": 0.7813483274160047,
+      "speedup": 0.9851811783060199
+    },
+    {
+      "case": "binary_search",
+      "control_rate": 0.7134428252678333,
+      "reset_rate": 0.7582801274146043,
+      "speedup": 1.062846384543763
+    },
+    {
+      "case": "short_story",
+      "control_rate": 0.7090110419128839,
+      "reset_rate": 0.7575615883682715,
+      "speedup": 1.0684764320798166
+    }
+  ],
+  "selected_history_reset": 1,
+  "repeated_record_046_unchanged": true,
+  "target_reached": false
+}
