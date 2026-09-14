@@ -25,7 +25,7 @@ scales `[E, out, in/32, 1]` (bf16 -> f16 is exact for the 7 mantissa bits; scale
 plugin's f16 path; there is no f32 mode for this kernel.
 
 Layout written (opt-in for the runtime: `CASCADIA_INKLING_OV_MOE=1`):
-  <out>/moe_ov/layer_NN/openvino_model.{xml,bin}      (MoE layers only; ~8.2 GB each)
+  <out>/moe_ov/layer_NN/openvino_model.{xml,bin}      (MoE layers only; ~8.3 GB each incl. 4 dummy experts)
 
 Known plugin behaviour on the Arc B390 (driver 32.0.101.8860, OV 2026.3.1): the batched-GEMV
 decode kernel crashes the process; the runtime sets OV_GPU_MOE_BATCHED_GEMV_THRESHOLD=0 so
@@ -144,7 +144,7 @@ def build_layer(gate_w, up_w, down_w, hidden, inter, n_total, k):
     return m
 
 
-def layer_model(src, lid, man, layout="u4zp"):
+def layer_model(src, lid, man, layout="u4zp", pad_experts=4):
     hidden, inter = man["hidden_size"], man["moe_intermediate"]
     n_exp, n_sh, k = man["num_experts"], man["n_shared_experts"], man["top_k"]
     edir = os.path.join(src, "experts", f"layer_{lid:02d}")
@@ -154,18 +154,29 @@ def layer_model(src, lid, man, layout="u4zp"):
     for p in paths:
         (gp, gs), (up_, us), (dp, ds) = read_bin_sections(p, hidden, inter)
         gates.append((gp, gs)); ups.append((up_, us)); downs.append((dp, ds))
+    # Dummy experts (value 0, scale 0) after the real ones: OpenVINO 2026.3.1
+    # compiles a saved fused-MoE IR only through its offload path, whose
+    # smallest ratio (1%) leaves floor(0.99 * E) resident slots; with E padded
+    # so that floor(0.99 * E') >= E every real expert fits in a slot at once
+    # and steady-state decode never streams. 4 dummies cover 258 (259 slots).
+    for _ in range(pad_experts):
+        gates.append((np.full_like(gates[0][0], 0x88), np.zeros_like(gates[0][1])))
+        ups.append((np.full_like(ups[0][0], 0x88), np.zeros_like(ups[0][1])))
+        downs.append((np.full_like(downs[0][0], 0x88), np.zeros_like(downs[0][1])))
+    n_total = n_exp + n_sh + pad_experts
+    assert (n_total * 99) // 100 >= n_exp + n_sh, "pad_experts too small for the 1% offload floor"
     gate_w = stacked_weight([g[0] for g in gates], [g[1] for g in gates], inter, hidden, layout)
     up_w = stacked_weight([u[0] for u in ups], [u[1] for u in ups], inter, hidden, layout)
     down_w = stacked_weight([d[0] for d in downs], [d[1] for d in downs], hidden, inter, layout)
-    return build_layer(gate_w, up_w, down_w, hidden, inter, n_exp + n_sh, k + n_sh)
+    return build_layer(gate_w, up_w, down_w, hidden, inter, n_total, k + n_sh)
 
 
-def validate(src, lid, man, device="GPU", layout="u4zp"):
+def validate(src, lid, man, device="GPU", layout="u4zp", pad_experts=4):
     """Compile the layer and compare one 2-row call against a numpy reference on the bins' grid."""
     from glm5_expert_ov import _load  # noqa: E402  (dequantised gate/up/down of one bin)
     hidden, inter = man["hidden_size"], man["moe_intermediate"]
     n_exp, n_sh, k = man["num_experts"], man["n_shared_experts"], man["top_k"]
-    m = layer_model(src, lid, man, layout)
+    m = layer_model(src, lid, man, layout, pad_experts)
     core = ov.Core()
     t0 = time.time()
     cm = core.compile_model(m, device, {"INFERENCE_PRECISION_HINT": "f16"})
@@ -216,6 +227,7 @@ def main():
     ap.add_argument("--validate-device", default="GPU")
     ap.add_argument("--skip-existing", action="store_true")
     ap.add_argument("--layout", choices=["u4zp", "i4"], default="u4zp")
+    ap.add_argument("--pad-experts", type=int, default=4, help="dummy experts appended so the 1%% offload floor keeps every real expert resident")
     args = ap.parse_args()
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     man = json.load(open(os.path.join(args.src, "manifest.json")))
@@ -227,7 +239,7 @@ def main():
             print(f"layer {lid}: dense, skipped (the dense MLP keeps the per-expert IR)")
             continue
         if args.validate:
-            validate(args.src, lid, man, args.validate_device, args.layout)
+            validate(args.src, lid, man, args.validate_device, args.layout, args.pad_experts)
             continue
         dst = os.path.join(out, "moe_ov", f"layer_{lid:02d}")
         xml = os.path.join(dst, "openvino_model.xml")
@@ -235,7 +247,7 @@ def main():
             print(f"layer {lid}: exists, skipped")
             continue
         t0 = time.time()
-        m = layer_model(args.src, lid, man, args.layout)
+        m = layer_model(args.src, lid, man, args.layout, args.pad_experts)
         os.makedirs(dst, exist_ok=True)
         ov.save_model(m, xml, compress_to_fp16=False)
         print(f"layer {lid}: written {xml} in {time.time()-t0:.0f}s")

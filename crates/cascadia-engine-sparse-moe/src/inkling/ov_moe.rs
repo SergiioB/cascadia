@@ -71,6 +71,9 @@ pub struct OvMoe {
     hidden: usize,
     /// Experts per row the IR expects: `top_k + n_shared`.
     k_total: usize,
+    /// Real experts in the stack (`num_experts + n_shared`); the IR may carry
+    /// dummies after them (see `tools/inkling_moe_layer_ov.py --pad-experts`).
+    n_experts: usize,
     offload: Option<String>,
     layers: Mutex<HashMap<u32, Arc<Mutex<Runtime>>>>,
     failed: Mutex<std::collections::HashSet<u32>>,
@@ -85,7 +88,12 @@ pub struct OvMoe {
 impl OvMoe {
     /// Construct from the environment, or `None` to keep the other paths:
     /// requires `CASCADIA_INKLING_OV_MOE` set and `<model>/moe_ov` present.
-    pub fn from_env(model_dir: &Path, hidden: usize, k_total: usize) -> Option<Self> {
+    pub fn from_env(
+        model_dir: &Path,
+        hidden: usize,
+        k_total: usize,
+        n_experts: usize,
+    ) -> Option<Self> {
         if !super::env_flag("CASCADIA_INKLING_OV_MOE") {
             return None;
         }
@@ -125,7 +133,15 @@ impl OvMoe {
         if std::env::var_os("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD").is_none() {
             std::env::set_var("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
         }
-        let ov = Self::new(dir, device, hidden, k_total, cache_dir.as_deref(), offload);
+        let ov = Self::new(
+            dir,
+            device,
+            hidden,
+            k_total,
+            n_experts,
+            cache_dir.as_deref(),
+            offload,
+        );
         tracing::info!(
             target: "cascadia::inkling",
             event = "ov_moe_config",
@@ -144,6 +160,7 @@ impl OvMoe {
         device: String,
         hidden: usize,
         k_total: usize,
+        n_experts: usize,
         cache_dir: Option<&str>,
         offload: Option<String>,
     ) -> Self {
@@ -160,6 +177,7 @@ impl OvMoe {
             plugin,
             hidden,
             k_total,
+            n_experts,
             offload,
             layers: Mutex::new(HashMap::new()),
             failed: Mutex::new(Default::default()),
@@ -242,9 +260,29 @@ impl OvMoe {
         }
     }
 
-    /// Compile layer `lid` ahead of time (a benchmark's warm-up).
+    /// Compile layer `lid` ahead of time and touch every real expert once,
+    /// so the plugin's offload slots hold them all before timing starts
+    /// (its slot cache starts empty: the first touch of each expert streams
+    /// it from the IR file at ~1 GB/s, ~8 s per Inkling layer).
     pub fn warm(&self, lid: u32) -> bool {
-        self.compiled(lid).is_some()
+        if self.compiled(lid).is_none() {
+            return false;
+        }
+        let k = self.k_total;
+        let x = vec![0.0f32; self.hidden];
+        let w = vec![0.0f32; k];
+        let mut ids: Vec<i32> = (0..self.n_experts as i32).collect();
+        while ids.len() % k != 0 {
+            ids.push(ids[0]);
+        }
+        let before = self.calls.load(Ordering::Relaxed);
+        let mut ok = true;
+        for chunk in ids.chunks(k) {
+            ok &= self.forward(lid, &x, 1, chunk, &w).is_some();
+        }
+        // Warm-up calls are not benchmark calls.
+        self.calls.store(before, Ordering::Relaxed);
+        ok
     }
 
     /// The MoE output for `rows` rows of `xs` (`[rows, hidden]`) with the

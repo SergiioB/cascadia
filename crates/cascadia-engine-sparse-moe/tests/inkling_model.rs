@@ -1012,14 +1012,29 @@ fn ov_moe_backend_falls_back_bit_identically_without_openvino() {
     }
     let mut plain = random_model(11);
     let mut with_ov = random_model(11);
-    let ov = Arc::new(OvMoe::new(tmp.clone(), "GPU".into(), c.hidden, c.top_k + 2, None, None));
+    let ov = Arc::new(OvMoe::new(
+        tmp.clone(),
+        "GPU".into(),
+        c.hidden,
+        c.top_k + 2,
+        c.n_routed + 2,
+        None,
+        None,
+    ));
     with_ov.attach_ov_moe(Arc::clone(&ov));
     for &t in &[3u32, 11, 5] {
-        assert_eq!(bits(&plain.forward_token(t)), bits(&with_ov.forward_token(t)), "token {t}");
+        assert_eq!(
+            bits(&plain.forward_token(t)),
+            bits(&with_ov.forward_token(t)),
+            "token {t}"
+        );
     }
     let st = ov.stats();
-    assert!(st.fallbacks > 0 && st.calls == 0, "stub: every fused call must fall back, got {st:?}");
+    assert!(
+        st.fallbacks > 0 && st.calls == 0,
+        "stub: every fused call must fall back, got {st:?}"
+    );
     assert!(!ov.failed_layers().is_empty());
-    assert!(OvMoe::from_env(&tmp, c.hidden, c.top_k + 2).is_none());
+    assert!(OvMoe::from_env(&tmp, c.hidden, c.top_k + 2, c.n_routed + 2).is_none());
     let _ = std::fs::remove_dir_all(&tmp);
 }

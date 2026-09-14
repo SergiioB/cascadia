@@ -577,7 +577,12 @@ pub fn load_stage(
     // Optional fused-MoE backend (`CASCADIA_INKLING_OV_MOE=1` + `<model>/moe_ov`):
     // one compiled model per MoE layer that has an IR; takes precedence over
     // the per-expert backend for those layers.
-    if let Some(ov) = super::ov_moe::OvMoe::from_env(dir, hidden, m.top_k + m.n_shared_experts) {
+    if let Some(ov) = super::ov_moe::OvMoe::from_env(
+        dir,
+        hidden,
+        m.top_k + m.n_shared_experts,
+        m.num_experts + m.n_shared_experts,
+    ) {
         let ov = std::sync::Arc::new(ov);
         for (i, l) in layers.iter_mut().enumerate() {
             let lid = (lo + i) as u32;
