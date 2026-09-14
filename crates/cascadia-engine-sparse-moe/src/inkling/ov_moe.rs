@@ -192,12 +192,23 @@ impl OvMoe {
         offload: Option<String>,
     ) -> Self {
         let mut plugin = PluginConfig::new().with("INFERENCE_PRECISION_HINT", "f16");
-        if let Some(cd) = cache_dir {
-            plugin = plugin.with("CACHE_DIR", cd);
-        }
         match &offload {
-            Some(r) => plugin = plugin.with("OFFLOAD_RATIO", r.clone()),
-            None => plugin = plugin.with("CASCADIA_MATERIALIZE_CONSTANTS", "1"),
+            Some(r) => {
+                plugin = plugin.with("OFFLOAD_RATIO", r.clone());
+                if let Some(cd) = cache_dir {
+                    plugin = plugin.with("CACHE_DIR", cd);
+                }
+            }
+            None => {
+                // A blob imported from the cache restores its weights from
+                // the IR file, i.e. as file-backed constants again — measured
+                // 28 ms per decode call against 3.7 ms compiled fresh — so
+                // the materialised path never uses the blob cache.
+                plugin = plugin.with("CASCADIA_MATERIALIZE_CONSTANTS", "1");
+                if cache_dir.is_some() {
+                    warn!("CASCADIA_INKLING_OV_MOE_CACHE_DIR ignored: the materialised fused-MoE path does not use the blob cache");
+                }
+            }
         }
         Self {
             dir,
