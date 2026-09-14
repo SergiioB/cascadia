@@ -27,14 +27,24 @@ use tokenizers::Tokenizer;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
+    let usage = || {
         eprintln!("usage: glm5_run <model_dir> \"<prompt>\" [n_gen]");
         eprintln!("   or: glm5_run <model_dir> --ids \"1 2 3 4\" [n_gen]");
+        eprintln!("   or: glm5_run <model_dir> --force \"1 2 3 4\"   (teacher-forced decode bench)");
+    };
+    if args.len() < 3 {
+        usage();
         std::process::exit(2);
     }
     let dir = PathBuf::from(&args[1]);
     let forced = args[2] == "--force";
     let raw_ids = args[2] == "--ids" || forced;
+    // `--ids`/`--force` read the id list from args[3]; without it, indexing
+    // args[3] below would panic instead of printing usage.
+    if raw_ids && args.len() < 4 {
+        usage();
+        std::process::exit(2);
+    }
     let prompt_arg = if raw_ids { &args[3] } else { &args[2] };
     let n_gen: usize = args
         .get(if raw_ids { 4 } else { 3 })
@@ -93,6 +103,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         let dt = t0.elapsed().as_secs_f64();
         let logits = runner.head_logits(&h);
+        // Guard the parity anchor: an empty logits vector would argmax to 0 and
+        // hash to the bare FNV seed — a legitimate-looking anchor for a run that
+        // produced nothing. Fail loudly instead.
+        assert!(!logits.is_empty(), "forced decode produced no head logits");
         let argmax = logits
             .iter()
             .enumerate()
