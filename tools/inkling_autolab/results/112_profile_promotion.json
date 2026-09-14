@@ -1,0 +1,13 @@
+{
+  "scope": "selected_profile_promotion",
+  "verification": "112_final_verification.json",
+  "comparison": "112_repeated_prefetch_comparison.json",
+  "old_profile_sha256": "deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304",
+  "new_profile_sha256": "ff9572f5c3889b9678cecf230948efde635aceeefcce2195e222df92e4b2d08d",
+  "selected_predict_reads": 1,
+  "previous_record": 0.9654120906178267,
+  "confirmed_record": 1.0904267748485879,
+  "target_reached": false,
+  "native_profile_sync": "sha_verified",
+  "native_profile_sha256": "ff9572f5c3889b9678cecf230948efde635aceeefcce2195e222df92e4b2d08d"
+}

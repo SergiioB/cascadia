@@ -1,0 +1,140 @@
+{
+  "scope": "completed_full_model_repeated_confirmation",
+  "campaign": "112_full_predicted_read_confirmation",
+  "native_source_commit": "dc4badd3d21e5be1be7bfd542019cb9c3527b09a",
+  "binary_sha256": "7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a",
+  "native_pid": 8584,
+  "created_unix": 1789384963.340568,
+  "autolab_status": "completed",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "repetitions": 3,
+  "decode_steps_min": 63,
+  "slowest_decode_tokens_per_s": 1.0904267748485879,
+  "median_decode_tokens_per_s": 1.1492074013232425,
+  "fastest_decode_tokens_per_s": 1.2299078615696846,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 8.057304696356134,
+  "speedup_over_prior_repeated_record": 1.129493597030421,
+  "prefill_seconds_range": [
+    23.5860068,
+    25.1705794
+  ],
+  "actual_metrics": {
+    "decode_tokens_per_s": 1.0904267748485879,
+    "output_hash": "ce0fbb9a116d3d09",
+    "full_model": 1,
+    "correctness_verified": 1,
+    "decode_steps_min": 63,
+    "repetitions": 3,
+    "embedding_mapped": 1,
+    "reuse_buffers": 1,
+    "owned_shared_bytes": 4076863488,
+    "uncached_read_bytes": 3808650461184,
+    "uncached_read_fallbacks": 0,
+    "uncached_read_effective": 1,
+    "pipelined_read_layers": 36288,
+    "pipeline_reads_effective": 1,
+    "expert_cache_capacity_bytes": 17179869184,
+    "expert_cache_retained_bytes": 16309550592,
+    "expert_cache_hits": 99853,
+    "expert_cache_hit_bytes": 3180367577088,
+    "expert_cache_misses": 117875,
+    "expert_cache_admissions": 80366,
+    "expert_cache_evictions": 79854,
+    "expert_cache_effective": 1,
+    "expert_cache_history_resets": 576,
+    "prefill_read_experts": 40905,
+    "prefill_uncached_read_bytes": 1302844538880,
+    "prefill_uncached_read_fallbacks": 0,
+    "prefill_reads_effective": 1,
+    "rayon_threads": 16,
+    "expert_cache_frequency_decays": 6336,
+    "bf16_rows": 2,
+    "int4_rows": 4,
+    "processor_affinity": 65535,
+    "expert_cache_recent_tie_admissions": 60045,
+    "cache_recent_ties": 1,
+    "prediction_read_scheduled": 35718,
+    "prediction_read_successful": 35718,
+    "prediction_read_useful": 34014,
+    "prediction_read_unused": 1704,
+    "prediction_read_useful_bytes": 1083362770944,
+    "prediction_read_unused_bytes": 54273245184,
+    "prediction_read_read_failures": 0,
+    "prediction_read_worker_failures": 0,
+    "prediction_read_dispatch_failures": 0,
+    "prediction_read_effective": 1
+  },
+  "per_sample": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.0904267748485879,
+      "prefill_seconds": 24.2320547
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.1159227752744352,
+      "prefill_seconds": 25.1705794
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_tokens_per_s": 1.1494069442391146,
+      "prefill_seconds": 24.2588142
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.2299078615696846,
+      "prefill_seconds": 23.5860068
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.1161405170525196,
+      "prefill_seconds": 24.8268972
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.1492074013232425,
+      "prefill_seconds": 24.329059
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.2273705072584764,
+      "prefill_seconds": 23.6406234
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.116315367447722,
+      "prefill_seconds": 24.9963106
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.149969740645426,
+      "prefill_seconds": 24.2251539
+    }
+  ],
+  "all_prefill_and_decode_routes_match_046": true,
+  "native_trial_exited": true,
+  "sampler_remains_running": true,
+  "target_reached": false,
+  "caveats": [
+    "Full CPU backend; Arc B390 is not used.",
+    "Three prompts and three repetitions with natural OS cache state and protected background services.",
+    "Decode excludes prefill; timings include output checking and diagnostics.",
+    "Best tested profile is not a claim of mathematical optimality."
+  ],
+  "artifact_sha256": {
+    "112-predicted-read-confirmation.json": "2e487e0b0438bc485a8e2410c6e7a8a953d36d5c73f7963b35d3fd4447df8f4b",
+    "112-predicted-read-confirmation.log": "a6a85c01ff133c2a0175314f374c132363df8780bde7de8cd5b6ff8faf495b7d"
+  }
+}

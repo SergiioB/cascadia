@@ -14,7 +14,7 @@ $env:CASCADIA_INKLING_SKIP_BULK_PREFETCH = '1'
 $env:CASCADIA_INKLING_OWN_SHARED = '1'
 $env:CASCADIA_INKLING_UNCACHED_READS = '1'
 $env:CASCADIA_INKLING_PIPELINE_READS = '1'
-# Requires the qualified cache-recency runtime (source849a08bd or later).
+# Requires the qualified predicted-read runtime (source dc4badd3 or later).
 # Cache budget is per MoE layer: 256 MiB × 64 layers, 16.31 GB retained.
 $env:CASCADIA_INKLING_EXPERT_CACHE_MIB = '256'
 $env:CASCADIA_INKLING_PREFILL_READS = '1'
@@ -22,3 +22,6 @@ $env:CASCADIA_INKLING_CACHE_RESET_HISTORY = '1'
 $env:CASCADIA_INKLING_CACHE_DECAY_REQUESTS = '32'
 # Prefer more recently used experts when decayed frequency counts tie.
 $env:CASCADIA_INKLING_CACHE_RECENT_TIES = '1'
+
+# Read one predicted uncached expert before attention; actual routing is unchanged.
+$env:CASCADIA_INKLING_PREDICT_READS = '1'

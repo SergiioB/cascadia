@@ -1,44 +1,45 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:32UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 11:37UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Latest112 confirmation launch (11:22UTC)
+## Current113/114 longer-prompt comparison (11:37UTC)
 
-110/111 complete, allraw/SHA/numeric/routes/cache/read counters verified.
-111 slowest1.0607746934 vs110.9679409165, +9.5909%. All three prompts faster:
-water+6.33%, binary+14.17%, story+14.64%. Actualprefetch11906/11338/568
-scheduled/useful/unused, zero failures; extra1.4446% readbytes. No profile
-promotion yet. Controller92370 and finisher50545 ended normally.
+113 RUNNING native8876, creation1789385817.5668454. Controller73146,
+/private/tmp/run-inkling-heldout-prefetch-loop.py. It verifies each campaign,
+records native identity, SHA captures with scoped helper
+/private/tmp/capture-inkling-heldout-prefetch.py, then compares all outputs,
+routes/cache/read counts. It runs113control then114prefetch on the same frozen
+full-predicted-read.exe. Both128generated/127decode, one repetition, frozen
+heldout cases. No prediction trace, only PredictReads differs. Separate from
+canonical record. Native113-heldout-prefetch-control.*,114-heldout-prefetch-prefetch.*.
+Local logs/private/tmp/inkling-113_heldout_prefetch_control.log and corresponding114.
 
-112_full_predicted_read_confirmation RUNNING, three repetitions/nine
-samples, samefrozen7b20ee35/source dc4badd3 and sameprofile. Log
-/private/tmp/inkling-112_full_predicted_read_confirmation.log. Native full-predicted-read.exe PID8584, creation1789384963.340568.
-Local controller session84880. Prepared verifier/private/tmp/verify-inkling-112.py.
-Native outputs112-predicted-read-confirmation.*. Expected35718scheduled/
-34014useful/1704unused, uncached3808650461184, allcache counters same102.
-After completion, capture with --repetitions3 and formalverification adapted
-from/private/tmp/verify-inkling-102.py. Compare all nine complete samples with102,
-including firstcoldsample; promote only if verified. Target25 remains unmet.
+## Current confirmed record112
 
-Next unimplemented idea, pending112: diagnostic prediction one layer earlier
-may expose more I/O overlap than the current short attention window. Measure
-its accuracy first with the next layer's existing norm/router on the previous
-layer's residual input, preserving actual math/routes and default behavior.
-No code/hypothesis entry/staging yet; do not confuse this idea with qualified
-current-layer prefetch. Could instead validate current prefetch on longer
-held-out cases. Continue choosing experiments from measured evidence.
+**1.0904267748tok/s**, slowest of nine; median1.1492074013,max1.2299078616.
+Allnine faster than102; conservative+12.9494%,8.0573× original.
+Fullhash ce0fbb9a116d3d09, every ID/route/cache/predicted-read counter exact.
+35,718 scheduled/successful,34,014 useful,1,704 unused,0failures. Actualreads
+3,808,650,461,184 bytes,1.4456% extra vs102. Firstwater second-token MLP layer48
+stall2.6689s remainsincluded; no samples removed. MinavailableRAM1.85GB,
+peakprivate42.52GB. Native8584/controller84880 and verifier83854 exited.
+112_final_verification.json,112_repeated_prefetch_comparison.json and
+112_profile_promotion.json preserve proof. Selected profile nowPredictReads1,
+local/nativeptl-profile.ps1 SHA ff9572f5c3889b9678cecf230948efde635aceeefcce2195e222df92e4b2d08d.
+Frozenbinary7b20ee35/source dc4badd3, native/localwrapper3eac49ad unchanged.
+25targetunmet. No export/Lambda work needed.
 
-## Current confirmed record
+## Next diagnostic115 local work
 
-102: **0.9654120906tok/s**, slowest of nine samples; median0.9916481036,
-fastest1.0604665236.7.1336×original and2.8923% above074. All nine samples improved;
-The canonical grid is64generated/63decode tokens, three prompts ×
-three repetitions. Every generated ID/full-logits hash/actual route/cache counter
-matches.102_final_verification.json and102_repeated_recency_comparison.json.
-Selected profile16workers/all16CPUs, rows2/4, cache256MiB per MoE layer,
-historyreset1/decay32/recentties1, streamed prefill and prior I/O flags. CPU only.
-No actual prefetch is selected yet. No new export or Lambda work needed.
+One-layer-early prediction implemented locally as default-off Model observer,
+using target layer norm/router before predecessor executes, no additional I/O.
+Benchmark--prediction-lead-layers1 explicitly labels this input; current-layer
+prediction remains lead0. Two exact-logit/route/ordering/causality tests pass;
+all250 local tests/13suites and example build pass. Localfixture qualification
+and analyzer validation pending. Native116 must wait113/114 exit, preserve12
+frozen binaries and qualify a separate candidate before full diagnostic.
+This code is not used by current113/114. Continue optimization after finite campaigns.
 
 ## Historical110/111 launch state (both now complete)
 

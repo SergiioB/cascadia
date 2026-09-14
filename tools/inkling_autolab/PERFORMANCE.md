@@ -1,24 +1,25 @@
 # Inkling large975B on Panther Lake
 
-The confirmed record is **0.965412 decode tokens/s**, the slowest of nine samples,
-**7.13× the original baseline** and **2.89% above the previous repeated record**.
-The median is 0.991648 and the fastest sample is 1.060467. All saved tokens,
-full-logits hashes and routing decisions match. **The 25 tokens/s target is unmet.**
+The confirmed record is **1.090427 decode tokens/s**, the slowest of nine samples,
+**8.06× the original baseline** and **12.95% above the previous repeated record**.
+The median is 1.149207 and the fastest sample is 1.229908. All saved tokens,
+full-logits hashes and actual routing decisions match. **The 25 tokens/s target is unmet.**
 
-[Campaign102 verification](results/102_final_verification.json) confirms three
-prompts × three repetitions, with 64 generated tokens and 63 decode steps each.
-Prefill takes 23.69–25.29 seconds. All nine samples improved against the previous
-record, including the first decode run. Timings include output checking and
-diagnostics; decode excludes prefill. The selected cache policy admits more
-recently used experts when decayed frequency counts tie. It reduces actual
-SSD reads by 4.55% without changing weights or arithmetic.
+[Campaign112 verification](results/112_final_verification.json) confirms three
+prompts × three repetitions, with64 generated tokens and63 decode steps each.
+Prefill takes23.59–25.17 seconds. All nine samples improved against102, including
+the first run and its2.67-second MLP stall. Every sample and stall remains included.
+The [repeated comparison](results/112_repeated_prefetch_comparison.json) records
+those limits; the fresh same-binary [110/111 comparison](results/111_prefetch_comparison.json)
+improved each prompt by6.3–14.6%.
 
-The earlier single-pass 101 water-cycle run contained an extra 5.2-second stall,
-which remains included in its score. It did not recur in 102. The
-[comparison](results/102_repeated_recency_comparison.json) retains all samples
-and limitations. The next diagnostic measures pre-attention route prediction
-accuracy before implementing speculative expert reads. See [HANDOFF.md](HANDOFF.md)
-for current jobs; optimization remains active.
+The selected profile reads one predicted uncached expert before attention, using
+the existing MLP norm/router on the current residual. A bounded worker supplies
+complete bytes only if actual routing selects that expert; otherwise the read
+is drained. Normal routing, cache admission and arithmetic remain unchanged.
+Across112,35,718 predictions completed:34,014 useful and1,704 unused, with zero
+read or worker failures. Extra reads cost1.45% over102 and remain in all timings.
+See [HANDOFF.md](HANDOFF.md) for current jobs; optimization remains active.
 
 ## What was measured
 
@@ -45,12 +46,13 @@ identity and the complete case/repetition grid are checked before promotion.
 | [16 GB routed cache and request-history reset](results/057-history-256.json) | 1 | 0.915789 |
 | [Shorter cache frequency history](results/072-decay-32.json) | 1 | 0.937041 |
 | [Short-history profile, repeated confirmation](results/074-cache-confirmation.json) | 3 | 0.938274 |
-| [Recent-use tie admission, repeated confirmation](results/102-cache-recency-confirmation.json) | 3 | **0.965412** |
+| [Recent-use tie admission, repeated confirmation](results/102-cache-recency-confirmation.json) | 3 | 0.965412 |
+| [One predicted expert read, repeated confirmation](results/112-predicted-read-confirmation.json) | 3 | **1.090427** |
 
 The 036 SSH connection failed to return after native completion. That transport
 failure remains in Autolab history; its complete native artifacts were
 [verified separately](results/036_completed_artifact_verification.json).
-Campaigns 074 and 102 completed normally through Autolab. Its native benchmark process
+Campaigns074,102 and112 completed normally through Autolab. Each native benchmark process
 exited; the resource sampler continues for subsequent trials. Protected OVMS
 and Cascadia services remain running.
 
@@ -76,17 +78,19 @@ removed 3.12% of remaining decode reads and improved all three prompts against
 the matched default-history control. A worker sweep selected 16 threads over
 8, 12, 24 and 32. Matched asynchronous-read probes found no consistent benefit.
 
-Campaign 102 retained 16.31 GB of routed weights, recorded 99,853 cache hits and
-117,875 misses, and completed 3.754 TB of uncached decode reads with zero
-fallbacks. Streamed prefill completed 1.303 TB of reads with zero fallbacks.
-Median time per decoded token is 0.183 seconds in attention,
-0.801 in the expert blocks and0.024 outside the layers. The sampled process peak
-was 42.51 GB private memory; minimum available machine RAM was 1.70 GB.
+Campaign112 retained16.31 GB of routed weights, recorded99,853 cache hits and
+117,875 misses, and completed3.809 TB of uncached decode reads with zero
+fallbacks. Streamed prefill completed1.303 TB of reads with zero fallbacks.
+Median time per decoded token is0.207 seconds in the attention span (including
+prediction submission),0.640 in the expert blocks and0.024 outside the layers.
+The sampled process peak was42.52 GB private memory; minimum available machine
+RAM was1.85 GB. Decode used8.92 CPU core equivalents and read about7.74 GB/s
+in the complete sampled decode intervals.
 A separate Qwen OVMS service holds about 20.03 GB of shared GPU memory, as
 confirmed by the [memory ownership snapshot](results/099_memory_ownership.json).
 That service remains running and limits RAM available for a larger cache.
-See the [layer profile](results/102_layer_profile.json) and
-[resource report](results/102_resources.json). Machine disk counters include
+See the [layer profile](results/112_layer_profile.json) and
+[resource report](results/112_resources.json). Machine disk counters include
 other processes, and page-fault counters include soft faults.
 
 ## Reproduce the selected profile
@@ -97,12 +101,12 @@ layer, not a model-wide budget. The benchmark uses High process priority and
 all 16 logical processors; [run-full.ps1](run-full.ps1) applies those settings
 to its own child. See [runtime options](RUNTIME_OPTIONS.md) for dependencies.
 
-The frozen `full-cache-recency.exe` SHA-256 is
-`a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40`,
-built from source `849a08bd`. Qualification passed 245 native tests, five tiny
-fixture modes and the production wrapper's exact oracle before full trials.
-The exact repeated command and expected counters are in
-[campaign102](campaigns/102_full_cache_recency_confirmation.yaml).
+The frozen `full-predicted-read.exe` SHA-256 is
+`7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a`,
+built from source `dc4badd3`. Qualification passed252 native tests and four tiny
+fixture modes with exact routes, outputs and useful/unused read counts before
+full trials. The exact repeated command and expected counters are in
+[campaign112](campaigns/112_full_predicted_read_confirmation.yaml).
 
 All raw traces and resource snapshots are archived with SHA manifests.
 [The journal](JOURNAL.md) records hypotheses, measured results and rejected ideas.
