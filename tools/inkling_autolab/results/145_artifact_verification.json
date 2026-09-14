@@ -1,0 +1,110 @@
+{
+  "qualification": {
+    "status": "qualified",
+    "unix": 1789395804.1020882,
+    "binary_sha256": "f91e4e0e7002e0aa54a496d2ae24d1f706ed9b38003a568956bd1ae8d647cd03",
+    "wrapper_sha256": "c18b8446bf4eb7c8fafadebe510bf6de81480c2b0122e524479d15257ce385bc",
+    "modes": [
+      {
+        "threads": 16,
+        "output_hash": "1f7cd0eb14a22662",
+        "all_routes_cache_reads_exact": true,
+        "artifacts": [
+          {
+            "name": "145-fixture-workers-16.json",
+            "sha256": "496d8cda232a9c071184018089e722db757147e002b32685d30f61a40f563c4a"
+          },
+          {
+            "name": "145-fixture-workers-16-routes.json",
+            "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+          },
+          {
+            "name": "145-fixture-workers-16.log",
+            "sha256": "c258634cc7f5d522f640509c917b9f8f540085966ecf6f1ee14e8a5f0546b827"
+          }
+        ]
+      },
+      {
+        "threads": 14,
+        "output_hash": "1f7cd0eb14a22662",
+        "all_routes_cache_reads_exact": true,
+        "artifacts": [
+          {
+            "name": "145-fixture-workers-14.json",
+            "sha256": "7e3886ac76bf0c5ee6b303a4d51a391cbd16c27e33c98aa27ab659d47a352c30"
+          },
+          {
+            "name": "145-fixture-workers-14-routes.json",
+            "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+          },
+          {
+            "name": "145-fixture-workers-14.log",
+            "sha256": "02bd9c33bc6c4b00990091ecf7df3256aca46eb61f79f755f88dab4282260e9d"
+          }
+        ]
+      },
+      {
+        "threads": 12,
+        "output_hash": "1f7cd0eb14a22662",
+        "all_routes_cache_reads_exact": true,
+        "artifacts": [
+          {
+            "name": "145-fixture-workers-12.json",
+            "sha256": "69c1bcf5c3fb176ad542a319acc97aaf292c9df8ccec9e97be7a9393d5ab1250"
+          },
+          {
+            "name": "145-fixture-workers-12-routes.json",
+            "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+          },
+          {
+            "name": "145-fixture-workers-12.log",
+            "sha256": "701dcb16f340e8833682c04b3c320048ebb1a41659691cf7af5af63ba2fe98e0"
+          }
+        ]
+      }
+    ],
+    "full_model_speedup_measured": false
+  },
+  "files": [
+    {
+      "name": "145-prefetch-workers-qualification.json",
+      "sha256": "0964142dfe848f7d851acb1f55f7da03d9ff0bba8eab3e8199862159fc05bcb4"
+    },
+    {
+      "name": "145-fixture-workers-16.json",
+      "sha256": "496d8cda232a9c071184018089e722db757147e002b32685d30f61a40f563c4a"
+    },
+    {
+      "name": "145-fixture-workers-16-routes.json",
+      "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+    },
+    {
+      "name": "145-fixture-workers-16.log",
+      "sha256": "c258634cc7f5d522f640509c917b9f8f540085966ecf6f1ee14e8a5f0546b827"
+    },
+    {
+      "name": "145-fixture-workers-14.json",
+      "sha256": "7e3886ac76bf0c5ee6b303a4d51a391cbd16c27e33c98aa27ab659d47a352c30"
+    },
+    {
+      "name": "145-fixture-workers-14-routes.json",
+      "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+    },
+    {
+      "name": "145-fixture-workers-14.log",
+      "sha256": "02bd9c33bc6c4b00990091ecf7df3256aca46eb61f79f755f88dab4282260e9d"
+    },
+    {
+      "name": "145-fixture-workers-12.json",
+      "sha256": "69c1bcf5c3fb176ad542a319acc97aaf292c9df8ccec9e97be7a9393d5ab1250"
+    },
+    {
+      "name": "145-fixture-workers-12-routes.json",
+      "sha256": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810"
+    },
+    {
+      "name": "145-fixture-workers-12.log",
+      "sha256": "701dcb16f340e8833682c04b3c320048ebb1a41659691cf7af5af63ba2fe98e0"
+    }
+  ]
+}
