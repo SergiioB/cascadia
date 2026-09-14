@@ -423,17 +423,38 @@ impl MoeLayer {
                     // whole hot-compute window. One thread per cold bin: the
                     // reads are I/O-bound, so they must NOT ride the rayon
                     // pool the hot GEMVs are saturating.
-                    let readers: Vec<_> = is_cold
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, &c)| c)
-                        .map(|(slot, _)| {
-                            let m = self.w.experts[gate.idx[slot] as usize]
-                                .as_mmap()
-                                .expect("cold slots are mmap experts");
-                            (slot, s.spawn(move || m.read_bytes().ok()))
-                        })
-                        .collect();
+                    let mut readers = Vec::with_capacity(ncold);
+                    for (slot, &e) in gate.idx.iter().enumerate() {
+                        if !is_cold[slot] {
+                            continue;
+                        }
+                        let ex = &self.w.experts[e as usize];
+                        // A cold classification always implies an mmap expert;
+                        // the `None` arm is defensive, computing hot rather than
+                        // panicking if that ever stops holding.
+                        match ex.as_mmap() {
+                            Some(m) => {
+                                match std::thread::Builder::new()
+                                    .spawn_scoped(s, move || m.read_bytes().ok())
+                                {
+                                    Ok(h) => readers.push((slot, h)),
+                                    // The OS refused a thread (fd/thread
+                                    // exhaustion — the resource-pressured
+                                    // regime this path targets). Read inline
+                                    // (still off the GEMV, just not overlapped)
+                                    // rather than let the spawn panic take down
+                                    // the whole decode.
+                                    Err(_) => {
+                                        ys[slot] = Some(match m.read_bytes().ok() {
+                                            Some(b) => m.swiglu_from(&b, x),
+                                            None => ex.forward(x, self.hidden, self.moe_inter),
+                                        })
+                                    }
+                                }
+                            }
+                            None => ys[slot] = Some(ex.forward(x, self.hidden, self.moe_inter)),
+                        }
+                    }
                     for (slot, &e) in gate.idx.iter().enumerate() {
                         if !is_cold[slot] {
                             ys[slot] = Some(self.w.experts[e as usize].forward(
@@ -443,8 +464,9 @@ impl MoeLayer {
                             ));
                         }
                     }
-                    // The shared expert is unconditionally pinned/hot — more
-                    // compute to hide the reads behind.
+                    // The shared expert fires every token and is the
+                    // always-active pin candidate — extra hot compute to hide
+                    // the reads behind.
                     shared_pre = Some(self.w.shared.forward(x, self.hidden, self.shared_inter));
                     // Drain the reads; a failed read falls back to the mmap
                     // kernel for that expert (same value, just faults).
