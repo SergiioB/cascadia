@@ -88,3 +88,13 @@ Observer time is included in the model benchmark, outside layer timing spans.
 Local115 and native116 qualification pass (250 local/254 native tests and
 four tiny modes). Full-model prediction accuracy is being measured. Its
 `PredictionLeadLayers` wrapper argument requires the separate candidate binary.
+
+`CASCADIA_INKLING_EARLY_PREDICT_READS=1` (`EarlyPredictReads1`) is a separate
+experimental whole-Model decode path requiring `PredictReads1` and the
+qualified `full-early-prefetch.exe`. It schedules one target expert before the
+preceding layer executes, with at most current+next pending requests per model.
+Actual selection/cache admission stays unchanged; unused requests drain and
+failures use complete ordinary reads. Layer0 retains current-layer prefetch;
+layer-only/staged execution does not use early scheduling. Local251 tests/five
+fixture modes and native255 tests/four modes pass. The selected profile
+explicitly keeps this flag0 while full121/122 comparisons are in progress.

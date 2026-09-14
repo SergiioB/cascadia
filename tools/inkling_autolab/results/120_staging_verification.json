@@ -1,0 +1,10 @@
+{
+  "staged_sha256": {
+    "early-prefetch-source.json": "6663b5f85fbcab88caf0b09fe900c8b29b64a6f55c1d6fa06f40b4d0363e0c1d",
+    "early-prefetch-source.tar": "69eaf25c674f9be92af4bef35edfbb4376b64008c9ca44035fc8a6ac5bd163bd",
+    "run-full-early-prefetch.ps1": "ca787020488b22653939aaf27fe1413600e81e8b347e527a50397fe6003c0106",
+    "test-early-prefetch.bat": "6a520d187179936af3ac08507987ac646f5ccba66d162bed1b819c503305f4d6",
+    "qualify-early-prefetch.py": "ebe59254ba21c7d164b682c48018c377638f2fa6703932aeae35d1cabfc30e4f"
+  },
+  "powershell_parse": "passed"
+}

@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T12:08:59.765875+00:00",
+  "updated_at": "2026-09-14T12:20:37.528080+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 1.0904267748485879,
-  "status": "119_early_prefetch_implementation_pending",
+  "status": "121_current_prefetch_control_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Implement119 bounded early runtime prefetch, qualify locally/native then full A/B.117 shows86.96% prediction precision/3.96% extra reads;118handle reuse rejected. Target25 unmet.",
+  "next_action": "Complete121/122 exact same-binary comparison; review before conditional123 nine-sample confirmation. Continue optimizing.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,16 +46,24 @@
   "best_single_pass_full_model_decode_tokens_per_s": 1.0607746934234432,
   "best_repeated_full_model_decode_tokens_per_s": 1.0904267748485879,
   "last_verified_campaign": "112_full_predicted_read_confirmation",
-  "active_campaign": null,
+  "active_campaign": "121_full_current_prefetch_control",
   "record_verification": "112_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
-  "active_task_jobs": [],
+  "active_task_jobs": [
+    {
+      "pid": 9348,
+      "created_unix": 1789388242.4688969,
+      "name": "full-early-prefetch.exe"
+    }
+  ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
-  "queued_campaigns": [],
+  "queued_campaigns": [
+    "122_full_early_prefetch_candidate"
+  ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": null,
+  "controller_session": 4645,
   "pending_storage_probe": {
     "status": "092_complete_and_exited",
     "native_pid": 6392,
@@ -102,7 +110,11 @@
     "native_tests": 245,
     "modes": 5
   },
-  "next_controller": null,
+  "next_controller": {
+    "session": 4645,
+    "script": "/private/tmp/run-inkling-early-prefetch-loop.py",
+    "status": "running121_then122"
+  },
   "future_prediction_diagnostic": {
     "status": "105_completed_and_verified",
     "native_qualification": "104_artifact_verification.json"
@@ -143,7 +155,9 @@
     "binary_sha256": "7b20ee3592cb09267787792f2994a7cb54555f1dc0f1a74bf2d3517b0ead6f7a",
     "wrapper_sha256": "3eac49ad3042d50a4425f372e24fed12ff9b8b5b983974dfe0d3ee4d3262a7a7"
   },
-  "prepared_campaigns": [],
+  "prepared_campaigns": [
+    "123_full_early_prefetch_confirmation"
+  ],
   "fresh_prefetch_control": {
     "campaign": "110_full_predicted_read_control",
     "decode_tokens_per_s": 0.9679409164808447,
@@ -180,5 +194,14 @@
   "handle_reuse_probe": {
     "status": "completed_and_rejected",
     "decision": "118_decision.json"
+  },
+  "selected_early_predict_reads": 0,
+  "early_prefetch_qualification": {
+    "status": "qualified_and_exited",
+    "native_tests": 255,
+    "modes": 4,
+    "source_commit": "b53a984b410b84a19cc03f8b66ef1db6610d282d",
+    "binary_sha256": "381c116608c3c9d6cec94861d0f09f66073c79989b750c4aead019d82d4942c6",
+    "wrapper_sha256": "ca787020488b22653939aaf27fe1413600e81e8b347e527a50397fe6003c0106"
   }
 }

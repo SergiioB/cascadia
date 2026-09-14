@@ -25,3 +25,5 @@ $env:CASCADIA_INKLING_CACHE_RECENT_TIES = '1'
 
 # Read one predicted uncached expert before attention; actual routing is unchanged.
 $env:CASCADIA_INKLING_PREDICT_READS = '1'
+# Earlier prediction remains experimental; retain the confirmed current-layer path.
+$env:CASCADIA_INKLING_EARLY_PREDICT_READS = '0'

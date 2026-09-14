@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 12:09UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 12:20UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
@@ -35,11 +35,45 @@ local/nativeptl-profile.ps1 SHA ff9572f5c3889b9678cecf230948efde635aceeefcce2195
 Frozenbinary7b20ee35/source dc4badd3, native/localwrapper3eac49ad unchanged.
 25targetunmet. No export/Lambda work needed.
 
-## Current next work119: early prefetch implementation (12:09UTC)
+## Current121/122 runtime comparison (12:20UTC)
 
-117 and118 COMPLETE; no full/native qualification process running. Sampler3036
-continues. Root must now implement and test119 runtime early prefetch from the
-JOURNAL hypothesis; no early-runtime code exists yet. Target25 remains unmet.
+121current-prefetch control RUNNING native9348, creation1789388242.4688969,
+full-early-prefetch.exe381c116608c3c9d6cec94861d0f09f66073c79989b750c4aead019d82d4942c6.
+Controller4645 script/private/tmp/run-inkling-early-prefetch-loop.py archives
+all exact outputs/routes/cache/readcounts and runs122early candidate next.
+Bothoriginal3prompts×1rep,64generated/63decode, PredictReads1. Only
+EarlyPredictReads0/1 differs. It saves122_early_prefetch_comparison.json and
+ends for root review before conditional123nine-sample confirmation. Continue
+autonomously after finite campaigns; target25 remains unmet.
+Native121-current-prefetch-control.* and122-early-prefetch-candidate.*.
+Local logs/private/tmp/inkling-121_full_current_prefetch_control.log and122equivalent.
+123_full_early_prefetch_confirmation prepared, notlaunched. Repeatedforecast
+35844scheduled/31168useful/4676unused from fullnine route/cache replay. Do not
+blindly multiply117singlepasscounts. Firstsamples/stalls must stay included.
+
+120 COMPLETE/SHA archived:255 native tests/13suites, fourtiny modes, invalid
+EarlyPredictReads1/PredictReads0 dependency rejected. All13olderbinaries preserved.
+Sourceb53a984b410b84a19cc03f8b66ef1db6610d282d,3Rustsourcefiles in
+ early-prefetch-source.json; archiveSHA69eaf25c674f9be92af4bef35edfbb4376b64008c9ca44035fc8a6ac5bd163bd.
+Native6672(created1789388126.538558)/parent6324 exited. Native/localwrappernow
+ca787020488b22653939aaf27fe1413600e81e8b347e527a50397fe6003c0106.
+Controller uses dedicatedControlMaster/ControlPersist60; all120 transfers succeeded.
+SelectedprofileexplicitEarly0 guard synced native/localSHA
+5f7a0440f22312a9586d5b64fdc268f5b8c2cce058abb9f283228bd96633fbf1;
+120_profile_default_guard.json. Record112/PredictReads1/current-layer remains.
+
+119 IMPLEMENTED and locally251tests/fivetiny modes pass. Envflag
+CASCADIA_INKLING_EARLY_PREDICT_READS=1 requires existingpredictedreads+localcache.
+Model schedules nextlayer frompredecessorinput, carriesPendingRead intoLayer,
+skips duplicatecurrentpredictions evenwhen earlylookupfoundnone. Layer0retains
+current behavior. Atmostcurrent+next pending permodel; unused/error/unwinddrain
+andactualgate/cacheadmissionunchanged. Requestchannelnow2, oneworker,response1;
+blockedworker testproves queued submissionprogress andownership. Layer-only/staged
+execution retains currentlayerbehavior (earlypath is wholeModel). Benchmark
+actualearly_prediction_reads_effectivegates runtime mode. Tinycurrent13/11/2,
+early16/10/6 scheduled/useful/unused; exact priorpredictiontraces andoutputs.
+
+## Completed117/118 evidence
 
 117 one-layer-early diagnostic: all original3×1rep/64IDs/hash/actual routes/cache
 and zeroactualprefetch counters exact. Rates.9772436894/.9468468067/.9711400874,
@@ -54,23 +88,6 @@ botharmsSHAchecked vs mmap, canaryvalid and removed, handles/buffersreleased.
 Median ratios2/4/6files .99942/1.00785/1.01242; sensitive tofirstmode. Reject
 runtimehandlecache;118_decision.json. Source68f515fc, capture17451 complete.
 Probe73373 ended and nativeidentity is in118_artifact_verification.json.
-
-119 design to implement: default-off earlyflag (e.g.EarlyPredictReads requiring
-PredictReads1). At Model decode step, start the target layer's firstuncached
-prediction from the residual entering its predecessor, then carry that owned
-PendingRead into the target Layer. Suppress duplicatecurrent-layerprefetch even
-when earlyprediction selected no uncachedexpert. Keep separate current-route
-observers working without changing actual gates/cache admission. Layer0 has no
-predecessor, so it retains current behavior. At mosttwo pending expertbuffers
-per model (current+next), drained on misprediction/unwind as existing RAII.
-Current Reader uses blocking SyncSender.send and requestqueuecapacity1 (not
-try_send); increase to2 to avoid a submit stall when current and next requests
-queue before worker dispatch. One worker and responsequeuecapacity1 remain.
-Add a test with a deliberately blocked worker to prove queued submissions and
-ownership/fallback. Qualify complete tiny off/current/early modes before native
-full A/B against selected current-layerprefetch. Forecast earlycounts from117
-must match actual. For repeatedforecast replay allnine routes/cachehistory;
-do not blindly multiply11948by3. No newexports needed.
 
 116 qualified254native tests/fourtiny modes; all12older binaries preserved.
 Native/localrun-full.ps1 both6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04.
