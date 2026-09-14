@@ -77,6 +77,8 @@ pub struct OvMoe {
     offload: Option<String>,
     layers: Mutex<HashMap<u32, Arc<Mutex<Runtime>>>>,
     failed: Mutex<std::collections::HashSet<u32>>,
+    /// Layers whose first call failure has been reported.
+    noted: Mutex<std::collections::HashSet<u32>>,
     calls: AtomicU64,
     rows: AtomicU64,
     call_ns: AtomicU64,
@@ -181,6 +183,7 @@ impl OvMoe {
             offload,
             layers: Mutex::new(HashMap::new()),
             failed: Mutex::new(Default::default()),
+            noted: Mutex::new(Default::default()),
             calls: AtomicU64::new(0),
             rows: AtomicU64::new(0),
             call_ns: AtomicU64::new(0),
@@ -320,31 +323,43 @@ impl OvMoe {
         };
         let out = {
             let mut rt = rt.lock().expect("OV MoE runtime lock");
-            let ok = rt
+            let step: Result<(), String> = rt
                 .set_input("x", DType::F32, &[1, prow, self.hidden], f32_bytes(xs))
-                .is_ok()
-                && rt
-                    .set_input(
+                .map_err(|e| format!("set_input x: {e}"))
+                .and_then(|_| {
+                    rt.set_input(
                         "topk_indices",
                         DType::I32,
                         &[prow, self.k_total],
                         i32_bytes(ids),
                     )
-                    .is_ok()
-                && rt
-                    .set_input(
+                    .map_err(|e| format!("set_input topk_indices: {e}"))
+                })
+                .and_then(|_| {
+                    rt.set_input(
                         "routing_weights",
                         DType::F32,
                         &[prow, self.k_total],
                         f32_bytes(weights),
                     )
-                    .is_ok()
-                && rt.infer().is_ok();
-            if !ok {
+                    .map_err(|e| format!("set_input routing_weights: {e}"))
+                })
+                .and_then(|_| rt.infer().map_err(|e| format!("infer: {e}")));
+            if let Err(why) = step {
+                // Not latched (a device-side error can be transient), but said
+                // once per layer so a benchmark cannot silently fall back.
+                self.note_call_failure(lid, &why);
                 self.fallbacks.fetch_add(1, Ordering::Relaxed);
                 return None;
             }
-            let (_, _, bytes) = rt.output(0).ok()?;
+            let (_, _, bytes) = match rt.output(0) {
+                Ok(o) => o,
+                Err(e) => {
+                    self.note_call_failure(lid, &format!("output: {e}"));
+                    self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                    return None;
+                }
+            };
             bytes
                 .chunks_exact(4)
                 .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
@@ -367,6 +382,16 @@ impl OvMoe {
         } else {
             out
         })
+    }
+
+    fn note_call_failure(&self, lid: u32, why: &str) {
+        if self.noted.lock().unwrap().insert(lid) {
+            warn!(
+                layer = lid,
+                "inkling fused-MoE call failed ({why}); falling back for this call"
+            );
+            eprintln!("[inkling] fused-MoE layer {lid} call failed: {why}");
+        }
     }
 
     fn mark_failed(&self, lid: u32, why: &str) {
