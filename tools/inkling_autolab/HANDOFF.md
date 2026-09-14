@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 08:19 UTC. User resumed autonomous optimization.
+Updated 2026-09-14 08:25 UTC. User resumed autonomous optimization.
 Work is ACTIVE. Do not stop after a finite campaign. Target 25 tok/s is unmet.
 
 ## Active work
@@ -28,6 +28,14 @@ Capture after native process exits:
 It checks PID AND creation lifetime, Cartesian case/repetition coverage, IDs,
 full dimensions/hash, and SHA-checks copied logs/traces/resource snapshot.
 Then write formal verification, update PERFORMANCE.md and ptl-profile.ps1.
+
+**075 row qualifier is staged and waiting**: nativePython9864, parent3504,
+state`row-retune-qualification-state.json`. It waits for074 full exit, then
+qualifies five existing row combinations using the frozen binary and wrapper.
+Source`qualify-row-retune.py`, commite6881951 (pushed). Outputs075-row-retune-
+qualification.json/.log and075-fixture-rows-BF16-INT4.json/.log. No wrapper
+mutation. After074 formal verification and075 qualified/exited, launch
+prepared076–080 campaigns sequentially. No full row campaign launched yet.
 Continue with further optimization; prepared next hypothesis is to retest
 existing BF16/int4 row tiling under the new cache/prefill profile. Qualify the
 frozen binary on native tiny fixtures before full trials, after074 exits.
