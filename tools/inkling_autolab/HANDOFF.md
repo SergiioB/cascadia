@@ -1,288 +1,143 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 01:24 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
-PTL machine**, not a component rate, aggregate throughput or remote inference.
-**Target has not been reached.** Continue in this session autonomously.
+Updated 2026-09-14 01:57 UTC. The final campaign is complete. **The user's target
+of 25 decode tok/s for large975B on one PTL machine remains unmet.** No task
+benchmark, qualifier, build, sampler, transfer or export is queued or running.
+Do not restart an old transfer or campaign from historical journal entries.
 
-## Ownership and locations
+## Verified outcome
+
+Final campaign046: **0.5679137350 decode tok/s**, slowest of nine samples;
+median0.5837513204, fastest0.5938149418. This is **4.196×** the original repeated
+baseline0.1353339381. Three prompts × three repetitions, 64 generated tokens
+with63 decode steps each. All saved greedy IDs and full-logits hash
+**ce0fbb9a116d3d09** match. Autolab returned normally and passed all gates.
+Full CPU backend, all66 layers; this is not an Arc B390 or component rate.
+
+See **PERFORMANCE.md**, results/046_final_verification.json,
+046_full_final_confirmation.json, 046_final_layer_profile.json,
+046_final_resources.json and 046_final_host_state.json. Raw traces/resources
+are compressed with source/compressed SHA manifests. Stable originals:
+`/private/tmp/inkling-full-final-artifacts` and native task root046-final*.
+The ignored tools/inkling_autolab/.autolab/state.json reports verified/full
+checkpoint available/targetfalse. Local results.db contains campaign history.
+
+All576 final case/repetition/layer route arrays match034, including prefill.
+The current packed export requires32.5–42.5GB/s at25tok/s even with an ideal
+initial cache using ALL nominal64GiB RAM and ignoring other memory/compute.
+The observed PCIe5x4 SSD link ceiling is15.754GB/s before protocol overhead.
+See037_full_span_traffic_bound.json,047_all_RAM_traffic_bound.json and
+046_route_identity.json. This rules out ordinary tuning to25 for this export,
+SSD and workload. It does NOT prove mathematical optimality of0.568tok/s or
+rule out gains from a different representation/backend/hardware. No explicit
+routed cache, new compression or full GPU backend has been implemented.
+
+## Ownership and repositories
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `f201482f` before this
-  handoff refresh; run `git log -1` for the current commit.
+- Branch: `perf/inkling-panther-autolab`; run `git log -1` for latest commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
-  User expressly requested commit/push and **no coauthor trailers**.
-- Original agent's worktree: `/Users/tatef/Workspaces/tahoma-inkling`,
-  `feat/inkling`, unchanged `9aaebff0`, PR154. Leave it alone.
-- Main checkout: `/Users/tatef/Workspaces/tahoma`, `perf/prefill-layer-streaming`.
-  Its dirty glm5_run.rs / untracked ngram_sim.rs belong to other work. Untouched.
-- Autolab: `/Users/tatef/Workspaces/autolab`, 3993e2c4. Pre-existing dirty
-  `src/autolab/runners/ssh.py` is unrelated and untouched.
-- Controller Python: `/private/tmp/inkling-autolab-venv/bin/python` (editable
-  Autolab + pytest). Main ignored pointer: `tmp/INKLING_AUTOLAB_HANDOFF.md`.
-- Research-loop skill was read from sibling Autolab plugin and applied.
-  Record hypotheses/results in JOURNAL.md; no separate Claude process required.
+  User authorized commit/push and expressly prohibited coauthor trailers.
+- Original agent worktree: `/Users/tatef/Workspaces/tahoma-inkling`,
+  feat/inkling,9aaebff0,PR154, last checked unchanged. Leave it alone.
+- Main checkout: `/Users/tatef/Workspaces/tahoma`,perf/prefill-layer-streaming.
+  Dirty glm5_run.rs and untracked ngram_sim.rs belong to other work. Untouched.
+- Autolab: `/Users/tatef/Workspaces/autolab`,3993e2c4; pre-existing dirty
+  src/autolab/runners/ssh.py untouched.
+- Python: `/private/tmp/inkling-autolab-venv/bin/python` (editable Autolab,
+  pytest,PyYAML). Main ignored pointer:tmp/INKLING_AUTOLAB_HANDOFF.md.
+- Research-loop skill read/applied from sibling Autolab plugin; record
+  hypotheses/results in JOURNAL.md. No separate Claude process required.
 - No AGENTS.md found. rg shim hangs; use git grep/git ls-files/bounded Python.
-  Permissions unrestricted, approval never; never pass sandbox_permissions.
-  Latest developer disallows delegation unless explicitly requested. No agents spawned.
+  Unrestricted permissions, approvalnever, never pass sandbox_permissions.
+  Latest developer disallows delegation absent explicit request; none spawned.
 
-## SSH and host rules
+## Hosts and current process state
 
-`inkling-ptl-direct`: devcloud@192.168.22.2 via guest@192.55.48.214, cascadia key
-`~/.ssh/cascadia_ed25519` for both hops. User authorized this direct route.
-Fallback `cascadia-tate-07-ts`: devcloud@100.82.253.76, `~/.ssh/id_ed25519`.
-Actual host: pdx88-pa0794, Windows 11 Pro, Core Ultra X7 358H, Arc B390,
-16 cores/threads, 64 GB RAM. WMI reports LPDDR5X 8533. High performance power
-scheme is already active. Disk: SAMSUNG MZVLC1T0HFLU-00BT7, ~1 TB.
+`inkling-ptl-direct`: devcloud@192.168.22.2 via guest@192.55.48.214, both using
+`~/.ssh/cascadia_ed25519`. User authorized this route. Fallback alias
+cascadia-tate-07-ts:devcloud@100.82.253.76,~/.ssh/id_ed25519.
+Native hostpdx88-pa0794,Windows11Pro,CoreUltraX7 358H,16threads,64GBRAM,
+ArcB390,LPDDR5X8533,SamsungMZVLC1T0HFLU-00BT7 SSD.
 
-PTL task root **C:\Users\devcloud\inkling-autolab**. Existing services are
-protected: **OVMS6728, node8356, CA6344**. Do not stop them or broad-kill Python,
-Cargo or inference processes. One full benchmark/native build at a time.
+Task root **C:\Users\devcloud\inkling-autolab**; subdirsrepo,bin,target,model.
+Final native2144 and controller4290 exited normally at01:52UTC. Resource sampler
+4208/shim3376 exited after stop-trials-sampler marker. Final host check01:54UTC:
+active taskjobs[], free disk264,601,800,704B; protected services **OVMS6728,
+node8356,CA6344** still running. Never broad-kill Python/Cargo/full processes.
+Old036 SSH transport failed after native completion; its native result was
+independently verified and the failed Autolab history deliberately preserved.
 
-Remote default shell is PowerShell. Reliable complex Python: local
-`subprocess.run(['ssh','-o','BatchMode=yes','inkling-ptl-direct',
-'C:/Users/devcloud/venvs/qwen38/Scripts/python.exe -'], input=script, text=True)`.
-For complex PS use UTF-16LE base64 `powershell -NoProfile -EncodedCommand`.
-Set `$ProgressPreference='SilentlyContinue'` to avoid CLIXML noise. SCP paths
-use `inkling-ptl-direct:C:/Users/devcloud/...`. Detached native jobs use
-Win32_Process.Create with a task .cmd launcher, whose redirection saves logs.
-Never print or copy private keys/tokens.
+Remote default shellPowerShell. Complex Python reliably runs via local
+subprocess.run(['ssh','-o','BatchMode=yes','inkling-ptl-direct',
+'C:/Users/devcloud/venvs/qwen38/Scripts/python.exe -'],input=script,text=True).
+For complex PS use UTF16LEbase64 EncodedCommand with ProgressPreferenceSilentlyContinue.
+SCP paths use inkling-ptl-direct:C:/Users/devcloud/.... Wait for transfers to
+finish before dependent actions. Never print/copy private keys or tokens.
 
-## Complete export and current live jobs
+## Model and selected profile
 
-All **16,654 files / 548,985,140,942 B (549 GB /511.3 GiB)** are source/destination
-SHA-256 verified on PTL, errors []. Model path: task root `model`.
-`model-ready.json` SHA256:
-`9e7f11b6131131e8c3db879a814e121cd6a4fde9c6987fa6de7e86a80cb46a20`.
-Free disk after deployment: 276,129,026,048 B. Prior cleanup reclaimed ~822 GB.
-Source remains independently at **miner:/mnt/external_ssd/inkling/out**.
-Miner SSH: tatef@192.168.0.235:1990, cascadia key.
+Full export **548,985,140,942B /16,654files**, every source/destinationSHA verified.
+Model-ready SHA9e7f11b6131131e8c3db879a814e121cd6a4fde9c6987fa6de7e86a80cb46a20.
+Independent source **miner:/mnt/external_ssd/inkling/out**, miner SSH
+tatef@192.168.0.235:1990,cascadia key. Priorcleanup reclaimed821,909,577,728B.
+All model transfers/sourceHTTPservers/tunnels ended; retired tokens absent
+from all six known paths(report031). Historical deployment is archived in
+DEPLOYMENT_HISTORY.md. Do not restart it.
 
-**All transfer clients, source servers and tunnel supervisors ended.** Do not
-restart archived transfers. Four retired task tokens were removed; all six
-controller/source/target token paths are absent (report031). Eight direct-jump
-transports reached103.70 MB/s
-versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
-JOURNAL.md; they are NOT current instructions.
+**ptl-profile.ps1** sets12 process environment values before NEW engine launch:
+Rayon16,parallel experts,Reads0,Pin0,BF16Rows2,Int4Rows4,MmapEmbed1,
+ReuseBuffers1,SkipBulkPrefetch1,OwnShared1,UncachedReads1,PipelineReads1.
+The run-full.ps1 wrapper additionally sets its child High priority/all16CPUs.
+It does not mutate global settings or restart services. Campaign046 contains
+the exact command/reference cases and actual-setting gates, with SSH keepalives
+15seconds/count3. Avoid concurrent full benchmarks/builds on this host.
 
-Current live state (2026-09-14 01:24 UTC; refresh before any action):
+Qualified binary **full-pipeline.exe**,source18f8becb,SHA
+8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b.
+All five earlier binaries preserved/unchanged; hashes in046_final_host_state.
+All233 native qualification tests passed, fixture greedy IDs and hashmatch.
+Tiny fixturehash1f7cd0eb14a22662 onMSVCrelease,5122e042f9b1fb30 onARMdebug;
+never compare hashes across those architectures.
 
-- **046_full_final_confirmation is RUNNING**, tool session **4290**,
-  controllerlog`/private/tmp/inkling-full-final-confirmation.log`.
-- Native full-pipeline.exe **PID2144**,created1789348770.2793455.
-  Same qualified SHA8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b,
-  source18f8becb. **Nine samples:3cases x3reps,63decode steps each.**
-- Settings: Reads0,Rows2/4,Mmap1,Reuse1,SkipPrefetch1,OwnShared1,Uncached1,Pipeline1.
-  Gatesfullhashce0fbb9a116d3d09,ownedbytes4076863488,actualuncached_effective1,
-  fallbacks0,actualpipeline layer count36288. Native046-final*.json/.log.
-- **044/045 matched pair COMPLETE**, tool20333 ended; do not restart either.
-  Controlslowest0.5377145739,overlap0.5706485510tok/s. All3 cases improve by
-  4.25/12.00/11.28%; slowest score+6.12%. Exactfullhash/IDs,uncachedfallbacks0,
-  actualpipelinecounts0/12096. Overlapread2.72%MOREuncachedbytes. KeepPipeline1.
-- **Best completed SINGLE-PASS:0.5706485510183931tok/s**,045. Fastest individual
-  case0.6066584264. These are not the final repeated record.
-- **Repeated record036:0.1969341563127117tok/s**,9samples,45.52% overbaseline.
-  OriginalSSHclient stayedopen after native/wrapperexit; exactlocal23331closed,
-  Autolabtransportfailure kept. Native artifacts independently verified in
-  036_completed_artifact_verification.json. Do not rerun or rewrite that history.
-- Allnativequalifiers ended. **No build/probe/further trial is queued.**
-- Sampler4208,parent1420 active;host-trials-resources.jsonl, six-hour limit from
-  22:38UTC,stopmarkerstop-trials-sampler. Stop after046 and final resource capture.
-- On046completion verify all9samples/hash/IDs/settings, archive rawprofiles,
-  compare repeated rates, updatePERFORMANCE.md/README/status/handoff,commit+push.
-  Then create samplerstopmarker and verify taskfull/samplerjobs exited.
-- Target25 remains unmet; current packedexport/workload/SSD bandwidth bound
-  rules out ordinarytuning to25. Never claim goal achieved or component rates.
+Opt-in implementations: sparse BF16 embeddingmapping, bounded256MiBidle
+allocation pool, skipped redundant bulk-read hints,4.077GBowned shared packed
+experts, aligned Windows FILE_FLAG_NO_BUFFERING reads with complete cached
+fallback, and per-expert read/compute overlap preserving indexed gate order.
+No arithmetic/weight changes. Tiny fixture bins are unaligned and correctly
+fall back; native aligned canaries/full042/046 validate actualuncached path.
+Final actual counters:owned4076863488,uncached6638089273344B,fallbacks0,
+pipelinedlayers36288,mappedembedding1. Full hash/IDs preserved.
 
-## Baseline and qualified candidates
+## Rental readiness and cost
 
-Full baseline: **0.13533393807754676 tok/s**, the slowest of nine samples,
-three prompts x three repetitions,63 decode steps each. Hash
-**ce0fbb9a116d3d09**; repeated logits and greedy IDs match. All three generated
-texts reviewed and coherent; fixed64-token cap truncates longer responses.
-Initial baseline has no supplied reference IDs, so correctness_verified=false;
-subsequent candidates must match its saved IDs and full-logits hash.
-Artifacts033 are copied locally; native reference:
-`large-cases.baseline-reference.json`. Frozen full-decode.exe SHA:
-`f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a`.
-Baseline reads0, rows1/1, unmapped embedding, Rayon16, affinity65535, High.
-Load29.913s. Smoke was only0.109008tok/s over3 steps, not the long record.
+User designated **ubuntu@129.146.170.51**,8×A100SXM4-40GB,~$15/hour,for all
+future exports. Aliasinkling-export,key~/.ssh/amx-bench_ed25519. ProviderLambda,
+user confirmed no attached persistent filesystem. Export jobs all ended;
+no raw checkpoint or complete export on rental, only tiny config,code,logs,venv.
+Current PTL experiments require no rental or new export.
 
-New **full-mmap-embed.exe** qualified with216 native tests and all8 HF greedy
-IDs x3 repetitions; fixture hash1f7cd0eb14a22662 in all four wrapper arms.
-SHA **95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d**.
-Mapped embedding is opt-in/defaultoff. It avoids the private ~2.47GB copy;
-head remains resident. Full results are in036 for the combined settings.217 local tests
-passed separately (ARM fixture hash5122e042f9b1fb30).
-
-Resource baseline window(result028): ~5.29 CPU core-equivalents,84.7% kernel,
-2.108GB/s machine disk reads,518k process faults/s including soft faults;
-RAM available briefly7.58MB. Machine I/O is not exclusively attributed to model.
-Do not stop protected services to free RAM.
-
-Buffer probe030: fresh reads36.872ms versus reused33.714ms for255MB batches,
-~9.4% throughput improvement; process faults62,390.5 versus53 median. Both
-read~253.755MB from machine disk. Setup46.930ms separately; no full inference
-speedup established. Fresh+prefetch48.550ms, reused+prefetch43.566ms,
-prefetch+mapped-copy55.973ms. Conditions differ from transfer-active023/024.
-
-## Full diagnostic findings and next decisions
-
-034 passed all three cases with exact reference IDs and full logits hash.
-Rates0.158070,0.154189,0.163196 tok/s; the slowest is13.93% above the repeated
-baseline's slowest rate, but034 itself has only one repetition.
-Median seconds/token: attention0.673545,MLP5.567433,outside layers0.085328,
-wall6.326305. About88% in MLP; outside layers is not head-only.
-
-Actual routed-expert working set12.231GB/token;32-token unions114–133GB.
-Global whole-expert LRU8GiB simulates zero hits;12–16GiB misses7.08–7.78GB/token.
-These are cache models, not measured physical I/O or inference speedups.
-Raw traces are committed as034-direct-{routes,layers}.json.gz, with source and
-compressed SHA hashes in034_trace_artifacts.json. Original JSON copies remain
-under `/private/tmp/inkling-full-direct-artifacts` and on PTL. Layer/routing
-analysis reports are committed. Run analyzers on decompressed JSON.
-
-036 measures combined reusable reads, omitted bulk-read hints, row tiles and
-mapped embedding over three repetitions. All220 Windows tests and all four
-fixture modes plus the production wrapper passed beforehand. Candidate SHA:
-**497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861**.
-Source revisionffa23e6f; both previous frozen binaries remain unchanged.
-
-036 final artifacts are under`/private/tmp/inkling-full-buffered-artifacts`
-and committed results036, including gzip traces/resources with SHA manifest.
-Resource lifetime includes prefill/load: private peak22.078GB vs24.536GBbaseline,
-faults107292/s vs494348/s, minimum availableRAM819200B,swap peak14.551GB. This
-shows transient pressure remains despite low decode faults. Machine-wide disk
-2.940GB/s is not exclusively attributable to model. Resource analyzer exactly
-reproduces the prior033 baseline aggregates and keys on PID+creation time.
-
-040 artifacts under`/private/tmp/inkling-full-owned-shared-artifacts` and
-committed040 results. Medianattention0.388156,MLP3.800657,outside0.024941s/token.
-Private peak26.093GB,minavailable188MB,swap peak16.092GB; lifetimefaults126252/s
-include prefill/soft faults. Decode gains despite additional private memory.
-
-042 artifacts under`/private/tmp/inkling-full-uncached-artifacts` andresults042,
-including raw compressed traces/resources with SHAmanifest. Medianattention
-0.363591,MLP1.495291,outside0.025032s/token. Privatepeak26.093GB; sampled lifetime
-kernel41.82%,machine reads4.320GB/s,minimumavailable70.6MB,swappeak16.491GB.
-Lifetimefaults199889/s include prefills/softfaults; fasterdecode changes their
-share, so don't compare as decode-only fault rates. Uncached11.6876GB/token,
-4.44% of routed selections computed from mappings; notphysical cache-hit rate.
-
-044/045 artifacts are under/private/tmp/inkling-full-pipeline-{control,overlap}-artifacts.
-Comparison045_pipeline_comparison.json shows all3cases improve withoverlap.
-MedianMLP1.467535s/control vs1.289330s/overlap; attention0.353489/0.357172,
-outside0.024980/0.024739. Full046 repeatsselectedoverlap; no code/build needed.
-PERFORMANCE.md summarizes evidence;ptl-profile.ps1 sets selectedprocessenvonly.
-It does not restart services; final repeated confirmation is still pending.
-
-No new export/A100job needed. No native qualifier or othertrial queued. Finish046,
-archive results, update repeatedrecord honestly, stop sampler bymarker, andverify
-all taskjobsended. Do not stopprotectedservices.25 targetrequiresdifferentsetup;
-reportbestverifiedrate and hardwarelimit without claiming mathematicaloptimality.
-
-Earlier resident knobs improve component rates only. Prefetch parallel/batched
-variants lost (023); serial-hint mapped copy beat allocating buffered reads
-(024). N-gram prefix-only analysis of the three short baseline continuations
-(029) yields at most1.016x optimistic call reduction with1.40–3.51x verification
-rows; n>=2 accepts no drafts. Defer that drafter here, not a conclusion about
-other draft models or longer/repetitive workloads.
-
-Current layout traffic is~36.5GB/token.25tok/s would require~0.91TB/s unless
-weights are reused across tokens; do not imply ordinary kernel tuning proves
-this feasible. See docs/perf/INKLING_SCALING.md. Shared experts4.077GB,
-routed expert31,850,496B ×16,384, fixed nonexpert files23.042GB. File sizes are
-not actual resident-memory or measured per-token traffic.
-
-## A100 rental and export cost
-
-All future exports must use user-designated **ubuntu@129.146.170.51**,8xA100
-SXM4-40GB. SSH aliasinkling-export, key`~/.ssh/amx-bench_ed25519`.
-Provider **Lambda.ai**, user confirmed **no attached persistent filesystem**.
-All GPU test jobs ended; no raw checkpoint was downloaded. Source config only
-2,415B; exports empty. Current PTL tests need no rental/new export.
-
-**Export work is ready for rental release.** Verified controller backup:
+Verified backup:
 `/Users/tatef/Workspaces/inkling-export-backups/20260913/inkling-export-release-20260913.tar.gz`
-345,278B, SHA743ebc8229913500e5eda01bea4994128503e7ea2eaf819cb633b913d7b2a5f2.
-Includes deployed code, task logs, config, exact package freeze; extracted copy
-under snapshot. Rebuild recipe/package lock/results are committed. See
-**EXPORT_HOST.md** and027. No private keys copied.
+345,278B,SHA743ebc8229913500e5eda01bea4994128503e7ea2eaf819cb633b913d7b2a5f2.
+Includes deployed code, task logs,config,packagefreeze,hostmetadata; no keys.
+Extracted snapshot adjacent. Rebuild guide **EXPORT_HOST.md** and package lock
+are committed. Fresh restore time not measured; UV existing-envdryrun passed.
 
-No Lambda account/API access found, no instance termination performed or
-explicitly authorized. User was told they can terminate129.146.170.51 in the
-Lambda console now. Lambda requires termination to stop billing; guest
-shutdown still bills, suspend unsupported, local disk is erased. Do not claim
-billing stopped. https://docs.lambda.ai/public-cloud/on-demand/creating-managing-instances/
+**No Lambda termination performed; billing has not been stopped by this agent.**
+No accountAPI/console tools or configured APIaccess found. Lambda requires
+termination to stop billing; guestshutdown still bills and suspension is not
+supported. Termination erases local disk. User can terminate129.146.170.51 in
+Lambda console after reviewing the backup; do not claim this already happened.
+https://docs.lambda.ai/public-cloud/on-demand/creating-managing-instances/
 
-Default export-remote.py profile: cuda:all,8 processes,1 worker,64MiBchunks,
-host-local flock; full source required for multiprocess mode, source retained.
-Pass --processes1 for original streaming/partial modes.48 GPU/exporter tests
-passed;64 production-sized synthetic experts, all CPU-byte-exact9 samples.
-Eight-process median58.980 experts/s,2.60x prior GPU pool; scaled expert stage
-4.67min/$1.17. Full export budget15–30min/$4–8 with source local; first1.905TB
-source download+export2–3h/$30–45. **Extrapolations, not timed full exports.**
-Cross-batch per-expert4.62x minerCUDA/10.93x minerCPU is not matched full speedup.
-Fresh549GB PTL delivery at103.7MB/s adds~88min/~$22 if rental serves it; rental
-route unmeasured. Current model is already on PTL and has no such dependency.
-
-## Reusable-buffer implementation
-
-CASCADIA_INKLING_REUSE_READ_BUFFERS and CASCADIA_INKLING_SKIP_BULK_PREFETCH
-are opt-in/defaultoff. Pool retains allocations, not expert contents, capped at
-256MiB idle process-wide. Leases own buffers across Rayon I/O/compute; the mutex
-is not held during either. Full successful reads overwrite all bytes; errors
-cannot expose stale contents. Direct mapped execution takes precedence and
-prefill retains its prior hints.218 local tests and220 MSVC tests passed.
-Native full-read-buffers.exe is QUALIFIED and completed036.
-
-## Cache analysis and target limit
-
-037 causal cache models and offline bounds are saved; eight tests pass, including
-an exhaustive tiny optimal-paging oracle. Best tested8GiB policies simulate
-7.96–8.77GB routed reads/token. This is not evidence that adding private cache
-outperforms the OS cache. Extra private storage competes with fixed weights,
-scratch and protected services.
-
-037_full_span_traffic_bound.json allows perfect reuse across all63 continuation
-positions regardless of execution order. With optimistic initial32GiB routed
-cache,25tok/s still requires46–56GB/s. Native NVMe PCIe5x4 properties imply
-15.754GB/s maximum before packet overhead. Disk-only ceilings8.54/7.01/7.55tok/s
-exclude all compute/fixed/shared/draft work. This applies to the current packed
-representation/workloads/SSD, not hypothetical new compression. User was told
-25tok/s is not attainable through ordinary tuning of this export on this SSD.
-
-## Owned shared expert implementation
-
-CASCADIA_INKLING_OWN_SHARED=1 retains just the shared expert bins as owned packed
-int4 bytes (4.077GB full model), using the same kernel/arithmetic. Routed experts
-and default behavior are unchanged.227 local tests and229 native tests pass.
-Fixturehash5122e042f9b1fb30 on ARMdebug,1f7cd0eb14a22662 on MSVCrelease; do not
-mix architectures. Actual owned bytes0/20736 for tiny fixture. This is not
-physical page locking; its full memory/performance tradeoff is measured by040.
-Controller expected_metrics gates ensure the candidate is actually enabled.
-
-
-## Uncached and pipeline implementation
-
-Opt-inCASCADIA_INKLING_UNCACHED_READS requires ReuseBuffers1/Reads0. Aligned
-padded Vec slices; complete cached retry on unsupported input/I/O. No new unsafe
-Rust or physical pinning. File lengths checked before/after direct I/O. Counters
-report actual completed uncached bytes and all fallback attempts.229 local tests
-plus six focused buffer checks and233 native tests pass. Fixturehash5122e042f9b1fb30
-on ARMdebug and1f7cd0eb14a22662 onMSVCrelease. Do not mix architectures.
-Native aligned byte and actual int4 kernel canaries pass; tiny fixture correctly
-falls back because its bins are unaligned. Full042 validates actual uncached path.
-
-CASCADIA_INKLING_PIPELINE_READS overlaps each expert's read with its compute,
-requires parallel experts/reusable buffers, keeps indexed gate order.221 local
-and233 native tests pass. Five local fixture modes preservehash5122e042f9b1fb30,
-actual pipelinecounts0/63off/on and0 with reuse disabled,directmaps orserial.
-Nativefixture modes/wrapper preserve1f7cd0eb14a22662 withcounts0/63. Qualified
-full-pipeline.exe is now under matched full evaluation044/045. Archives
-/private/tmp/inkling-pipeline-source.{tar,json};nativepipeline-source.*.
-
-No native qualifier remains queued/running. Do NOT overlap anotherfull/build
-with046. Its tool4290/native2144 are the only activebenchmark. Aftercompletion,
-verify all nine samples and source/counteridentity before reportingnewrecord.
-Preserve all frozenbinaries, model/sourceexport and sampler/rawlogs.
+CUDA exporter48tests passed. Defaultcuda:all,8processes×1worker,64MiBchunks,
+host-localflock,complete source required for multiprocess mode; source retained.
+Useprocesses1 for original streaming/partial mode. Measured58.98experts/s,
+2.60×priorGPUthreadpool,all9CPUbyteoracles match. Expertstageextrap4.67min/$1.17.
+Whole export estimate15–30min/$4–8 with source local; first1.905TBdownload+
+exportroughly2–3hours/$30–45. These are estimates, not timed full exports.
+Matched8-expert CUDA speedup1.58×minerCUDA/3.73×minerCPU; othercrossbatchnumbers
+are not matched full-export speedups. Fresh549GBdelivery at103.7MB/s adds88min
+(~$22 if rental serves it); rentalroute unmeasured. Current export already onPTL.

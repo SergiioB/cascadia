@@ -1,0 +1,11 @@
+{
+  "scope": "full_route_identity_check",
+  "profiles": [
+    "034 direct",
+    "046 repeated pipeline"
+  ],
+  "all_prefill_and_decode_routes_match": true,
+  "case_repetition_layer_pairs": 576,
+  "routed_selections_including_prefill": 324864,
+  "cache_bounds_037_and_047_routes_still_match": true
+}

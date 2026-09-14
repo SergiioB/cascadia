@@ -1179,3 +1179,39 @@ expectedpipelinecount36288. Tool4290,log/private/tmp/inkling-full-final-confirma
 nativePID2144,created1789348770.2793455. No other trial/buildqueued. Sampler4208
 continues; stopwithmarkerafter046. Preparedptl-profile.ps1 setsprocessenvonly;
 PERFORMANCE.md reflects single-passresult and pendingrepetition.25unmet.
+
+
+## 46 completed — repeated full-model record and final host state
+
+2026-09-14 01:52 UTC: Autolab completed normally and verified all nine samples
+(three prompts × three repetitions, 63 decode steps each). Slowest 0.5679137350,
+median 0.5837513204, fastest 0.5938149418 tok/s. The slowest score is 4.196× the
+original repeated baseline. Every generated ID and logits hash ce0fbb9a116d3d09
+matches; all case/repetition pairs are present. Actual owned shared bytes
+4,076,863,488; mapped embedding enabled; uncached bytes 6,638,089,273,344;
+fallbacks zero; pipelined layers 36,288. Native binary SHA and model-ready SHA
+match qualification/deployment, and all five previous frozen binaries remain
+unchanged. The independent report checks native JSON against logs and Autolab.
+
+All 576 case/repetition/layer route arrays exactly match the 034 templates,
+including prefill, so the previous traffic bounds apply to this final result.
+Even allowing all nominal 64 GiB as a perfect initial cache requires 32.5–42.5
+GB/s for 25 tok/s, above the observed SSD link's 15.754 GB/s theoretical maximum.
+This is a bound for the current packed representation and measured workloads;
+it does not establish that all incremental optimization is exhausted.
+
+Final median attention / MLP / outside-layer seconds per token:
+0.373415 / 1.304773 / 0.024897. Prefill 99.967–113.688 seconds per prompt.
+Sampled lifetime: private peak 26.099 GB, kernel CPU 39.65%, machine reads
+4.733 GB/s, minimum available RAM 1.09 MB, swap peak 16.917 GB. These include
+load/prefill and soft faults; machine I/O is not exclusively the model's.
+
+After native and wrapper exit, created stop-trials-sampler. Confirmed sampler
+and all task benchmarks exited; OVMS6728, node8356, CA6344 remained running.
+Free disk 264,601,800,704 bytes. Copied stable final artifacts and validated all
+source/destination SHA hashes. Archived JSON, compressed traces/resources,
+verification, route identity, profile and final host state under results/046*.
+No additional build or trial is queued. The selected profile is reproducible
+from ptl-profile.ps1 and campaign046. Target25 remains unmet; no new export or
+A100 job is needed. Lambda release backup remains verified; no termination or
+billing stop was performed because no account API/console access is available.

@@ -1,8 +1,8 @@
 # Inkling large975B on Panther Lake
 
-The best completed single-pass profile reaches **0.570649 decode tokens/s** on
-tate-07. The confirmed three-repeat record is **0.196934 tokens/s**; a matched
-scheduling comparison is complete and final repeated confirmation is running.
+The confirmed three-repeat record is **0.567914 decode tokens/s** on tate-07,
+**4.20× the original baseline**. All nine samples passed exact token and logits
+checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
 **The 25 tokens/s target has not been reached.**
 
 ## What was measured
@@ -28,12 +28,15 @@ Separate tiny-model tests check the port against the Hugging Face fixture.
 | [Also use uncached expert reads](results/042-uncached.json) | 1 | 0.515177 | 3.81× |
 | [Control for read/compute overlap](results/044-pipeline-control.json) | 1 | 0.537715 | 3.97× |
 | [Overlap each expert's read and compute](results/045-pipeline-overlap.json) | 1 | 0.570649 | 4.22× |
+| [Final repeated overlap profile](results/046-final.json) | 3 | **0.567914** | **4.20×** |
 
 The 036 SSH connection did not return after native completion. Its transport
 failure remains in Autolab history; its complete native results were separately
 [verified against the saved artifacts](results/036_completed_artifact_verification.json).
-040 and 042 completed through Autolab normally. Single-pass improvements need
-the pending repeated confirmation before becoming the repeated record.
+The full campaigns 040, 042, 044, 045 and 046 completed through Autolab normally. The final
+[verification report](results/046_final_verification.json) checks all nine
+case/repetition pairs, native logs, reference IDs, logits hash, binary identity,
+and actual configuration counters. The benchmark and sampler have exited.
 
 ## What improved
 
@@ -45,7 +48,7 @@ repeated shared-file reads.
 
 Uncached Windows reads bypass the file-cache path for nonresident routed
 experts, using aligned reusable buffers and the same packed bytes and kernels.
-The full run recorded 2.209 TB of successful uncached reads with zero fallbacks.
+The final repeated run recorded 6.638 TB of successful uncached reads with zero fallbacks.
 Mapped execution still handles experts selected by the residency check. Failed
 or unsupported uncached reads retry a complete cached read; partial buffers are
 never consumed. These are ordinary private allocations, not physically pinned
@@ -60,7 +63,12 @@ The matched overlap comparison improved the slowest-case score by 6.1%, with
 each case improving by 4.2–12.0%. The overlap arm completed 2.72% more uncached
 expert bytes, so its gain did not come from reading fewer expert bytes.
 The [comparison report](results/045_pipeline_comparison.json) retains both arms.
-The selected profile is now being repeated three times across all three cases.
+The final three-repeat run confirms the selected profile at 0.567914 tokens/s.
+Median seconds per decode token are 0.373 for attention, 1.305 for the expert
+block and 0.025 outside layers. Prefill takes 100–114 seconds per prompt.
+The sampled lifetime still shows transient memory pressure (minimum available
+RAM 1.09 MB); it includes loading and prefills, not just decode. Protected
+OVMS and Cascadia services remained running throughout.
 
 ## Reproduce the selected profile
 
@@ -72,8 +80,9 @@ launcher [run-full.ps1](run-full.ps1) applies those conditions to its own child.
 The qualified `full-pipeline.exe` SHA-256 is
 `8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b`.
 Its source is commit `18f8becb`. The exact repeated benchmark command is saved in
-[campaign 046](campaigns/046_full_final_confirmation.yaml). Repeated results are
-pending; do not describe this profile as meeting the 25 tokens/s target.
+[campaign 046](campaigns/046_full_final_confirmation.yaml). All 233 native
+qualification tests passed before this binary was used for full-model trials.
+The selected process profile is verified; it does not meet the 25 tokens/s target.
 
 The [journal](JOURNAL.md) records hypotheses, tests, and rejected approaches.
 Raw layer/routing traces and sampled host resources are archived under

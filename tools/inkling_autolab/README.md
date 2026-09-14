@@ -2,11 +2,15 @@
 
 This project runs reproducible, sequential experiments against the production
 Inkling engine on **tate-07**, `100.82.253.76` (SSH alias
-`cascadia-tate-07-ts`, user `devcloud`). The controller runs on macOS/Linux;
+`cascadia-tate-07-ts`, user `devcloud`; preferred direct alias `inkling-ptl-direct`). The controller runs on macOS/Linux;
 the benchmark runs natively on Windows with MSVC. Source baseline: `9aaebff0`
 on `feat/inkling`, from `/Users/tatef/Workspaces/tahoma-inkling`.
 
-**Scope:** synthetic resident 975B-sized decoder layer, including attention,
+**Current scope:** the complete large975B export, all 66 layers and the production
+CPU decoder. See [PERFORMANCE.md](PERFORMANCE.md) for verified full-model results
+and [ptl-profile.ps1](ptl-profile.ps1) for the selected process settings.
+
+**Earlier component scope:** synthetic resident 975B-sized decoder layer, including attention,
 convolutions, normalization, 256-row routing and six selected + two shared int4
 experts. Eight distinct 31.85 MB bins are generated deterministically. The other
 router entries are suppressed. The active weights exceed the CPU cache. This
@@ -22,10 +26,13 @@ completed three prompts × three repetitions, each with 63 decode steps. Its
 slowest rate was 0.135334 tok/s. Candidates must match its saved greedy tokens
 and full-logits hash, `ce0fbb9a116d3d09`. The earlier three-step Paris smoke
 is not the >=32-step/three-repeat target measurement.
-The verified repeated candidate036 reaches **0.196934 tok/s** (45.52% faster),
-with all nine samples matching. Its native result is verified independently in
-`results/036_completed_artifact_verification.json`; the original SSH transport
-failure is retained separately in Autolab history. The 25 tok/s target is unmet.
+The final repeated candidate046 reaches **0.567914 tok/s** (4.20× baseline),
+with all nine samples matching exact token IDs and logits. Its Autolab campaign
+completed normally; `results/046_final_verification.json` records independent
+artifact and actual-setting checks. The 25 tok/s target is unmet. The current
+packed export exceeds the SSD bandwidth at that target even with ideal reuse;
+see `results/047_all_RAM_traffic_bound.json`. All task benchmarks and the resource
+sampler have exited; protected services remain running.
 See `HANDOFF.md` for current jobs and `EXPORT_HOST.md` for rental restoration
 and billing release readiness. The resident component scope above describes
 the earlier campaigns only.
@@ -350,10 +357,12 @@ reports in `results/025_*` validate the instrumentation, not full-model speed.
 file mapping. It accesses only the rows used by token lookups and avoids the
 full private copy; the output head remains resident. The export files must
 remain immutable while loaded, as with existing expert mappings. Default is
-off pending full PTL validation. Non-BF16 or unaligned payloads fall back to
+off; the selected, fully validated PTL profile enables it. Non-BF16 or unaligned payloads fall back to
 the existing BF16 copy/conversion path.
 
 `run-full.ps1 -Binary full-mmap-embed.exe -MmapEmbed 1` selects the candidate
 after running `test-mmap-embed.bat`. The benchmark emits `embedding_mapped`
 for the actual loaded representation. Native qualification and full-model
-benefit remain pending; local fixture logits and greedy IDs match exactly.
+experiments are complete: combined036 reduced private peak memory by 2.459 GB
+and improved decode 45.52%; final046 retains mapped embeddings. Its independent
+full-model performance effect was not isolated.

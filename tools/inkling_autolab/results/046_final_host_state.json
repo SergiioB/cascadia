@@ -1,0 +1,75 @@
+{
+  "checked_unix": 1789350841.704693,
+  "host": "pdx88-pa0794",
+  "active_task_jobs": [],
+  "sampler_stopped": true,
+  "stop_marker_exists": true,
+  "protected_processes": [
+    {
+      "pid": 6728,
+      "name": "ovms.exe",
+      "created_unix": 1788965719.653577
+    },
+    {
+      "pid": 8356,
+      "name": "cascadia-node.exe",
+      "created_unix": 1788965719.132614
+    },
+    {
+      "pid": 6344,
+      "name": "cascadia-ca.exe",
+      "created_unix": 1788891553.493666
+    }
+  ],
+  "free_disk_bytes": 264601800704,
+  "files": {
+    "full-decode.exe": {
+      "bytes": 1107968,
+      "sha256": "f0bf021af04edd76f6fec5b77d8571225ba38f8f2315cbaac2bed189c04fc77a"
+    },
+    "full-mmap-embed.exe": {
+      "bytes": 1176064,
+      "sha256": "95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d"
+    },
+    "full-read-buffers.exe": {
+      "bytes": 1191936,
+      "sha256": "497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861"
+    },
+    "full-owned-shared.exe": {
+      "bytes": 1195520,
+      "sha256": "0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb"
+    },
+    "full-uncached.exe": {
+      "bytes": 1198080,
+      "sha256": "9aa189f74b797679d91603fc6d3dfd34dc6ad3bde94ebdae95ef5526b58e81a2"
+    },
+    "full-pipeline.exe": {
+      "bytes": 1208320,
+      "sha256": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b"
+    },
+    "model-ready.json": {
+      "bytes": 2646633,
+      "sha256": "9e7f11b6131131e8c3db879a814e121cd6a4fde9c6987fa6de7e86a80cb46a20"
+    },
+    "046-final.json": {
+      "bytes": 10296,
+      "sha256": "70aba0089e05b0bf0b54493c7539ac78d418cb262f2c967da38325fe50e5d778"
+    },
+    "046-final-routes.json": {
+      "bytes": 7607304,
+      "sha256": "8c522994656f9fe699129fd2254d485322604d47f6a8837dd1c1d16953e9e881"
+    },
+    "046-final-layers.json": {
+      "bytes": 8132573,
+      "sha256": "6a6c6ba94eb02c275921379627792a7cc0098e58cd65a34958ea42482850e8bb"
+    },
+    "046-final.log": {
+      "bytes": 4493,
+      "sha256": "ba8cbd311fc31840ad7cc7a416112557e550c88e3dad57cf728de6cf8abe607f"
+    },
+    "host-trials-resources.jsonl": {
+      "bytes": 2544240,
+      "sha256": "90c858f2b41719a9cad908ff13f89633c3e581b5ba1ea249a4bc9d8c76757572"
+    }
+  }
+}

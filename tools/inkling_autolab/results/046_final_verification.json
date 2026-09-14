@@ -1,0 +1,107 @@
+{
+  "scope": "completed_full_model_repeated_confirmation",
+  "campaign": "046_full_final_confirmation",
+  "native_source_commit": "18f8becb",
+  "binary_sha256": "8305491ebbc4bacc09fdb3aeccbe331b153e0fd79d34a273baef2ddb5d593e8b",
+  "native_pid": 2144,
+  "created_unix": 1789348770.2793455,
+  "autolab_status": "completed",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "repetitions": 3,
+  "decode_steps_min": 63,
+  "slowest_decode_tokens_per_s": 0.5679137350358697,
+  "median_decode_tokens_per_s": 0.5837513203586189,
+  "fastest_decode_tokens_per_s": 0.5938149417640362,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 4.196388157347888,
+  "prefill_seconds_range": [
+    99.9674232,
+    113.6880342
+  ],
+  "actual_metrics": {
+    "decode_tokens_per_s": 0.5679137350358697,
+    "output_hash": "ce0fbb9a116d3d09",
+    "full_model": 1,
+    "correctness_verified": 1,
+    "decode_steps_min": 63,
+    "repetitions": 3,
+    "embedding_mapped": 1,
+    "reuse_buffers": 1,
+    "owned_shared_bytes": 4076863488,
+    "uncached_read_bytes": 6638089273344,
+    "uncached_read_fallbacks": 0,
+    "uncached_read_effective": 1,
+    "pipelined_read_layers": 36288,
+    "pipeline_reads_effective": 1
+  },
+  "per_sample": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.5912589149197999,
+      "prefill_seconds": 99.9674232
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.5871591230003448,
+      "prefill_seconds": 109.4460921
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.5798677505009767,
+      "prefill_seconds": 111.5616233
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.5874725665814154,
+      "prefill_seconds": 106.9227874
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.5754670120555123,
+      "prefill_seconds": 113.6880342
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.5679137350358697,
+      "prefill_seconds": 108.242908
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.5837513203586189,
+      "prefill_seconds": 102.3728796
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.5712967933379409,
+      "prefill_seconds": 111.7144264
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.5938149417640362,
+      "prefill_seconds": 109.9111987
+    }
+  ],
+  "native_model_wrapper_and_sampler_exited": true,
+  "target_reached": false,
+  "caveats": [
+    "CPU backend; full-model Intel GPU acceleration is not implemented.",
+    "Decode rate excludes prefill; all decode timings include output checking and optional profiling callbacks.",
+    "Three prompts and three repetitions, with natural OS cache state and protected background services.",
+    "The best tested profile is not a claim of mathematical optimality."
+  ],
+  "artifact_sha256": {
+    "046-final.json": "70aba0089e05b0bf0b54493c7539ac78d418cb262f2c967da38325fe50e5d778",
+    "046-final.log": "ba8cbd311fc31840ad7cc7a416112557e550c88e3dad57cf728de6cf8abe607f"
+  }
+}
