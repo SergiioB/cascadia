@@ -304,7 +304,7 @@ impl OvMoe {
         let x = vec![0.0f32; self.hidden];
         let w = vec![0.0f32; k];
         let mut ids: Vec<i32> = (0..self.n_experts as i32).collect();
-        while ids.len() % k != 0 {
+        while !ids.len().is_multiple_of(k) {
             ids.push(ids[0]);
         }
         let before = (
