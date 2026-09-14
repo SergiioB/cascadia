@@ -1,0 +1,61 @@
+{
+  "scope": "offline_nominal_all_RAM_full_span_bound",
+  "source": "037_full_span_traffic_bound.json",
+  "route_identity_check": "042_route_identity.json",
+  "full_model_throughput_measured": false,
+  "nominal_all_RAM_cache_bytes": 68719476736,
+  "OS_reported_physical_RAM_bytes": 68021993472,
+  "assumptions": [
+    "Every observed routed expert uses its full current packed matrix.",
+    "Allow ideal reuse across the entire continuation, regardless of execution order.",
+    "Allow any initial cache content up to the stated routed cache budget.",
+    "Exclude fixed/shared weights, compute, drafting and control overhead.",
+    "Cache budgets do not include other model data, scratch or protected services.",
+    "Current packed expert-file bytes are read without additional compression or a changed representation.",
+    "Give the entire nominal64GiB to an initially perfect routed-weight cache, even though OS-reported RAM is smaller.",
+    "Ignore all competing memory needs, compute and fixed/shared weights; this is deliberately more generous than any actual runtime."
+  ],
+  "nvme_link": {
+    "source": "PTL Get-PnpDeviceProperty, Standard NVM Express Controller",
+    "current_link_speed_code": 5,
+    "maximum_link_speed_code": 5,
+    "current_link_width": 4,
+    "maximum_link_width": 4,
+    "GT_per_second_per_lane": 32,
+    "encoding": "128b/130b",
+    "data_bandwidth_upper_bytes_per_second_before_packet_overhead": 15753846153.846153,
+    "references": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/ns-ntddk-_pci_express_link_status_register",
+      "https://pcisig.com/sites/default/files/files/PCI-SIG%20Cabling%20Webinar_FINAL.pdf"
+    ]
+  },
+  "cases": [
+    {
+      "case": "water_cycle",
+      "decode_positions": 63,
+      "unique_routed_bytes": 150620995584,
+      "minimum_routed_read_bytes": 81901518848,
+      "minimum_GB_per_token": 1.3000241086984126,
+      "minimum_GB_per_second_at_25tok_s": 32.50060271746032,
+      "ideal_disk_only_tokens_per_s_upper_bound": 12.118118462909848
+    },
+    {
+      "case": "binary_search",
+      "decode_positions": 63,
+      "unique_routed_bytes": 175910289408,
+      "minimum_routed_read_bytes": 107190812672,
+      "minimum_GB_per_token": 1.701441470984127,
+      "minimum_GB_per_second_at_25tok_s": 42.53603677460318,
+      "ideal_disk_only_tokens_per_s_upper_bound": 9.259117297014047
+    },
+    {
+      "case": "short_story",
+      "decode_positions": 63,
+      "unique_routed_bytes": 165845532672,
+      "minimum_routed_read_bytes": 97126055936,
+      "minimum_GB_per_token": 1.5416834275555555,
+      "minimum_GB_per_second_at_25tok_s": 38.542085688888896,
+      "ideal_disk_only_tokens_per_s_upper_bound": 10.218599922829133
+    }
+  ]
+}

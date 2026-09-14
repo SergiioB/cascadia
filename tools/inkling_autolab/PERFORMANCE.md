@@ -89,6 +89,11 @@ of routed-weight reads for these cases. The observed PCIe 5.0 ×4 SSD link has a
 theoretical maximum of **15.754 GB/s before protocol overhead**. The bound also
 omits all computation and fixed/shared weights.
 
+Even granting the entire nominal 64 GiB of RAM to this perfect initial cache,
+ignoring every competing memory need, would still require **32.5–42.5 GB/s** at
+25 tokens/s. This [more generous bound](results/047_all_RAM_traffic_bound.json)
+shows that changing the chosen cache budget cannot remove the storage limit.
+
 This rules out reaching 25 tokens/s by ordinary tuning of this packed export on
 this SSD. It does not claim a limit for a different representation, model, or
 hardware configuration. Current measured speed remains well below the ideal
