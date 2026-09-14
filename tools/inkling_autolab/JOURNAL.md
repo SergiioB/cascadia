@@ -1104,3 +1104,12 @@ Pipeline qualifier is now queued under parent9672 after042. It applies staged
 source only after previousSHAs plus full042 verification/native exit; builds/tests
 once and preserves all five frozen binaries. No pipeline full test queued; choose
 its cached/uncached base from042 versus040. Statepipeline-qualification-state.json.
+
+
+042 firstwatercase0.5362147788tok/s,2.259x040 samecase; exact IDs. Remaining
+cases and actualuncached/fallback metrics remain pending. Prepared044 control
+and045 overlap as separate same-binary full campaigns,3cases1rep each. They use
+uncached1 provisionally; confirm042 final performance before launch. Both gate
+full IDs/hash/ownedbytes/actualuncached path; pipeline layer count must be0 for
+control and12096 (64MoElayers x63steps x3cases) for overlap. Do not launch until
+queued043 is qualified and the production wrapper fixture passes.

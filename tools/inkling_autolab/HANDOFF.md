@@ -275,3 +275,11 @@ binaries and installs stagedrun-full-pipeline.ps1 only after native tests and
 priorwrapperSHAcheck. Statepipeline-qualification-state.json; parent9672.
 Do NOT start another build/fullrun until this queued job is terminal. Future
 full-pipeline.exe is NOT YET QUALIFIED. No044 campaign exists yet.
+
+
+Prepared044_full_pipeline_control and045_full_pipeline_overlap, NOT launched.
+Both use full-pipeline.exe,uncached1 provisionally; confirm042 wins before using
+that base. Samebinarycomparison,3cases1rep each; actual pipeline count0/12096.
+After043 qualification and wrapperfixture validation, run044 then045 sequentially.
+Choose winner, then repeat final profile3times acrossall3cases before claiming
+new repeated record.042 firstwater0.5362147788tok/s,othercasespending.
