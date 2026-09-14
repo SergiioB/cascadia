@@ -367,6 +367,30 @@ compiled model per resident expert), which is the glm5 backend's finding
 too; it exists to measure the iGPU's per-layer decode and prefill against
 the CPU kernel on real layers.
 
+Measured on tate-07 (Core Ultra X7 358H, 4P+8E+4LPE, 64 GB LPDDR5X, Arc
+B390 iGPU, Windows 11, OpenVINO GenAI 2026.2.1 runtime), real layers of the
+975B export, 23-token prompt, page cache warm, `inkling_layer_dump`, one run
+each; the same binary with and without `CASCADIA_INKLING_OV_EXPERTS=1`:
+
+| layer | CPU kernel (AVX2, 16 threads) | iGPU experts, f32 (exact) | iGPU experts, f16 |
+|---|---|---|---|
+| dense (0, 1), decode | 8.3 ms/token | 6.3 ms/token | 6.5 ms/token |
+| MoE (2), decode | 23.7 ms/token | **7.6 ms/token (3.1×)** | 7.1 ms/token (3.3×) |
+| MoE (2), prefill of 23 tokens | 210 ms | 152 ms | 129 ms |
+| expert call on the device | — | 4.4 ms mean, 8 in flight | 3.5 ms mean |
+| residual stream vs CPU after 3 layers | — | rel rms 5.0e-4, routing identical | 5.9e-4 |
+
+The attention shell stays on the CPU (~3 ms/layer of bf16 GEMV), so the
+MoE layer's remaining 4–5 ms is the eight concurrent expert calls; the
+int4 weights stream at ~55–60 GB/s aggregate on the iGPU against the
+CPU kernel's ~13 GB/s equivalent. f16 buys 7%: the calls are weight-stream
+and call-overhead bound, not compute bound. Whole model, resident:
+64 × 7.6 + 2 × 6.3 ≈ 0.5 s/token on this class of box versus 1.5 s/token on
+its CPU kernel — a 3× that a 64 GB box cannot cash on its own (the
+975B export pages from NVMe there; the experts' 16 GB/token of reads are the
+clock), but which every rank of a resident pipeline would see. Warming the
+260 IRs of three layers takes ~30 s from the blob cache (~13 GiB device).
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert

@@ -95,6 +95,24 @@ So the resident single-stream number for today's export on a 1.5 TB
 Cascade Lake box is **1.5 tok/s**, 4.5× the first resident run and ~2.6× off
 the bandwidth floor of §1 — the shell items in §5 are the rest.
 
+### 2b. Panther Lake CPU vs Arc B390 iGPU (tate-07, real layers)
+
+Same dump on a 64 GB Panther Lake laptop (Core Ultra X7 358H, AVX2 only,
+Arc B390 iGPU) with the experts as OpenVINO int4 IRs on the iGPU
+(`CASCADIA_INKLING_OV_EXPERTS=1`, `docs/architectures/inkling.md`):
+
+| layer | CPU kernel, 16 threads | iGPU experts (f32, exact) | iGPU experts (f16) |
+|---|---|---|---|
+| dense (0, 1) | 8.3 ms/token | 6.3 ms/token | 6.5 ms/token |
+| MoE (2) decode | 23.7 ms/token | **7.6 ms/token** | 7.1 ms/token |
+| MoE (2) prefill, 23 tokens | 210 ms | 152 ms | 129 ms |
+
+So the fleet box's MoE layer is 3× faster with the experts on its iGPU, and
+its resident per-token estimate moves from ~1.5 s (CPU) to ~0.5 s. The box
+itself still pages the 975B export from NVMe (the 16 GB/token of expert
+reads are its clock), so this is the per-rank number of a resident pipeline
+(§3), not a single-box tokens/s.
+
 ## 3. Why a pipeline does not multiply per-box bandwidth
 
 Layer sharding (what `--engine sparse-moe` does across ranks) gives box *i* a
