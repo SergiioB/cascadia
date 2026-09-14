@@ -14,6 +14,7 @@
 
 use std::path::PathBuf;
 
+use cascadia_engine_sparse_moe::glm::prof;
 use cascadia_engine_sparse_moe::glm::stage::GlmRunner;
 use cascadia_engine_sparse_moe::staged::StagedRunner;
 
@@ -21,17 +22,29 @@ use cascadia_engine_sparse_moe::staged::StagedRunner;
 fn hotcold_probe_matches_mmap_reference() {
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/glm5_export");
     // Force mmap experts (so classification actually runs) + hot/cold probe on.
+    // PROFILE populates the hot/cold counters so we can prove the path ran.
     std::env::set_var("CASCADIA_GLM5_EXPERTS", "mmap");
     std::env::set_var("CASCADIA_GLM5_HOTCOLD", "1");
+    std::env::set_var("CASCADIA_GLM5_PROFILE", "1");
     let got = GlmRunner::load_staged(&dir, 32, 0, 1, 0, 0, Default::default())
         .unwrap()
         .generate_argmax(&[1, 2, 3, 4], 4);
     std::env::remove_var("CASCADIA_GLM5_EXPERTS");
     std::env::remove_var("CASCADIA_GLM5_HOTCOLD");
+    std::env::remove_var("CASCADIA_GLM5_PROFILE");
     // Same reference as glm5_expert_mmap's mmap path → hot/cold is bit-identical.
     assert_eq!(
         got,
         vec![4u32, 10, 3, 15],
         "hot/cold probe path diverged from the mmap reference"
     );
+    // Prove the hot/cold dispatch actually ran — however each expert was
+    // classified. Without this the test could pass having exercised none of
+    // the new code (e.g. if hot_cold() regressed to None).
+    let (hot, cold, fail) = prof::hotcold_counts();
+    assert!(
+        hot + cold > 0,
+        "hot/cold classifier never ran (hot={hot} cold={cold})"
+    );
+    assert_eq!(fail, 0, "cold reads off the committed fixture must not fail");
 }

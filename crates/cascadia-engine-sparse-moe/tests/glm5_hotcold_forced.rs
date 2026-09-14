@@ -14,6 +14,7 @@
 
 use std::path::PathBuf;
 
+use cascadia_engine_sparse_moe::glm::prof;
 use cascadia_engine_sparse_moe::glm::stage::GlmRunner;
 use cascadia_engine_sparse_moe::staged::StagedRunner;
 
@@ -21,17 +22,27 @@ use cascadia_engine_sparse_moe::staged::StagedRunner;
 fn hotcold_forced_matches_mmap_reference() {
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/glm5_export");
     // Force mmap experts (so the read path is actually exercised) + all-cold.
+    // PROFILE populates the counters so we can prove the threaded path ran.
     std::env::set_var("CASCADIA_GLM5_EXPERTS", "mmap");
     std::env::set_var("CASCADIA_GLM5_HOTCOLD", "cold");
+    std::env::set_var("CASCADIA_GLM5_PROFILE", "1");
     let got = GlmRunner::load_staged(&dir, 32, 0, 1, 0, 0, Default::default())
         .unwrap()
         .generate_argmax(&[1, 2, 3, 4], 4);
     std::env::remove_var("CASCADIA_GLM5_EXPERTS");
     std::env::remove_var("CASCADIA_GLM5_HOTCOLD");
+    std::env::remove_var("CASCADIA_GLM5_PROFILE");
     // Same reference as glm5_expert_mmap's mmap path → forced-cold is bit-identical.
     assert_eq!(
         got,
         vec![4u32, 10, 3, 15],
         "forced-cold hot/cold path diverged from the mmap reference"
     );
+    // Forced-cold => every routed mmap expert took the threaded background-read
+    // path, concurrently with the shared expert's hot compute — the reader ∥
+    // hot-compute concurrency the probe fast path skips. Prove reads happened
+    // and none silently fell back.
+    let (_hot, cold, fail) = prof::hotcold_counts();
+    assert!(cold > 0, "forced-cold classified no slot cold (cold={cold})");
+    assert_eq!(fail, 0, "reads off the committed fixture must not fall back");
 }
