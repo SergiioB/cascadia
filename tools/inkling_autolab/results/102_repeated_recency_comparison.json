@@ -1,0 +1,168 @@
+{
+  "scope": "repeated_cache_recency_comparison_to_previous_record",
+  "previous_record": 0.9382743961161363,
+  "candidate_score": 0.9654120906178267,
+  "ratio": 1.0289229830996385,
+  "actual_read_reduction": 0.045492457062343616,
+  "all_nine_samples_faster": true,
+  "all_outputs_and_routes_exact": true,
+  "samples": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "control_tok_s": 0.9746513783408404,
+      "candidate_tok_s": 0.9955844958448214,
+      "ratio": 1.0214775436316683
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "control_tok_s": 0.938522516091449,
+      "candidate_tok_s": 0.9685456423943927,
+      "ratio": 1.031989777323593
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "control_tok_s": 0.9623921336193425,
+      "candidate_tok_s": 0.9914486187489572,
+      "ratio": 1.030191939558296
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "control_tok_s": 1.032928208451392,
+      "candidate_tok_s": 1.0586090125256316,
+      "ratio": 1.0248621383985062
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "control_tok_s": 0.9382743961161363,
+      "candidate_tok_s": 0.9654120906178267,
+      "ratio": 1.0289229830996385
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "control_tok_s": 0.9651673123893875,
+      "candidate_tok_s": 0.9916481035650836,
+      "ratio": 1.0274364774229037
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "control_tok_s": 1.0307494686715544,
+      "candidate_tok_s": 1.0604665235639474,
+      "ratio": 1.0288305313712098
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "control_tok_s": 0.938384256800607,
+      "candidate_tok_s": 0.9679570568770952,
+      "ratio": 1.0315145952867066
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "control_tok_s": 0.9648021078775927,
+      "candidate_tok_s": 0.9930536198781882,
+      "ratio": 1.0292821831232772
+    }
+  ],
+  "stall_observations": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "first_token_layer_seconds": 3.5081311,
+      "second_token_layer_seconds": 1.5817391,
+      "median_token_layer_seconds": 0.8956265,
+      "max_token_layer_seconds": 3.5081311,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "first_token_layer_seconds": 1.3646279000000001,
+      "second_token_layer_seconds": 0.9580256,
+      "median_token_layer_seconds": 0.9913343,
+      "max_token_layer_seconds": 1.3646279000000001,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "first_token_layer_seconds": 1.3832181,
+      "second_token_layer_seconds": 1.0308176,
+      "median_token_layer_seconds": 0.9600142,
+      "max_token_layer_seconds": 1.3832181,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.3631472,
+      "second_token_layer_seconds": 0.9897906,
+      "median_token_layer_seconds": 0.8951685,
+      "max_token_layer_seconds": 1.3631472,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.3693070999999999,
+      "second_token_layer_seconds": 0.9594633,
+      "median_token_layer_seconds": 0.9975605,
+      "max_token_layer_seconds": 1.3693070999999999,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "first_token_layer_seconds": 1.3945341,
+      "second_token_layer_seconds": 1.032259,
+      "median_token_layer_seconds": 0.9603325,
+      "max_token_layer_seconds": 1.3945341,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.3586501,
+      "second_token_layer_seconds": 0.9863556,
+      "median_token_layer_seconds": 0.8921766,
+      "max_token_layer_seconds": 1.3586501,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.3795092,
+      "second_token_layer_seconds": 0.9606732,
+      "median_token_layer_seconds": 0.9927522,
+      "max_token_layer_seconds": 1.3795092,
+      "mlp_events_over_half_second": []
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "first_token_layer_seconds": 1.3896742,
+      "second_token_layer_seconds": 1.0290079,
+      "median_token_layer_seconds": 0.9588575,
+      "max_token_layer_seconds": 1.3896742,
+      "mlp_events_over_half_second": []
+    }
+  ],
+  "first_sample_and_all_stalls_included": true,
+  "caveats": [
+    "The previous repeated record and this confirmation ran at different times. Fresh single-pass100/101 provides the same-binary comparison;101 contained a stall that remains in its score.",
+    "Rates describe these three prompts and their63-token continuations; best tested settings do not prove global optimality."
+  ],
+  "source_sha256": {
+    "074-cache-confirmation.json": "68b9c430b195429f1ce828ce32f995203aba8ba3a5b18dd84a08445f4d72292a",
+    "102-cache-recency-confirmation.json": "44dde5e25f863d6b7c832348f39d3b58a8b514ecdb0c461aefd579f6fd123a5a",
+    "102-cache-recency-confirmation-layers.json.gz": "f57e61e55a0ae617289c0f56a9c800f36d34c60c61ff9fd5a7152982284b6b70",
+    "102_final_verification.json": "8e5796553bfac902ca76f70d882136e51f60ca493b6e87412ebb873d89dee69f"
+  }
+}

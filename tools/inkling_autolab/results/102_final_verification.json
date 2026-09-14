@@ -1,0 +1,130 @@
+{
+  "scope": "completed_full_model_repeated_confirmation",
+  "campaign": "102_full_cache_recency_confirmation",
+  "native_source_commit": "849a08bde706bad860eb364e3c39e142ae53a167",
+  "binary_sha256": "a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40",
+  "native_pid": 8204,
+  "created_unix": 1789380877.6939435,
+  "autolab_status": "completed",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "repetitions": 3,
+  "decode_steps_min": 63,
+  "slowest_decode_tokens_per_s": 0.9654120906178267,
+  "median_decode_tokens_per_s": 0.9916481035650836,
+  "fastest_decode_tokens_per_s": 1.0604665235639474,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 7.133554999815661,
+  "speedup_over_prior_repeated_record": 1.0289229830996385,
+  "prefill_seconds_range": [
+    23.689436399999998,
+    25.2944448
+  ],
+  "actual_metrics": {
+    "decode_tokens_per_s": 0.9654120906178267,
+    "output_hash": "ce0fbb9a116d3d09",
+    "full_model": 1,
+    "correctness_verified": 1,
+    "decode_steps_min": 63,
+    "repetitions": 3,
+    "embedding_mapped": 1,
+    "reuse_buffers": 1,
+    "owned_shared_bytes": 4076863488,
+    "uncached_read_bytes": 3754377216000,
+    "uncached_read_fallbacks": 0,
+    "uncached_read_effective": 1,
+    "pipelined_read_layers": 36288,
+    "pipeline_reads_effective": 1,
+    "expert_cache_capacity_bytes": 17179869184,
+    "expert_cache_retained_bytes": 16309550592,
+    "expert_cache_hits": 99853,
+    "expert_cache_hit_bytes": 3180367577088,
+    "expert_cache_misses": 117875,
+    "expert_cache_admissions": 80366,
+    "expert_cache_evictions": 79854,
+    "expert_cache_effective": 1,
+    "expert_cache_history_resets": 576,
+    "prefill_read_experts": 40905,
+    "prefill_uncached_read_bytes": 1302844538880,
+    "prefill_uncached_read_fallbacks": 0,
+    "prefill_reads_effective": 1,
+    "rayon_threads": 16,
+    "expert_cache_frequency_decays": 6336,
+    "bf16_rows": 2,
+    "int4_rows": 4,
+    "processor_affinity": 65535,
+    "expert_cache_recent_tie_admissions": 60045,
+    "cache_recent_ties": 1
+  },
+  "per_sample": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.9955844958448214,
+      "prefill_seconds": 24.0490563
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.9685456423943927,
+      "prefill_seconds": 25.2944448
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_tokens_per_s": 0.9914486187489572,
+      "prefill_seconds": 24.3341035
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 1,
+      "decode_tokens_per_s": 1.0586090125256316,
+      "prefill_seconds": 23.723853300000002
+    },
+    {
+      "case": "binary_search",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.9654120906178267,
+      "prefill_seconds": 24.9772264
+    },
+    {
+      "case": "short_story",
+      "repetition": 1,
+      "decode_tokens_per_s": 0.9916481035650836,
+      "prefill_seconds": 24.2702974
+    },
+    {
+      "case": "water_cycle",
+      "repetition": 2,
+      "decode_tokens_per_s": 1.0604665235639474,
+      "prefill_seconds": 23.689436399999998
+    },
+    {
+      "case": "binary_search",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.9679570568770952,
+      "prefill_seconds": 24.9738319
+    },
+    {
+      "case": "short_story",
+      "repetition": 2,
+      "decode_tokens_per_s": 0.9930536198781882,
+      "prefill_seconds": 24.083694
+    }
+  ],
+  "all_prefill_and_decode_routes_match_046": true,
+  "native_trial_exited": true,
+  "sampler_remains_running": true,
+  "target_reached": false,
+  "caveats": [
+    "Full CPU backend; Arc B390 is not used.",
+    "Three prompts and three repetitions with natural OS cache state and protected background services.",
+    "Decode excludes prefill; timings include output checking and diagnostics.",
+    "Best tested profile is not a claim of mathematical optimality."
+  ],
+  "artifact_sha256": {
+    "102-cache-recency-confirmation.json": "44dde5e25f863d6b7c832348f39d3b58a8b514ecdb0c461aefd579f6fd123a5a",
+    "102-cache-recency-confirmation.log": "5c8d1cc98feb77dc4831f54b67b9d6f7b088b280828eef79e7bf7619bacf915e"
+  }
+}

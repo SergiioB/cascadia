@@ -1,0 +1,13 @@
+{
+  "scope": "selected_profile_promotion",
+  "verification": "102_final_verification.json",
+  "comparison": "102_repeated_recency_comparison.json",
+  "old_profile_sha256": "b440211b7d2f837c0b37cf842d86a0e1393f306ae957eb49dd59ec0d3df85b12",
+  "new_profile_sha256": "deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304",
+  "selected_cache_recent_ties": 1,
+  "previous_record": 0.9382743961161363,
+  "confirmed_record": 0.9654120906178267,
+  "target_reached": false,
+  "native_profile_sync": "sha_verified",
+  "native_profile_sha256": "deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304"
+}

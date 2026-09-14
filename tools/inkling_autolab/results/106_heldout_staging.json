@@ -1,0 +1,8 @@
+{
+  "status": "staged_not_launched",
+  "files_sha256": {
+    "ptl-profile.ps1": "deaec33e4c80b1f167eb04fe25945980000cd58df8370cb5c9e1783fad1dd304",
+    "heldout-prompts.json": "3fa6e03b925811888273a2e7e129d48cb8e36666110be33c1510cde0f37a16be",
+    "record-heldout-reference.py": "ab6e77640ca1439afd013f81e9fe8ffe7760a8b72a99c822131f583d93b2d4c4"
+  }
+}

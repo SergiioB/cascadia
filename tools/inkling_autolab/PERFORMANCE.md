@@ -1,20 +1,24 @@
 # Inkling large975B on Panther Lake
 
-The confirmed record is **0.938274 decode tokens/s**, the slowest of nine samples,
-**6.93× the original baseline** and **65.2% above the prior repeated record**.
-The median is 0.964802 and the fastest sample is 1.032928. All saved tokens,
+The confirmed record is **0.965412 decode tokens/s**, the slowest of nine samples,
+**7.13× the original baseline** and **2.89% above the previous repeated record**.
+The median is 0.991648 and the fastest sample is 1.060467. All saved tokens,
 full-logits hashes and routing decisions match. **The 25 tokens/s target is unmet.**
 
-[Campaign074 verification](results/074_final_verification.json) confirms three
+[Campaign102 verification](results/102_final_verification.json) confirms three
 prompts × three repetitions, with 64 generated tokens and 63 decode steps each.
-Prefill takes 23.82–25.13 seconds. The score includes the first decode run and
-output checking; decode timing excludes prefill. Optimization remains active:
-the affinity sweep retained all 16 CPUs, and the disk layout probe showed mixed
-component results. The repeated kernel comparison was tied within 0.006%, so
-the selected settings remain BF16 rows2/int4 rows4. The
-next full trials test recent-use cache admission on equal-frequency ties, which
-predicts 4.55% fewer SSD reads but has no measured full-model speedup yet.
-See [HANDOFF.md](HANDOFF.md) for current jobs.
+Prefill takes 23.69–25.29 seconds. All nine samples improved against the previous
+record, including the first decode run. Timings include output checking and
+diagnostics; decode excludes prefill. The selected cache policy admits more
+recently used experts when decayed frequency counts tie. It reduces actual
+SSD reads by 4.55% without changing weights or arithmetic.
+
+The earlier single-pass 101 water-cycle run contained an extra 5.2-second stall,
+which remains included in its score. It did not recur in 102. The
+[comparison](results/102_repeated_recency_comparison.json) retains all samples
+and limitations. The next diagnostic measures pre-attention route prediction
+accuracy before implementing speculative expert reads. See [HANDOFF.md](HANDOFF.md)
+for current jobs; optimization remains active.
 
 ## What was measured
 
@@ -40,12 +44,13 @@ identity and the complete case/repetition grid are checked before promotion.
 | [Streamed prefill with 4 GB routed cache](results/054-prefill-1.json) | 1 | 0.709011 |
 | [16 GB routed cache and request-history reset](results/057-history-256.json) | 1 | 0.915789 |
 | [Shorter cache frequency history](results/072-decay-32.json) | 1 | 0.937041 |
-| [Selected profile, repeated confirmation](results/074-cache-confirmation.json) | 3 | **0.938274** |
+| [Short-history profile, repeated confirmation](results/074-cache-confirmation.json) | 3 | 0.938274 |
+| [Recent-use tie admission, repeated confirmation](results/102-cache-recency-confirmation.json) | 3 | **0.965412** |
 
 The 036 SSH connection failed to return after native completion. That transport
 failure remains in Autolab history; its complete native artifacts were
 [verified separately](results/036_completed_artifact_verification.json).
-Campaign074 completed normally through Autolab. Its native benchmark process
+Campaigns 074 and 102 completed normally through Autolab. Its native benchmark process
 exited; the resource sampler continues for subsequent trials. Protected OVMS
 and Cascadia services remain running.
 
@@ -71,17 +76,17 @@ removed 3.12% of remaining decode reads and improved all three prompts against
 the matched default-history control. A worker sweep selected 16 threads over
 8, 12, 24 and 32. Matched asynchronous-read probes found no consistent benefit.
 
-Campaign074 retained 16.31 GB of routed weights, recorded 94,235 cache hits and
-123,493 misses, and completed 3.933 TB of uncached decode reads with zero
+Campaign 102 retained 16.31 GB of routed weights, recorded 99,853 cache hits and
+117,875 misses, and completed 3.754 TB of uncached decode reads with zero
 fallbacks. Streamed prefill completed 1.303 TB of reads with zero fallbacks.
-Median time per decoded token is 0.184 seconds in attention, 0.829 in the
-expert blocks and 0.024 outside the layers. The sampled process peak was
-42.52 GB private memory; minimum available machine RAM was 1.81 GB.
+Median time per decoded token is 0.183 seconds in attention,
+0.801 in the expert blocks and0.024 outside the layers. The sampled process peak
+was 42.51 GB private memory; minimum available machine RAM was 1.70 GB.
 A separate Qwen OVMS service holds about 20.03 GB of shared GPU memory, as
 confirmed by the [memory ownership snapshot](results/099_memory_ownership.json).
-That service remains running and limits the RAM available for a larger cache.
-See the [layer profile](results/074_layer_profile.json) and
-[resource report](results/074_resources.json). Machine disk counters include
+That service remains running and limits RAM available for a larger cache.
+See the [layer profile](results/102_layer_profile.json) and
+[resource report](results/102_resources.json). Machine disk counters include
 other processes, and page-fault counters include soft faults.
 
 ## Reproduce the selected profile
@@ -92,12 +97,12 @@ layer, not a model-wide budget. The benchmark uses High process priority and
 all 16 logical processors; [run-full.ps1](run-full.ps1) applies those settings
 to its own child. See [runtime options](RUNTIME_OPTIONS.md) for dependencies.
 
-The frozen `full-cache-decay.exe` SHA-256 is
-`3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8`,
-built from source `6b820e83`. Qualification passed 242 native tests, five tiny
+The frozen `full-cache-recency.exe` SHA-256 is
+`a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40`,
+built from source `849a08bd`. Qualification passed 245 native tests, five tiny
 fixture modes and the production wrapper's exact oracle before full trials.
 The exact repeated command and expected counters are in
-[campaign074](campaigns/074_full_cache_confirmation.yaml).
+[campaign102](campaigns/102_full_cache_recency_confirmation.yaml).
 
 All raw traces and resource snapshots are archived with SHA manifests.
 [The journal](JOURNAL.md) records hypotheses, measured results and rejected ideas.

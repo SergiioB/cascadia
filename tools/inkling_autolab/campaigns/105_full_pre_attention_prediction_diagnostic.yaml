@@ -1,8 +1,8 @@
 version: 1
 name: 105_full_pre_attention_prediction_diagnostic
-hypothesis: 'Diagnostic-only: measure causal pre-attention router prediction accuracy and potential extra
-  expert reads on the full model. No prefetch, approximation, weight or actual-route changes. Uses recent-tie
-  cache pending100/101/102 outcome; revise to selected policy if needed.'
+hypothesis: 'Diagnostic-only: measure causal pre-attention router prediction accuracy and potential extra expert
+  reads on the full model. No prefetch, approximation, weight or actual-route changes. Uses the recent-tie
+  cache policy confirmed by102.'
 measurement_scope: full_large_model_decode
 validation_metric: correctness_verified
 question: q103
@@ -19,8 +19,8 @@ runner:
   - ServerAliveCountMax=3
   - -o
   - ConnectTimeout=30
-  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1 -Model "{model}"
-    -Cases "{cases}" -Binary full-route-prediction.exe -Threads {threads} -AffinityMask {affinity} -CacheDecayRequests
+  command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1 -Model "{model}" -Cases
+    "{cases}" -Binary full-route-prediction.exe -Threads {threads} -AffinityMask {affinity} -CacheDecayRequests
     {decay} -CacheRecentTies 1 -Reads 0 -Bf16Rows {bf16_rows} -Int4Rows {int4_rows} -MmapEmbed 1 -ReuseBuffers
     1 -OwnShared 1 -UncachedReads 1 -PipelineReads 1 -ExpertCacheMiB 256 -PrefillReads 1 -CacheResetHistory
     1 -SkipBulkPrefetch 1 -Tokens 64 -Samples 1 -Out C:/Users/devcloud/inkling-autolab/105-route-prediction.json

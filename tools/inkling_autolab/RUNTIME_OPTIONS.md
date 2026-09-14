@@ -51,8 +51,8 @@ reads the actual mask back before timing proceeds. Default65535 retains all16
 logical processors. Mask4095 selectsCPUs0–11, which Windows reports as sharing
 one last-level cache;CPUs12–15 report a separate cache. Native qualification088
 passed65535/16workers,4095/12workers and4095/16workers with exact fixture outputs.
-Full performance comparison089–091 is in progress; the selected profile still
-uses all16 CPUs. This option does not change machine power or service settings.
+Full comparison089–091 found both restricted-affinity configurations slower;
+the selected profile uses all16 CPUs. This option does not change machine power or service settings.
 
 `CASCADIA_INKLING_CACHE_RECENT_TIES=1` allows a more recently observed expert
 to replace an older cached expert when their decayed frequencies are equal.
@@ -62,4 +62,6 @@ after observing the complete current cohort, so an earlier missing expert
 cannot replace a later hit on an equal-frequency tie. Outstanding buffer
 leases still exclude eviction. The new cumulative `recent_tie_admissions`
 statistic counts actual replacements by this rule. Native qualification098
-and full performance trials are pending; this is not the selected profile yet.
+passed245 tests and five tiny modes. Campaign102 confirmed0.965412 tok/s over
+three prompts × three repetitions, with exact outputs and4.55% fewer reads.
+This option is enabled in the selected PTL profile; the library default stays0.

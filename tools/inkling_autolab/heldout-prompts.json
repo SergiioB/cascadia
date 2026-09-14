@@ -1,0 +1,23 @@
+{
+  "scope": "frozen_unseen_prompts_for_cache_and_prediction_validation",
+  "reasoning_effort": "none",
+  "generated_tokens": 128,
+  "prompts": [
+    {
+      "name": "worked_algebra",
+      "prompt": "Explain how to solve quadratic equations by completing the square. Give two different worked examples and show every algebraic step."
+    },
+    {
+      "name": "json_inventory",
+      "prompt": "Write a JSON array of twelve fictional library books. Each object must include title, author, year, genre, and a one-sentence description. Return only JSON."
+    },
+    {
+      "name": "planning_dialogue",
+      "prompt": "Write a dialogue between two engineers planning a small solar-powered weather station. Discuss sensor choice, battery capacity, data storage, and maintenance, with at least twelve exchanges."
+    }
+  ],
+  "reference_policy": "qualified cache-decay32 strict admission; same complete weights and arithmetic",
+  "candidate_policy": "selected recent admission, pending102 confirmation",
+  "record_eligible": false,
+  "purpose": "Check transfer to new prompts and longer continuations before using predictor results to choose runtime policy; retain the established three-prompt repeated score separately."
+}

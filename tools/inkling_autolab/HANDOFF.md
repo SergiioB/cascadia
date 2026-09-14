@@ -1,71 +1,70 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 10:22 UTC. Work is ACTIVE. User requested autonomous optimization toward
+Updated 2026-09-14 10:33 UTC. Work is ACTIVE. User requested autonomous optimization toward
 25 tok/s. Do not stop after a finite campaign. The target remains unmet.
 
 ## Current record
 
-Confirmed074: **0.9382743961 tok/s**, slowest of nine samples; median0.9648021079,
-fastest1.0329282085. This is6.933× the original. All tokens/logits/routes/counters
-match. Selected profile remains16workers, all16CPUs, BF16rows2/int4rows4,
-cache256MiB perMoElayer, historyreset1, decay32, streamedprefill and all prior
-I/O flags. Full CPU backend. No full Arc backend. No Lambda or export needed.
+Confirmed102: **0.9654120906 tok/s**, slowest of nine samples; median0.9916481036,
+fastest1.0604665236. This is7.1336× original and2.8923% above074. All nine samples
+improved and all output IDs/full-logits hashes/routes/counters match. See
+102_final_verification.json and102_repeated_recency_comparison.json.
 
-094/095 repeated row comparison finished:2/4control0.9354823511 versus2/2candidate
-0.9355367858, a0.00582% difference. Retain2/4. Both raw artifacts, all route arrays,
-cache counters and nine output samples are verified.095_repeated_row_comparison.json.
-Native094 PID5132(created1789378071.276495),095 PID7928(created1789378926.7827115),
-and localcontroller95987 exited. Their outputs094-rows-repeated-control.* and
-095-rows-repeated-candidate.* are archived. No new record was promoted.
-
-## Active repeated cache-recency confirmation
-
-**102_full_cache_recency_confirmation is RUNNING**, native PID8204,
-created1789380877.6939435. Local controller94756 runs
-/private/tmp/run-inkling-recency-confirmation.py, log
-/private/tmp/inkling-102_full_cache_recency_confirmation.log. Native outputs
-102-cache-recency-confirmation.json/.log/-routes.json/-layers.json.
-Nine samples (three prompts × three repetitions), 64 generated /63 decode,
-rows2/4, all16CPUs, 16workers, cache256MiB/layer, decay32, recent ties enabled.
-Capture only after process exit, with --repetitions 3 and exact PID/creation.
-
-100/101 single-pass comparison is complete and archived. Control score
-0.9281253880; recent-tie score0.9282463125. Actual SSD reads fell4.549%.
-Binary search and short story each gained about4%; the water-cycle sample
-contained an extra5.2-second second-token stall. Its cause is unestablished.
-That stall remains in all scores.102 tests whether gains/stall repeat;
-no profile promotion yet. See101_cache_recency_comparison.json.
-
-102 uses frozen full-cache-recency.exe, source849a08bd, SHA
+Selected profile:16workers, all16CPUs, BF16rows2/int4rows4, cache256MiB per MoE
+layer, historyreset1, decay32, **recent ties1**, streamed prefill and prior I/O
+flags. Full CPU backend; Arc unused. No new export or Lambda work needed.
+Frozen full-cache-recency.exe source849a08bd, SHA
  a23289477c2d5ade1e838ccf92d27ec8b5d31b1cebc4d79bc7d74ec85d1daa40.
-Expected nine-sample counters:99853hits/117875misses/80366admissions/
-79854evictions/60045recent-tie admissions, uncached3754377216000,
-hitbytes3180367577088. Numerical oracle ce0fbb9a116d3d09 and all IDs/routes
-must match.097_cache_recency_counter_predictions.json holds predictions.
+098 qualification passed245 native tests and five tiny modes.
 
-## Qualified prediction diagnostic and next campaign
+102 native8204(created1789380877.6939435) and controller94756 exited normally.
+Raw outputs102-cache-recency-confirmation.* are captured with SHA manifests.
+Actual reads3.754TB (4.549% less), hits99853/misses117875/admit80366/evict79854/
+recent_tie_admissions60045. MinavailableRAM1.70GB, peakprivate42.51GB.
+Earlier101 first-water second-token stall remains included in101 score;
+it did not recur in102. No token or sample was discarded. Target25 is unmet.
 
-104 native qualification COMPLETE:247 tests/13suites and four tiny modes
-(recentties off/on × prediction off/on) passed. All actual routes, cache
-counters and native fixture hash1f7cd0eb14a22662 match. Python2468 exited.
-All10 older frozen binaries remain unchanged.104_artifact_verification.json
-records the SHA-verified archive and source32e2de69.
+## Active105 full-model prediction diagnostic
 
-New full-route-prediction.exe SHA
+**105_full_pre_attention_prediction_diagnostic RUNNING**, local controller34745.
+Native **PID9432**, created**1789381862.621628**, full-route-prediction.exe.
+Local log/private/tmp/inkling-105_full_pre_attention_prediction_diagnostic.log.
+Native outputs105-route-prediction.json/.log/-routes.json/-layers.json plus
+105-route-prediction-predicted.json. Three prompts × one repetition, same
+selected recent-tie profile, full exact output and actual counter gates.
+No expert prefetch or changed actual routing; explicit diagnostic_only and
+promotion_allowed=false prevent it from claiming a performance record.
+
+104 qualified247 native tests/13suites and four tiny modes. All actual routes,
+cache counters and native fixture hash1f7cd0eb14a22662 matched. Python2468 exited;
+all10 older frozen binaries unchanged.104_artifact_verification.json holds SHA
+archive and source32e2de69. New prediction binary SHA
 89c0f361ac53bbae6af52979d889216138800296c99699976dbeb1732da93984.
-Native and local production run-full.ps1 now match prediction-capable wrapper
-SHA b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
-The optional observer evaluates the existing MLP norm/router before attention.
-Actual routes/cache state remain unchanged; no speculative reads occur.
+Native/local production wrapper SHA
+b0af52ea911f1a46ffc14f2a0f3588689443987a17db8aa1d60a0cea84d0934c.
 
-105_full_pre_attention_prediction_diagnostic is PREPARED, not launched.
-After102 capture/decision, revise105 cache policy/counters if needed, then run.
-It uses three prompts × one repetition, records105-route-prediction-predicted.json
-alongside actual routes/layer timings. It is explicitly diagnostic_only and
-promotion_allowed=false; controller gates now enforce both flags (15 tests pass).
-Full-model prediction accuracy is still unknown. After capture/SHA verification,
-run analyze-route-prediction.py with --trace, --predictions, --benchmark,
---recent-ties 0/1 and a fresh --out. Continue optimizing after the diagnostic.
+After105 exit, capture with helper using9432/1789381862.621628 and default1rep.
+Separately SHA-copy105-route-prediction-predicted.json, then run
+analyze-route-prediction.py --trace ACTUAL --predictions PREDICTED
+--benchmark RAW --recent-ties1 --out FRESH_REPORT. Review precision and extra
+reads before implementing prefetch. Full-model prediction accuracy is unknown.
+
+## Prepared106/107 unseen-prompt validation
+
+heldout-prompts.json freezes three new tasks and128 generated tokens before
+viewing their routes: worked algebra, JSON inventory, engineering dialogue.
+record-heldout-reference.py records a strict-cache reference using the qualified
+frozen recency binary; it requires105 complete/no active full processes and
+owns the native queue lock. **Staged, not launched.** See106_heldout_staging.json
+for SHA state. Launch only after105 capture/review, detached Win32_Process.Create.
+It uses transformer tokenizer already on PTL; no export or build.
+
+Native stateheldout-reference-state.json captures launcher/native PID+creation.
+Outputs106-heldout-control.* plus106-heldout-reference.json and
+heldout-cases.json/heldout-cases.reference.json. Initial reference has no supplied
+oracle and cannot establish a record. Review text and use its IDs/hash to prepare
+107 recent-policy prediction campaign, with exact causal cache counter predictions.
+No107 campaign yet. These new prompts stay separate from the established score.
 
 ## Completed evidence
 
