@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "090-affinity-4095-12-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "090-affinity-4095-12-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "090-affinity-4095-12-layers.json",
+      "source_bytes": 2710874,
+      "source_sha256": "082cae8fbc29b56a5c3d76d1dbe9796abd9389d38499c093de59a4051ff863b8",
+      "compressed_file": "090-affinity-4095-12-layers.json.gz",
+      "compressed_bytes": 155127,
+      "compressed_sha256": "51eb37414606bb3fa80eb4868a1d0a503fa61c44a135a936f9a3ac20bf10774b"
+    },
+    {
+      "source_file": "090-host-resources.snapshot.jsonl",
+      "source_bytes": 2362231,
+      "source_sha256": "de6b28560a47c7a4bc2818442da5efaad63901598db3c1e310e217efad565333",
+      "compressed_file": "090-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 196974,
+      "compressed_sha256": "66676f391c50b4f7b4595f24ed5bf7f60fe29662f402a68eebf3a479e8d7102b"
+    }
+  ]
+}

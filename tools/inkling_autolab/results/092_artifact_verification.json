@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "name": "092-layout-read-probe.json",
+      "bytes": 164010,
+      "sha256": "0376710efdcfbc0c115a5f1d6eb605c491a07859f7f4950bbd430801248af4e5"
+    },
+    {
+      "name": "092-layout-read-probe.log",
+      "bytes": 80825,
+      "sha256": "31fad6765040f26088e90d50e1def888bdcdb69101951d9d1ced69fdf9fc3a7c"
+    },
+    {
+      "name": "layout-read-probe-state.json",
+      "bytes": 1267,
+      "sha256": "d2e939b776cf0e90c73bcabd67866246e7284f66860e4dd50c6a397c29883897"
+    }
+  ],
+  "state": {
+    "status": "complete",
+    "pid": 6392,
+    "unix": 1789377732.5341442,
+    "summaries": [
+      {
+        "files": 2,
+        "pairs": 10,
+        "copy_wins": 4,
+        "median_pair_speedup": 0.8309149005911763,
+        "median_seconds": {
+          "original": 0.01101049967110157,
+          "copy": 0.01325160008855164
+        },
+        "median_pair_speedup_by_first_mode": {
+          "original": 1.4812570338284876,
+          "copy": 0.7296734367080344
+        }
+      },
+      {
+        "files": 4,
+        "pairs": 10,
+        "copy_wins": 7,
+        "median_pair_speedup": 1.0584110930876018,
+        "median_seconds": {
+          "original": 0.021844550035893917,
+          "copy": 0.021271449979394674
+        },
+        "median_pair_speedup_by_first_mode": {
+          "original": 1.0168076241495003,
+          "copy": 1.1597662697436333
+        }
+      },
+      {
+        "files": 6,
+        "pairs": 10,
+        "copy_wins": 10,
+        "median_pair_speedup": 1.0523183157410267,
+        "median_seconds": {
+          "original": 0.028684099903330207,
+          "copy": 0.02716394979506731
+        },
+        "median_pair_speedup_by_first_mode": {
+          "original": 1.0495153502828463,
+          "copy": 1.092710391776597
+        }
+      }
+    ],
+    "full_model_speedup_measured": false
+  },
+  "temporary_fixtures_removed": true,
+  "free_disk_bytes": 260587941888
+}

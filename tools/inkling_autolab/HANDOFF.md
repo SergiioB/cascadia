@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-14 09:15 UTC. Work is ACTIVE. User requested autonomous
+Updated 2026-09-14 09:18 UTC. Work is ACTIVE. User requested autonomous
 optimization toward25tok/s. Do not stop after a finite campaign. Target unmet.
 
 ## Current record and active trials
@@ -10,10 +10,10 @@ median0.9648021079, fastest1.0329282085.6.933×original and1.652×prior046record
 All tokens/logits/routes/actual counters match. PERFORMANCE.md and native/local
 ptl-profile.ps1 were promoted. Full CPU backend; no full Arc backend.
 
-**090_full_affinity_4095_12 RUNNING;091_full_affinity_4095_16 QUEUED.**
+**090 CPU0–11/12workers COMPLETE0.8891493949;091_full_affinity_4095_16 RUNNING.**
 Controller **43106**, script`/private/tmp/run-inkling-affinity-loop.py`.
 Logs`/private/tmp/inkling-CAMPAIGN_NAME.log`.
-Native090 **PID4780**, created**1789377059.9814112**.
+Native091 **PID8032**, created**1789377390.5174108**. Native0904780 exited.
 Outputs090-affinity-4095-12.json/.log/-routes.json/-layers.json;
 next091-affinity-4095-16.*.089 all16CPU/16worker control completed0.9268264569.
 089 PID8156 created1789376738.9105453 exited; raw artifacts/SHA/layer profile
@@ -32,10 +32,9 @@ old/newSHA. **Frozen engine unchanged**: full-cache-decay.exe SHA
 Each full trial3prompts×1rep,64generated/63decode; exact hashce0fbb9a116d3d09,
 IDs and cache/I/O counters. Native08810528,parent3964 exited; all artifacts saved.
 
-After affinity sweep, **092 matched layout-read probe PREPARED, NOT STAGED OR
-LAUNCHED** at this checkpoint. Sourcepaired-layout-read-probe.py and helper
-file-extent-metadata.py. Stage both, SHA check them plus unchanged
-uncached-read-probe.py, then launch detached with
+After affinity sweep, **092 matched layout-read probe STAGED AND WAITING**,
+parent10052, state layout-read-probe-state.json. Read state for actualPythonPID. Sourcepaired-layout-read-probe.py and helper
+file-extent-metadata.py. All three scripts were SHA checked before detached launch with
 --out C:/Users/devcloud/inkling-autolab/092-layout-read-probe.json.
 It waits for089–091 reports and no full process, then takes queue lock.
 30matched cohorts,2/4/6 files, balancedAB/BA; writes only temporary sequential

@@ -1617,3 +1617,9 @@ andnoactivefullbeforelock/probe; next3-repeatfullmustwaitforprobecompletion.
 
 089 fullcontrol completed0.9268264569, exact outputs/config/counters pass. Capture copied/SHAverified allrawartifacts and layerprofile, then strict optionalphase-resourceanalysis rejectedshort_storydecode because UTCelapsed exceedsInstantelapsed by1.544745s. Other fivephases differ by<2microseconds. Cause notestablished. Keptstrictphasecheck; generatedexplicit lifetime-only resources using sampler monotonicelapsed, and089_clock_anomaly.json. Decode tok/s already usesunchangedmonotonicInstant, so benchmarkrate/correctness gates are unaffected. No fabricated phase-resource attribution.
 Originalfeat/inkling rechecked09:12UTC stillclean9aaebff0.
+
+092 staged after commita7509084 with both script/helper and unchangednative reader SHA checked; parent10052, waiting for affinity sweep.090mask4095/12workers completed0.8891493949, below089allcores0.9268264569. Allnumerical/config/read/cachegatespass.091mask4095/16workers now8032 created1789377390.5174108. No promotion of restricted affinity.
+
+## 093–095: repeated row-tile confirmation after affinity rejection
+
+Hypothesis: BF16rows2/int4rows2 improves full decode slightly with all16CPUs and16workers. The single-pass080 result improved each prompt versus076, but has not established a repeated gain. Both restricted-affinity candidates lost to089, so retain mask65535.093 first checks both2/4 and2/2 through the current production wrapper against the exact native tiny oracle.094 repeats the2/4 control over3prompts×3reps;095 repeats2/2 identically. Frozen engine and cache/I/O behavior must match, and promotion requires verified full outputs and a repeated gain.092 must exit with temp copies removed before qualification or full measurements.
