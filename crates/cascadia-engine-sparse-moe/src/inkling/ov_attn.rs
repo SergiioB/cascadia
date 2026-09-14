@@ -73,7 +73,11 @@ impl OvAttn {
         if !super::env_flag("CASCADIA_INKLING_OV_ATTN") {
             return None;
         }
-        let dir = model_dir.join("attn_ov");
+        // `CASCADIA_INKLING_OV_ATTN_DIR` selects a variant directory (e.g.
+        // `attn_ov_int8`); default `attn_ov`.
+        let dir = model_dir.join(
+            std::env::var("CASCADIA_INKLING_OV_ATTN_DIR").unwrap_or_else(|_| "attn_ov".into()),
+        );
         if !dir.is_dir() {
             warn!(
                 dir = %dir.display(),
