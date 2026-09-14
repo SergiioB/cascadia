@@ -77,6 +77,7 @@ mod expert_cache;
 pub use expert_cache::ExpertCacheStats;
 mod read_buffers;
 pub use read_buffers::uncached_read_statistics;
+pub use read_buffers::prefill_read_statistics;
 pub mod relpos;
 pub mod stage;
 

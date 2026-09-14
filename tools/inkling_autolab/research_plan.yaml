@@ -155,8 +155,9 @@ questions:
 - id: q49
   question: Can prefill stream experts through reusable uncached buffers to reduce page-fault and
     file-cache pressure?
-  status: open
+  status: active
   priority: 2
+  reason: Prepare locally while cache049/050/051 execute; no overlapping native build.
 - id: q50
   question: After uncached pipelining, does separating read concurrency from kernel concurrency improve
     full-model latency?

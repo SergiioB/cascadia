@@ -9,6 +9,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [ValidateSet(0,1)][int]$UncachedReads=0,
       [ValidateSet(0,1)][int]$PipelineReads=0,
       [ValidateRange(0,256)][int]$ExpertCacheMiB=0,
+      [ValidateSet(0,1)][int]$PrefillReads=0,
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\devcloud\inkling-autolab'
@@ -20,11 +21,12 @@ if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be 
 if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 if ($LayerProfile -and $Binary -in @('full-decode.exe', 'full-routing.exe')) { throw 'Select full-profile.exe for layer timing' }
 if ($MmapEmbed -and $Binary -in @('full-decode.exe', 'full-routing.exe', 'full-profile.exe')) { throw 'Select full-mmap-embed.exe for mapped embedding' }
-if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
-if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe')) { throw 'Select a qualified owned-shared binary' }
-if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
-if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
-if ($ExpertCacheMiB -and ($Binary -ne 'full-expert-cache.exe' -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
+if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
+if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe')) { throw 'Select a qualified owned-shared binary' }
+if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
+if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
+if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
+if ($PrefillReads -and ($Binary -ne 'full-prefill-reads.exe' -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
 $env:RAYON_NUM_THREADS = '16'
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
@@ -36,6 +38,7 @@ $env:CASCADIA_INKLING_OWN_SHARED = "$OwnShared"
 $env:CASCADIA_INKLING_UNCACHED_READS = "$UncachedReads"
 $env:CASCADIA_INKLING_PIPELINE_READS = "$PipelineReads"
 $env:CASCADIA_INKLING_EXPERT_CACHE_MIB = "$ExpertCacheMiB"
+$env:CASCADIA_INKLING_PREFILL_READS = "$PrefillReads"
 $env:CASCADIA_BF16_GEMV_ROWS = "$Bf16Rows"
 $env:CASCADIA_INT4_GEMV_ROWS = "$Int4Rows"
 [System.Diagnostics.Process]::GetCurrentProcess().ProcessorAffinity = [IntPtr]65535
@@ -54,7 +57,7 @@ $p = Start-Process -FilePath "$root\bin\$Binary" -ArgumentList $benchArgs -PassT
 try {
     $p.PriorityClass = 'High'
     $p.ProcessorAffinity = [IntPtr]65535
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads"
     $p.WaitForExit()
     if ($Log) {
         Get-Content -LiteralPath $Log -Encoding UTF8

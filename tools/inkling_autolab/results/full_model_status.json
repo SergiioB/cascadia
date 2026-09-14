@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T06:00:33.955664+00:00",
+  "updated_at": "2026-09-14T06:15:21.258785+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.5679137350358697,
-  "status": "autonomous_optimization_resumed_048_cache_development",
+  "status": "049_050_051_cache_comparison_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Implement and qualify bounded causal expert caching, then run a same-binary cache budget comparison on PTL. Continue with further hypotheses after analyzing it.",
+  "next_action": "Complete sequential cache comparison and choose measured winner; prepare q49 prefill streaming locally in parallel. Continue optimizing.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,10 +46,14 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.5706485510183931,
   "best_repeated_full_model_decode_tokens_per_s": 0.5679137350358697,
   "last_verified_campaign": "046_full_final_confirmation",
-  "active_campaign": "048_cache_development",
+  "active_campaign": "049_full_expert_cache_control",
   "record_verification": "046_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [],
-  "sampler_stopped": true,
-  "free_disk_bytes_final": 264601800704
+  "sampler_stopped": false,
+  "free_disk_bytes_final": 264601800704,
+  "queued_campaigns": [
+    "050_full_expert_cache_64mib",
+    "051_full_expert_cache_128mib"
+  ]
 }

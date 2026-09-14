@@ -351,6 +351,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("expert_cache_admissions={}", expert_cache.admissions);
     println!("expert_cache_evictions={}", expert_cache.evictions);
     println!("expert_cache_effective={}", u8::from(expert_cache.hits > 0));
+    let (prefill_read_experts, prefill_uncached_read_bytes, prefill_uncached_read_fallbacks) =
+        cascadia_engine_sparse_moe::inkling::prefill_read_statistics();
+    println!("prefill_read_experts={prefill_read_experts}");
+    println!("prefill_uncached_read_bytes={prefill_uncached_read_bytes}");
+    println!("prefill_uncached_read_fallbacks={prefill_uncached_read_fallbacks}");
+    println!(
+        "prefill_reads_effective={}",
+        u8::from(prefill_read_experts > 0)
+    );
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -365,6 +374,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "uncached_read_effective":uncached_read_effective,
                 "pipelined_read_layers":pipelined_read_layers,
                 "expert_cache":expert_cache,
+                "prefill_read_experts":prefill_read_experts,
+                "prefill_uncached_read_bytes":prefill_uncached_read_bytes,
+                "prefill_uncached_read_fallbacks":prefill_uncached_read_fallbacks,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;

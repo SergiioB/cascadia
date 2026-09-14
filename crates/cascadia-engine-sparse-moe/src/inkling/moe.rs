@@ -75,6 +75,16 @@ fn pipeline_reads() -> bool {
     *E.get_or_init(|| env_flag("CASCADIA_INKLING_PIPELINE_READS"))
 }
 
+/// Optional bounded bulk reads for each prefill expert's complete row group.
+/// Uses the same kernels and requires the reusable bulk-read configuration.
+fn prefill_reads() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_PREFILL_READS"))
+        && reuse_read_buffers()
+        && !seq_reads()
+}
+
 static PIPELINED_LAYERS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 /// Number of decode layer calls that actually used overlapped reads/compute.
@@ -474,6 +484,17 @@ impl MoeLayer {
     }
 
     fn forward_block(&self, xs: &[f32], lo: usize, hi: usize, out: &mut [f32]) {
+        self.forward_block_with_reads(xs, lo, hi, out, prefill_reads());
+    }
+
+    fn forward_block_with_reads(
+        &self,
+        xs: &[f32],
+        lo: usize,
+        hi: usize,
+        out: &mut [f32],
+        streamed: bool,
+    ) {
         let (hidden, k) = (self.hidden, self.top_k);
         let nblk = hi - lo;
 
@@ -496,7 +517,7 @@ impl MoeLayer {
         // 2. Read-ahead for every expert this block touches (routed with
         //    rows, plus the shared pair), so the expert pass overlaps its I/O.
         for (e, slots) in occ.iter().enumerate() {
-            if !slots.is_empty() {
+            if !streamed && !slots.is_empty() {
                 self.w.experts[e].prefetch();
             }
         }
@@ -509,15 +530,51 @@ impl MoeLayer {
         //    mmap'd expert's int4 pages are still faulted in once.
         let mut ey = vec![0.0f32; nblk * k * hidden];
         let visit = |(e, slots): (usize, &Vec<usize>)| {
+            let mapped = self.w.experts[e].as_mmap();
+            let mut lease = (streamed && mapped.is_some())
+                .then(|| super::read_buffers::ReadBuffers::acquire(1));
+            let ready = match (mapped, lease.as_mut()) {
+                (Some(mapped), Some(lease)) => lease.buffers[0]
+                    .read_prefill(mapped.bin_path(), mapped.bin_len())
+                    .is_ok(),
+                _ => false,
+            };
             let mut ys = Vec::with_capacity(slots.len() * hidden);
             for &s in slots {
                 let br = s / k;
                 let x = &xs[(lo + br) * hidden..(lo + br + 1) * hidden];
-                ys.extend_from_slice(&self.w.experts[e].forward(x, hidden, self.inter));
+                let y = if ready {
+                    mapped
+                        .unwrap()
+                        .swiglu_from(lease.as_ref().unwrap().buffers[0].as_slice(), x)
+                } else {
+                    self.w.experts[e].forward(x, hidden, self.inter)
+                };
+                ys.extend_from_slice(&y);
             }
             (e, ys)
         };
-        let visits: Vec<(usize, Vec<f32>)> = if par_experts() {
+        let visits: Vec<(usize, Vec<f32>)> = if streamed {
+            // Nested Rayon GEMVs can suspend an outer expert task while its
+            // buffer remains live. Fixed cohorts bound that retention to eight
+            // experts, regardless of work-stealing order or prompt routing.
+            let active: Vec<_> = occ
+                .iter()
+                .enumerate()
+                .filter(|(_, slots)| !slots.is_empty())
+                .collect();
+            let mut visits = Vec::with_capacity(active.len());
+            for cohort in active.chunks(8) {
+                let completed: Vec<_> = if par_experts() {
+                    use rayon::prelude::*;
+                    cohort.par_iter().copied().map(visit).collect()
+                } else {
+                    cohort.iter().copied().map(visit).collect()
+                };
+                visits.extend(completed);
+            }
+            visits
+        } else if par_experts() {
             use rayon::prelude::*;
             occ.par_iter()
                 .enumerate()
@@ -597,5 +654,56 @@ impl DenseMlp {
             *v *= self.global_scale;
         }
         y
+    }
+}
+
+#[cfg(test)]
+mod prefill_read_tests {
+    use super::*;
+
+    #[test]
+    fn streamed_prefill_preserves_real_int4_bits_across_multiple_cohorts() {
+        use crate::dsv4::expert_mmap::MmapExpert;
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/inkling_export/experts/layer_01");
+        let mut router_w = vec![0.0; 16 * 64];
+        for expert in 0..16 {
+            router_w[expert * 64 + expert] = 2.0;
+        }
+        let weights = MoeWeights {
+            router_w,
+            router_bias: vec![0.0; 16],
+            global_scale: 1.0,
+            experts: (0..16)
+                .map(|expert| {
+                    AnyExpert::Mmap(
+                        MmapExpert::open(
+                            &directory.join(format!("expert_{:03}.bin", expert % 8)),
+                            64,
+                            32,
+                        )
+                        .unwrap(),
+                    )
+                })
+                .collect(),
+            shared: vec![],
+        };
+        let layer = MoeLayer::new(64, 32, 1, 1.0, weights);
+        let mut xs = vec![0.0; 17 * 64];
+        for row in 0..17 {
+            xs[row * 64 + row % 16] = 4.0;
+            assert_eq!(
+                layer.route(&xs[row * 64..(row + 1) * 64]).idx,
+                vec![row % 16]
+            );
+        }
+        let mut expected = vec![0.0; xs.len()];
+        let mut actual = vec![0.0; xs.len()];
+        layer.forward_block_with_reads(&xs, 0, 17, &mut expected, false);
+        layer.forward_block_with_reads(&xs, 0, 17, &mut actual, true);
+        assert_eq!(
+            actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+            expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+        );
     }
 }

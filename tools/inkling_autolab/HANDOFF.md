@@ -5,21 +5,32 @@ the prior final campaign below is the completed reference, not a stopping point.
 
 ## Resumed iteration048 — expert cache
 
-Implementing/qualifying opt-in model-owned LFU routed expert caching. Local
-library/Inkling/GLM suite, five focused cache tests and seven fixture modes pass.
-Source staging completed. Native qualify-expert-cache.py is BUILDING/TESTING,
-PythonPID10336, testlauncher8168, parentcmd1452. State
-expert-cache-qualification-state.json; logtest-expert-cache.log. New binary
-full-expert-cache.exe preserves all six older binaries. No full benchmark is
-yet launched. Read current state before acting; do not launch a second qualifier.
+Cache048 QUALIFIED:238native tests, four fixture modes and productionwrapper
+pass hash1f7cd0eb14a22662,110cachehits. Binaryfull-expert-cache.exe SHA
+fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88,
+source049034de. Qualifier10336/test8168/parent1452 ended. All six older binaries
+preserved. Evidence048_expert_cache_windows_validation.json.
 
-Prepared campaigns049cache0,050cache64MiB/layer,051cache128MiB/layer compare the
-same new binary with exact reference outputs and actual cache budget/hit gates.
-Run sequentially after Windows qualification and production wrapper check.
-Continue analyzing and optimizing after the comparison; 25tok/s bandwidth
+**049cache0 -> 050cache64MiB/layer -> 051cache128MiB/layer RUNNING sequentially**
+under local tool73582. Logs/private/tmp/inkling-049_full_expert_cache_control.log,
+/private/tmp/inkling-050_full_expert_cache_64mib.log,
+/private/tmp/inkling-051_full_expert_cache_128mib.log. Do not launch duplicates.
+Native outputs049-cache-0.*,050-cache-64.*,051-cache-128.*. Sampler
+048-host-resources.jsonl,stopmarkerstop-048-sampler,12-hour limit from~06:14UTC.
+
+Continue analyzing and optimizing after this comparison; 25tok/s bandwidth
 constraint does not mean0.568tok/s is maximized. No Lambda/newexport work needed.
-Questions q48–q51 in research_plan.yaml track cache, prefill streaming, separate
-read concurrency and causal next-layer prefetch. User expects continued work.
+Questionq49 prefill streaming is being prepared LOCALLY while cache trials run;
+do not deploy/build it onPTL until the current three trials finish. Questions
+q48–q51 track cache, prefill, read concurrency and causal next-layer prefetch.
+User expects continued work; no stopping after a single completed campaign.
+
+Prefill prototype now passes236distinct local tests plus eight fixture modes.
+Native source archiveprefill-read-source.tar/json andqualify-prefill-reads.py,
+test-prefill-reads.bat,run-full-prefill-reads.ps1 are STAGED ONLY. QualifierNOT
+launched. It guards completed049/050/051, all seven frozen binaries and previous
+source/wrapperSHAs. Newcandidatefull-prefill-reads.exe does not yet exist.
+Do not overlap its build with current full trials; choose cache setting first.
 
 ## Verified outcome
 

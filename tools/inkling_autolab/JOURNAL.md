@@ -1254,3 +1254,36 @@ three cases × one pass,63decode steps, exact reference IDs/hash, uncached and
 pipeline gates plus actual cache budget/effectiveness. Only run after native
 qualification and wrapper check. Final winner requires repeated confirmation.
 This loop continues after the cache comparison to further hypotheses.
+
+
+## 49 next hypothesis — stream prefill expert reads
+
+Cache048 native qualification passes238tests, four fixture modes and production
+wrapper with110actualhits/exact1f7cd0eb14a22662. New binarySHA
+fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88,
+source049034de. Campaign049cache0,050cache64,051cache128 now execute sequentially
+under controller73582,logs/private/tmp/inkling-049_full_expert_cache_control.log
+and corresponding050/051 names. Sampler048-host-resources.jsonl is active with
+stop-048-sampler marker and12-hour limit. Do not launch duplicate trials.
+
+While these run, prepare next hypothesis locally: use complete uncached reusable
+expert reads for the batch-union prefill instead of mapped faults and serial
+prefetch hints. Bound each concurrent cohort to eight experts to avoid unbounded
+retention under nested Rayon work stealing. Each expert still computes all of
+its rows, and outputs accumulate in identical gate order. Reuse scratch without
+discarding other idle buffers when acquiring a smaller lease. Separate prefill
+I/O counters preserve the meaning of existing decode counters. Target reduced
+100–114second prefill latency and less transient paging, with possible secondary
+decode benefit. Full-model throughput remains the primary metric. No native
+build/deployment of this next candidate until049/050/051 finish and cache winner
+is chosen. This is not a replacement for completing the current cache comparison.
+
+Prefill prototype passes235local library/Inkling/GLM tests, one additional
+real-int4 multi-cohort equivalence test (16 routed experts across two bounded
+cohorts, repeated rows), and eight full tiny-fixture modes. All exactfixture
+hashes5122e042f9b1fb30 match. Enabled modes perform63actualprefillreads; direct
+and reuse-disabled modes performzero. Decode cachehits remain110 whenenabled.
+Prepared052qualification, nativecandidatefull-prefill-reads.exe and separate
+prefill I/O counters. Sources/tests are staged only; qualifier is NOT launched
+and native cache-trial binary/sources remain unchanged. Use q48 measured winner
+for a subsequent same-binary prefill comparison after current049/050/051.

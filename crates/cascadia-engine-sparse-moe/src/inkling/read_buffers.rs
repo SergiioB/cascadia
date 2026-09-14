@@ -12,6 +12,9 @@ const MAX_IDLE_BYTES: usize = 256 * 1024 * 1024;
 static POOL: Mutex<Vec<ReadBuffer>> = Mutex::new(Vec::new());
 static UNCACHED_BYTES: AtomicU64 = AtomicU64::new(0);
 static UNCACHED_FALLBACKS: AtomicU64 = AtomicU64::new(0);
+static PREFILL_READ_EXPERTS: AtomicU64 = AtomicU64::new(0);
+static PREFILL_UNCACHED_BYTES: AtomicU64 = AtomicU64::new(0);
+static PREFILL_UNCACHED_FALLBACKS: AtomicU64 = AtomicU64::new(0);
 #[cfg(any(windows, test))]
 const IO_ALIGNMENT: usize = 4096;
 
@@ -21,6 +24,16 @@ pub fn uncached_read_statistics() -> (u64, u64) {
     (
         UNCACHED_BYTES.load(Ordering::Relaxed),
         UNCACHED_FALLBACKS.load(Ordering::Relaxed),
+    )
+}
+
+/// Actual buffered prefill expert visits, uncached bytes and fallback attempts.
+/// Kept separate so decode-only read accounting retains its original meaning.
+pub fn prefill_read_statistics() -> (u64, u64, u64) {
+    (
+        PREFILL_READ_EXPERTS.load(Ordering::Relaxed),
+        PREFILL_UNCACHED_BYTES.load(Ordering::Relaxed),
+        PREFILL_UNCACHED_FALLBACKS.load(Ordering::Relaxed),
     )
 }
 
@@ -123,16 +136,39 @@ impl ReadBuffer {
     }
 
     pub fn read(&mut self, path: &Path, expected: usize) -> io::Result<()> {
+        self.read_counted(path, expected, &UNCACHED_BYTES, &UNCACHED_FALLBACKS)
+    }
+
+    pub fn read_prefill(&mut self, path: &Path, expected: usize) -> io::Result<()> {
+        let result = self.read_counted(
+            path,
+            expected,
+            &PREFILL_UNCACHED_BYTES,
+            &PREFILL_UNCACHED_FALLBACKS,
+        );
+        if result.is_ok() {
+            PREFILL_READ_EXPERTS.fetch_add(1, Ordering::Relaxed);
+        }
+        result
+    }
+
+    fn read_counted(
+        &mut self,
+        path: &Path,
+        expected: usize,
+        bytes: &AtomicU64,
+        fallbacks: &AtomicU64,
+    ) -> io::Result<()> {
         static ENABLED: OnceLock<bool> = OnceLock::new();
         let enabled = *ENABLED
             .get_or_init(|| cfg!(windows) && super::env_flag("CASCADIA_INKLING_UNCACHED_READS"));
         let result = self.read_mode(path, expected, enabled);
         match &result {
             Ok(ReadMode::Uncached) => {
-                UNCACHED_BYTES.fetch_add(expected as u64, Ordering::Relaxed);
+                bytes.fetch_add(expected as u64, Ordering::Relaxed);
             }
             Ok(ReadMode::Fallback) | Err(_) if enabled => {
-                UNCACHED_FALLBACKS.fetch_add(1, Ordering::Relaxed);
+                fallbacks.fetch_add(1, Ordering::Relaxed);
             }
             _ => {}
         }
@@ -146,10 +182,16 @@ pub(super) struct ReadBuffers {
 
 impl ReadBuffers {
     pub fn acquire(count: usize) -> Self {
-        let mut buffers = std::mem::take(&mut *POOL.lock().unwrap_or_else(|e| e.into_inner()));
+        let mut pool = POOL.lock().unwrap_or_else(|e| e.into_inner());
+        let mut buffers = take_buffers(&mut pool, count);
+        drop(pool);
         buffers.resize_with(count, ReadBuffer::default);
         Self { buffers }
     }
+}
+
+fn take_buffers(pool: &mut Vec<ReadBuffer>, count: usize) -> Vec<ReadBuffer> {
+    pool.split_off(pool.len().saturating_sub(count))
 }
 
 impl Drop for ReadBuffers {
@@ -192,6 +234,23 @@ pub(super) fn read_into(path: &Path, expected: usize, buffer: &mut Vec<u8>) -> i
 mod tests {
     use super::*;
     use std::io::Write;
+
+    #[test]
+    fn small_leases_leave_other_idle_allocations_available() {
+        let mut pool: Vec<_> = (0..8).map(|_| ReadBuffer::default()).collect();
+        for (i, buffer) in pool.iter_mut().enumerate() {
+            buffer.bytes.resize(4096, i as u8);
+        }
+        let pointers: Vec<_> = pool.iter().map(|b| b.bytes.as_ptr()).collect();
+        let first = take_buffers(&mut pool, 1);
+        let second = take_buffers(&mut pool, 2);
+        assert_eq!(pool.len(), 5);
+        assert_eq!(first[0].bytes.as_ptr(), pointers[7]);
+        assert_eq!(second[0].bytes.as_ptr(), pointers[5]);
+        assert_eq!(second[1].bytes.as_ptr(), pointers[6]);
+        assert_eq!(take_buffers(&mut pool, 20).len(), 5);
+        assert!(pool.is_empty());
+    }
 
     #[test]
     fn overwrites_previous_expert_without_reallocating() {
