@@ -85,5 +85,6 @@ router before its predecessor executes, using that earlier residual input.
 It is decode-only and performs no additional expert I/O. The trace explicitly
 labels its prediction input and lead; layer0 has no predecessor and is omitted.
 Observer time is included in the model benchmark, outside layer timing spans.
-Local115 qualification passes; native116 qualification is pending. Its
+Local115 and native116 qualification pass (250 local/254 native tests and
+four tiny modes). Full-model prediction accuracy is being measured. Its
 `PredictionLeadLayers` wrapper argument requires the separate candidate binary.

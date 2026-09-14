@@ -1,0 +1,163 @@
+{
+  "scope": "causal_prediction_precision_not_measured_prefetch_speedup",
+  "prediction_lead_layers": 1,
+  "prediction_input": "previous_layer_residual_before_attention_with_target_layer_mlp_norm_and_router",
+  "visits": 63,
+  "cache_control_matches_actual": true,
+  "results": [
+    {
+      "group": "all",
+      "prediction_limit": 1,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 16,
+      "useful_reads": 10,
+      "extra_reads": 6,
+      "precision": 0.625,
+      "actual_miss_coverage": 0.625,
+      "read_amplification": 1.375
+    },
+    {
+      "group": "all",
+      "prediction_limit": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "all",
+      "prediction_limit": 3,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "all",
+      "prediction_limit": 4,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "all",
+      "prediction_limit": 5,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "all",
+      "prediction_limit": 6,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 1,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 16,
+      "useful_reads": 10,
+      "extra_reads": 6,
+      "precision": 0.625,
+      "actual_miss_coverage": 0.625,
+      "read_amplification": 1.375
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 2,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 3,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 4,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 5,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    },
+    {
+      "group": "tiny_hf_greedy",
+      "prediction_limit": 6,
+      "visits": 63,
+      "actual_misses": 16,
+      "predicted_reads": 22,
+      "useful_reads": 14,
+      "extra_reads": 8,
+      "precision": 0.6363636363636364,
+      "actual_miss_coverage": 0.875,
+      "read_amplification": 1.5
+    }
+  ],
+  "caveats": [
+    "No expert prefetch was performed; misses and cache state are the unmodified runtime behavior.",
+    "Predictions use the declared residual input and target layer MLP norm/router; no future route enters prediction.",
+    "Potential latency overlap, I/O contention, prediction overhead and unused-read cost require a separate runtime experiment."
+  ],
+  "source_sha256": {
+    "actual": "e88cde65500be7721065922d71288f58b92a7e43299f6097d5ee36bf4dd1c810",
+    "predictions": "ea52062d0d8ad2aa806574559962a0339328a99488bbe75dc14077ee10ed8659",
+    "benchmark": "451261b5160182acf732246838985f7366a09c16cf5522dba3b6c539d58c0c49"
+  }
+}

@@ -1,6 +1,6 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 11:55UTC. Work is ACTIVE. User requested autonomous optimization
+Updated2026-09-14 11:58UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
 ## Completed113/114 longer-prompt comparison (11:55UTC)
@@ -35,26 +35,40 @@ local/nativeptl-profile.ps1 SHA ff9572f5c3889b9678cecf230948efde635aceeefcce2195
 Frozenbinary7b20ee35/source dc4badd3, native/localwrapper3eac49ad unchanged.
 25targetunmet. No export/Lambda work needed.
 
-## Next diagnostic115 local work
+## Current117 one-layer-early diagnostic RUNNING (11:58UTC)
 
-One-layer-early prediction implemented locally as default-off Model observer,
-using target layer norm/router before predecessor executes, no additional I/O.
-Benchmark--prediction-lead-layers1 explicitly labels this input; current-layer
-prediction remains lead0. Two exact-logit/route/ordering/causality tests pass;
-all250 local tests/13suites and example build pass. Four localfixture modes and analyzer validation pass, including five malformed
-evidence rejections. Tiny firstprediction16scheduled/10useful/6unused; not a
-full-model accuracy estimate. Native116 waiter4748(created1789386222.7887948), shim3840, detachedparent10316
-now BUILDING/TESTING after113/114 exit; preserve12
-frozen binaries and qualify a separate candidate before full diagnostic.
-116 source234122415f292d51519b9f40684b60c30bfc71df, stagedSHA/parser pass.
-Source manifest early-prediction-source.json, tarSHA8f1d4ecc3ac7510c256880e1f65ef17e2e50521bb4f008c6b228253ffa74c1f0.
-Candidatewrapper6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04,
-productionwrapper remains3e until116qualified. Localcontroller11957 script
-/private/tmp/run-inkling-early-prediction-loop.py waits116 and114 comparison,
-archives all native test/artifactSHA, syncs wrapper, then runs117 diagnostic
-(one rep/original3prompts, PredictReads0, PredictionLeadLayers1). It captures
-all raw traces and measures actual causal accuracy; no record promotion.
-This code is not used by current113/114. Continue optimization after finite campaigns.
+Native10960, creation1789387032.1257544, full-early-prediction.exe SHA
+853c4cbe2ecfb5e35f0f948cfff3196686e779d66c4c62fd152fc00b6cbd9d9d,
+source234122415f292d51519b9f40684b60c30bfc71df. Controller18569 script
+/private/tmp/run-inkling-early-prediction-loop.py. It SHA archives all117
+artifacts and runs analyze-route-prediction.py after completion, yielding
+117_early_prediction_accuracy.json. Original3prompts×1rep,64generated/63decode,
+PredictReads0,PredictionLeadLayers1. This is diagnostic-only and cannot promote
+performance. Native117-early-prediction.{json,log}, -routes/-layers/-predicted.json;
+localcontrollerlog/private/tmp/inkling-117_full_early_prediction_diagnostic.log.
+
+116 COMPLETE:254 native tests/13suites and four tiny modes pass, all12 older
+binaries unchanged. Every output/actual route/cache and currentprefetchcounter
+matches109. One-layer-early tiny16predicted/10useful/6unused; no fullaccuracy
+inference. 116_artifact_verification.json SHA archives all evidence. Native
+4748/launcher8928/parent10316 exited. Native/localrun-full.ps1 now both
+6db0fff9febcde166227c4909eab4376454623e1c5b74cd21564202dc1f59c04.
+Selectedptl-profile remainsff9572f5 with current-layerPredictReads1 and record112.
+
+116 originalcontroller11957 failed copying only the final tiny predictionfile
+at jump-host SSH reset; all previous copies SHA valid,117 not launched then.
+Resume18569 reused valid copies and enabled a dedicated SSH ControlMaster
+socket/private/tmp/inkling-early-ctl-%C,ControlPersist60 to reduce handshakes.
+Transfer succeeded; no native tests repeated and no correctness gate bypassed.
+
+115 local250tests and four tiny modes passed, including exact-logit/route,
+causality and predecessor-ordering tests. Code adds default-off Model observer,
+using target MLP norm/router before predecessor executes, without extra I/O.
+Trace explicitly labels the earlier residual and lead; analyzer rejects
+inconsistent source/lead, missing positions, changed hashes and actualprefetch.
+No code is implemented for runtime early prefetch yet. After117, assess useful
+prediction accuracy/read amplification before a runtime experiment. Continue
+optimizing after this finite diagnostic;25target is still unmet.
 
 ## Historical110/111 launch state (both now complete)
 

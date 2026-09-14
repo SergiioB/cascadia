@@ -15,6 +15,7 @@ param([Parameter(Mandatory=$true)][string]$Model,
       [ValidateSet(0,1)][int]$CacheResetHistory=0,
       [ValidateSet(0,1)][int]$CacheRecentTies=0,
       [ValidateSet(0,1)][int]$PredictReads=0,
+      [ValidateSet(0,1)][int]$PredictionLeadLayers=0,
       [ValidateSet(4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536)][int]$CacheDecayRequests=4096,
       [switch]$AllowFixture)
 $ErrorActionPreference = 'Stop'
@@ -27,17 +28,18 @@ if ([System.IO.Path]::GetFileName($Binary) -ne $Binary) { throw 'Binary must be 
 if ($RouteTrace -and $Binary -eq 'full-decode.exe') { throw 'The frozen baseline has no routing observer; select full-routing.exe' }
 if ($LayerProfile -and $Binary -in @('full-decode.exe', 'full-routing.exe')) { throw 'Select full-profile.exe for layer timing' }
 if ($MmapEmbed -and $Binary -in @('full-decode.exe', 'full-routing.exe', 'full-profile.exe')) { throw 'Select full-mmap-embed.exe for mapped embedding' }
-if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
-if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe')) { throw 'Select a qualified owned-shared binary' }
-if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
-if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
-if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
-if ($PrefillReads -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
-if ($CacheResetHistory -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
-if ($CacheDecayRequests -ne 4096 -and ($Binary -notin @('full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ExpertCacheMiB)) { throw 'Short cache decay requires qualified full-cache-decay.exe and a nonzero expert cache budget' }
-if ($CacheRecentTies -and ($Binary -notin @('full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe') -or !$ExpertCacheMiB)) { throw 'Recent-tie admission requires qualified full-cache-recency.exe and a nonzero expert cache budget' }
-if ($PredictionTrace -and ($Binary -notin @('full-route-prediction.exe', 'full-predicted-read.exe') -or !$RouteTrace)) { throw 'Prediction diagnostics require qualified full-route-prediction.exe and an actual RouteTrace' }
-if ($PredictReads -and ($Binary -ne 'full-predicted-read.exe' -or !$ExpertCacheMiB -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Predicted reads require qualified full-predicted-read.exe and a nonzero pipelined expert cache' }
+if (($ReuseBuffers -or $SkipBulkPrefetch) -and $Binary -notin @('full-read-buffers.exe', 'full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe')) { throw 'Select a qualified read-buffer binary for reusable read options' }
+if ($OwnShared -and $Binary -notin @('full-owned-shared.exe', 'full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe')) { throw 'Select a qualified owned-shared binary' }
+if ($UncachedReads -and ($Binary -notin @('full-uncached.exe', 'full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Uncached reads require a qualified binary, ReuseBuffers1 and Reads0' }
+if ($PipelineReads -and ($Binary -notin @('full-pipeline.exe', 'full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Pipelined reads require qualified full-pipeline.exe, ReuseBuffers1 and Reads0' }
+if ($ExpertCacheMiB -and ($Binary -notin @('full-expert-cache.exe', 'full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Expert caching requires qualified full-expert-cache.exe, PipelineReads1, ReuseBuffers1 and Reads0' }
+if ($PrefillReads -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ReuseBuffers -or $Reads)) { throw 'Prefill reads require qualified full-prefill-reads.exe, ReuseBuffers1 and Reads0' }
+if ($CacheResetHistory -and ($Binary -notin @('full-prefill-reads.exe', 'full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ExpertCacheMiB)) { throw 'Cache history reset requires qualified full-prefill-reads.exe and a nonzero expert cache budget' }
+if ($CacheDecayRequests -ne 4096 -and ($Binary -notin @('full-cache-decay.exe', 'full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ExpertCacheMiB)) { throw 'Short cache decay requires qualified full-cache-decay.exe and a nonzero expert cache budget' }
+if ($CacheRecentTies -and ($Binary -notin @('full-cache-recency.exe', 'full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$ExpertCacheMiB)) { throw 'Recent-tie admission requires qualified full-cache-recency.exe and a nonzero expert cache budget' }
+if ($PredictionTrace -and ($Binary -notin @('full-route-prediction.exe', 'full-predicted-read.exe', 'full-early-prediction.exe') -or !$RouteTrace)) { throw 'Prediction diagnostics require qualified full-route-prediction.exe and an actual RouteTrace' }
+if ($PredictReads -and ($Binary -notin @('full-predicted-read.exe', 'full-early-prediction.exe') -or !$ExpertCacheMiB -or !$PipelineReads -or !$ReuseBuffers -or $Reads)) { throw 'Predicted reads require qualified full-predicted-read.exe and a nonzero pipelined expert cache' }
+if ($PredictionLeadLayers -and ($Binary -ne 'full-early-prediction.exe' -or !$PredictionTrace)) { throw 'One-layer-early diagnostics require qualified full-early-prediction.exe and PredictionTrace' }
 $env:RAYON_NUM_THREADS = "$Threads"
 $env:CASCADIA_INKLING_SERIAL_EXPERTS = '0'
 $env:CASCADIA_INKLING_SEQ_READS = "$Reads"
@@ -62,6 +64,7 @@ if ($Out) { $benchArgs += @('--out', "`"$Out`"") }
 if ($RouteTrace) { $benchArgs += @('--route-trace', "`"$RouteTrace`"") }
 if ($LayerProfile) { $benchArgs += @('--layer-profile', "`"$LayerProfile`"") }
 if ($PredictionTrace) { $benchArgs += @('--prediction-trace', "`"$PredictionTrace`"") }
+if ($PredictionLeadLayers) { $benchArgs += @('--prediction-lead-layers', "$PredictionLeadLayers") }
 if ($AllowFixture) { $benchArgs += '--allow-fixture' }
 $startOptions = @{}
 if ($Log) {
@@ -78,7 +81,7 @@ try {
     if ($actualAffinity -ne $AffinityMask) { throw "Child affinity mismatch: requested $AffinityMask, observed $actualAffinity" }
     "processor_affinity=$actualAffinity"
     "rayon_threads=$Threads"
-    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory cache_decay_requests=$CacheDecayRequests cache_recent_ties=$CacheRecentTies predict_reads=$PredictReads"
+    "bf16_rows=$Bf16Rows int4_rows=$Int4Rows reads=$Reads mmap_embed=$MmapEmbed reuse_buffers=$ReuseBuffers skip_bulk_prefetch=$SkipBulkPrefetch own_shared=$OwnShared uncached_reads=$UncachedReads pipeline_reads=$PipelineReads expert_cache_mib=$ExpertCacheMiB prefill_reads=$PrefillReads cache_reset_history=$CacheResetHistory cache_decay_requests=$CacheDecayRequests cache_recent_ties=$CacheRecentTies predict_reads=$PredictReads prediction_lead_layers=$PredictionLeadLayers"
     $p.WaitForExit()
     if ($Log) {
         Get-Content -LiteralPath $Log -Encoding UTF8
