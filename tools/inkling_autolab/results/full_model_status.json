@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-14T09:29:22.006034+00:00",
+  "updated_at": "2026-09-14T09:38:19.865473+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
@@ -99,5 +99,12 @@
     "pid": 8176,
     "parent_pid": 9488,
     "modes": 2
+  },
+  "pending_cache_recency_qualification": {
+    "status": "waiting_for_repeated_rows",
+    "native_pid": 3144,
+    "parent_pid": 10896,
+    "source_commit": "849a08bde706bad860eb364e3c39e142ae53a167",
+    "binary": "full-cache-recency.exe"
   }
 }

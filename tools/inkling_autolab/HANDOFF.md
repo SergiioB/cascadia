@@ -53,8 +53,11 @@ Localrun-full.ps1 candidate supportsCacheRecentTies andfull-cache-recency.exe;
 mid-sweep. Newqualify-cache-recency.py/test-cache-recency.bat will wait both
 repeated trials finish, then verify previous source/frozen binaries, build/test,
 runfive tiny wrapper modes, and promote wrapper only after qualification.
-Need package source manifest/tar, stage candidate wrapper with distinct filename,
-and launch098 qualifier after local checks/commit. It may wait alongside094/095.
+Source849a08bd committed/pushed; manifest cache-recency-source.json and tar
+/private/tmp/cache-recency-source.tar built from SHA-verified native baseline.
+All candidate files staged and SHA verified, PowerShell parser passed.
+098 qualifier ACTIVE/WAITING, Python3144,parent10896, state
+cache-recency-qualification-state.json. It waits094/095.
 No full recency trial prepared yet. Counter predictions097_cache_recency_counter_predictions.json:
 1rep recent33257hits39319misses26816admit26304evict20015ties,
 uncached1252329652224/hitbytes1059251945472.3rep99853/117875/80366/79854/60045ties,
