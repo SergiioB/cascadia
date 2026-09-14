@@ -1,0 +1,64 @@
+{
+  "scope": "observed_stall_cache_membership_correlation",
+  "reports": [
+    {
+      "campaign": 146,
+      "threads": 16,
+      "events": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "layer": 60,
+          "decode_index": 1,
+          "retained_slots_before": 6,
+          "misses": 5,
+          "attention_seconds": 0.0040956,
+          "mlp_seconds": 3.0275505,
+          "prefill": false,
+          "rows": 1,
+          "total_seconds": 3.0316461
+        },
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "layer": 62,
+          "decode_index": 1,
+          "retained_slots_before": 6,
+          "misses": 3,
+          "attention_seconds": 0.0040675,
+          "mlp_seconds": 2.480884,
+          "prefill": false,
+          "rows": 1,
+          "total_seconds": 2.4849515
+        }
+      ],
+      "cache_counters_match_actual": true
+    },
+    {
+      "campaign": 147,
+      "threads": 14,
+      "events": [
+        {
+          "case": "water_cycle",
+          "repetition": 0,
+          "layer": 34,
+          "decode_index": 1,
+          "retained_slots_before": 6,
+          "misses": 3,
+          "attention_seconds": 0.0039078,
+          "mlp_seconds": 2.4330209,
+          "prefill": false,
+          "rows": 1,
+          "total_seconds": 2.4369287
+        }
+      ],
+      "cache_counters_match_actual": true
+    }
+  ],
+  "cause_established": false,
+  "all_samples_included": true,
+  "caveats": [
+    "Entries are the causal prelookup state, not measured allocation events or fault attribution.",
+    "Default ReadBuffer.prepare_aligned grows Vec with zero initialization. Existing buffers are reused after cache fills; timing its phases requires a separate diagnostic."
+  ]
+}

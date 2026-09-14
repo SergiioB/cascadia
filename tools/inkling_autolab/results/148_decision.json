@@ -1,0 +1,72 @@
+{
+  "scope": "compute_pool_after_two_prefetch_readers",
+  "decision": "retain16_workers",
+  "selected_threads": 16,
+  "ready_for_next_runtime": true,
+  "confirmation149_launched": false,
+  "record_promoted": false,
+  "confirmed_record": 1.1161344306111156,
+  "all_samples_included": true,
+  "caveat": "146water includes3.02755s+2.480884sMLPstalls; score alone is not causal evidence. Neither candidate improves allcases.",
+  "comparison": {
+    "scope": "two_prefetch_readers_compute_pool_comparison",
+    "comparisons": [
+      {
+        "threads": 14,
+        "control_score": 1.0573199262951343,
+        "candidate_score": 1.0907942675769347,
+        "cases": [
+          {
+            "case": "water_cycle",
+            "control_tok_s": 1.0573199262951343,
+            "candidate_tok_s": 1.0907942675769347,
+            "ratio": 1.0316596145114705
+          },
+          {
+            "case": "binary_search",
+            "control_tok_s": 1.118256033494516,
+            "candidate_tok_s": 1.1105252532199852,
+            "ratio": 0.9930867529054394
+          },
+          {
+            "case": "short_story",
+            "control_tok_s": 1.1524094496287096,
+            "candidate_tok_s": 1.1427967555071363,
+            "ratio": 0.9916586122018779
+          }
+        ],
+        "all_cases_faster": false
+      },
+      {
+        "threads": 12,
+        "control_score": 1.0573199262951343,
+        "candidate_score": 1.1032245614855731,
+        "cases": [
+          {
+            "case": "water_cycle",
+            "control_tok_s": 1.0573199262951343,
+            "candidate_tok_s": 1.124304220317884,
+            "ratio": 1.0633529098968784
+          },
+          {
+            "case": "binary_search",
+            "control_tok_s": 1.118256033494516,
+            "candidate_tok_s": 1.1032245614855731,
+            "ratio": 0.9865581123117485
+          },
+          {
+            "case": "short_story",
+            "control_tok_s": 1.1524094496287096,
+            "candidate_tok_s": 1.1337901760281055,
+            "ratio": 0.9838431786492179
+          }
+        ],
+        "all_cases_faster": false
+      }
+    ],
+    "all_outputs_routes_cache_reads_exact": true,
+    "all_samples_included": true,
+    "record_promoted": false,
+    "decision": "review_before_conditional149_confirmation"
+  }
+}

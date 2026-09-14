@@ -1,0 +1,39 @@
+{
+  "scope": "worker_sweep_phase_comparison",
+  "samples": [
+    {
+      "campaign": 146,
+      "threads": 16,
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.2116874031746034,
+        "mlp_seconds": 0.658261361904764,
+        "total_seconds": 0.8699487650793677,
+        "outside_layers_seconds": 0.02427923650793425,
+        "wall_seconds": 0.8942495904761905
+      }
+    },
+    {
+      "campaign": 147,
+      "threads": 14,
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.21935016984126937,
+        "mlp_seconds": 0.6567274000000001,
+        "total_seconds": 0.8757258888888894,
+        "outside_layers_seconds": 0.02483213968253852,
+        "wall_seconds": 0.9004747952380953
+      }
+    },
+    {
+      "campaign": 148,
+      "threads": 12,
+      "median_decode_seconds_per_token": {
+        "attention_seconds": 0.222169520634921,
+        "mlp_seconds": 0.634478469841271,
+        "total_seconds": 0.8625346238095207,
+        "outside_layers_seconds": 0.02585633968253917,
+        "wall_seconds": 0.889438980952381
+      }
+    }
+  ],
+  "all_samples_included": true
+}

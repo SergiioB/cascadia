@@ -3,27 +3,29 @@
 Updated2026-09-14 14:24UTC. Work is ACTIVE. User requested autonomous optimization
 toward25tok/s. The target is unmet; do not stop after a finite campaign.
 
-## Active145-qualified compute-pool sweep146–148
+## Active151 native BF16 grain qualification;152–155 queued
 
-145 qualified16/14/12workers with frozenfull-third-prefetch.exe f91e4e0e,
-sourceaebab266 and productionwrapperc18b8446. Exact tinyoutputs/routes/cache/reads.
-Controller/private/tmp/run-inkling-worker-prefetch-loop.py ACTIVE;
-log/private/tmp/inkling-worker-prefetch-loop.log.14616worker control native10736
-created1789395814.2578628;14714workers and14812workers queued sequentially.
-After148 review148_worker_prefetch_comparison.json before conditional149.
-No149confirmation prepared/launched yet. Profile remains16workers/tworeaders/rank2,
-explicitThird0 local/nativeSHA28d023fce8a3bd27360917a5be4bd55f38bbcb24e4d05904f302f48b63a7741f.
-Record1291.116134431 min9 remains selected. Sampler3036 active;expires~18:13UTC.
+146–148worker sweep COMPLETE; both14/12 losebinary andstory versus16control.
+146min1.057319926(water2stalls),147min1.090794268(water1stall),148min1.103224561.
+Alloutputs/routes/cache/readforecasts exact; keep16workers, skip149confirmation.
+148_decision ready_for_next_runtime=true. Originalworkercontroller(session92001)ENDED.
+Coordinator/private/tmp/continue-inkling-after-workers.py ACTIVE(session3027),
+log/private/tmp/inkling-after-workers.log. It is staging151 via Win32Process/CIM,
+then runs qualification watcher/private/tmp/run-inkling-bf16-grain-loop.py and
+152grain1control/153grain16/154grain32/155grain64 sequentially, all16workers.
+Check151_launch/staging andnativebf16-grain-qualification-state forPID/creation.
+Do notlaunchduplicates. Review155_bf16_grain_comparison.json beforeconditional156.
+Profile retains129record1.116134431min9, tworeaders/rank2/Third0;
+SHA28d023fce8a3bd27360917a5be4bd55f38bbcb24e4d05904f302f48b63a7741f.
+Sampler3036continuesuntil~18:13UTC. Target25unmet; no export/Lambda needed.
 
 140 qualified261native tests/13suites,11tiny modes,6guards;16oldbinaries unchanged.
 full-third-prefetch.exe SHA f91e4e0e7002e0aa54a496d2ae24d1f706ed9b38003a568956bd1ae8d647cd03.
 141control1.115971895,142third1.112292152; allthree slower0.3–0.6%;143skipped.
-Allraw/SHA/qualification proofs committed8fade069; originalthirdcontroller ended.
-144 globalcacheforecast increased completedreads3.737%/4.187% on105/107,
-everycaseworse; no globalruntime implemented. Currentworker hypothesis records
-that earlier064–068sweep predatespreloading. No export/Lambda needed;25target unmet.
+144sharedcacheforecast increasedcompletedreads3.737%/4.187%on105/107;rejected.
+OtherInklingworktree rechecked14:34UTC cleanunchanged9aaebff0.
 
-##150 BF16 task grain implemented locally;151 not staged
+##150 BF16 task grain source and prepared151–155
 
 Two sourcefiles changed:dsv4/math.rs andexamples/inkling_decode_bench.rs.
 Opt-inCASCADIA_BF16_GEMV_MIN_ROWS1/16/32/64(default1), tiledAVX2rows2/4 only.
