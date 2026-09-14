@@ -291,3 +291,10 @@ Do not launch045 again. Control artifacts copied to/private/tmp/inkling-full-
 pipeline-control-artifacts. After045 choosewinner,prepare046final3repetitions.
 034 versus042 route traces match all192case/layerpairs and108288 routedselections
 includingprefill;037 cache/bandwidth analysis applies to the current routes.
+
+
+01:15UTC:045 has two completed cases,water0.57064855,binary0.60665843,exactIDs;
+finalcase/fullhash/counterspending. Prepared046_full_final_confirmation (NOT
+launched),PipelineReads1,3cases x3reps,63steps,expectedpipelinecount36288. If045
+finishes verified and all cases improve,run046 after tool20333/native exit.
+Keep sampler4208 active through046; no new build required.

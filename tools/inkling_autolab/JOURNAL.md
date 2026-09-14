@@ -1155,3 +1155,10 @@ to overlap (which is disabled here).045 started automatically,nativePID2368,
 created1789348029.3876903,under sequentialtool20333. Finalconfirmation pending.
 Direct034 anduncached042 choose identical routed IDs in all192case/layerpairs,
 108288 selections includingprefill. The prior037 traffic bound still applies.
+
+
+045 first two cases improve over matched044:water0.57064855(+4.25%),binary
+0.60665843(+12.00%),exactIDs. Final story/fullhash/counters remain pending.
+Prepared046_full_final_confirmation withPipelineReads1,all3cases x3reps,63decode
+steps each,timeout7200,expectedpipelinecount36288. NOT launched; require045
+completion/fullvalidation and no active native model before starting it.
