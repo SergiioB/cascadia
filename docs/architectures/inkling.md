@@ -334,6 +334,39 @@ int4 artifact (512 GB) resident — a ≥640 GB-RAM box with the pin, or an
 N-rank pipeline whose ranks together hold it (e.g. 4 × 160 GB) — plus those
 follow-ups.
 
+### OpenVINO expert backend (iGPU / NPU / CPU)
+
+A box whose CPU has no wide SIMD — Panther Lake is AVX2-only, so the int4
+kernels take their scalar/AVX2 paths — can run the experts on its Xe3 iGPU
+through OpenVINO instead: `CASCADIA_INKLING_OV_EXPERTS=1` with a
+`<model>/experts_ov/` tree makes every routed / shared expert and the two
+dense MLPs a compiled OV model (`inkling/ov_expert.rs`, the glm5 backend's
+design with Inkling's naming: `layer_NN/expert_EEE`, `expert_sharedS`,
+`dense`). The IRs come from `tools/inkling_expert_ov.py`, which packs the
+bins' own nibbles and bf16 group scales into `u4`/`bf16` constants — no
+re-quantisation, the IR sits on the exact grid the Rust kernel reads — and
+`--validate` compares one expert on CPU or GPU against a numpy reference of
+that grid. What differs from the Rust kernel is its inner bf16 rounding of
+gate/up (OpenVINO's `Convert` to bf16 truncates, so the graph cannot
+reproduce it) plus f32 accumulation order: measured on the Arc B390,
+relative rms 1.5e-6 per expert at f32 with 99.9% of bf16 outputs
+identical; `CASCADIA_INKLING_OV_PRECISION=f16` is the iGPU's native, inexact
+fast mode (7e-4). `CASCADIA_INKLING_OV_DEVICE` (default `GPU`),
+`_OV_CACHE` / `_OV_CACHE_MB` bound the LRU of compiled models by count and
+estimated device bytes (a resident benchmark of a few layers needs
+~13 GiB per MoE layer), `_OV_CACHE_DIR` persists the compiled blobs, and
+`_OV_DQ_GROUP` (default 0) keeps the plugins' int8 activation quantisation
+off. A missing or uncompilable IR falls back to the Rust kernel per expert
+(warned once); GPU resource exhaustion disables the backend for the
+process. `inkling_layer_dump --warm-ov` compiles every loaded layer's
+experts before timing and the read-out counts device hits, compiles and
+fallbacks, so a run that silently fell back cannot pass as a device
+measurement. Whole-model runs on a paged host are out of scope for this
+design (an IR per expert means a compile per first touch and one
+compiled model per resident expert), which is the glm5 backend's finding
+too; it exists to measure the iGPU's per-layer decode and prefill against
+the CPU kernel on real layers.
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert
