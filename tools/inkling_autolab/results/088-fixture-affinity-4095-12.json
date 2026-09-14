@@ -1,0 +1,97 @@
+{
+  "correctness_verified": true,
+  "embedding_mapped": true,
+  "expert_cache": {
+    "admissions": 16,
+    "capacity_bytes": 3145728,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 9,
+    "hit_bytes": 380160,
+    "hits": 110,
+    "misses": 16,
+    "retained_bytes": 55296
+  },
+  "export": "C:\\Users\\devcloud\\inkling-autolab\\repo\\crates\\cascadia-engine-sparse-moe\\tests\\fixtures\\inkling_export",
+  "manifest": {
+    "experts": 8,
+    "hidden": 64,
+    "layers": 4
+  },
+  "output_hash": "1f7cd0eb14a22662",
+  "owned_shared_bytes": 20736,
+  "pipelined_read_layers": 63,
+  "prefill_read_experts": 63,
+  "prefill_uncached_read_bytes": 0,
+  "prefill_uncached_read_fallbacks": 63,
+  "samples": [
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789376597.9557283,
+      "decode_seconds": 0.0043351,
+      "decode_started_unix": 1789376597.9513931,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789376597.9513924,
+      "prefill_seconds": 0.0066258,
+      "prefill_started_unix": 1789376597.9447663,
+      "repetition": 0
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789376597.9646153,
+      "decode_seconds": 0.0031419,
+      "decode_started_unix": 1789376597.9614732,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789376597.9614725,
+      "prefill_seconds": 0.0047591,
+      "prefill_started_unix": 1789376597.9567132,
+      "repetition": 1
+    },
+    {
+      "case": "tiny_hf_greedy",
+      "decode_ended_unix": 1789376597.973025,
+      "decode_seconds": 0.0030398,
+      "decode_started_unix": 1789376597.969985,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789376597.9699843,
+      "prefill_seconds": 0.0051994,
+      "prefill_started_unix": 1789376597.9647846,
+      "repetition": 2
+    }
+  ],
+  "scope": "fixture_model_decode",
+  "slowest_case_decode_tokens_per_s": 1614.7263038914905,
+  "uncached_read_bytes": 0,
+  "uncached_read_effective": false,
+  "uncached_read_fallbacks": 16
+}

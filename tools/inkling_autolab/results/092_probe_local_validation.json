@@ -1,0 +1,12 @@
+{
+  "scope": "local_extent_parser_validation",
+  "contiguous_extents_merged": true,
+  "gaps_counted": true,
+  "sparse_extent_recognized": true,
+  "malformed_inputs_rejected": 4,
+  "native_layout_probe_pending": true,
+  "source_sha256": {
+    "file-extent-metadata.py": "8fb63069012349f01966c84e2fb375e713f07fd7b17aced282087372c281a286",
+    "paired-layout-read-probe.py": "2059b78c6e1ed6a282b00bfb1c0e185222b809d74b3272e1566cbba4fb8e30e6"
+  }
+}

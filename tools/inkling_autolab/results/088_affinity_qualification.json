@@ -1,0 +1,54 @@
+{
+  "status": "qualified",
+  "unix": 1789376598.2107372,
+  "binary_sha256": "3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8",
+  "wrapper_sha256": "537d1b6f41e25f574377a39ba6d3bae7a959ef4262d4b070303c29ca0bfde461",
+  "modes": [
+    {
+      "mask": 65535,
+      "threads": 16,
+      "output_hash": "1f7cd0eb14a22662",
+      "artifacts": [
+        {
+          "name": "088-fixture-affinity-65535-16.json",
+          "sha256": "ad233f5027652706fd24261df9a65552486630c727f44cc8b8561c497b8d22ab"
+        },
+        {
+          "name": "088-fixture-affinity-65535-16.log",
+          "sha256": "8debe17b8dc5124f6f57a0b05eb2a1fb0e70183269e7488cf0e5c5beb9014a4e"
+        }
+      ]
+    },
+    {
+      "mask": 4095,
+      "threads": 12,
+      "output_hash": "1f7cd0eb14a22662",
+      "artifacts": [
+        {
+          "name": "088-fixture-affinity-4095-12.json",
+          "sha256": "f4e6f2bd96c981ff6ae077be814cd577042493daec0b10405c5f23fdfb198269"
+        },
+        {
+          "name": "088-fixture-affinity-4095-12.log",
+          "sha256": "aba0fb835bb66fa479a1c133976d37287f02d9f9e0c438c82e5cff0d8ceaa505"
+        }
+      ]
+    },
+    {
+      "mask": 4095,
+      "threads": 16,
+      "output_hash": "1f7cd0eb14a22662",
+      "artifacts": [
+        {
+          "name": "088-fixture-affinity-4095-16.json",
+          "sha256": "d4dfbdc9a4403a440b6b7fb352394478906fa49fe1a4f024c8481ac137d413df"
+        },
+        {
+          "name": "088-fixture-affinity-4095-16.log",
+          "sha256": "02068e69ba694bddb0ed1096ce28c24f54e27049c6dbec3e2a21d2be712e386c"
+        }
+      ]
+    }
+  ],
+  "measured_full_model_speedup": false
+}

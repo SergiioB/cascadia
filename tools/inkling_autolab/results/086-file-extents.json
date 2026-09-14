@@ -1,0 +1,1059 @@
+{
+  "scope": "read_only_original_expert_allocation_metadata",
+  "cluster_bytes": 4096,
+  "samples": [
+    {
+      "path": "model\\experts\\layer_02\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 857344
+        },
+        {
+          "clusters": 960,
+          "lcn": 50553246
+        },
+        {
+          "clusters": 512,
+          "lcn": 79812522
+        },
+        {
+          "clusters": 1024,
+          "lcn": 85293764
+        },
+        {
+          "clusters": 2488,
+          "lcn": 31861452
+        },
+        {
+          "clusters": 2536,
+          "lcn": 1378004
+        }
+      ],
+      "extent_count": 6,
+      "physical_runs": 6,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_02\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 288,
+          "lcn": 9310879
+        },
+        {
+          "clusters": 582,
+          "lcn": 79820069
+        },
+        {
+          "clusters": 923,
+          "lcn": 171038479
+        },
+        {
+          "clusters": 2047,
+          "lcn": 97710142
+        },
+        {
+          "clusters": 3936,
+          "lcn": 98110902
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_02\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 296,
+          "lcn": 8649168
+        },
+        {
+          "clusters": 472,
+          "lcn": 204751558
+        },
+        {
+          "clusters": 1097,
+          "lcn": 98910254
+        },
+        {
+          "clusters": 3139,
+          "lcn": 99003060
+        },
+        {
+          "clusters": 2772,
+          "lcn": 30865483
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_02\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 311,
+          "lcn": 201847332
+        },
+        {
+          "clusters": 459,
+          "lcn": 110305301
+        },
+        {
+          "clusters": 1398,
+          "lcn": 7299008
+        },
+        {
+          "clusters": 2345,
+          "lcn": 56404447
+        },
+        {
+          "clusters": 2255,
+          "lcn": 98217077
+        },
+        {
+          "clusters": 1008,
+          "lcn": 97232184
+        }
+      ],
+      "extent_count": 6,
+      "physical_runs": 6,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_02\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 322,
+          "lcn": 25286904
+        },
+        {
+          "clusters": 446,
+          "lcn": 2557546
+        },
+        {
+          "clusters": 1517,
+          "lcn": 97882447
+        },
+        {
+          "clusters": 5491,
+          "lcn": 107468160
+        }
+      ],
+      "extent_count": 4,
+      "physical_runs": 4,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_02\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 284,
+          "lcn": 105865588
+        },
+        {
+          "clusters": 509,
+          "lcn": 104194442
+        },
+        {
+          "clusters": 999,
+          "lcn": 106818673
+        },
+        {
+          "clusters": 2048,
+          "lcn": 106206107
+        },
+        {
+          "clusters": 3936,
+          "lcn": 113020037
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 183170524
+        },
+        {
+          "clusters": 512,
+          "lcn": 133330360
+        },
+        {
+          "clusters": 1024,
+          "lcn": 133337008
+        },
+        {
+          "clusters": 2048,
+          "lcn": 142945476
+        },
+        {
+          "clusters": 3936,
+          "lcn": 38310767
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 75296397
+        },
+        {
+          "clusters": 512,
+          "lcn": 75297933
+        },
+        {
+          "clusters": 1024,
+          "lcn": 75744693
+        },
+        {
+          "clusters": 2048,
+          "lcn": 75867068
+        },
+        {
+          "clusters": 3936,
+          "lcn": 76770780
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 478,
+          "lcn": 90771712
+        },
+        {
+          "clusters": 290,
+          "lcn": 105566476
+        },
+        {
+          "clusters": 1024,
+          "lcn": 105577006
+        },
+        {
+          "clusters": 2048,
+          "lcn": 23648608
+        },
+        {
+          "clusters": 3936,
+          "lcn": 27768758
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 172058082
+        },
+        {
+          "clusters": 512,
+          "lcn": 172059618
+        },
+        {
+          "clusters": 1024,
+          "lcn": 191817232
+        },
+        {
+          "clusters": 2048,
+          "lcn": 191842268
+        },
+        {
+          "clusters": 3936,
+          "lcn": 85076491
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 435,
+          "lcn": 161921193
+        },
+        {
+          "clusters": 333,
+          "lcn": 238889094
+        },
+        {
+          "clusters": 1024,
+          "lcn": 39781936
+        },
+        {
+          "clusters": 2048,
+          "lcn": 39798035
+        },
+        {
+          "clusters": 3936,
+          "lcn": 34071969
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_14\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 141368020
+        },
+        {
+          "clusters": 512,
+          "lcn": 141372628
+        },
+        {
+          "clusters": 1024,
+          "lcn": 31811096
+        },
+        {
+          "clusters": 2048,
+          "lcn": 23450064
+        },
+        {
+          "clusters": 3936,
+          "lcn": 115894724
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 179789057
+        },
+        {
+          "clusters": 512,
+          "lcn": 179792897
+        },
+        {
+          "clusters": 1024,
+          "lcn": 179809025
+        },
+        {
+          "clusters": 2048,
+          "lcn": 179847425
+        },
+        {
+          "clusters": 3936,
+          "lcn": 187947708
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 94030823
+        },
+        {
+          "clusters": 512,
+          "lcn": 94039783
+        },
+        {
+          "clusters": 1024,
+          "lcn": 94062567
+        },
+        {
+          "clusters": 2048,
+          "lcn": 94089703
+        },
+        {
+          "clusters": 3936,
+          "lcn": 188806092
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 115675375
+        },
+        {
+          "clusters": 512,
+          "lcn": 115693039
+        },
+        {
+          "clusters": 1024,
+          "lcn": 115701743
+        },
+        {
+          "clusters": 2048,
+          "lcn": 78981797
+        },
+        {
+          "clusters": 3936,
+          "lcn": 79052888
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 221576210
+        },
+        {
+          "clusters": 512,
+          "lcn": 221584658
+        },
+        {
+          "clusters": 1024,
+          "lcn": 193931877
+        },
+        {
+          "clusters": 2048,
+          "lcn": 193953411
+        },
+        {
+          "clusters": 3936,
+          "lcn": 194015363
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 481,
+          "lcn": 176140915
+        },
+        {
+          "clusters": 287,
+          "lcn": 171643732
+        },
+        {
+          "clusters": 1024,
+          "lcn": 171660403
+        },
+        {
+          "clusters": 2048,
+          "lcn": 171694451
+        },
+        {
+          "clusters": 3936,
+          "lcn": 171750259
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_27\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 78344707
+        },
+        {
+          "clusters": 512,
+          "lcn": 177469740
+        },
+        {
+          "clusters": 1024,
+          "lcn": 177491467
+        },
+        {
+          "clusters": 2048,
+          "lcn": 177522187
+        },
+        {
+          "clusters": 3936,
+          "lcn": 177583627
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 111563368
+        },
+        {
+          "clusters": 512,
+          "lcn": 111569256
+        },
+        {
+          "clusters": 1024,
+          "lcn": 111585384
+        },
+        {
+          "clusters": 2048,
+          "lcn": 221604604
+        },
+        {
+          "clusters": 3936,
+          "lcn": 221660412
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 221875708
+        },
+        {
+          "clusters": 512,
+          "lcn": 221887484
+        },
+        {
+          "clusters": 1024,
+          "lcn": 221901308
+        },
+        {
+          "clusters": 2048,
+          "lcn": 221926140
+        },
+        {
+          "clusters": 3936,
+          "lcn": 94372125
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 94587805
+        },
+        {
+          "clusters": 512,
+          "lcn": 94591133
+        },
+        {
+          "clusters": 1024,
+          "lcn": 94609053
+        },
+        {
+          "clusters": 2048,
+          "lcn": 94642333
+        },
+        {
+          "clusters": 3936,
+          "lcn": 166968415
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 167191391
+        },
+        {
+          "clusters": 512,
+          "lcn": 167195231
+        },
+        {
+          "clusters": 1024,
+          "lcn": 167213407
+        },
+        {
+          "clusters": 2048,
+          "lcn": 167240799
+        },
+        {
+          "clusters": 3936,
+          "lcn": 52100514
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 52323234
+        },
+        {
+          "clusters": 512,
+          "lcn": 52332706
+        },
+        {
+          "clusters": 1024,
+          "lcn": 52339362
+        },
+        {
+          "clusters": 2048,
+          "lcn": 52370338
+        },
+        {
+          "clusters": 3936,
+          "lcn": 141026622
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_40\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 141228350
+        },
+        {
+          "clusters": 512,
+          "lcn": 141233470
+        },
+        {
+          "clusters": 1024,
+          "lcn": 141254462
+        },
+        {
+          "clusters": 2048,
+          "lcn": 141289534
+        },
+        {
+          "clusters": 3936,
+          "lcn": 84003181
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 79990150
+        },
+        {
+          "clusters": 512,
+          "lcn": 79994758
+        },
+        {
+          "clusters": 1024,
+          "lcn": 79998854
+        },
+        {
+          "clusters": 2048,
+          "lcn": 80033670
+        },
+        {
+          "clusters": 3936,
+          "lcn": 80103302
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 80326278
+        },
+        {
+          "clusters": 512,
+          "lcn": 80334982
+        },
+        {
+          "clusters": 1024,
+          "lcn": 80355206
+        },
+        {
+          "clusters": 2048,
+          "lcn": 80380294
+        },
+        {
+          "clusters": 3936,
+          "lcn": 80443014
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 161968576
+        },
+        {
+          "clusters": 512,
+          "lcn": 161979328
+        },
+        {
+          "clusters": 1024,
+          "lcn": 161997760
+        },
+        {
+          "clusters": 2048,
+          "lcn": 162031552
+        },
+        {
+          "clusters": 3936,
+          "lcn": 162090688
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 768,
+          "lcn": 162315968
+        },
+        {
+          "clusters": 1024,
+          "lcn": 162329792
+        },
+        {
+          "clusters": 2048,
+          "lcn": 162364096
+        },
+        {
+          "clusters": 3936,
+          "lcn": 162431680
+        }
+      ],
+      "extent_count": 4,
+      "physical_runs": 4,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 162651840
+        },
+        {
+          "clusters": 512,
+          "lcn": 162660032
+        },
+        {
+          "clusters": 1024,
+          "lcn": 162671552
+        },
+        {
+          "clusters": 2048,
+          "lcn": 162700992
+        },
+        {
+          "clusters": 3936,
+          "lcn": 77077123
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_53\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 77303427
+        },
+        {
+          "clusters": 512,
+          "lcn": 77315715
+        },
+        {
+          "clusters": 1024,
+          "lcn": 77330819
+        },
+        {
+          "clusters": 2048,
+          "lcn": 77362819
+        },
+        {
+          "clusters": 3936,
+          "lcn": 77415043
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_000.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 139568934
+        },
+        {
+          "clusters": 512,
+          "lcn": 139577638
+        },
+        {
+          "clusters": 1024,
+          "lcn": 139589926
+        },
+        {
+          "clusters": 2048,
+          "lcn": 38522741
+        },
+        {
+          "clusters": 3936,
+          "lcn": 38574815
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_043.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 38816767
+        },
+        {
+          "clusters": 512,
+          "lcn": 38826495
+        },
+        {
+          "clusters": 1024,
+          "lcn": 38847231
+        },
+        {
+          "clusters": 2048,
+          "lcn": 38875391
+        },
+        {
+          "clusters": 3936,
+          "lcn": 38930687
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_085.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 39140607
+        },
+        {
+          "clusters": 512,
+          "lcn": 39146751
+        },
+        {
+          "clusters": 1024,
+          "lcn": 39164927
+        },
+        {
+          "clusters": 2048,
+          "lcn": 39203327
+        },
+        {
+          "clusters": 3936,
+          "lcn": 39259647
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_128.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 39481343
+        },
+        {
+          "clusters": 512,
+          "lcn": 39482879
+        },
+        {
+          "clusters": 1024,
+          "lcn": 39503103
+        },
+        {
+          "clusters": 2048,
+          "lcn": 39545599
+        },
+        {
+          "clusters": 3936,
+          "lcn": 39596031
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_170.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 123780125
+        },
+        {
+          "clusters": 512,
+          "lcn": 123791901
+        },
+        {
+          "clusters": 1024,
+          "lcn": 123811869
+        },
+        {
+          "clusters": 2048,
+          "lcn": 123839517
+        },
+        {
+          "clusters": 3936,
+          "lcn": 123896349
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    },
+    {
+      "path": "model\\experts\\layer_65\\expert_213.bin",
+      "bytes": 31850496,
+      "extents": [
+        {
+          "clusters": 256,
+          "lcn": 124108061
+        },
+        {
+          "clusters": 512,
+          "lcn": 124113181
+        },
+        {
+          "clusters": 1024,
+          "lcn": 124128541
+        },
+        {
+          "clusters": 2048,
+          "lcn": 124163101
+        },
+        {
+          "clusters": 3936,
+          "lcn": 124223261
+        }
+      ],
+      "extent_count": 5,
+      "physical_runs": 5,
+      "unallocated_or_compressed_clusters": 0
+    }
+  ],
+  "files": 36,
+  "files_with_multiple_physical_runs": 36,
+  "median_physical_runs": 5.0,
+  "maximum_physical_runs": 6,
+  "caveats": [
+    "36 fixed original experts across six layers, not every model file.",
+    "Allocation metadata is not a throughput measurement.",
+    "No file data, allocation or volume settings were changed."
+  ]
+}

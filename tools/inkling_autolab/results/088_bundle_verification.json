@@ -1,0 +1,66 @@
+{
+  "archive_sha256": "19975218b6860e1dbc6c357bc113b4e99350d51c8cb4e5f22c769334b10e9a7c",
+  "artifacts": [
+    {
+      "name": "compressed-read-probe-state.json",
+      "sha256": "17efa3ec2611cd2cf44a52a9534ec636e255958363106ae53e8383116d7d77f4"
+    },
+    {
+      "name": "file-extents-probe-state.json",
+      "sha256": "554dd25796fb2107ed3ef3f767e18d7c5ad6ed212fa00de3fd813101eedfe899"
+    },
+    {
+      "name": "affinity-qualification-state.json",
+      "sha256": "27b35008fabc514e5bf697c99848c36c9c4ffb3d1f5e5022e07d4ad0f59d15e5"
+    },
+    {
+      "name": "084-compressed-read-probe.json",
+      "sha256": "53af176e257250635ea7cc2e6281027eadc7bf3a6803085da5bbd6eb0e74d222"
+    },
+    {
+      "name": "084-compressed-read-probe.log",
+      "sha256": "c7e63a9e06218b1ec00a3c7104b3ec9d08adc3cc17511c99f2e25a337cd1413a"
+    },
+    {
+      "name": "086-file-extents.json",
+      "sha256": "966715f749c6bb7e649f233dddd66d2f5df7477d0baed726e504584493b6c241"
+    },
+    {
+      "name": "086-file-extents.log",
+      "sha256": "3eaf14c9d2be8516805a5dd6c4c318b3116cd28712f2764cf8cbac3b4be6e85e"
+    },
+    {
+      "name": "088-affinity-qualification.json",
+      "sha256": "0746206a6c950f766f676d23d43e8c77c52d99ba3efb7386e6dbbe4310e2e004"
+    },
+    {
+      "name": "088-affinity-qualification.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "088-fixture-affinity-65535-16.json",
+      "sha256": "ad233f5027652706fd24261df9a65552486630c727f44cc8b8561c497b8d22ab"
+    },
+    {
+      "name": "088-fixture-affinity-65535-16.log",
+      "sha256": "8debe17b8dc5124f6f57a0b05eb2a1fb0e70183269e7488cf0e5c5beb9014a4e"
+    },
+    {
+      "name": "088-fixture-affinity-4095-12.json",
+      "sha256": "f4e6f2bd96c981ff6ae077be814cd577042493daec0b10405c5f23fdfb198269"
+    },
+    {
+      "name": "088-fixture-affinity-4095-12.log",
+      "sha256": "aba0fb835bb66fa479a1c133976d37287f02d9f9e0c438c82e5cff0d8ceaa505"
+    },
+    {
+      "name": "088-fixture-affinity-4095-16.json",
+      "sha256": "d4dfbdc9a4403a440b6b7fb352394478906fa49fe1a4f024c8481ac137d413df"
+    },
+    {
+      "name": "088-fixture-affinity-4095-16.log",
+      "sha256": "02068e69ba694bddb0ed1096ce28c24f54e27049c6dbec3e2a21d2be712e386c"
+    }
+  ],
+  "temporary_codec_fixtures_removed": true
+}

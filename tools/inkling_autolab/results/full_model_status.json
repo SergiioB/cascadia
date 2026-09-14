@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T09:01:40.623122+00:00",
+  "updated_at": "2026-09-14T09:15:47.620426+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.9382743961161363,
-  "status": "076_080_row_retuning_running",
+  "status": "090_091_affinity_sweep_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Complete076\u2013080 row sweep, select best exact profile; native084 compressed-read component probe next. Continue optimization toward25.",
+  "next_action": "Finish affinity sweep, run prepared092 matched layout probe, then repeated confirmation of best row/affinity combination and continue optimization.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -46,28 +46,28 @@
   "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.9382743961161363,
   "last_verified_campaign": "074_full_cache_confirmation",
-  "active_campaign": "080_full_rows_2_2",
+  "active_campaign": "090_full_affinity_4095_12",
   "record_verification": "074_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 5180,
-      "created_unix": 1789376229.1035454,
+      "native_pid": 4780,
+      "created_unix": 1789377059.9814112,
       "binary": "full-cache-decay.exe",
-      "campaign": "080_full_rows_2_2"
+      "campaign": "090_full_affinity_4095_12"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
-  "queued_campaigns": [],
+  "queued_campaigns": [
+    "091_full_affinity_4095_16"
+  ],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 66059,
+  "controller_session": 43106,
   "pending_storage_probe": {
-    "pid": 3204,
-    "parent_pid": 10144,
-    "status": "waiting_for_row_sweep",
-    "output": "084-compressed-read-probe.json"
+    "status": "092_prepared_not_launched",
+    "output": "092-layout-read-probe.json"
   },
   "row_qualification": {
     "status": "qualified_and_exited",
@@ -83,7 +83,13 @@
   "queued_metadata_probe": {
     "pid": 3604,
     "parent_pid": 1164,
-    "status": "waiting_for_084",
+    "status": "complete_and_exited",
     "output": "086-file-extents.json"
+  },
+  "affinity_qualification": {
+    "status": "qualified_and_exited",
+    "pid": 10528,
+    "parent_pid": 3964,
+    "modes": 3
   }
 }

@@ -180,16 +180,16 @@ questions:
     read bytes; exact outputs/routes/counters. Three-repeat confirmation074 active.'
 - id: q75
   question: Do the existing BF16 and int4 row tile choices remain optimal after streamed prefill and caching?
-  status: active
+  status: answered
   priority: 3
-  reason: Prepare075 native qualification after074, then076 fresh2/4 control and077–080 independent row
-    tile trials. All outputs and I/O counters remain gated.
+  answer: 076–080 single-pass2/2 candidate scores0.935296 vsfresh2/4control0.924475, allcases improve0.75–1.17%
+    with exact counters/routes. Repeatedconfirmation pending; selectedconfirmed2/4 remains0.938274.
 - id: q84
   question: Can lossless compression reduce full expert-read latency after accounting for decompression?
-  status: active
+  status: answered
   priority: 3
-  reason: 083 source probe saves12.5–13.1% bytes; native084 matched component queued after rows. No runtime
-    compression implementation.
+  answer: 084 all30 matched compressed+decode arms lose,2–3.6x slower despite13% fewer bytes. Native decode
+    alone~26.5–26.9ms. Reject runtimeZstd; all byte/error gates pass.
 - id: q88
   question: Does restricting workers to CPUs0–11 sharing one reported last-level cache improve exact full
     decode?
@@ -197,3 +197,9 @@ questions:
   priority: 3
   reason: 087 topology and saved decode utilization justify an isolated process-affinity comparison.088
     native qualification then089–091 full campaigns prepared.
+- id: q92
+  question: Do byte-identical sequential copies reduce expert read latency by improving allocation layout?
+  status: active
+  priority: 2
+  reason: 086 observes4–6 physical runs per original file, median5.092 matched temporary-copy probe prepared
+    after affinity sweep; no model relocation or new export.

@@ -1,0 +1,75 @@
+{
+  "scope": "full_model_one_pass_row_sweep",
+  "all_routes_counters_outputs_match": true,
+  "rows": [
+    {
+      "bf16_rows": 2,
+      "int4_rows": 4,
+      "slowest": 0.9244748903015528,
+      "rates": {
+        "water_cycle": 0.9657023794754878,
+        "binary_search": 0.9244748903015528,
+        "short_story": 0.9538239835295006
+      },
+      "speedup_vs_fresh_control": 1.0
+    },
+    {
+      "bf16_rows": 1,
+      "int4_rows": 4,
+      "slowest": 0.9273579552424785,
+      "rates": {
+        "water_cycle": 0.964527246179224,
+        "binary_search": 0.9273579552424785,
+        "short_story": 0.9554967514543696
+      },
+      "speedup_vs_fresh_control": 1.0031185973477175
+    },
+    {
+      "bf16_rows": 4,
+      "int4_rows": 4,
+      "slowest": 0.9311444128423556,
+      "rates": {
+        "water_cycle": 0.9727446461431669,
+        "binary_search": 0.9311444128423556,
+        "short_story": 0.957879905612217
+      },
+      "speedup_vs_fresh_control": 1.0072143901481492
+    },
+    {
+      "bf16_rows": 2,
+      "int4_rows": 1,
+      "slowest": 0.9297757262733887,
+      "rates": {
+        "water_cycle": 0.931182978003541,
+        "binary_search": 0.9297757262733887,
+        "short_story": 0.9565463988833951
+      },
+      "speedup_vs_fresh_control": 1.0057338885322313
+    },
+    {
+      "bf16_rows": 2,
+      "int4_rows": 2,
+      "slowest": 0.9352964152013928,
+      "rates": {
+        "water_cycle": 0.9742113678952382,
+        "binary_search": 0.9352964152013928,
+        "short_story": 0.960958769614017
+      },
+      "speedup_vs_fresh_control": 1.0117055909396415
+    }
+  ],
+  "candidate_for_repeated_confirmation": {
+    "bf16_rows": 2,
+    "int4_rows": 2
+  },
+  "selected_confirmed_profile_remains": {
+    "bf16_rows": 2,
+    "int4_rows": 4,
+    "record": 0.9382743961161363
+  },
+  "caveats": [
+    "Single pass per row combination; differences are small and require repeated confirmation.",
+    "079 transport failed before command launch;079b retry supplied native079 data.",
+    "Next affinity experiment keeps the confirmed2/4 profile to isolate core placement."
+  ]
+}

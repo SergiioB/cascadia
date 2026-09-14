@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "089-affinity-65535-16-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "089-affinity-65535-16-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "089-affinity-65535-16-layers.json",
+      "source_bytes": 2710853,
+      "source_sha256": "628a06d91b50790e97143f2b0e15c7036ed31bf7f07fdeb62df05650e527c6ae",
+      "compressed_file": "089-affinity-65535-16-layers.json.gz",
+      "compressed_bytes": 156120,
+      "compressed_sha256": "ac3a54ab3effa8ace787e77401bc8d8d8aee8a8dfcb0e68ea17423d0bc7dff4d"
+    },
+    {
+      "source_file": "089-host-resources.snapshot.jsonl",
+      "source_bytes": 2282002,
+      "source_sha256": "a680f34026c81491b6b2240f0a33b5bd909126a0eb4139549b47f6b748d69e62",
+      "compressed_file": "089-host-resources.snapshot.jsonl.gz",
+      "compressed_bytes": 190102,
+      "compressed_sha256": "c890366f1c0896b00ce81776717037d9595ab765da63e025f5c6f5ca313f49c0"
+    }
+  ]
+}

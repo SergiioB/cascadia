@@ -1,0 +1,23 @@
+{
+  "scope": "resource_phase_attribution_unavailable",
+  "benchmark_sha256": "e15ea010baacdbb393f75b3200c786d632e0ce4ec05ade1db71e0c9898edb92e",
+  "strict_phase_check_rejected": true,
+  "discrepancies": [
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "phase": "decode",
+      "wall_minus_monotonic_seconds": 1.5447454314117408,
+      "monotonic_seconds": 66.0475495
+    }
+  ],
+  "decode_rate_uses_unchanged_monotonic_timer": true,
+  "lifetime_resource_report": "089_resources.json",
+  "lifetime_resource_rates_use_sampler_monotonic_time": true,
+  "phase_resource_rates_reported": false,
+  "caveats": [
+    "The cause of the wall-clock shift was not established.",
+    "All raw benchmark/log/route/layer/resource artifacts were copied and SHA verified before the optional phase analysis failed.",
+    "The full benchmark output/hash/configuration gates passed; no throughput validation was relaxed."
+  ]
+}

@@ -43,3 +43,13 @@ Keep prefill and decode timing distinct. The native benchmark counts63 decode
 steps after the first generated token, which belongs to prefill. Its score is
 the slowest case/repetition and includes logits hashing. Exact baseline IDs,
 full-logits hash and actual I/O/cache counters gate every full-model result.
+
+## Benchmark process affinity
+
+`run-full.ps1 -AffinityMask MASK` sets affinity only on the benchmark child and
+reads the actual mask back before timing proceeds. Default65535 retains all16
+logical processors. Mask4095 selectsCPUs0–11, which Windows reports as sharing
+one last-level cache;CPUs12–15 report a separate cache. Native qualification088
+passed65535/16workers,4095/12workers and4095/16workers with exact fixture outputs.
+Full performance comparison089–091 is in progress; the selected profile still
+uses all16 CPUs. This option does not change machine power or service settings.

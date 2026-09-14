@@ -9,7 +9,9 @@ full-logits hashes and routing decisions match. **The 25 tokens/s target is unme
 prompts × three repetitions, with 64 generated tokens and 63 decode steps each.
 Prefill takes 23.82–25.13 seconds. The score includes the first decode run and
 output checking; decode timing excludes prefill. Optimization remains active:
-the next trials retest existing matrix row tiles under this improved profile.
+the current trials compare process affinity, followed by a storage-layout probe.
+The row sweep found a 1.17% single-pass candidate improvement with int4 rows2;
+that setting still needs repeated confirmation.
 See [HANDOFF.md](HANDOFF.md) for current jobs.
 
 ## What was measured

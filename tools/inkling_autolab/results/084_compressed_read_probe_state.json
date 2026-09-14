@@ -1,0 +1,53 @@
+{
+  "status": "complete",
+  "pid": 3204,
+  "unix": 1789376578.2999914,
+  "summaries": [
+    {
+      "files": 2,
+      "pairs": 10,
+      "compressed_wins": 0,
+      "median_pair_speedup": 0.28139374396192063,
+      "median_seconds": {
+        "original": 0.011310100089758635,
+        "compressed": 0.04044275009073317,
+        "decode_only": 0.026509849820286036
+      },
+      "median_pair_speedup_by_first_mode": {
+        "original": 0.27943435689432594,
+        "compressed": 0.2833531310295153
+      }
+    },
+    {
+      "files": 4,
+      "pairs": 10,
+      "compressed_wins": 0,
+      "median_pair_speedup": 0.41182735596563913,
+      "median_seconds": {
+        "original": 0.019370750291272998,
+        "compressed": 0.04711250006221235,
+        "decode_only": 0.02688799984753132
+      },
+      "median_pair_speedup_by_first_mode": {
+        "original": 0.41321440610540094,
+        "compressed": 0.39832689577189195
+      }
+    },
+    {
+      "files": 6,
+      "pairs": 10,
+      "compressed_wins": 0,
+      "median_pair_speedup": 0.5066934749763311,
+      "median_seconds": {
+        "original": 0.025214599911123514,
+        "compressed": 0.04894905001856387,
+        "decode_only": 0.026791949989274144
+      },
+      "median_pair_speedup_by_first_mode": {
+        "original": 0.5029743408658531,
+        "compressed": 0.5137198551797281
+      }
+    }
+  ],
+  "full_model_speedup_measured": false
+}

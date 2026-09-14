@@ -1,91 +1,105 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated2026-09-14 09:01UTC. User resumed autonomous optimization.
-Work is ACTIVE; do not stop after a finite campaign. Target25tok/s is unmet.
+Updated 2026-09-14 09:15 UTC. Work is ACTIVE. User requested autonomous
+optimization toward25tok/s. Do not stop after a finite campaign. Target unmet.
 
-## Current record and live work
+## Current record and active trials
 
-**Confirmed074 record:0.9382743961tok/s**, slowest of nine samples,
-median0.9648021079,fastest1.0329282085.6.933×original,1.652×prior046 record.
-All baseline IDs/hash, all046 prefill+decode routes, all actual cache/I/O counters
-match. Native6112 exited. Verification074_final_verification.json, raw artifacts
-and SHA manifests committed with this handoff. PERFORMANCE.md and ptl-profile.ps1
-promoted; native profile copy SHA verified. Sampler remains active.
+Confirmed campaign074: **0.9382743961tok/s** slowest of nine samples,
+median0.9648021079, fastest1.0329282085.6.933×original and1.652×prior046record.
+All tokens/logits/routes/actual counters match. PERFORMANCE.md and native/local
+ptl-profile.ps1 were promoted. Full CPU backend; no full Arc backend.
 
-**076 control COMPLETE0.9244748903**, **077 rows1/4 COMPLETE0.9273579552**;
-**078 rows4/4 COMPLETE0.9311444128**, **079b rows2/1 COMPLETE0.9297757263**;
-**080_full_rows_2_2 RUNNING**.
-Controller **66059**, script`/private/tmp/run-inkling-row-loop-resume.py`.
-Original36811 exited after079 SSH banner timeout; failed079 history is retained.
-Host recheck proved no079 files/process before retry. Newcampaign079b_full_rows_2_1_retry
-uses original079 native outputs,30sConnectTimeout;080 has same transport timeout.
-Logs`/private/tmp/inkling-076_full_rows_2_4.log` and equivalent campaign names.
-Native0786304 and0776752 exited; both artifacts/SHA/profiles are archived.
-Native080 **PID5180**, created**1789376229.1035454**.079b3268 exited;
-079 native artifacts and retry campaign report are archived, original failed079 retained.
-Outputs076-rows-2-4.json/.log/-routes.json/-layers.json, then077-rows-1-4.*,
-078-rows-4-4.*,079-rows-2-1.*,080-rows-2-2.*.
-Frozenfull-cache-decay.exe SHA3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8,
-source6b820e83. All have16workers/cache256MiBperlayer/PrefillReads1/
-CacheResetHistory1/CacheDecayRequests32, other selected flags unchanged.
-Each3prompts×1rep,64generated/63decode; only row tile knobs vary.
-Exact hashce0fbb9a116d3d09, IDs/counters/config gates remain enabled.
+**090_full_affinity_4095_12 RUNNING;091_full_affinity_4095_16 QUEUED.**
+Controller **43106**, script`/private/tmp/run-inkling-affinity-loop.py`.
+Logs`/private/tmp/inkling-CAMPAIGN_NAME.log`.
+Native090 **PID4780**, created**1789377059.9814112**.
+Outputs090-affinity-4095-12.json/.log/-routes.json/-layers.json;
+next091-affinity-4095-16.*.089 all16CPU/16worker control completed0.9268264569.
+089 PID8156 created1789376738.9105453 exited; raw artifacts/SHA/layer profile
+verified. Its optional phase resource analysis rejected a1.544745s wall-clock
+shift in short_story decode. **089_resources.json is explicitly lifetime-only**
+with monotonic sampler elapsed;089_clock_anomaly.json records the limitation.
+Benchmark rates use RustInstant and remain valid. Do not relax phase checks.
 
-075native row qualification passed all five modes, tiny hash1f7cd0eb14a22662,
-IDs[28,48,106,84,28,48,106,84]×3. Binary/wrapper unchanged. Native9864,parent3504
-exited; all reports/logs copied and SHA verified. Sourcequalify-row-retune.py,
-commite6881951 (pushed). Controller refuses to start without074 formal and075
-qualification reports. Capture each full trial after its PID/lifetime exits:
-`python3 /private/tmp/capture-inkling-trial.py 076 076-rows-2-4 2208 1789374854.695914`
-Future3-repeat capture uses`--repetitions3`. Helper checks exact grid/IDs/full
-shape/hash; copies and SHA checks reports, log, traces and whole-line sampler
-snapshot; archives gzip plus layer/phase-resource analyses. Outputdir
-/private/tmp/inkling-STEM-artifacts. Do not overwrite immutable snapshots.
+Both candidates restrict process affinity to4095(CPUs0–11), with12/16workers.
+They retain BF16rows2/int4rows4, cache256MiBperlayer, PrefillReads1, historyreset1,
+decay32, all selected flags. Actual child affinity is read back and gated.
+Native production run-full.ps1 was promoted by088 after all3tiny modes passed;
+it matches the local file. Sourcewrapper0840a7f1; affinity-source.json has exact
+old/newSHA. **Frozen engine unchanged**: full-cache-decay.exe SHA
+3874c863852b036757069bbac207a473481dd5408c854c037c7a2a72f6a431e8, source6b820e83.
+Each full trial3prompts×1rep,64generated/63decode; exact hashce0fbb9a116d3d09,
+IDs and cache/I/O counters. Native08810528,parent3964 exited; all artifacts saved.
 
-After row sweep, select best candidate and continue. **084 compressed-read
-component probe is STAGED AND WAITING.** NativePython**3204**,parent**10144**,
-state`compressed-read-probe-state.json`, output084-compressed-read-probe.json/.log.
-Source`compressed-read-probe.py`, commit1b3a0640(pushed);
-local byte/error/context-reuse canary and failure-drain check pass; see084_probe_local_validation.json. PTL already has
-C:/msys64/mingw64/bin/libzstd.dll and zstd.EXE, plus include/zstd.h; nativePython
-3.11.9 has no zstandard package. Repo has no zstd dependency. Probe pins existingDLLSHA b95c223a9548a9ecf51377c962e0bc8f0c51eb0c6f67a296dbc885996f0dd40d,version1.5.7; usesctypes, separate decompression contexts/preallocated buffers, original
-uncached read vs temporary padded compressed uncached read+decompression,
-matched cohorts/balanced order/exact bytes. Wait until080/full processes exit;
-never overlap component benchmark with full trial. No runtime compression code.
+After affinity sweep, **092 matched layout-read probe PREPARED, NOT STAGED OR
+LAUNCHED** at this checkpoint. Sourcepaired-layout-read-probe.py and helper
+file-extent-metadata.py. Stage both, SHA check them plus unchanged
+uncached-read-probe.py, then launch detached with
+--out C:/Users/devcloud/inkling-autolab/092-layout-read-probe.json.
+It waits for089–091 reports and no full process, then takes queue lock.
+30matched cohorts,2/4/6 files, balancedAB/BA; writes only temporary sequential
+byte-identical copies, queries original/copy extents, hashes both timed arms.
+Original model files remain untouched; temp files are removed afterward.
+Local extent-parser tests and syntax checks passed (092_probe_local_validation).
+**Do not start another full trial until092 completes/exits.** Then confirm the
+best row/affinity combination across3reps (nine samples) before promoting it.
+Row2/2 is the current unconfirmed candidate; keep an exact native tiny oracle
+for the combined settings. Continue optimization afterward.
 
-## Evidence and remaining experiments
+## Completed evidence
 
-071defaultdecay4096 onepass0.9193077063;072decay32 onepass0.9370410437.
-Allthree prompts improved1.48–2.11%; reads3.116%lower. Report072comparison.
-074 repeated score0.938274 is the selected profile; record details above.
-064–068workers16/8/12/24/32 select16; scores.917566/.884640/.901151/.869538/.858327.
-069async75cohorts and073matched30pairs passed all bytes/error canaries but show
-no consistent gain. Defer async/chunked runtime. Both exited; artifacts verified.
-081 causal prefill-cache seeding removes only0.610%remaining reads at8slots/32;
-history-only0.053%. Defer runtime prefill admission. All simulator controls match.
-082 shorterdecays4/8/16/32 have139809/128331/123825/123493 misses over9samples;
-32 remains best, so no extra short-decay full tests needed.
-083 source-host compressibility probe:18experts across6layers, Zstd1 ratio.874644,
-Zstd3 .868844.36byte-exact decompressions. Compressed bytes stayed in memory;
-no model export or files written. Report083_source_compressibility.json. Miner
-onlyread existing /mnt/external_ssd/inkling/out; no Lambda used. Need084 PTL
-read+decompression comparison before treating13%bytesaved as a speed gain.
-Current scratch pool already global/capped256MiB; no per-layer consolidation.
+076–080 row sweep complete:2/4=.924475,1/4=.927358,4/4=.931144,
+2/1=.929776,2/2=.935296. Last improves everyprompt0.75–1.17% vsfreshcontrol,
+but needs repeatedconfirmation.080_row_comparison.json. Confirmed profile
+remains2/4/.938274. All raw artifacts/SHA/route/counter comparisons archived.
+079 initial SSH banner failure happened before launch; original failed history
+retained.079b retried after proving no files/process and supplied native079data.
+Controllers36811(failedtransport) and66059(resumednormal) exited.
+
+084 Zstd component rejected: all30matched pairs lost.2/4/6 original reads
+11.310/19.371/25.215ms versuscompressed+decode40.443/47.113/48.949ms.
+Decode-only26.5–26.9ms. All120expert SHA/error canaries pass, temporary3.8GBscale
+fixtures removed. Native3204,parent10144 exited. No runtime compression code.
+083 source18experts had compressed/original ratios.874644/.868844 atlevels1/3;
+source timing was not PTL speed. No new export or rental performed.
+
+086 metadata read-only:36originalfiles, physicalrun counts4for2files,5for32,
+6for2; cluster4096B. Native3604,parent1164 exited. No filedata/allocationchange.
+084/086/088 copied in SHA-verified native084-086-088-artifacts.zip;
+local/private/tmp/inkling-084-086-088-artifacts.zip,088_bundle_verification.json.
+
+087 topology: class1CPU0–3,class0CPU4–15. CPU0–11 shareLLCindex0;
+CPU12–15 shareindex12. All16 materially active in saved074 decode. Utilization
+is machine-wide; do not infer individual model usage or name core types solely
+from EfficiencyClass.087_cpu_topology.json/087_decode_cpu_usage.json.
+085 joined36288MoEvisits with validated causal misses; medianMLP0–6misses
+3.795/5.373/8.540/11.572/14.578/17.582/20.617ms. Correlation only.
+081prefillseeding removes0.610%remaining reads/deferred.082decays4/8/16lose
+on miss counts to32/deferred.069/073 async probes show no consistentgain/deferred.
+
+## Operations
 
 Sampler3036(shim9352,parent10880) ACTIVE,048-host-resources.jsonl,
-stopmarkerstop-048-sampler,12h expiry~18:13UTC. Do not stop while loopcontinues.
-Resource analyzer uses only whole adjacent intervals within exact phasewindows.
-Process thread totals include other runtime threads; do not assertRayon+1.
-Selected flags:16workers,BF16rows2,int4rows4,Reads0,MmapEmbed1,Reuse1,SkipBulk1,
-OwnShared1,Uncached1,Pipeline1,cache256perlayer,PrefillReads1,historyreset1,decay32,
-Highpriority,affinity65535. Actual cache16.3096GB,ownedshared4.0769GB.
-All runtime flags opt-in. Cache-decay native qualification242tests+five modes+
-productionwrapper passed; preserve all frozen olderbinaries.
+stopmarkerstop-048-sampler, expiry~18:13UTC. Keep it running.
+Capture completed trial with exactPID+creation:
+`python3 /private/tmp/capture-inkling-trial.py NUMBER STEM PID CREATED`
+Use`--repetitions3` for confirmation. Helper checks IDs/grid/full shape/hash,
+SHA-verifies copies and archives diagnostics. Output/private/tmp/inkling-STEM-artifacts.
+Do not overwrite immutable snapshots; failed optional analysis needs explicit
+scoped diagnostic treatment, as089 demonstrates. Process thread totals include
+non-Rayon threads; do not gate total=Rayon+1.
 
-No new export or Lambda rental required. Preserve OVMS6728/node8356/CA6344 and
-other agents' worktrees. Commit AND push as Tate Berenbaum
-<t8@users.noreply.github.com>, no coauthor trailers. Branchperf/inkling-panther-autolab,
-worktree/private/tmp/tahoma-inkling-panther-autolab. Historical details below.
+Selected profile:16workers,rows2/4,Reads0,MmapEmbed1,Reuse1,SkipBulk1,OwnShared1,
+Uncached1,Pipeline1,cache256perlayer,PrefillReads1,historyreset1,decay32,
+Highpriority,all16CPUaffinity65535. Actual retained16.3096GB,ownedshared4.0769GB.
+Runtime flags remain opt-in; native cache-decay242tests+five tiny modes passed.
+Preserve all frozen binaries, protectedOVMS6728/node8356/CA6344, otherworktrees.
+Originalfeat/inkling rechecked09:12UTC unchanged clean9aaebff0.
+No new export/Lambda work needed. Commit AND push as Tate Berenbaum
+<t8@users.noreply.github.com>; no coauthor trailers. Our branch/worktree:
+perf/inkling-panther-autolab at/private/tmp/tahoma-inkling-panther-autolab.
+Historical details below; active state above takes precedence.
 
 ## Ownership and repositories
 
