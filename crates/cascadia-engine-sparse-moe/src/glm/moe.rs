@@ -104,6 +104,23 @@ fn hot_cold() -> Option<HotCold> {
     *E.get_or_init(|| parse_hotcold(std::env::var("CASCADIA_GLM5_HOTCOLD").ok().as_deref()))
 }
 
+/// Warn ONCE per process that hot/cold cold reads are falling back to the mmap
+/// kernel. Output stays bit-identical, so without this a systematically
+/// failing overlap (bad model store, I/O errors, thread exhaustion) is
+/// invisible — the operator asked for the overlap and silently isn't getting
+/// it. Once is enough: this fires in the decode hot path, per token-layer.
+fn warn_hotcold_fallback(n: usize, err: Option<&str>) {
+    use std::sync::Once;
+    static W: Once = Once::new();
+    W.call_once(|| {
+        eprintln!(
+            "[glm5] hotcold: {n} cold read(s) fell back to the mmap kernel ({}); \
+             output is correct but those experts are not overlapped",
+            err.unwrap_or("reader failure"),
+        );
+    });
+}
+
 impl AnyExpert {
     /// One expert's SwiGLU FFN for token `x`. `inter` is this expert's
     /// intermediate width (routed = `moe_inter`, shared = `moe_inter·n_shared`).
@@ -418,6 +435,11 @@ impl MoeLayer {
                         Some(self.w.experts[e as usize].forward(x, self.hidden, self.moe_inter));
                 }
             } else {
+                // Cold reads that fail fall back to mmap (bit-identical), so a
+                // systematically failing overlap is otherwise invisible behind
+                // correct output — count the fallbacks and keep the first error.
+                let mut cold_fail = 0usize;
+                let mut cold_err: Option<String> = None;
                 std::thread::scope(|s| {
                     // Launch the cold reads first so NVMe is busy for the
                     // whole hot-compute window. One thread per cold bin: the
@@ -435,7 +457,7 @@ impl MoeLayer {
                         match ex.as_mmap() {
                             Some(m) => {
                                 match std::thread::Builder::new()
-                                    .spawn_scoped(s, move || m.read_bytes().ok())
+                                    .spawn_scoped(s, move || m.read_bytes())
                                 {
                                     Ok(h) => readers.push((slot, h)),
                                     // The OS refused a thread (fd/thread
@@ -445,9 +467,13 @@ impl MoeLayer {
                                     // rather than let the spawn panic take down
                                     // the whole decode.
                                     Err(_) => {
-                                        ys[slot] = Some(match m.read_bytes().ok() {
-                                            Some(b) => m.swiglu_from(&b, x),
-                                            None => ex.forward(x, self.hidden, self.moe_inter),
+                                        ys[slot] = Some(match m.read_bytes() {
+                                            Ok(b) => m.swiglu_from(&b, x),
+                                            Err(e) => {
+                                                cold_fail += 1;
+                                                cold_err.get_or_insert_with(|| e.to_string());
+                                                ex.forward(x, self.hidden, self.moe_inter)
+                                            }
                                         })
                                     }
                                 }
@@ -468,16 +494,35 @@ impl MoeLayer {
                     // always-active pin candidate — extra hot compute to hide
                     // the reads behind.
                     shared_pre = Some(self.w.shared.forward(x, self.hidden, self.shared_inter));
-                    // Drain the reads; a failed read falls back to the mmap
-                    // kernel for that expert (same value, just faults).
+                    // Drain the reads; a failed read or a panicked reader
+                    // thread falls back to the mmap kernel for that expert
+                    // (same value, just faults) and is counted so the fallback
+                    // is not silent.
                     for (slot, h) in readers {
                         let ex = &self.w.experts[gate.idx[slot] as usize];
-                        ys[slot] = Some(match (h.join().ok().flatten(), ex.as_mmap()) {
+                        let buf = match h.join() {
+                            Ok(Ok(b)) => Some(b),
+                            Ok(Err(e)) => {
+                                cold_fail += 1;
+                                cold_err.get_or_insert_with(|| e.to_string());
+                                None
+                            }
+                            Err(_) => {
+                                cold_fail += 1;
+                                cold_err.get_or_insert_with(|| "reader thread panicked".into());
+                                None
+                            }
+                        };
+                        ys[slot] = Some(match (buf, ex.as_mmap()) {
                             (Some(b), Some(m)) => m.swiglu_from(&b, x),
                             _ => ex.forward(x, self.hidden, self.moe_inter),
                         });
                     }
                 });
+                if cold_fail > 0 {
+                    prof::note_hotcold_fail(cold_fail);
+                    warn_hotcold_fallback(cold_fail, cold_err.as_deref());
+                }
             }
             // Accumulate in gate order — the exact op order of forward_token's
             // other branches, so hot/cold stays bit-identical.
