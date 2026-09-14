@@ -178,3 +178,9 @@ questions:
   priority: 4
   answer: 'Matched071/072: decay32 improves every prompt1.48–2.11%, slowest0.937041 tok/s, 3.116% fewer
     read bytes; exact outputs/routes/counters. Three-repeat confirmation074 active.'
+- id: q75
+  question: Do the existing BF16 and int4 row tile choices remain optimal after streamed prefill and caching?
+  status: active
+  priority: 3
+  reason: Prepare075 native qualification after074, then076 fresh2/4 control and077–080 independent row
+    tile trials. All outputs and I/O counters remain gated.
