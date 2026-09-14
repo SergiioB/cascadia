@@ -190,6 +190,19 @@ impl Layer {
         }
     }
 
+    /// Route this layer's attention projections through an OpenVINO backend.
+    pub fn attach_ov_attn(&mut self, layer: u32, ov: Arc<super::ov_attn::OvAttn>) {
+        self.attn.attach_ov(layer, ov);
+    }
+
+    pub fn ov_attn(&self) -> Option<&Arc<super::ov_attn::OvAttn>> {
+        self.attn.ov().map(|(_, o)| o)
+    }
+
+    pub fn warm_ov_attn(&self) -> Option<bool> {
+        self.attn.warm_ov()
+    }
+
     /// The attached fused-MoE backend, if any.
     pub fn ov_moe(&self) -> Option<&Arc<super::ov_moe::OvMoe>> {
         match &self.mlp {
@@ -683,6 +696,16 @@ impl Model {
         for (i, l) in self.layers.iter_mut().enumerate() {
             if ov.has_layer(i as u32) {
                 l.attach_ov_moe(i as u32, Arc::clone(&ov));
+            }
+        }
+    }
+
+    /// Route every layer's attention projections that have IRs through an
+    /// OpenVINO backend (layer index = position).
+    pub fn attach_ov_attn(&mut self, ov: Arc<super::ov_attn::OvAttn>) {
+        for (i, l) in self.layers.iter_mut().enumerate() {
+            if ov.has_layer(i as u32) {
+                l.attach_ov_attn(i as u32, Arc::clone(&ov));
             }
         }
     }

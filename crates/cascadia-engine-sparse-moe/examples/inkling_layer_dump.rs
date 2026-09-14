@@ -350,6 +350,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    if let Some(ova) = stage.layers.iter().find_map(|l| l.ov_attn()) {
+        let with: Vec<usize> = stage
+            .layers
+            .iter()
+            .enumerate()
+            .filter(|(_, l)| l.ov_attn().is_some())
+            .map(|(i, _)| i)
+            .collect();
+        println!(
+            "[inkling_layer_dump] OpenVINO attention-projection backend attached: device={} layers={with:?}",
+            ova.device()
+        );
+        if args.warm_ov {
+            let t_warm = Instant::now();
+            let mut ok = 0usize;
+            let mut bad = Vec::new();
+            for (i, l) in stage.layers.iter().enumerate() {
+                match l.warm_ov_attn() {
+                    Some(true) => ok += 1,
+                    Some(false) => bad.push(i),
+                    None => {}
+                }
+            }
+            println!(
+                "[inkling_layer_dump] warmed {ok} attention layer(s) in {:.1}s ({} failed{})",
+                t_warm.elapsed().as_secs_f64(),
+                bad.len(),
+                if bad.is_empty() {
+                    String::new()
+                } else {
+                    format!(": {bad:?}")
+                }
+            );
+        }
+    }
+
     // ---- embeddings (shared by both paths) ----
     let mut embed_out = Vec::with_capacity(t_len * hidden);
     for &t in &args.tokens {
@@ -451,6 +487,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
             st.compiles,
             if st.compiles > 0 { st.compile_ns as f64 / st.compiles as f64 / 1e9 } else { 0.0 },
+            st.fallbacks,
+            if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
+        );
+    }
+    if let Some(ova) = stage.layers.iter().find_map(|l| l.ov_attn()) {
+        let st = ova.stats();
+        println!(
+            "[inkling_layer_dump] OpenVINO attention: {} calls ({} rows) @ {:.3} ms mean, {} compiles, {} fell back{}",
+            st.calls,
+            st.rows,
+            if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
+            st.compiles,
             st.fallbacks,
             if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
         );
