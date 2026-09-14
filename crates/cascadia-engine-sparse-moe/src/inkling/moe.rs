@@ -156,6 +156,11 @@ pub struct MoeLayer {
     /// selected expert then runs its compiled IR (iGPU / NPU / CPU), falling
     /// back per call to the Rust kernel. See [`super::ov_expert`].
     ov: Option<(u32, Arc<super::ov_expert::OvExperts>)>,
+    /// Optional fused-MoE backend (`(layer index, backend)`): the whole layer
+    /// as one compiled OpenVINO model, routing from [`Self::route`]. Takes
+    /// precedence over `ov` for the routed + shared experts. See
+    /// [`super::ov_moe`].
+    ov_moe: Option<(u32, Arc<super::ov_moe::OvMoe>)>,
 }
 
 impl MoeLayer {
@@ -276,6 +281,7 @@ impl MoeLayer {
             route_observer: None,
             expert_cache: super::expert_cache::ExpertCache::new(n_routed, cache_bytes),
             ov: None,
+            ov_moe: None,
         }
     }
 
@@ -332,6 +338,43 @@ impl MoeLayer {
 
     pub fn ov(&self) -> Option<(u32, &Arc<super::ov_expert::OvExperts>)> {
         self.ov.as_ref().map(|(l, o)| (*l, o))
+    }
+
+    /// Route this layer through a fused-MoE backend (see [`super::ov_moe`]);
+    /// `layer` is the global layer index its IR is filed under.
+    pub fn attach_ov_moe(&mut self, layer: u32, ov: Arc<super::ov_moe::OvMoe>) {
+        self.ov_moe = Some((layer, ov));
+    }
+
+    pub fn ov_moe(&self) -> Option<(u32, &Arc<super::ov_moe::OvMoe>)> {
+        self.ov_moe.as_ref().map(|(l, o)| (*l, o))
+    }
+
+    /// Compile this layer's fused IR ahead of time; `None` without a backend.
+    pub fn warm_ov_moe(&self) -> Option<bool> {
+        let (lid, ov) = self.ov_moe.as_ref()?;
+        Some(ov.warm(*lid))
+    }
+
+    /// `rows` rows through the fused backend: route each row here, dispatch
+    /// the ids + weights (shared experts as `n_routed + s` with their gammas)
+    /// in one call. `None` when the backend declines (the caller falls back).
+    fn forward_ov_moe(&self, xs: &[f32], rows: usize) -> Option<Vec<f32>> {
+        let (lid, ov) = self.ov_moe.as_ref()?;
+        let k = self.top_k + self.w.shared.len();
+        if ov.k_total() != k {
+            return None;
+        }
+        let mut ids = Vec::with_capacity(rows * k);
+        let mut wts = Vec::with_capacity(rows * k);
+        for r in 0..rows {
+            let gate = self.route(&xs[r * self.hidden..(r + 1) * self.hidden]);
+            ids.extend(gate.idx.iter().map(|&e| e as i32));
+            ids.extend((0..self.w.shared.len()).map(|s| (self.n_routed + s) as i32));
+            wts.extend_from_slice(&gate.w);
+            wts.extend_from_slice(&gate.gammas);
+        }
+        ov.forward(*lid, xs, rows, &ids, &wts)
     }
 
     /// Compile every expert of this layer on the attached OV backend (a
@@ -483,6 +526,11 @@ impl MoeLayer {
             "inkling MoE layer has no local experts and no expert-parallel client attached \
              (a driver built with ExpertSet::None must attach_remote before running)"
         );
+        if self.ov_moe.is_some() {
+            if let Some(y) = self.forward_ov_moe(x, 1) {
+                return y;
+            }
+        }
         if self.ov.is_some() {
             return self.forward_ov(x);
         }
@@ -644,6 +692,11 @@ impl MoeLayer {
         assert_eq!(xs.len(), rows * self.hidden, "moe forward_batch: xs len");
         if self.remote.is_some() {
             return self.forward_remote(xs, rows);
+        }
+        if self.ov_moe.is_some() {
+            if let Some(y) = self.forward_ov_moe(xs, rows) {
+                return y;
+            }
         }
         if self.ov.is_some() {
             // Per-expert IRs take one row at a time; rows run concurrently.

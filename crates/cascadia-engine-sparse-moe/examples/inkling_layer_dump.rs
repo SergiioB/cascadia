@@ -311,8 +311,43 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("[inkling_layer_dump] FAILED keys (layer, expert): {failed:?}");
             }
         }
-    } else if args.warm_ov {
-        println!("[inkling_layer_dump] --warm-ov ignored: no OpenVINO backend attached (set CASCADIA_INKLING_OV_EXPERTS=1 with an experts_ov/ dir)");
+    } else if args.warm_ov && stage.layers.iter().all(|l| l.ov_moe().is_none()) {
+        println!("[inkling_layer_dump] --warm-ov ignored: no OpenVINO backend attached (set CASCADIA_INKLING_OV_EXPERTS=1 with an experts_ov/ dir, or CASCADIA_INKLING_OV_MOE=1 with moe_ov/)");
+    }
+    if let Some(ovm) = stage.layers.iter().find_map(|l| l.ov_moe()) {
+        let fused: Vec<usize> = stage
+            .layers
+            .iter()
+            .enumerate()
+            .filter(|(_, l)| l.ov_moe().is_some())
+            .map(|(i, _)| i)
+            .collect();
+        println!(
+            "[inkling_layer_dump] OpenVINO fused-MoE backend attached: device={} layers={fused:?} (one compiled model per layer; decode padded to 2 rows)",
+            ovm.device()
+        );
+        if args.warm_ov {
+            let t_warm = Instant::now();
+            let mut ok = 0usize;
+            let mut bad = Vec::new();
+            for (i, l) in stage.layers.iter().enumerate() {
+                match l.warm_ov_moe() {
+                    Some(true) => ok += 1,
+                    Some(false) => bad.push(i),
+                    None => {}
+                }
+            }
+            println!(
+                "[inkling_layer_dump] warmed {ok} fused MoE layer(s) in {:.1}s ({} failed{})",
+                t_warm.elapsed().as_secs_f64(),
+                bad.len(),
+                if bad.is_empty() {
+                    String::new()
+                } else {
+                    format!(": {bad:?}")
+                }
+            );
+        }
     }
 
     // ---- embeddings (shared by both paths) ----
@@ -407,6 +442,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ms(pre_total),
         ms(pre_total) / t_len as f64
     );
+    if let Some(ovm) = stage.layers.iter().find_map(|l| l.ov_moe()) {
+        let st = ovm.stats();
+        println!(
+            "[inkling_layer_dump] OpenVINO fused MoE: {} calls ({} rows) @ {:.3} ms mean, {} compiles @ {:.1} s, {} fell back{}",
+            st.calls,
+            st.rows,
+            if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
+            st.compiles,
+            if st.compiles > 0 { st.compile_ns as f64 / st.compiles as f64 / 1e9 } else { 0.0 },
+            st.fallbacks,
+            if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
+        );
+    }
     if let Some(ov) = stage.layers.first().and_then(|l| l.ov()) {
         let st = ov.stats();
         let avg = |ns: u64, n: u64| {
