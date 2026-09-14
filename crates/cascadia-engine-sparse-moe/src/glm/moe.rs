@@ -85,13 +85,18 @@ fn parse_hotcold(v: Option<&str>) -> Option<HotCold> {
     }
 }
 
-/// Hot/cold overlapped decode: split each token's routed experts by measured
-/// page residency — HOT experts compute straight from their resident mmap pages
-/// while COLD experts' bins are read concurrently on background I/O threads,
-/// so the exposed latency is ~max(hot compute, cold reads) instead of their
-/// sum. Opt-in via `CASCADIA_GLM5_HOTCOLD`; supersedes `CASCADIA_GLM5_R1READ`
-/// when both are set (R1 reads every routed bin up-front and serializes reads
-/// before compute; this path skips resident bins entirely and overlaps).
+/// Hot/cold overlapped decode: split each token's routed experts into HOT
+/// (resident) and COLD (mostly non-resident). HOT experts compute straight
+/// from their resident mmap pages while COLD experts' bins are read
+/// concurrently on background I/O threads, so the cold READS overlap the hot +
+/// shared compute (exposed ≈ `max(hot+shared compute, cold reads)`); the cold
+/// experts' own GEMVs then run in the drain, so the total is that max plus the
+/// cold compute — the win is hiding the reads, not the cold compute.
+/// (Probe mode does the residency split; ForceCold treats every mmap expert as
+/// cold — see [`HotCold`].) Opt-in via `CASCADIA_GLM5_HOTCOLD`; supersedes
+/// `CASCADIA_GLM5_R1READ` when both are set (R1 reads every routed bin up-front
+/// and serializes reads before compute; this path skips resident bins entirely
+/// and overlaps).
 ///
 /// The split-and-overlap design follows FreeToken (Yang et al.,
 /// arXiv:2608.16157), which divides expert cache-misses between the transfer
@@ -437,9 +442,11 @@ impl MoeLayer {
             }
         } else if let Some(mode) = hot_cold() {
             // Hot/cold overlapped reads (FreeToken-style, arXiv:2608.16157):
-            // probe residency per routed expert, read the COLD bins on
-            // background I/O threads (whole-bin sequential, page-cache
-            // warming — same read as R1), and compute the HOT experts + the
+            // classify each routed expert hot/cold (Probe residency-probes,
+            // ForceCold marks every mmap expert cold), read the COLD bins on
+            // background I/O threads (whole-bin sequential into an owned buffer
+            // we compute from directly — same read as R1; warming the page
+            // cache is only a side effect), and compute the HOT experts + the
             // shared expert from resident pages meanwhile. Expert outputs
             // land in per-slot buffers and are accumulated in gate order
             // below, so the result is bit-identical to every other path.
