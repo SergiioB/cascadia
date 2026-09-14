@@ -51,6 +51,9 @@ struct Args {
     tokens: Vec<u32>,
     out: PathBuf,
     experts: Option<ExpertsMode>,
+    /// Compile every loaded layer's experts on the OpenVINO backend before
+    /// timing (only meaningful with `CASCADIA_INKLING_OV_EXPERTS=1`).
+    warm_ov: bool,
     max_seq: Option<usize>,
 }
 
@@ -60,6 +63,7 @@ fn parse_args() -> Result<Args, String> {
     let mut tokens = None;
     let mut out = PathBuf::from("inkling_dump.safetensors");
     let mut experts = None;
+    let mut warm_ov = false;
     let mut max_seq = None;
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -86,6 +90,9 @@ fn parse_args() -> Result<Args, String> {
                 tokens = Some(ids.map_err(|e| format!("--tokens {raw:?}: {e}"))?);
             }
             "--out" => out = PathBuf::from(value("--out")?),
+            "--warm-ov" => {
+                warm_ov = true;
+            }
             "--experts" => {
                 experts = Some(match value("--experts")?.as_str() {
                     "eager" => ExpertsMode::Eager,
@@ -114,6 +121,7 @@ fn parse_args() -> Result<Args, String> {
         tokens,
         out,
         experts,
+        warm_ov,
         max_seq,
     })
 }
@@ -275,6 +283,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         cache_bytes >> 20
     );
 
+    // ---- OpenVINO expert backend: report, and warm on request ----
+    if let Some(ov) = stage.layers.first().and_then(|l| l.ov()) {
+        println!(
+            "[inkling_layer_dump] OpenVINO expert backend attached: device={} (experts run as compiled IRs; \
+             Rust kernel per call only on fallback)",
+            ov.device()
+        );
+        if args.warm_ov {
+            let t_warm = Instant::now();
+            let mut compiled = 0usize;
+            let mut failed = Vec::new();
+            for l in &stage.layers {
+                if let Some((n, bad)) = l.warm_ov() {
+                    compiled += n;
+                    failed.extend(bad);
+                }
+            }
+            let (held, bytes) = ov.cached();
+            println!(
+                "[inkling_layer_dump] warmed {compiled} expert IR(s) in {:.1}s ({} failed; cache holds {held}, ~{} MiB device)",
+                t_warm.elapsed().as_secs_f64(),
+                failed.len(),
+                bytes >> 20
+            );
+            if !failed.is_empty() {
+                println!("[inkling_layer_dump] FAILED keys (layer, expert): {failed:?}");
+            }
+        }
+    } else if args.warm_ov {
+        println!("[inkling_layer_dump] --warm-ov ignored: no OpenVINO backend attached (set CASCADIA_INKLING_OV_EXPERTS=1 with an experts_ov/ dir)");
+    }
+
     // ---- embeddings (shared by both paths) ----
     let mut embed_out = Vec::with_capacity(t_len * hidden);
     for &t in &args.tokens {
@@ -367,6 +407,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ms(pre_total),
         ms(pre_total) / t_len as f64
     );
+    if let Some(ov) = stage.layers.first().and_then(|l| l.ov()) {
+        let st = ov.stats();
+        let avg = |ns: u64, n: u64| {
+            if n > 0 {
+                ns as f64 / n as f64 / 1e6
+            } else {
+                0.0
+            }
+        };
+        println!(
+            "[inkling_layer_dump] OpenVINO experts: {} calls on device ({} hits @ {:.3} ms, {} compiles @ {:.1} ms), {} fell back to the Rust kernel{}",
+            st.hits + st.misses,
+            st.hits,
+            avg(st.hit_ns, st.hits),
+            st.misses,
+            avg(st.miss_ns, st.misses),
+            st.fallbacks,
+            if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
+        );
+    }
     if !logits_dec.is_empty() {
         let v = m.unpadded_vocab();
         let am: Vec<usize> = (0..t_len)
