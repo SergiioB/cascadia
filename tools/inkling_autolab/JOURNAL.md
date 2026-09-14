@@ -1287,3 +1287,15 @@ Prepared052qualification, nativecandidatefull-prefill-reads.exe and separate
 prefill I/O counters. Sources/tests are staged only; qualifier is NOT launched
 and native cache-trial binary/sources remain unchanged. Use q48 measured winner
 for a subsequent same-binary prefill comparison after current049/050/051.
+
+049 cache-disabled control completed normally, exactfullhash/IDs. Rates
+0.566639/0.581579/0.586488tok/s (slowest0.5666387288). Actualuncachedbytes
+2,249,218,326,528,cachecapacity/hits0,pipelinecount12096,fallbacks0. Native10040
+created1789366425.177786 ended. Archived049 rawdiagnostics and sampledresources;
+medianattention0.366418,MLP1.343450,outside0.024892seconds/token. Privatepeak
+26.093GB,minavailable1.69MB,kernelfraction39.61%; includesload/prefill.
+050 cache64 started automatically,native10944,created1789367136.4451942.
+Controller73582 remains active;051 follows on success. Sampler3036/shim9352,
+parent10880. Fixed controller telemetry: unobserved full-checkpoint availability
+is now null rather than falsely reporting a missing deployment for empty new
+campaign history. Target/correctness gates unchanged;19 tests pass.

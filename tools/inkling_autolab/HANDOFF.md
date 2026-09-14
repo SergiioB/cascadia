@@ -11,11 +11,13 @@ fe913c6844813bfa48b380e886c477224b77b3462f5e0b4c752345f8b2f61e88,
 source049034de. Qualifier10336/test8168/parent1452 ended. All six older binaries
 preserved. Evidence048_expert_cache_windows_validation.json.
 
-**049cache0 -> 050cache64MiB/layer -> 051cache128MiB/layer RUNNING sequentially**
+**049cache0 COMPLETE; 050cache64MiB/layer RUNNING; 051cache128MiB/layer QUEUED**
 under local tool73582. Logs/private/tmp/inkling-049_full_expert_cache_control.log,
 /private/tmp/inkling-050_full_expert_cache_64mib.log,
 /private/tmp/inkling-051_full_expert_cache_128mib.log. Do not launch duplicates.
-Native outputs049-cache-0.*,050-cache-64.*,051-cache-128.*. Sampler
+049 slowest0.5666387288tok/s,exactoutputs,counters pass.050native10944,
+created1789367136.4451942. Native outputs049-cache-0.*,050-cache-64.*,
+051-cache-128.*. Sampler
 048-host-resources.jsonl,stopmarkerstop-048-sampler,12-hour limit from~06:14UTC.
 
 Continue analyzing and optimizing after this comparison; 25tok/s bandwidth

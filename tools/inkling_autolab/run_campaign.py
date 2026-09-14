@@ -73,7 +73,13 @@ def main() -> None:
                 'target_full_model_decode_tokens_per_s': 25,
                 'full_model_target_reached': target_reached,
                 'measurement_scope': campaign.config.get('measurement_scope', 'synthetic_resident_layer'),
-                'full_checkpoint_available': any(r.get('metrics', {}).get('full_model') == 1 for r in history),
+                # An empty new campaign has not observed the model yet; that
+                # does not mean the verified deployment disappeared. Keep this
+                # observation unknown until a full-model result reports it.
+                'full_checkpoint_available': (
+                    True if any(r.get('metrics', {}).get('full_model') == 1 for r in history)
+                    else None
+                ),
             }, indent=2) + '\n')
 
         checkpoint('running')

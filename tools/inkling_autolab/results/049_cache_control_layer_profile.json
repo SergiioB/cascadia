@@ -1,0 +1,1662 @@
+{
+  "scope": "layer_timing_analysis",
+  "full_model": true,
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "median_decode_seconds_per_token": {
+    "attention_seconds": 0.36641817936508014,
+    "mlp_seconds": 1.3434496952380952,
+    "total_seconds": 1.6945649936507952,
+    "outside_layers_seconds": 0.024891580952379446,
+    "wall_seconds": 1.7194565746031745
+  },
+  "samples": [
+    {
+      "case": "water_cycle",
+      "repetition": 0,
+      "decode_steps": 63,
+      "prefill": {
+        "attention_seconds": 12.284385499999997,
+        "mlp_seconds": 82.92562909999998,
+        "total_seconds": 95.21001459999998,
+        "outside_layers_seconds": 1.7988696000000175,
+        "wall_seconds": 97.0088842
+      },
+      "decode": {
+        "attention_seconds": 23.08434530000005,
+        "mlp_seconds": 86.32448820000033,
+        "total_seconds": 109.40883349999956,
+        "outside_layers_seconds": 1.7731186000004442,
+        "wall_seconds": 111.1819521
+      },
+      "layers": [
+        {
+          "layer": 0,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.007109593650793651,
+            "mlp_seconds": 0.029305346031746008,
+            "total_seconds": 0.03641493968253967
+          }
+        },
+        {
+          "layer": 1,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005678434920634918,
+            "mlp_seconds": 0.004720609523809522,
+            "total_seconds": 0.010399044444444444
+          }
+        },
+        {
+          "layer": 2,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005875604761904761,
+            "mlp_seconds": 0.023016847619047626,
+            "total_seconds": 0.028892452380952383
+          }
+        },
+        {
+          "layer": 3,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0059867841269841265,
+            "mlp_seconds": 0.022364395238095237,
+            "total_seconds": 0.028351179365079346
+          }
+        },
+        {
+          "layer": 4,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005969531746031744,
+            "mlp_seconds": 0.022164392063492064,
+            "total_seconds": 0.02813392380952381
+          }
+        },
+        {
+          "layer": 5,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005211646031746032,
+            "mlp_seconds": 0.021300495238095237,
+            "total_seconds": 0.026512141269841267
+          }
+        },
+        {
+          "layer": 6,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005939396825396825,
+            "mlp_seconds": 0.022369960317460313,
+            "total_seconds": 0.028309357142857143
+          }
+        },
+        {
+          "layer": 7,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00611393333333333,
+            "mlp_seconds": 0.021785211111111112,
+            "total_seconds": 0.027899144444444437
+          }
+        },
+        {
+          "layer": 8,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005919580952380951,
+            "mlp_seconds": 0.021468217460317466,
+            "total_seconds": 0.02738779841269842
+          }
+        },
+        {
+          "layer": 9,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006244514285714284,
+            "mlp_seconds": 0.022881541269841283,
+            "total_seconds": 0.029126055555555568
+          }
+        },
+        {
+          "layer": 10,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.029020961904761895,
+            "mlp_seconds": 0.021128244444444437,
+            "total_seconds": 0.050149206349206325
+          }
+        },
+        {
+          "layer": 11,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005610431746031745,
+            "mlp_seconds": 0.021927163492063494,
+            "total_seconds": 0.027537595238095233
+          }
+        },
+        {
+          "layer": 12,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006381768253968253,
+            "mlp_seconds": 0.022548715873015882,
+            "total_seconds": 0.028930484126984127
+          }
+        },
+        {
+          "layer": 13,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006528458730158727,
+            "mlp_seconds": 0.022573739682539683,
+            "total_seconds": 0.02910219841269841
+          }
+        },
+        {
+          "layer": 14,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006301084126984125,
+            "mlp_seconds": 0.021994161904761896,
+            "total_seconds": 0.028295246031746032
+          }
+        },
+        {
+          "layer": 15,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006398180952380949,
+            "mlp_seconds": 0.022753971428571426,
+            "total_seconds": 0.029152152380952385
+          }
+        },
+        {
+          "layer": 16,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006473438095238095,
+            "mlp_seconds": 0.022468255555555556,
+            "total_seconds": 0.028941693650793646
+          }
+        },
+        {
+          "layer": 17,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006630358730158725,
+            "mlp_seconds": 0.021346277777777783,
+            "total_seconds": 0.02797663650793652
+          }
+        },
+        {
+          "layer": 18,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006509038095238097,
+            "mlp_seconds": 0.021614050793650797,
+            "total_seconds": 0.028123088888888884
+          }
+        },
+        {
+          "layer": 19,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006441261904761903,
+            "mlp_seconds": 0.02184601428571429,
+            "total_seconds": 0.028287276190476184
+          }
+        },
+        {
+          "layer": 20,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006527592063492064,
+            "mlp_seconds": 0.022272082539682547,
+            "total_seconds": 0.02879967460317461
+          }
+        },
+        {
+          "layer": 21,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006502382539682538,
+            "mlp_seconds": 0.02185976825396826,
+            "total_seconds": 0.028362150793650783
+          }
+        },
+        {
+          "layer": 22,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006597280952380951,
+            "mlp_seconds": 0.02193234444444444,
+            "total_seconds": 0.0285296253968254
+          }
+        },
+        {
+          "layer": 23,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005848899999999998,
+            "mlp_seconds": 0.0220957634920635,
+            "total_seconds": 0.02794466349206349
+          }
+        },
+        {
+          "layer": 24,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006332222222222222,
+            "mlp_seconds": 0.022199393650793653,
+            "total_seconds": 0.02853161587301587
+          }
+        },
+        {
+          "layer": 25,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0063087111111111115,
+            "mlp_seconds": 0.021865247619047616,
+            "total_seconds": 0.02817395873015873
+          }
+        },
+        {
+          "layer": 26,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0059210698412698395,
+            "mlp_seconds": 0.021126249206349205,
+            "total_seconds": 0.027047319047619044
+          }
+        },
+        {
+          "layer": 27,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004882663492063493,
+            "mlp_seconds": 0.020893387301587307,
+            "total_seconds": 0.0257760507936508
+          }
+        },
+        {
+          "layer": 28,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004273736507936507,
+            "mlp_seconds": 0.021381563492063486,
+            "total_seconds": 0.025655300000000006
+          }
+        },
+        {
+          "layer": 29,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006413003174603173,
+            "mlp_seconds": 0.026265055555555555,
+            "total_seconds": 0.03267805873015872
+          }
+        },
+        {
+          "layer": 30,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.008085114285714285,
+            "mlp_seconds": 0.02117682380952381,
+            "total_seconds": 0.029261938095238103
+          }
+        },
+        {
+          "layer": 31,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005862365079365077,
+            "mlp_seconds": 0.022475928571428577,
+            "total_seconds": 0.028338293650793656
+          }
+        },
+        {
+          "layer": 32,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004796892063492063,
+            "mlp_seconds": 0.02114393492063492,
+            "total_seconds": 0.025940826984127
+          }
+        },
+        {
+          "layer": 33,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004540755555555556,
+            "mlp_seconds": 0.021160801587301582,
+            "total_seconds": 0.025701557142857136
+          }
+        },
+        {
+          "layer": 34,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006020052380952381,
+            "mlp_seconds": 0.021034415873015876,
+            "total_seconds": 0.027054468253968254
+          }
+        },
+        {
+          "layer": 35,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004154841269841269,
+            "mlp_seconds": 0.02174481428571428,
+            "total_seconds": 0.02589965555555556
+          }
+        },
+        {
+          "layer": 36,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006375588888888892,
+            "mlp_seconds": 0.021111422222222214,
+            "total_seconds": 0.02748701111111111
+          }
+        },
+        {
+          "layer": 37,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004538396825396825,
+            "mlp_seconds": 0.02086300476190476,
+            "total_seconds": 0.025401401587301597
+          }
+        },
+        {
+          "layer": 38,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00433373015873016,
+            "mlp_seconds": 0.021132626984126986,
+            "total_seconds": 0.025466357142857148
+          }
+        },
+        {
+          "layer": 39,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0052100126984127,
+            "mlp_seconds": 0.020599379365079364,
+            "total_seconds": 0.025809392063492063
+          }
+        },
+        {
+          "layer": 40,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005203607936507935,
+            "mlp_seconds": 0.020602969841269837,
+            "total_seconds": 0.025806577777777773
+          }
+        },
+        {
+          "layer": 41,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0037906142857142863,
+            "mlp_seconds": 0.019443542857142854,
+            "total_seconds": 0.023234157142857148
+          }
+        },
+        {
+          "layer": 42,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005210338095238096,
+            "mlp_seconds": 0.021508160317460324,
+            "total_seconds": 0.026718498412698407
+          }
+        },
+        {
+          "layer": 43,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004308184126984126,
+            "mlp_seconds": 0.021443742857142855,
+            "total_seconds": 0.025751926984126993
+          }
+        },
+        {
+          "layer": 44,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005318607936507935,
+            "mlp_seconds": 0.02075073333333333,
+            "total_seconds": 0.026069341269841267
+          }
+        },
+        {
+          "layer": 45,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004253192063492063,
+            "mlp_seconds": 0.020305376190476197,
+            "total_seconds": 0.024558568253968256
+          }
+        },
+        {
+          "layer": 46,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00438378253968254,
+            "mlp_seconds": 0.021330057142857146,
+            "total_seconds": 0.02571383968253968
+          }
+        },
+        {
+          "layer": 47,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004852593650793651,
+            "mlp_seconds": 0.020995182539682536,
+            "total_seconds": 0.025847776190476193
+          }
+        },
+        {
+          "layer": 48,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005278638095238094,
+            "mlp_seconds": 0.020302188888888885,
+            "total_seconds": 0.02558082698412698
+          }
+        },
+        {
+          "layer": 49,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004357084126984127,
+            "mlp_seconds": 0.021015739682539687,
+            "total_seconds": 0.025372823809523812
+          }
+        },
+        {
+          "layer": 50,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0052153603174603155,
+            "mlp_seconds": 0.020845569841269836,
+            "total_seconds": 0.026060930158730154
+          }
+        },
+        {
+          "layer": 51,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004286239682539681,
+            "mlp_seconds": 0.02158682063492063,
+            "total_seconds": 0.02587306031746032
+          }
+        },
+        {
+          "layer": 52,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0046890253968253975,
+            "mlp_seconds": 0.02174195873015872,
+            "total_seconds": 0.026430984126984122
+          }
+        },
+        {
+          "layer": 53,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004343806349206349,
+            "mlp_seconds": 0.01989029682539683,
+            "total_seconds": 0.02423410317460318
+          }
+        },
+        {
+          "layer": 54,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0043566253968253974,
+            "mlp_seconds": 0.020745273015873013,
+            "total_seconds": 0.02510189841269841
+          }
+        },
+        {
+          "layer": 55,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004803192063492062,
+            "mlp_seconds": 0.019134268253968252,
+            "total_seconds": 0.023937460317460312
+          }
+        },
+        {
+          "layer": 56,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003401080952380954,
+            "mlp_seconds": 0.017206339682539682,
+            "total_seconds": 0.02060742063492064
+          }
+        },
+        {
+          "layer": 57,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00331225873015873,
+            "mlp_seconds": 0.01763456984126984,
+            "total_seconds": 0.020946828571428572
+          }
+        },
+        {
+          "layer": 58,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0033429952380952376,
+            "mlp_seconds": 0.017093895238095243,
+            "total_seconds": 0.020436890476190482
+          }
+        },
+        {
+          "layer": 59,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0030657380952380958,
+            "mlp_seconds": 0.01690700158730159,
+            "total_seconds": 0.019972739682539677
+          }
+        },
+        {
+          "layer": 60,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0032721603174603172,
+            "mlp_seconds": 0.017427731746031752,
+            "total_seconds": 0.02069989206349207
+          }
+        },
+        {
+          "layer": 61,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0033044571428571426,
+            "mlp_seconds": 0.01790100952380953,
+            "total_seconds": 0.02120546666666666
+          }
+        },
+        {
+          "layer": 62,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003094960317460318,
+            "mlp_seconds": 0.017439320634920638,
+            "total_seconds": 0.020534280952380954
+          }
+        },
+        {
+          "layer": 63,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003138973015873016,
+            "mlp_seconds": 0.017666512698412705,
+            "total_seconds": 0.020805485714285712
+          }
+        },
+        {
+          "layer": 64,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0031274619047619054,
+            "mlp_seconds": 0.016712547619047627,
+            "total_seconds": 0.019840009523809526
+          }
+        },
+        {
+          "layer": 65,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0028378873015873023,
+            "mlp_seconds": 0.01668754285714286,
+            "total_seconds": 0.019525430158730157
+          }
+        }
+      ]
+    },
+    {
+      "case": "binary_search",
+      "repetition": 0,
+      "decode_steps": 63,
+      "prefill": {
+        "attention_seconds": 16.474060500000004,
+        "mlp_seconds": 86.47499610000003,
+        "total_seconds": 102.9490566,
+        "outside_layers_seconds": 1.979891099999989,
+        "wall_seconds": 104.9289477
+      },
+      "decode": {
+        "attention_seconds": 23.83326770000001,
+        "mlp_seconds": 82.9243269000001,
+        "total_seconds": 106.75759460000009,
+        "outside_layers_seconds": 1.568169599999905,
+        "wall_seconds": 108.3257642
+      },
+      "layers": [
+        {
+          "layer": 0,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00676145396825397,
+            "mlp_seconds": 0.005102447619047617,
+            "total_seconds": 0.011863901587301582
+          }
+        },
+        {
+          "layer": 1,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006375801587301588,
+            "mlp_seconds": 0.0051736396825396835,
+            "total_seconds": 0.011549441269841266
+          }
+        },
+        {
+          "layer": 2,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006700046031746031,
+            "mlp_seconds": 0.026177998412698404,
+            "total_seconds": 0.032878044444444435
+          }
+        },
+        {
+          "layer": 3,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.008957434920634923,
+            "mlp_seconds": 0.022556814285714277,
+            "total_seconds": 0.03151424920634922
+          }
+        },
+        {
+          "layer": 4,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006793979365079363,
+            "mlp_seconds": 0.022400122222222228,
+            "total_seconds": 0.029194101587301593
+          }
+        },
+        {
+          "layer": 5,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006619896825396825,
+            "mlp_seconds": 0.021723128571428562,
+            "total_seconds": 0.028343025396825396
+          }
+        },
+        {
+          "layer": 6,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006619734920634925,
+            "mlp_seconds": 0.02236077301587301,
+            "total_seconds": 0.028980507936507943
+          }
+        },
+        {
+          "layer": 7,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.033378919047619054,
+            "mlp_seconds": 0.021757774603174605,
+            "total_seconds": 0.055136693650793676
+          }
+        },
+        {
+          "layer": 8,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006293766666666669,
+            "mlp_seconds": 0.021641619047619035,
+            "total_seconds": 0.027935385714285704
+          }
+        },
+        {
+          "layer": 9,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006412630158730159,
+            "mlp_seconds": 0.021995604761904763,
+            "total_seconds": 0.02840823492063492
+          }
+        },
+        {
+          "layer": 10,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006350492063492063,
+            "mlp_seconds": 0.021219915873015874,
+            "total_seconds": 0.027570407936507942
+          }
+        },
+        {
+          "layer": 11,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005083511111111112,
+            "mlp_seconds": 0.021897753968253966,
+            "total_seconds": 0.026981265079365078
+          }
+        },
+        {
+          "layer": 12,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005667685714285715,
+            "mlp_seconds": 0.021964617460317457,
+            "total_seconds": 0.027632303174603173
+          }
+        },
+        {
+          "layer": 13,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005645501587301588,
+            "mlp_seconds": 0.022120107936507937,
+            "total_seconds": 0.027765609523809527
+          }
+        },
+        {
+          "layer": 14,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005415796825396825,
+            "mlp_seconds": 0.021700774603174596,
+            "total_seconds": 0.027116571428571434
+          }
+        },
+        {
+          "layer": 15,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005646952380952381,
+            "mlp_seconds": 0.021681077777777773,
+            "total_seconds": 0.02732803015873017
+          }
+        },
+        {
+          "layer": 16,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005965192063492062,
+            "mlp_seconds": 0.022048101587301586,
+            "total_seconds": 0.028013293650793643
+          }
+        },
+        {
+          "layer": 17,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005879366666666662,
+            "mlp_seconds": 0.021640003174603174,
+            "total_seconds": 0.027519369841269837
+          }
+        },
+        {
+          "layer": 18,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005700046031746031,
+            "mlp_seconds": 0.021400253968253964,
+            "total_seconds": 0.0271003
+          }
+        },
+        {
+          "layer": 19,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0062834666666666626,
+            "mlp_seconds": 0.021653298412698415,
+            "total_seconds": 0.027936765079365076
+          }
+        },
+        {
+          "layer": 20,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00667326984126984,
+            "mlp_seconds": 0.021344480952380947,
+            "total_seconds": 0.028017750793650785
+          }
+        },
+        {
+          "layer": 21,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006344317460317461,
+            "mlp_seconds": 0.021804738095238103,
+            "total_seconds": 0.02814905555555556
+          }
+        },
+        {
+          "layer": 22,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006423717460317462,
+            "mlp_seconds": 0.021255065079365077,
+            "total_seconds": 0.02767878253968254
+          }
+        },
+        {
+          "layer": 23,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005224095238095237,
+            "mlp_seconds": 0.02187653650793651,
+            "total_seconds": 0.027100631746031754
+          }
+        },
+        {
+          "layer": 24,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0062369333333333315,
+            "mlp_seconds": 0.02186053968253969,
+            "total_seconds": 0.028097473015873013
+          }
+        },
+        {
+          "layer": 25,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005999896825396824,
+            "mlp_seconds": 0.0220457380952381,
+            "total_seconds": 0.02804563492063493
+          }
+        },
+        {
+          "layer": 26,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0055269349206349214,
+            "mlp_seconds": 0.021564166666666672,
+            "total_seconds": 0.027091101587301592
+          }
+        },
+        {
+          "layer": 27,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00553452857142857,
+            "mlp_seconds": 0.02136927936507936,
+            "total_seconds": 0.026903807936507953
+          }
+        },
+        {
+          "layer": 28,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006341777777777779,
+            "mlp_seconds": 0.021193850793650795,
+            "total_seconds": 0.027535628571428574
+          }
+        },
+        {
+          "layer": 29,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0057518238095238105,
+            "mlp_seconds": 0.021512980952380942,
+            "total_seconds": 0.027264804761904765
+          }
+        },
+        {
+          "layer": 30,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006364899999999997,
+            "mlp_seconds": 0.02205374126984127,
+            "total_seconds": 0.02841864126984127
+          }
+        },
+        {
+          "layer": 31,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006482363492063492,
+            "mlp_seconds": 0.02172559841269842,
+            "total_seconds": 0.028207961904761908
+          }
+        },
+        {
+          "layer": 32,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006631019047619052,
+            "mlp_seconds": 0.021703268253968257,
+            "total_seconds": 0.028334287301587293
+          }
+        },
+        {
+          "layer": 33,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006501528571428571,
+            "mlp_seconds": 0.02217481269841269,
+            "total_seconds": 0.02867634126984128
+          }
+        },
+        {
+          "layer": 34,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006428114285714284,
+            "mlp_seconds": 0.02192630000000001,
+            "total_seconds": 0.02835441428571429
+          }
+        },
+        {
+          "layer": 35,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005708158730158732,
+            "mlp_seconds": 0.022015187301587295,
+            "total_seconds": 0.027723346031746043
+          }
+        },
+        {
+          "layer": 36,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006418634920634919,
+            "mlp_seconds": 0.022016768253968255,
+            "total_seconds": 0.028435403174603174
+          }
+        },
+        {
+          "layer": 37,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006588080952380951,
+            "mlp_seconds": 0.021620834920634917,
+            "total_seconds": 0.028208915873015876
+          }
+        },
+        {
+          "layer": 38,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006671669841269841,
+            "mlp_seconds": 0.02153400476190476,
+            "total_seconds": 0.028205674603174597
+          }
+        },
+        {
+          "layer": 39,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006591985714285711,
+            "mlp_seconds": 0.021293969841269838,
+            "total_seconds": 0.027885955555555546
+          }
+        },
+        {
+          "layer": 40,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005966509523809523,
+            "mlp_seconds": 0.021141804761904758,
+            "total_seconds": 0.02710831428571429
+          }
+        },
+        {
+          "layer": 41,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005229860317460318,
+            "mlp_seconds": 0.020799961904761903,
+            "total_seconds": 0.026029822222222217
+          }
+        },
+        {
+          "layer": 42,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004737780952380952,
+            "mlp_seconds": 0.021280642857142856,
+            "total_seconds": 0.026018423809523804
+          }
+        },
+        {
+          "layer": 43,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004416803174603175,
+            "mlp_seconds": 0.021906903174603178,
+            "total_seconds": 0.026323706349206347
+          }
+        },
+        {
+          "layer": 44,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004522882539682539,
+            "mlp_seconds": 0.02047398888888889,
+            "total_seconds": 0.02499687142857144
+          }
+        },
+        {
+          "layer": 45,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00431856984126984,
+            "mlp_seconds": 0.019945676190476182,
+            "total_seconds": 0.024264246031746022
+          }
+        },
+        {
+          "layer": 46,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004167803174603174,
+            "mlp_seconds": 0.021598114285714287,
+            "total_seconds": 0.025765917460317467
+          }
+        },
+        {
+          "layer": 47,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003683868253968254,
+            "mlp_seconds": 0.020863885714285716,
+            "total_seconds": 0.024547753968253972
+          }
+        },
+        {
+          "layer": 48,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004757030158730158,
+            "mlp_seconds": 0.01929531746031745,
+            "total_seconds": 0.024052347619047617
+          }
+        },
+        {
+          "layer": 49,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004298111111111114,
+            "mlp_seconds": 0.02143066190476191,
+            "total_seconds": 0.025728773015873004
+          }
+        },
+        {
+          "layer": 50,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004114455555555556,
+            "mlp_seconds": 0.024385150793650792,
+            "total_seconds": 0.02849960634920635
+          }
+        },
+        {
+          "layer": 51,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004448992063492064,
+            "mlp_seconds": 0.020987193650793642,
+            "total_seconds": 0.025436185714285707
+          }
+        },
+        {
+          "layer": 52,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004194333333333332,
+            "mlp_seconds": 0.02063689523809524,
+            "total_seconds": 0.024831228571428582
+          }
+        },
+        {
+          "layer": 53,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004105312698412699,
+            "mlp_seconds": 0.018372526984126985,
+            "total_seconds": 0.02247783968253968
+          }
+        },
+        {
+          "layer": 54,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0035672936507936503,
+            "mlp_seconds": 0.020421904761904763,
+            "total_seconds": 0.023989198412698413
+          }
+        },
+        {
+          "layer": 55,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0034173460317460315,
+            "mlp_seconds": 0.01817562222222223,
+            "total_seconds": 0.02159296825396825
+          }
+        },
+        {
+          "layer": 56,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0034067555555555556,
+            "mlp_seconds": 0.01759912539682539,
+            "total_seconds": 0.021005880952380946
+          }
+        },
+        {
+          "layer": 57,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0033862841269841266,
+            "mlp_seconds": 0.017455738095238094,
+            "total_seconds": 0.02084202222222222
+          }
+        },
+        {
+          "layer": 58,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0031243904761904754,
+            "mlp_seconds": 0.017254049206349206,
+            "total_seconds": 0.020378439682539683
+          }
+        },
+        {
+          "layer": 59,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0030689952380952372,
+            "mlp_seconds": 0.017060095238095242,
+            "total_seconds": 0.020129090476190485
+          }
+        },
+        {
+          "layer": 60,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003308647619047619,
+            "mlp_seconds": 0.017130276190476194,
+            "total_seconds": 0.020438923809523807
+          }
+        },
+        {
+          "layer": 61,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0031654841269841286,
+            "mlp_seconds": 0.01751939365079365,
+            "total_seconds": 0.020684877777777774
+          }
+        },
+        {
+          "layer": 62,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003122849206349206,
+            "mlp_seconds": 0.015811133333333335,
+            "total_seconds": 0.018933982539682537
+          }
+        },
+        {
+          "layer": 63,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003156919047619048,
+            "mlp_seconds": 0.009754500000000001,
+            "total_seconds": 0.012911419047619046
+          }
+        },
+        {
+          "layer": 64,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.002937023809523809,
+            "mlp_seconds": 0.007603974603174604,
+            "total_seconds": 0.010540998412698406
+          }
+        },
+        {
+          "layer": 65,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0026861095238095234,
+            "mlp_seconds": 0.005246931746031746,
+            "total_seconds": 0.007933041269841267
+          }
+        }
+      ]
+    },
+    {
+      "case": "short_story",
+      "repetition": 0,
+      "decode_steps": 63,
+      "prefill": {
+        "attention_seconds": 13.315266199999998,
+        "mlp_seconds": 92.96348049999997,
+        "total_seconds": 106.27874669999996,
+        "outside_layers_seconds": 1.9638411000000389,
+        "wall_seconds": 108.2425878
+      },
+      "decode": {
+        "attention_seconds": 21.22017219999995,
+        "mlp_seconds": 84.6373308,
+        "total_seconds": 105.85750300000018,
+        "outside_layers_seconds": 1.5614859999998174,
+        "wall_seconds": 107.418989
+      },
+      "layers": [
+        {
+          "layer": 0,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006893268253968255,
+            "mlp_seconds": 0.004893161904761906,
+            "total_seconds": 0.011786430158730158
+          }
+        },
+        {
+          "layer": 1,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006242236507936508,
+            "mlp_seconds": 0.005147880952380952,
+            "total_seconds": 0.011390117460317465
+          }
+        },
+        {
+          "layer": 2,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006451092063492065,
+            "mlp_seconds": 0.026161655555555566,
+            "total_seconds": 0.032612747619047616
+          }
+        },
+        {
+          "layer": 3,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.007108579365079363,
+            "mlp_seconds": 0.022354815873015875,
+            "total_seconds": 0.02946339523809524
+          }
+        },
+        {
+          "layer": 4,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006547550793650798,
+            "mlp_seconds": 0.022420734920634917,
+            "total_seconds": 0.028968285714285714
+          }
+        },
+        {
+          "layer": 5,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005937831746031747,
+            "mlp_seconds": 0.022334158730158732,
+            "total_seconds": 0.028271990476190487
+          }
+        },
+        {
+          "layer": 6,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00647256666666667,
+            "mlp_seconds": 0.0224204507936508,
+            "total_seconds": 0.028893017460317465
+          }
+        },
+        {
+          "layer": 7,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006709857142857143,
+            "mlp_seconds": 0.021935292063492057,
+            "total_seconds": 0.0286451492063492
+          }
+        },
+        {
+          "layer": 8,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006942242857142858,
+            "mlp_seconds": 0.02147845714285715,
+            "total_seconds": 0.028420700000000004
+          }
+        },
+        {
+          "layer": 9,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006671638095238094,
+            "mlp_seconds": 0.0220987746031746,
+            "total_seconds": 0.0287704126984127
+          }
+        },
+        {
+          "layer": 10,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006841777777777776,
+            "mlp_seconds": 0.021190369841269832,
+            "total_seconds": 0.02803214761904763
+          }
+        },
+        {
+          "layer": 11,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005163123809523811,
+            "mlp_seconds": 0.02168996031746032,
+            "total_seconds": 0.02685308412698413
+          }
+        },
+        {
+          "layer": 12,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00616713492063492,
+            "mlp_seconds": 0.022041017460317464,
+            "total_seconds": 0.02820815238095237
+          }
+        },
+        {
+          "layer": 13,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005577174603174602,
+            "mlp_seconds": 0.022287323809523814,
+            "total_seconds": 0.02786449841269841
+          }
+        },
+        {
+          "layer": 14,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00546297619047619,
+            "mlp_seconds": 0.021728561904761905,
+            "total_seconds": 0.0271915380952381
+          }
+        },
+        {
+          "layer": 15,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0058692857142857114,
+            "mlp_seconds": 0.022197282539682537,
+            "total_seconds": 0.028066568253968256
+          }
+        },
+        {
+          "layer": 16,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006089284126984123,
+            "mlp_seconds": 0.021770265079365084,
+            "total_seconds": 0.027859549206349192
+          }
+        },
+        {
+          "layer": 17,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006075525396825396,
+            "mlp_seconds": 0.021686273015873024,
+            "total_seconds": 0.02776179841269841
+          }
+        },
+        {
+          "layer": 18,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005704841269841269,
+            "mlp_seconds": 0.021249974603174616,
+            "total_seconds": 0.026954815873015875
+          }
+        },
+        {
+          "layer": 19,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006687192063492061,
+            "mlp_seconds": 0.021538426984126984,
+            "total_seconds": 0.028225619047619055
+          }
+        },
+        {
+          "layer": 20,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.007290760317460314,
+            "mlp_seconds": 0.02193880317460319,
+            "total_seconds": 0.029229563492063487
+          }
+        },
+        {
+          "layer": 21,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006588423809523808,
+            "mlp_seconds": 0.021827358730158723,
+            "total_seconds": 0.028415782539682525
+          }
+        },
+        {
+          "layer": 22,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006859666666666665,
+            "mlp_seconds": 0.02161691746031746,
+            "total_seconds": 0.028476584126984134
+          }
+        },
+        {
+          "layer": 23,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004905446031746029,
+            "mlp_seconds": 0.02175706666666667,
+            "total_seconds": 0.026662512698412705
+          }
+        },
+        {
+          "layer": 24,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006092131746031748,
+            "mlp_seconds": 0.022548731746031756,
+            "total_seconds": 0.0286408634920635
+          }
+        },
+        {
+          "layer": 25,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005839969841269843,
+            "mlp_seconds": 0.022127261904761907,
+            "total_seconds": 0.02796723174603176
+          }
+        },
+        {
+          "layer": 26,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005425539682539683,
+            "mlp_seconds": 0.02241685714285714,
+            "total_seconds": 0.027842396825396833
+          }
+        },
+        {
+          "layer": 27,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005598530158730163,
+            "mlp_seconds": 0.021287807936507933,
+            "total_seconds": 0.02688633809523809
+          }
+        },
+        {
+          "layer": 28,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005942941269841274,
+            "mlp_seconds": 0.02172157777777777,
+            "total_seconds": 0.027664519047619053
+          }
+        },
+        {
+          "layer": 29,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005392546031746034,
+            "mlp_seconds": 0.021554722222222215,
+            "total_seconds": 0.026947268253968253
+          }
+        },
+        {
+          "layer": 30,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00646977619047619,
+            "mlp_seconds": 0.02161605555555555,
+            "total_seconds": 0.028085831746031752
+          }
+        },
+        {
+          "layer": 31,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006537296825396822,
+            "mlp_seconds": 0.021738309523809524,
+            "total_seconds": 0.028275606349206346
+          }
+        },
+        {
+          "layer": 32,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006336247619047615,
+            "mlp_seconds": 0.02164946825396825,
+            "total_seconds": 0.027985715873015866
+          }
+        },
+        {
+          "layer": 33,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.006313823809523808,
+            "mlp_seconds": 0.021290780952380954,
+            "total_seconds": 0.027604604761904777
+          }
+        },
+        {
+          "layer": 34,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00574604126984127,
+            "mlp_seconds": 0.021601590476190473,
+            "total_seconds": 0.027347631746031748
+          }
+        },
+        {
+          "layer": 35,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004819963492063493,
+            "mlp_seconds": 0.021373614285714288,
+            "total_seconds": 0.026193577777777786
+          }
+        },
+        {
+          "layer": 36,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0045812460317460335,
+            "mlp_seconds": 0.021228626984126985,
+            "total_seconds": 0.025809873015873026
+          }
+        },
+        {
+          "layer": 37,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.005379311111111113,
+            "mlp_seconds": 0.020811871428571438,
+            "total_seconds": 0.02619118253968255
+          }
+        },
+        {
+          "layer": 38,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00501674603174603,
+            "mlp_seconds": 0.021457117460317462,
+            "total_seconds": 0.02647386349206349
+          }
+        },
+        {
+          "layer": 39,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004609847619047621,
+            "mlp_seconds": 0.02055947777777778,
+            "total_seconds": 0.025169325396825405
+          }
+        },
+        {
+          "layer": 40,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004619555555555554,
+            "mlp_seconds": 0.020809325396825402,
+            "total_seconds": 0.02542888095238095
+          }
+        },
+        {
+          "layer": 41,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003963977777777777,
+            "mlp_seconds": 0.020377004761904755,
+            "total_seconds": 0.02434098253968254
+          }
+        },
+        {
+          "layer": 42,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0044382,
+            "mlp_seconds": 0.021411763492063488,
+            "total_seconds": 0.025849963492063487
+          }
+        },
+        {
+          "layer": 43,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004505793650793648,
+            "mlp_seconds": 0.021308219047619037,
+            "total_seconds": 0.025814012698412693
+          }
+        },
+        {
+          "layer": 44,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004358606349206347,
+            "mlp_seconds": 0.020388152380952387,
+            "total_seconds": 0.02474675873015874
+          }
+        },
+        {
+          "layer": 45,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004468046031746034,
+            "mlp_seconds": 0.021289668253968254,
+            "total_seconds": 0.025757714285714283
+          }
+        },
+        {
+          "layer": 46,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004459811111111112,
+            "mlp_seconds": 0.021448553968253972,
+            "total_seconds": 0.025908365079365076
+          }
+        },
+        {
+          "layer": 47,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004502352380952382,
+            "mlp_seconds": 0.021215790476190485,
+            "total_seconds": 0.025718142857142863
+          }
+        },
+        {
+          "layer": 48,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.004559257142857142,
+            "mlp_seconds": 0.06428595238095239,
+            "total_seconds": 0.0688452095238095
+          }
+        },
+        {
+          "layer": 49,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0037983206349206347,
+            "mlp_seconds": 0.02108735555555555,
+            "total_seconds": 0.02488567619047618
+          }
+        },
+        {
+          "layer": 50,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003708052380952381,
+            "mlp_seconds": 0.02080780793650793,
+            "total_seconds": 0.024515860317460305
+          }
+        },
+        {
+          "layer": 51,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.00353734126984127,
+            "mlp_seconds": 0.020709769841269845,
+            "total_seconds": 0.024247111111111122
+          }
+        },
+        {
+          "layer": 52,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0036041857142857132,
+            "mlp_seconds": 0.02087092063492063,
+            "total_seconds": 0.024475106349206355
+          }
+        },
+        {
+          "layer": 53,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0031742015873015878,
+            "mlp_seconds": 0.019050242857142855,
+            "total_seconds": 0.02222444444444444
+          }
+        },
+        {
+          "layer": 54,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003451653968253968,
+            "mlp_seconds": 0.020421585714285723,
+            "total_seconds": 0.023873239682539682
+          }
+        },
+        {
+          "layer": 55,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0033883619047619055,
+            "mlp_seconds": 0.018360485714285717,
+            "total_seconds": 0.021748847619047627
+          }
+        },
+        {
+          "layer": 56,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0034723904761904756,
+            "mlp_seconds": 0.0175785253968254,
+            "total_seconds": 0.021050915873015875
+          }
+        },
+        {
+          "layer": 57,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003367450793650793,
+            "mlp_seconds": 0.017408319047619046,
+            "total_seconds": 0.020775769841269852
+          }
+        },
+        {
+          "layer": 58,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.003376047619047618,
+            "mlp_seconds": 0.01701643492063492,
+            "total_seconds": 0.02039248253968254
+          }
+        },
+        {
+          "layer": 59,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0030779238095238106,
+            "mlp_seconds": 0.01731444444444445,
+            "total_seconds": 0.02039236825396826
+          }
+        },
+        {
+          "layer": 60,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0033148317460317466,
+            "mlp_seconds": 0.01702351904761905,
+            "total_seconds": 0.0203383507936508
+          }
+        },
+        {
+          "layer": 61,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.002898014285714286,
+            "mlp_seconds": 0.0072201920634920634,
+            "total_seconds": 0.010118206349206356
+          }
+        },
+        {
+          "layer": 62,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.002931163492063492,
+            "mlp_seconds": 0.006999550793650795,
+            "total_seconds": 0.009930714285714284
+          }
+        },
+        {
+          "layer": 63,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0029077047619047625,
+            "mlp_seconds": 0.010893382539682538,
+            "total_seconds": 0.013801087301587302
+          }
+        },
+        {
+          "layer": 64,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.0029204349206349207,
+            "mlp_seconds": 0.009659528571428575,
+            "total_seconds": 0.012579963492063494
+          }
+        },
+        {
+          "layer": 65,
+          "decode_seconds_per_token": {
+            "attention_seconds": 0.002663015873015873,
+            "mlp_seconds": 0.007744344444444443,
+            "total_seconds": 0.010407360317460325
+          }
+        }
+      ]
+    }
+  ]
+}
