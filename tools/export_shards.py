@@ -1638,6 +1638,8 @@ def fetch_config_json(model_id_or_path: str) -> str:
     ONLY config.json (a few KB) without the tokenizer or safetensors. Used
     by the fallback rejection path so a multi-GB model isn't pulled before
     detect_architecture can reject a model_type transformers can't parse.
+    A failed download retries from the HF hub cache alone, which the
+    ``local_dir`` form bypasses (so an offline run misses a cached model).
     """
     if os.path.isdir(model_id_or_path):
         path = os.path.join(model_id_or_path, "config.json")
@@ -1652,9 +1654,24 @@ def fetch_config_json(model_id_or_path: str) -> str:
     safe_id = model_id_or_path.replace("/", "--")
     local_dir = os.path.join(cache_root, safe_id)
     os.makedirs(local_dir, exist_ok=True)
-    return hf_hub_download(
-        repo_id=model_id_or_path, filename="config.json", local_dir=local_dir
-    )
+    try:
+        return hf_hub_download(
+            repo_id=model_id_or_path, filename="config.json", local_dir=local_dir
+        )
+    except Exception:
+        # `local_dir` makes hf_hub_download skip the hub cache, so this raises
+        # under HF_HUB_OFFLINE=1 even when the repo is fully cached there.
+        # Retry cache-only; if that misses too, the original error is the one
+        # worth reporting.
+        try:
+            return hf_hub_download(
+                repo_id=model_id_or_path,
+                filename="config.json",
+                local_files_only=True,
+            )
+        except Exception:
+            pass
+        raise
 
 
 def maybe_download(model_id_or_path: str) -> str:
@@ -1918,6 +1935,14 @@ def main():
                 f"be read ({_cfg_exc}); model-type dispatch needs it — "
                 f"restore or fix config.json."
             )
+        print(
+            f"WARNING: could not read config.json for {args.model} "
+            f"({_cfg_exc}); config-first model-type dispatch was skipped, so a "
+            f"Gemma 4 / Qwen3.5 model will be refused as unsupported by the "
+            f"generic path.",
+            file=sys.stderr,
+            flush=True,
+        )
         _raw_cfg = {}
     _outer_mt = (_raw_cfg.get("model_type") or "").lower()
     _inner_mt = ((_raw_cfg.get("text_config") or {}).get("model_type") or "").lower()

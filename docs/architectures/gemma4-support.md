@@ -29,7 +29,7 @@ Detected Gemma 4 — dispatching to tools/export_gemma4.py
 Loading config...
   35 layers, hidden=1536, heads=8, kv_heads=1,
   head_dim=256, global_head_dim=512, pli_dim=256,
-  num_kv_shared=20, softcap=30.0
+  num_kv_shared=20, softcap=30.0, sliding_window=512
 
 Stage plan (2 stages):
   Stage 0: layers [0, 18) + embed
@@ -46,7 +46,7 @@ STAGE 0: layers [0, 18) | embed=True | head=False
 STAGE 1: layers [18, 35) | embed=False | head=True
   KV sharing: 0 own + 17 shared, 0 cross-stage sources out, 2 external sources in
   Head stage will apply final_logit_softcapping=30.0
-  Self-verify on CPU... Prefill OK: shape=(1, 3, 262144) / Decode OK: shape=(1, 1, 262144)
+  Self-verify on CPU... Prefill OK: shape=(1, 516, 262144) (516 tokens, crosses window 512) / Decode OK: shape=(1, 1, 262144)
   Saved: /tmp/test_gemma4_e2b/stage_1 (2882 MB)
 GEMMA 4 EXPORT COMPLETE  Total: 9596 MB
 ```
@@ -58,12 +58,49 @@ int8}` knobs are wired through (nncf compress_weights), though INT4
 on the per-layer-scalar buffers sometimes fails — start with `fp16`
 and try INT4 once you've confirmed parity.
 
+## Serving notes
+
+Verified 2026-09-14 on tate-09 (Panther Lake, Arc B390, OpenVINO
+2026.2.1) against an E2B-it int4 two-stage tree.
+
+* **GPU inference precision** — at the GPU plugin's default (f16) the
+  gemma4 engine returns garbage on Arc B390, for `gemma4_cached_v1`
+  and `v1.1` trees alike and even for prompts shorter than the window.
+  `--ov-inference-precision f32` on `cascadia worker` restores the CPU
+  path's output (30/30 greedy tokens equal to HF at 1,514 prompt
+  tokens); `cascadia worker --help` already recommends f32 on
+  Xe2/Battlemage.
+* **Thinking channel** — `/v1/chat/completions` renders Gemma 4 with
+  the thinking channel on by default, so replies open with
+  `thought\nThinking Process:`. Send `chat_template_kwargs:
+  {"enable_thinking": false}` (or `reasoning_effort: "none"`) for a
+  direct answer. For HF-parity checks use `/v1/completions` with the
+  prompt from `tokenizer.apply_chat_template(..., tokenize=False)`
+  unchanged — it starts with `<bos>`, and the engine does not add one
+  on that route, so `usage.prompt_tokens` then matches HF's count.
+* **Run command** — a gemma4 tree runs with `--engine gemma4`, not
+  `ov-runtime`. Start rank 1 first: `cascadia worker --rank 1 --total 2
+  --engine gemma4 --device GPU --ov-inference-precision f32 --model
+  <tree> --listen :9101`, then rank 0 with the same flags plus
+  `--listen :9100 --next <rank1-host>:9101 --api :8000`. (`cascadia
+  shard` prints this hint after the export as of this branch.)
+
 ## What the exporter handles (vs the generic export_shards.py)
 
 * **Per-layer-type asymmetric attention** — `head_dim=256` (sliding)
   vs `global_head_dim=512` (full). `head_dims` array in the stage
   config records per-layer dims so the runtime can allocate KV cache
   of the right shape.
+* **Sliding-window masking** — `sliding_attention` layers are masked
+  to `text_config.sliding_window` (1024 on 31B-it, 512 on E2B/E4B);
+  `full_attention` layers see the whole prefix. Exports carry the
+  window in `stage_config.json` / `pipeline_config.json` under
+  `sliding_window` and stamp `export_version: gemma4_cached_v1.1`.
+  **Trees exported as `gemma4_cached_v1` lack the band**: they match
+  HF only while the prompt is shorter than the window and degrade past
+  it; the engine warns at load and they should be re-exported with
+  `cascadia shard --model google/gemma-4-31B-it -o <dir> --num-stages 3
+  --quantization int4`.
 * **Per-layer-type RoPE** — two `GemmaTracedRotaryEmbedding`
   instances per stage (one local 10k-θ, one global 1M-θ with the
   Gemma-4 invention `partial_rotary_factor=0.25` for the

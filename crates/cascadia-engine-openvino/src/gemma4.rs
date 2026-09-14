@@ -1,8 +1,10 @@
 //! Gemma 4 multi-stage OpenVINO engine (`--engine gemma4`).
 //!
-//! Serves per-stage `gemma4_cached_v1` OV IR shards (exported by
+//! Serves per-stage `gemma4_cached_v1.x` OV IR shards (exported by
 //! `tools/export_gemma4.py`) across the TCP activation transport, single-stage
 //! or pipeline-parallel. Own KV is OV internal state, reset between tasks.
+//! `gemma4_cached_v1` trees (pre `sliding_window`) still load but attend past
+//! the sliding window on long prompts; `load()` warns about them.
 //!
 //! Pipeline-dir layout:
 //! ```text
@@ -38,7 +40,9 @@ use cascadia_ov_genai_shim::{
 use cascadia_transport::{
     ActivationClient, ActivationServer, DType as WireDType, Tensor as WireTensor, MAX_RANK,
 };
-use cascadia_types::{Chunk, GenerationTask, LoadProgress, PeerLayout, ShardSpec, TaskId};
+use cascadia_types::{
+    Chunk, FinishReason, GenerationTask, LoadProgress, PeerLayout, ShardSpec, TaskId,
+};
 use futures::stream;
 use serde::Deserialize;
 use tokenizers::Tokenizer;
@@ -90,6 +94,20 @@ struct StageConfig {
     /// to match an incoming wire frame to the right `external_kv.*` input.
     #[serde(default)]
     external_shared_sources: Vec<ExternalSrc>,
+    /// `gemma4_cached_v1` (no window band) or `gemma4_cached_v1.1` (sliding
+    /// layers masked to `sliding_window`). Informational: echoed by the
+    /// load-time warning, which keys off `layer_types`/`sliding_window`, not
+    /// this string.
+    #[serde(default)]
+    export_version: Option<String>,
+    /// Per-layer attention type of this stage's layers (`sliding_attention` /
+    /// `full_attention`), as exported.
+    #[serde(default)]
+    layer_types: Vec<String>,
+    /// Window baked into the stage's `sliding_attention` layers. Absent on
+    /// pre-v1.1 exports, which let those layers attend to the whole prefix.
+    #[serde(default)]
+    sliding_window: Option<u32>,
 }
 
 /// One entry of `external_shared_sources` in stage_config.json. Only the global
@@ -110,6 +128,17 @@ fn read_stage_config(p: &Path) -> Result<StageConfig, EngineError> {
     let bytes = std::fs::read(p.join("stage_config.json"))?;
     serde_json::from_slice(&bytes)
         .map_err(|e| EngineError::InvalidConfig(format!("stage_config.json: {e}")))
+}
+
+/// True for a stage exported before `gemma4_cached_v1.1`: its sliding layers
+/// attend to the whole prefix (correct only while the prompt is shorter than
+/// the window, 512–1024 tokens on shipped Gemma 4 checkpoints). Nothing else
+/// in this engine reads `export_version` (genai.rs only prefix-matches it to
+/// name the engine), so this is the one place a stale tree is called out.
+/// `load()` reports it for the stage being loaded only — the adjacency check's
+/// read of `stage_{N-1}` would otherwise warn about the same tree twice.
+fn sliding_layers_unwindowed(cfg: &StageConfig) -> bool {
+    cfg.layer_types.iter().any(|t| t == "sliding_attention") && cfg.sliding_window.is_none()
 }
 
 // -------- generation_config.json (eos_token_id lookup) --------
@@ -444,6 +473,40 @@ fn prefill_chunk() -> usize {
         1
     } else {
         usize::MAX
+    }
+}
+
+/// The task's last chunk. The API reads `prompt_tokens` and `finish_reason` off
+/// the chunk with `is_final` set, so leaving them None reported
+/// `usage.prompt_tokens: 0` and a hardcoded `"stop"` on every gemma4 response.
+///
+/// `n_tokens` is THIS chunk's increment, not the running total: the API sums
+/// per-chunk counts (falling back to 1 per non-empty chunk), so a cumulative
+/// value double-counts every interim token. It is set explicitly so an empty
+/// final delta (EOS decoding to "") still counts its token. Mirrors
+/// `runtime.rs` / `qwen36.rs`.
+fn final_chunk(
+    task_id: TaskId,
+    token: i64,
+    delta: String,
+    prompt_len: usize,
+    is_eos: bool,
+) -> Chunk {
+    Chunk {
+        task_id,
+        token_id: token,
+        text: delta,
+        is_final: true,
+        logprobs: None,
+        n_tokens: Some(1),
+        prompt_tokens: Some(prompt_len as u32),
+        error: None,
+        token_ids: Vec::new(),
+        finish_reason: Some(if is_eos {
+            FinishReason::Stop
+        } else {
+            FinishReason::Length
+        }),
     }
 }
 
@@ -1280,20 +1343,18 @@ impl Gemma4Engine {
 
         let task_id = active.task.task_id.clone();
         let chunk = if is_final {
-            Chunk {
-                task_id: task_id.clone(),
-                token_id: next_token as i64,
-                text: delta,
-                is_final: true,
-                logprobs: None,
-                n_tokens: None,
-                prompt_tokens: None,
-                error: None,
-                token_ids: Vec::new(),
-                finish_reason: None,
-            }
+            final_chunk(
+                task_id.clone(),
+                next_token as i64,
+                delta,
+                active.prompt_ids.len(),
+                is_eos,
+            )
         } else {
+            // Explicit count: a token whose text lands in the next chunk (BPE
+            // splitting a glyph) would otherwise count 0 via the non-empty fallback.
             Chunk::token(task_id.clone(), next_token as i64, delta)
+                .with_n_tokens(1)
                 .with_token_ids(vec![next_token as i64])
         };
 
@@ -2030,6 +2091,25 @@ impl Builder for Gemma4Builder {
         let stage_dir = self.pipeline_dir.join(format!("stage_{}", self.rank));
         let stage_cfg = read_stage_config(&stage_dir)?;
 
+        // A pre-v1.1 tree still loads (the gap only shows past the window), but
+        // it has to reach the operator: on a multi-node deployment nobody reads
+        // each node's stderr, so the same warning also rides the load stream.
+        if sliding_layers_unwindowed(&stage_cfg) {
+            warn!(
+                stage_dir = %stage_dir.display(),
+                export_version = stage_cfg.export_version.as_deref().unwrap_or("?"),
+                "gemma4: sliding_attention layers carry no sliding_window (pre-v1.1 export): \
+                 prompts longer than the model's window will degrade; re-export with \
+                 `cascadia shard` to get gemma4_cached_v1.1"
+            );
+            events.push(LoadProgress::message(format!(
+                "warning: {} has sliding_attention layers with no sliding_window (pre-v1.1 \
+                 export); prompts longer than the model's window will degrade — re-export with \
+                 `cascadia shard`",
+                stage_dir.display()
+            )));
+        }
+
         // The gemma4 engine only runs stateful shards (own KV is OV internal
         // state); there is no stateless/static-KV (NPU) path. Reject clearly.
         if !stage_cfg.stateful {
@@ -2397,6 +2477,64 @@ mod tests {
             }
         }
     }
+
+    /// A pre-v1.1 tree: sliding layers, no `sliding_window`, no
+    /// `export_version`. Both optional keys must be absent-tolerant (a stale
+    /// tree has to LOAD, warned, not fail to parse) and the predicate must
+    /// catch it — this is the shape the warning exists for.
+    #[test]
+    fn pre_v1_1_stage_config_reads_as_unwindowed() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"has_embed":true,"stateful":true,
+                "layer_types":["sliding_attention","full_attention"]}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.export_version, None);
+        assert_eq!(cfg.sliding_window, None);
+        assert!(sliding_layers_unwindowed(&cfg));
+    }
+
+    /// The shape `gemma4_cached_v1.1` writes for a stage with sliding layers:
+    /// window present, so nothing to warn about.
+    #[test]
+    fn v1_1_stage_config_carries_the_window() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"has_embed":true,"stateful":true,
+                "layer_types":["sliding_attention","full_attention"],
+                "sliding_window":1024,"export_version":"gemma4_cached_v1.1"}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.sliding_window, Some(1024));
+        assert_eq!(cfg.export_version.as_deref(), Some("gemma4_cached_v1.1"));
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
+    /// An architecture with no window: the exporter writes an explicit
+    /// `"sliding_window": null`. That must deserialise (not error) and must not
+    /// be read as a stale tree — there are no sliding layers to bound.
+    #[test]
+    fn full_attention_only_stage_with_null_window_is_not_stale() {
+        let cfg: StageConfig = serde_json::from_str(
+            r#"{"layer_start":0,"layer_end":6,"stateful":true,
+                "layer_types":["full_attention","full_attention"],
+                "sliding_window":null,"export_version":"gemma4_cached_v1.1"}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.sliding_window, None);
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
+    /// With no `layer_types` key at all there is no evidence of a sliding
+    /// layer, so the predicate stays quiet instead of warning on every config
+    /// written before the key existed.
+    #[test]
+    fn stage_config_without_layer_types_is_not_stale() {
+        let cfg: StageConfig =
+            serde_json::from_str(r#"{"layer_start":0,"layer_end":6,"stateful":true}"#).unwrap();
+        assert!(cfg.layer_types.is_empty());
+        assert!(!sliding_layers_unwindowed(&cfg));
+    }
+
     #[test]
     fn prefill_spans_without_seed_match_the_old_folding() {
         // chunk = usize::MAX (default single-pass): one span over everything.
@@ -2428,5 +2566,40 @@ mod tests {
         // remaining token folds at T=1.
         assert_eq!(prefill_span_end(0, usize::MAX, 0), 1);
         assert_eq!(prefill_span_end(1, usize::MAX, 0), 2);
+    }
+
+    /// The EOS path carries the usage the API reads off the final chunk. Every
+    /// gemma4 response reported `usage.prompt_tokens: 0` because these three
+    /// fields were left None.
+    #[test]
+    fn final_chunk_on_eos_carries_usage_and_stop() {
+        let c = final_chunk("t1".to_string(), 106, "!".to_string(), 93, true);
+        assert!(c.is_final);
+        assert_eq!(c.finish_reason, Some(FinishReason::Stop));
+        assert_eq!(c.prompt_tokens, Some(93));
+        assert_eq!(c.n_tokens, Some(1));
+        // The wire shape of the chunk is otherwise unchanged.
+        assert_eq!(c.token_id, 106);
+        assert_eq!(c.text, "!");
+    }
+
+    /// A max_tokens stop must not read as a natural stop — the API maps
+    /// `finish_reason` straight through, and client retry logic keys on
+    /// `"length"`.
+    #[test]
+    fn final_chunk_on_max_tokens_reports_length() {
+        let c = final_chunk("t1".to_string(), 42, "x".to_string(), 7, false);
+        assert_eq!(c.finish_reason, Some(FinishReason::Length));
+        assert_eq!(c.prompt_tokens, Some(7));
+    }
+
+    /// EOS usually detokenizes to "", and the API's fallback counts a non-empty
+    /// chunk as 1 token — so the last token would go uncounted unless
+    /// `n_tokens` is explicit.
+    #[test]
+    fn final_chunk_with_an_empty_delta_still_counts_its_token() {
+        let c = final_chunk("t1".to_string(), 106, String::new(), 93, true);
+        assert_eq!(c.n_tokens, Some(1));
+        assert_eq!(c.token_count(), 1);
     }
 }

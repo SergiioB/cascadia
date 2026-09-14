@@ -1588,6 +1588,12 @@ mod tests {
                 "gemma4_cached_v1",
                 "gemma4",
             ),
+            (
+                "pipeline_config.json",
+                "export_version",
+                "gemma4_cached_v1.1",
+                "gemma4",
+            ),
             ("manifest.json", "arch", "qwen3_5_moe", "qwen35"),
             ("manifest.json", "arch", "qwen3_5", "qwen35"),
             ("manifest.json", "arch", "minimax_m2", "sparse-moe"),

@@ -203,7 +203,7 @@ pub enum EngineKind {
     OvGenai,
     OvRuntime,
     OvDistSpec,
-    /// Gemma 4 multi-stage engine. Drives `gemma4_cached_v1` shards
+    /// Gemma 4 multi-stage engine. Drives `gemma4_cached_v1.x` shards
     /// (per-layer-type asymmetric attention, KV-sharing, per-layer
     /// embeddings, baked softcap) produced by `tools/export_gemma4.py`.
     Gemma4,
@@ -964,7 +964,7 @@ fn cmd_engines() -> Result<()> {
     println!("  ov-genai       single-stage openvino_genai.LLMPipeline; FastDraft + Prompt Lookup");
     println!("  ov-runtime     multi-stage stateful KV cache; pre-exported per-stage v3+ shards");
     println!("  ov-dist-spec   multi-stage spec decode (mask-based KV rewind); v5 shards");
-    println!("  gemma4         Gemma 4 multi-stage (per-layer-type attn, KV-sharing, PLI); gemma4_cached_v1 shards");
+    println!("  gemma4         Gemma 4 multi-stage (per-layer-type attn, KV-sharing, PLI, sliding window); gemma4_cached_v1.x shards");
     println!("  sparse-moe     Kimi K2.6 (AVX-512 int4 GEMM + Rust MLA shells) or MiniMax-M2 (OV-IR shells); single-stage top-k expert dispatch");
     println!("  qwen35         Qwen3.5-family staged chain (GatedDeltaNet; 3.5/3.6 MoE or 3.8 dense); qwen3_5* IR-surgery shards (alias: qwen36-moe)");
     Ok(())
@@ -2420,6 +2420,26 @@ pub(crate) fn resolve_python(explicit: Option<&str>, check_deps: bool) -> Result
     }
 }
 
+/// `--engine` that serves the shard tree at `dir`, mirroring the mapping in
+/// cascadia-engine-openvino's staged-tree diagnostic: export_shards.py and the
+/// gemma4 exporters write pipeline_config.json (gemma4 trees stamp a `gemma4*`
+/// export_version), the surgery exporters write manifest.json.
+fn shard_tree_engine(dir: &std::path::Path) -> &'static str {
+    let read_key = |file: &str, key: &str| -> Option<String> {
+        std::fs::read_to_string(dir.join(file))
+            .ok()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+            .and_then(|v| v[key].as_str().map(str::to_owned))
+    };
+    if read_key("pipeline_config.json", "export_version").is_some_and(|v| v.starts_with("gemma4")) {
+        return "gemma4";
+    }
+    if read_key("manifest.json", "arch").is_some_and(|a| a.starts_with("qwen3_5")) {
+        return "qwen35";
+    }
+    "ov-runtime"
+}
+
 async fn cmd_shard(args: ShardArgs) -> Result<()> {
     use std::process::{Command, Stdio};
 
@@ -2529,14 +2549,9 @@ async fn cmd_shard(args: ShardArgs) -> Result<()> {
         ));
     }
     // qwen3_5-family shards run the in-process stage chain, not the
-    // per-stage worker mesh; give the right invocation per manifest arch.
-    let arch =
-        std::fs::read_to_string(std::path::Path::new(&args.output_dir).join("manifest.json"))
-            .ok()
-            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
-            .and_then(|v| v["arch"].as_str().map(String::from))
-            .unwrap_or_default();
-    if arch.starts_with("qwen3_5") {
+    // per-stage worker mesh; give the right invocation per tree engine.
+    let engine = shard_tree_engine(std::path::Path::new(&args.output_dir));
+    if engine == "qwen35" {
         eprintln!(
             "\nShard tree written to {}. Run with:\n  cascadia run {} \
              --engine qwen35 --device CPU --api :8000",
@@ -2546,13 +2561,13 @@ async fn cmd_shard(args: ShardArgs) -> Result<()> {
         // Single stage: rank 0 is also the last stage, so there is no --next.
         eprintln!(
             "\nShard tree written to {}. Run with:\n  cascadia run {} \
-             --engine ov-runtime --device GPU",
+             --engine {engine} --device GPU",
             args.output_dir, args.output_dir
         );
     } else {
         eprintln!(
             "\nShard tree written to {}. Run with:\n  cascadia worker --rank 0 --total {} \
-             --engine ov-runtime --device GPU --model {} \
+             --engine {engine} --device GPU --model {} \
              --next <next-host>:9100 --api :8000",
             args.output_dir, args.num_stages, args.output_dir
         );
@@ -2965,6 +2980,37 @@ mod python_tests {
         args.draft_model = Some("unsloth/Llama-3.2-1B-Instruct".into());
         let err = preflight_model_path(&args).unwrap_err().to_string();
         assert!(err.contains("draft-model"), "{err}");
+    }
+
+    /// The post-shard run hint has to name the engine that actually serves the
+    /// tree — a gemma4 tree told to run with `--engine ov-runtime` fails at
+    /// load, minutes after the export the user just waited on.
+    #[test]
+    fn shard_tree_engine_matches_the_tree_shape() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(shard_tree_engine(dir.path()), "ov-runtime");
+
+        std::fs::write(
+            dir.path().join("pipeline_config.json"),
+            r#"{"export_version": "gemma4_cached_v1"}"#,
+        )
+        .unwrap();
+        assert_eq!(shard_tree_engine(dir.path()), "gemma4");
+
+        std::fs::write(
+            dir.path().join("pipeline_config.json"),
+            r#"{"export_version": "v3"}"#,
+        )
+        .unwrap();
+        assert_eq!(shard_tree_engine(dir.path()), "ov-runtime");
+
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("manifest.json"),
+            r#"{"arch": "qwen3_5_moe"}"#,
+        )
+        .unwrap();
+        assert_eq!(shard_tree_engine(dir.path()), "qwen35");
     }
 }
 
