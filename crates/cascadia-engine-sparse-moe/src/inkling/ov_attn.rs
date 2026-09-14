@@ -178,7 +178,9 @@ impl OvAttn {
             self.call_ns.load(Ordering::Relaxed),
         );
         let ok = self.qkvr(lid, &vec![0.0f32; hidden], 1).is_some()
-            && self.o(lid, &vec![0.0f32; ctx_dim], 1).is_some();
+            && self.o(lid, &vec![0.0f32; ctx_dim], 1).is_some()
+            && self.qkvr(lid, &vec![0.0f32; 8 * hidden], 8).is_some()
+            && self.o(lid, &vec![0.0f32; 8 * ctx_dim], 8).is_some();
         self.calls.store(before.0, Ordering::Relaxed);
         self.rows.store(before.1, Ordering::Relaxed);
         self.call_ns.store(before.2, Ordering::Relaxed);
@@ -193,11 +195,21 @@ impl OvAttn {
             return None;
         };
         let hidden = xs.len() / rows.max(1);
+        let prow = super::ov_moe::bucket_rows(rows);
+        let xs_p;
+        let xs = if prow != rows {
+            let mut v = xs.to_vec();
+            v.resize(prow * hidden, 0.0);
+            xs_p = v;
+            &xs_p[..]
+        } else {
+            xs
+        };
         let t0 = Instant::now();
         let out = {
             let mut r = rt.qkvr.lock().expect("OV attn qkvr lock");
             let step = r
-                .set_input("x", DType::F32, &[1, rows, hidden], f32_bytes(xs))
+                .set_input("x", DType::F32, &[1, prow, hidden], f32_bytes(xs))
                 .map_err(|e| format!("qkvr set_input: {e}"))
                 .and_then(|_| r.infer().map_err(|e| format!("qkvr infer: {e}")));
             if let Err(why) = step {
@@ -208,7 +220,13 @@ impl OvAttn {
             let mut outs: Vec<Vec<f32>> = Vec::with_capacity(4);
             for i in 0..4 {
                 match r.output(i) {
-                    Ok((_, _, bytes)) => outs.push(bf16_vec(&bytes)),
+                    Ok((_, _, bytes)) => {
+                        let mut v = bf16_vec(&bytes);
+                        if prow != rows {
+                            v.truncate(v.len() / prow * rows);
+                        }
+                        outs.push(v)
+                    }
                     Err(e) => {
                         self.note(lid, &format!("qkvr output {i}: {e}"));
                         self.fallbacks.fetch_add(1, Ordering::Relaxed);
@@ -234,11 +252,21 @@ impl OvAttn {
             return None;
         };
         let dim = ctx.len() / rows.max(1);
+        let prow = super::ov_moe::bucket_rows(rows);
+        let ctx_p;
+        let ctx = if prow != rows {
+            let mut v = ctx.to_vec();
+            v.resize(prow * dim, 0.0);
+            ctx_p = v;
+            &ctx_p[..]
+        } else {
+            ctx
+        };
         let t0 = Instant::now();
         let out = {
             let mut r = rt.o.lock().expect("OV attn o lock");
             let step = r
-                .set_input("ctx", DType::F32, &[1, rows, dim], f32_bytes(ctx))
+                .set_input("ctx", DType::F32, &[1, prow, dim], f32_bytes(ctx))
                 .map_err(|e| format!("o set_input: {e}"))
                 .and_then(|_| r.infer().map_err(|e| format!("o infer: {e}")));
             if let Err(why) = step {
@@ -247,7 +275,13 @@ impl OvAttn {
                 return None;
             }
             match r.output(0) {
-                Ok((_, _, bytes)) => bf16_vec(&bytes),
+                Ok((_, _, bytes)) => {
+                    let mut v = bf16_vec(&bytes);
+                    if prow != rows {
+                        v.truncate(v.len() / prow * rows);
+                    }
+                    v
+                }
                 Err(e) => {
                     self.note(lid, &format!("o output: {e}"));
                     self.fallbacks.fetch_add(1, Ordering::Relaxed);
