@@ -3,7 +3,7 @@
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.1969341563127117,
-  "status": "044_control_then045_overlap_running",
+  "status": "045_overlap_diagnostic_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
@@ -43,10 +43,10 @@
   "full_baseline_decode_steps_min": 63,
   "full_baseline_repeated_ids_and_logits_match": true,
   "full_baseline_text_reviewed": true,
-  "best_single_pass_full_model_decode_tokens_per_s": 0.5151766081427948,
+  "best_single_pass_full_model_decode_tokens_per_s": 0.537714573869795,
   "best_repeated_full_model_decode_tokens_per_s": 0.1969341563127117,
-  "last_verified_campaign": "042_full_uncached_diagnostics",
-  "active_campaign": "044_full_pipeline_control",
+  "last_verified_campaign": "044_full_pipeline_control",
+  "active_campaign": "045_full_pipeline_overlap",
   "record_verification": "036_completed_artifact_verification.json",
   "target_constraint": "Current packed export / measured workloads exceed the SSD link bandwidth at25tok/s even with optimistic32GiB initial routed cache; see037_full_span_traffic_bound.json."
 }

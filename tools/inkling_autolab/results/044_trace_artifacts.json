@@ -1,0 +1,30 @@
+{
+  "scope": "full_model_diagnostic_artifacts",
+  "output_hash": "ce0fbb9a116d3d09",
+  "artifacts": [
+    {
+      "source_file": "044-pipeline-control-routes.json",
+      "source_bytes": 2536036,
+      "source_sha256": "2cf18f84f1781f1e06c9c2b36917ef221f4468bd7e6f8a85042dd811a4708503",
+      "compressed_file": "044-pipeline-control-routes.json.gz",
+      "compressed_bytes": 182220,
+      "compressed_sha256": "05ad3bb1eb693ab0e32c94e767815cdadfe0df9253bd4232627f2e79f7d6427e"
+    },
+    {
+      "source_file": "044-pipeline-control-layers.json",
+      "source_bytes": 2711238,
+      "source_sha256": "1dbb85f6dd4cfe2c25d94d8f8fcca4e9a83a4a9cd7fd8bbea292eb114aa2ed86",
+      "compressed_file": "044-pipeline-control-layers.json.gz",
+      "compressed_bytes": 151639,
+      "compressed_sha256": "8e98a5120f32b63cb6648703581f1c72eb1c60e95495bc217c055de376999142"
+    },
+    {
+      "source_file": "host-trials-resources.jsonl",
+      "source_bytes": 1955916,
+      "source_sha256": "121a871cd40b93f384dd7081ec289aecbe35ddf6bf4659d682ca56a9d9d87e9f",
+      "compressed_file": "044-host-trials-resources.jsonl.gz",
+      "compressed_bytes": 159725,
+      "compressed_sha256": "76179de7809610ffff33678494d21225680dda5e17094c9e5e8596f873167e00"
+    }
+  ]
+}

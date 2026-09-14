@@ -1,0 +1,11 @@
+{
+  "scope": "full_route_identity_check",
+  "profiles": [
+    "034 direct",
+    "042 uncached"
+  ],
+  "all_prefill_and_decode_routes_match": true,
+  "case_layer_pairs": 192,
+  "routed_selections_including_prefill": 108288,
+  "cache_bound_037_routes_still_match": true
+}

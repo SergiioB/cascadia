@@ -25,10 +25,9 @@ questions:
 - id: q5
   question: What is full-checkpoint end-to-end throughput on tate-07?
   status: answered
-  answer: Complete 549 GB export is SHA-256 verified on PTL. Nine full baseline samples (three
-    cases x three repetitions,63 decode steps each) have a slowest rate0.1353339381tok/s. Repeated
-    logits/IDs match; text reviewed. Hashce0fbb9a116d3d09 gates subsequent candidates;25tok/s
-    remains unmet.
+  answer: Original full baseline0.135334tok/s slowest over9samples. Repeated036 improves to0.196934.
+    Latest full single-pass042 reaches0.515177 with exact IDs/logits; matched scheduling comparison
+    and final repetition pending. Target25 remains unmet.
   priority: 5
 - id: q6
   question: Can the Intel iGPU accelerate the selected expert set?
@@ -56,11 +55,10 @@ questions:
   question: How much time and cost does the designated 8xA100 export host save?
   status: answered
   priority: 9
-  answer: "cuda:all with four workers wins both batch sizes; 22.656 experts/s for 64 experts,\
-    \ 1.58x miner CUDA on matched eight-expert batches. Estimate 15\u201330 minutes per export\
-    \ with local raw weights ($4\u20138); first download plus export roughly 2\u20133 hours\
-    \ ($30\u201345), using measured parallel download ranges. No full export was timed. A100\
-    \ capacity is not needed while PTL copies or benchmarks."
+  answer: "Designated8xA100 host is qualified for CUDA exports. Final default is8 processes\
+    \ x1 worker,58.98 experts/s in the measured component; seeq12. Estimated whole export15\u2013\
+    30minutes with local raw source ($4\u20138), initial download+export2\u20133hours ($30\u2013\
+    45); no full export timed. Host backed up/idle, no termination performed."
 - id: q10
   question: Can independent SSH jump transports fill PTL Ethernet better than one?
   status: answered
@@ -134,13 +132,21 @@ questions:
     experiment; individual effects not isolated.
 - id: q39
   question: Does owning4.077GB of always-used shared expert bytes improve full decode?
-  status: active
+  status: answered
   priority: 7
-  reason: 229 native tests pass;040 three-case single-pass diagnostic running.
+  answer: 040 owns4.077GB shared expert bytes,passes all3cases1rep at0.235890tok/s slowest,19.78%
+    above036. Private peak26.093GB; transient prefill pressure remains. Exact IDs/logits preserved.
 - id: q41
   question: Can an aligned uncached bulk-read path improve full decode without changing model
     bytes?
+  status: answered
+  priority: 7
+  answer: 042 full uncached reads pass all3cases1rep at0.515177tok/s slowest,2.184x040 and3.807xoriginal
+    baseline. Actual2.209TB uncached bytes/zero fallbacks.233 native tests and exact full IDs/logits
+    pass; repeated final confirmation pending.
+- id: q43
+  question: Does overlapping each expert read with ready-expert compute improve full decode?
   status: active
   priority: 7
-  reason: 038 native byte-verified cold-read component improves1.2228x; prepare opt-in production
-    code while040 runs.
+  reason: 221 local and233 native tests plus actual-path fixtures pass.044 control then045 overlap
+    running in the same binary. Full performance not yet established.

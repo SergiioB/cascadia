@@ -1146,3 +1146,12 @@ binary SHAs remain unchanged. Full-pipeline.exe SHA
 The second starts automatically only after044 succeeds; never launch it twice.
 Logs/private/tmp/inkling-full-pipeline-{control,overlap}.log. No native qualifier
 is still queued. Final repeated confirmation remains pending after this pair.
+
+
+044 control completed:0.547396/0.541679/0.537715tok/s,slowest0.5377145739.
+All full IDs/hash and actualsettings pass,uncachedbytes2154558652416,fallbacks0,
+pipelinecount0. The same setting's variation from042 should not be attributed
+to overlap (which is disabled here).045 started automatically,nativePID2368,
+created1789348029.3876903,under sequentialtool20333. Finalconfirmation pending.
+Direct034 anduncached042 choose identical routed IDs in all192case/layerpairs,
+108288 selections includingprefill. The prior037 traffic bound still applies.

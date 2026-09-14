@@ -282,3 +282,12 @@ full-pipeline.exe is now under matched full evaluation044/045. Archives
 No native qualifier remains queued/running. Do NOT overlap anotherfull/build with
 sequentialpair20333. After its completion, inspect both final artifacts and choose
 best settings for a >=3rep final confirmation. Preserve all frozen binaries.
+
+
+Update01:08UTC:044 completed/Autolabverified,slowest0.5377145739tok/s across3cases,
+actualpipelinecount0,uncachedbytes2154558652416,fallbacks0. **045 is nowRUNNING**
+under the same sequentialtool20333,nativePID2368,created1789348029.3876903.
+Do not launch045 again. Control artifacts copied to/private/tmp/inkling-full-
+pipeline-control-artifacts. After045 choosewinner,prepare046final3repetitions.
+034 versus042 route traces match all192case/layerpairs and108288 routedselections
+includingprefill;037 cache/bandwidth analysis applies to the current routes.
