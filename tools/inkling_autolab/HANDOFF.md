@@ -36,8 +36,9 @@ One-layer-early prediction implemented locally as default-off Model observer,
 using target layer norm/router before predecessor executes, no additional I/O.
 Benchmark--prediction-lead-layers1 explicitly labels this input; current-layer
 prediction remains lead0. Two exact-logit/route/ordering/causality tests pass;
-all250 local tests/13suites and example build pass. Localfixture qualification
-and analyzer validation pending. Native116 must wait113/114 exit, preserve12
+all250 local tests/13suites and example build pass. Four localfixture modes and analyzer validation pass, including five malformed
+evidence rejections. Tiny firstprediction16scheduled/10useful/6unused; not a
+full-model accuracy estimate. Native116 must wait113/114 exit, preserve12
 frozen binaries and qualify a separate candidate before full diagnostic.
 This code is not used by current113/114. Continue optimization after finite campaigns.
 

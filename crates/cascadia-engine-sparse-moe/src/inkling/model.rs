@@ -44,6 +44,9 @@ pub struct LayerTiming {
 
 pub type LayerTimingObserver = Arc<dyn Fn(LayerTiming) + Send + Sync>;
 
+/// Target layer index and its predicted gate, evaluated before its predecessor.
+pub type PreviousLayerRouteObserver = Arc<dyn Fn(usize, &super::gate::GateOut) + Send + Sync>;
+
 pub struct Layer {
     pub hidden: usize,
     pub eps: f32,
@@ -435,6 +438,7 @@ pub struct Model {
     embed_norm: Vec<f32>, // [hidden]
     layers: Vec<Layer>,
     head: Head,
+    previous_layer_route_observer: Option<PreviousLayerRouteObserver>,
 }
 
 impl Model {
@@ -470,6 +474,7 @@ impl Model {
             embed_norm,
             layers,
             head: Head::new(norm, unembed, eps, mup, unpadded_vocab),
+            previous_layer_route_observer: None,
         }
     }
 
@@ -489,6 +494,18 @@ impl Model {
 
     pub fn layers_mut(&mut self) -> &mut [Layer] {
         &mut self.layers
+    }
+
+    /// Decode-only diagnostics for predicting layer i from the residual entering
+    /// layer i-1, using i's existing MLP norm/router. Layer 0 has no predecessor
+    /// and is omitted. No expert read or actual route observation is performed.
+    /// Defaults off; callbacks must not block or alter floating-point state.
+    /// Observer overhead is included in model time, outside layer timing spans.
+    pub fn set_previous_layer_route_observer(
+        &mut self,
+        observer: Option<PreviousLayerRouteObserver>,
+    ) {
+        self.previous_layer_route_observer = observer;
     }
 
     /// Whether sparse embedding lookups use file-backed BF16 rows.
@@ -574,8 +591,18 @@ impl Model {
     /// `[unpadded_vocab]` at this position and advances the caches.
     pub fn forward_token(&mut self, token: u32) -> Vec<f32> {
         let mut x = self.embed_token(token);
-        for l in &mut self.layers {
-            x = l.forward_token(&x);
+        for index in 0..self.layers.len() {
+            if let (Some(observer), Some(target)) = (
+                &self.previous_layer_route_observer,
+                self.layers.get(index + 1),
+            ) {
+                if let Some(moe) = target.moe() {
+                    let mut predicted_input = x.clone();
+                    rmsnorm_f32(&mut predicted_input, &target.mlp_norm, target.eps);
+                    observer(index + 1, &moe.route_unobserved(&predicted_input));
+                }
+            }
+            x = self.layers[index].forward_token(&x);
         }
         self.head_logits(&x)
     }

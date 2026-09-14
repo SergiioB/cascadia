@@ -16,7 +16,14 @@ def read(path):
 def analyze(actual, predictions, benchmark, recent):
     assert actual['correctness_verified'] and predictions['correctness_verified'] and benchmark['correctness_verified']
     assert actual['output_hash']==predictions['output_hash']==benchmark['output_hash']
-    assert predictions['scope']=='pre_attention_route_prediction_diagnostics'
+    scopes = {
+        'pre_attention_route_prediction_diagnostics': (0, 'current_layer_residual_before_attention_with_existing_mlp_norm_and_router'),
+        'previous_layer_route_prediction_diagnostics': (1, 'previous_layer_residual_before_attention_with_target_layer_mlp_norm_and_router'),
+    }
+    assert predictions['scope'] in scopes
+    lead, source = scopes[predictions['scope']]
+    assert predictions.get('prediction_lead_layers', 0) == lead
+    assert predictions['prediction_input'] == source
     assert predictions['actual_routing_changed'] is False and predictions['prefetch_performed'] is False
     spec=importlib.util.spec_from_file_location('recency',Path(__file__).with_name('analyze-cache-recency.py'))
     replay=importlib.util.module_from_spec(spec);spec.loader.exec_module(replay)
@@ -32,6 +39,8 @@ def analyze(actual, predictions, benchmark, recent):
     groups=defaultdict(lambda:dict(visits=0,actual_misses=0,predicted_reads=0,useful_reads=0,extra_reads=0))
     visited=set()
     def observe(case,rep,layer,position,cohort,entries):
+        if lead == 1 and layer == 0:
+            return  # No predecessor exists; no prediction is claimed for layer0.
         key=(case,rep,layer,position);assert key not in visited;visited.add(key)
         predicted=mapping[key]
         assert len(predicted)==len(cohort) and all(0<=x<actual['manifest']['routed_experts'] for x in predicted)
@@ -55,7 +64,7 @@ def analyze(actual, predictions, benchmark, recent):
                             precision=stats['useful_reads']/stats['predicted_reads'] if stats['predicted_reads'] else None,
                             actual_miss_coverage=stats['useful_reads']/stats['actual_misses'] if stats['actual_misses'] else None,
                             read_amplification=1+stats['extra_reads']/stats['actual_misses'] if stats['actual_misses'] else None))
-    return dict(scope='causal_prediction_precision_not_measured_prefetch_speedup',visits=len(visited),cache_control_matches_actual=True,results=results,caveats=['No expert prefetch was performed; misses and cache state are the unmodified runtime behavior.', 'Predictions use the current residual input before attention and the existing MLP norm/router; no future route enters prediction.', 'Potential latency overlap, I/O contention, prediction overhead and unused-read cost require a separate runtime experiment.'])
+    return dict(scope='causal_prediction_precision_not_measured_prefetch_speedup',prediction_lead_layers=lead,prediction_input=source,visits=len(visited),cache_control_matches_actual=True,results=results,caveats=['No expert prefetch was performed; misses and cache state are the unmodified runtime behavior.', 'Predictions use the declared residual input and target layer MLP norm/router; no future route enters prediction.', 'Potential latency overlap, I/O contention, prediction overhead and unused-read cost require a separate runtime experiment.'])
 
 
 def main():

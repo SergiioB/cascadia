@@ -140,6 +140,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut route_trace = None;
     let mut layer_profile = None;
     let mut prediction_trace = None;
+    let mut prediction_lead_layers = 0usize;
     let mut tokens = 64usize;
     let mut repetitions = 3usize;
     let mut allow_fixture = false;
@@ -159,12 +160,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--route-trace" => route_trace = Some(PathBuf::from(value)),
             "--layer-profile" => layer_profile = Some(PathBuf::from(value)),
             "--prediction-trace" => prediction_trace = Some(PathBuf::from(value)),
+            "--prediction-lead-layers" => prediction_lead_layers = value.parse()?,
             _ => return Err(format!("unknown argument: {flag}").into()),
         }
     }
     assert!(
         tokens >= 2 && repetitions >= 1,
         "need >=2 tokens and >=1 samples"
+    );
+    assert!(
+        prediction_lead_layers <= 1,
+        "prediction lead must be 0 or 1"
+    );
+    assert!(
+        prediction_lead_layers == 0 || prediction_trace.is_some(),
+        "one-layer-early prediction requires --prediction-trace"
     );
     if let Some(path) = &route_trace {
         assert!(!path.exists(), "refusing to overwrite a routing trace");
@@ -255,14 +265,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut prediction_captures = Vec::new();
     if prediction_trace.is_some() {
         for (li, layer) in model.layers_mut().iter_mut().enumerate() {
-            if layer.moe().is_some() {
+            if layer.moe().is_some() && (prediction_lead_layers == 0 || li > 0) {
                 let routes = Arc::new(Mutex::new(Vec::new()));
                 let target = Arc::clone(&routes);
-                layer.set_pre_attention_route_observer(Some(Arc::new(move |gate| {
-                    target.lock().unwrap().push(gate.idx.clone());
-                })));
+                if prediction_lead_layers == 0 {
+                    layer.set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+                        target.lock().unwrap().push(gate.idx.clone());
+                    })));
+                }
                 prediction_captures.push((li, routes));
             }
+        }
+        if prediction_lead_layers == 1 {
+            let targets = prediction_captures.clone();
+            model.set_previous_layer_route_observer(Some(Arc::new(move |li, gate| {
+                let (_, target) = targets.iter().find(|(index, _)| *index == li).unwrap();
+                target.lock().unwrap().push(gate.idx.clone());
+            })));
         }
     }
     let mut prediction_samples = Vec::new();
@@ -506,10 +525,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::to_writer_pretty(
             file,
             &serde_json::json!({
-                "scope": "pre_attention_route_prediction_diagnostics", "generation_scope": scope,
+                "scope": if prediction_lead_layers == 0 { "pre_attention_route_prediction_diagnostics" }
+                    else { "previous_layer_route_prediction_diagnostics" }, "generation_scope": scope,
                 "full_model": full_model, "correctness_verified": correctness_verified,
                 "output_hash": hash, "export": export,
-                "prediction_input": "current_layer_residual_before_attention_with_existing_mlp_norm_and_router",
+                "prediction_input": if prediction_lead_layers == 0 {
+                    "current_layer_residual_before_attention_with_existing_mlp_norm_and_router"
+                } else {
+                    "previous_layer_residual_before_attention_with_target_layer_mlp_norm_and_router"
+                },
+                "prediction_lead_layers": prediction_lead_layers,
                 "actual_routing_changed": false, "prefetch_performed": prediction_reads.scheduled > 0,
                 "observer_overhead_included_in_benchmark_time": true,
                 "samples": prediction_samples,

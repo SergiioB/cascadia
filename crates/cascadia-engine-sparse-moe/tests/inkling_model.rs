@@ -857,3 +857,82 @@ fn pre_attention_prediction_depends_on_current_input_not_attention_state() {
     assert_eq!(first.layers()[1].len(), 3);
     assert_eq!(second.layers()[1].len(), 4);
 }
+
+#[test]
+fn previous_layer_predictions_preserve_logits_routes_and_precede_computation() {
+    use std::sync::{Arc, Mutex};
+    let mut plain = random_model(115);
+    let mut observed = random_model(115);
+    let actual = Arc::new(Mutex::new(Vec::new()));
+    let expected = Arc::new(Mutex::new(Vec::new()));
+    for (model, routes) in [(&mut plain, &expected), (&mut observed, &actual)] {
+        let target = Arc::clone(routes);
+        model.layers_mut()[1]
+            .moe_mut()
+            .unwrap()
+            .set_route_observer(Some(Arc::new(move |gate| {
+                target.lock().unwrap().push(gate.clone())
+            })));
+    }
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let predicted = Arc::clone(&events);
+    observed.set_previous_layer_route_observer(Some(Arc::new(move |layer, _| {
+        if layer == 1 {
+            predicted.lock().unwrap().push("prediction");
+        }
+    })));
+    let preceding = Arc::clone(&events);
+    observed.layers_mut()[0].set_timing_observer(Some(Arc::new(move |timing| {
+        if !timing.prefill {
+            preceding.lock().unwrap().push("predecessor_complete");
+        }
+    })));
+    let bits = |v: Vec<f32>| v.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&[3, 7, 1])),
+        bits(observed.prefill(&[3, 7, 1]))
+    );
+    assert!(events.lock().unwrap().is_empty());
+    for token in [4, 9, 2, 7] {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(observed.forward_token(token))
+        );
+    }
+    assert_eq!(*actual.lock().unwrap(), *expected.lock().unwrap());
+    assert_eq!(
+        *events.lock().unwrap(),
+        ["prediction", "predecessor_complete"].repeat(4)
+    );
+    observed.set_previous_layer_route_observer(None);
+    assert_eq!(
+        bits(plain.forward_token(1)),
+        bits(observed.forward_token(1))
+    );
+    assert_eq!(events.lock().unwrap().last(), Some(&"predecessor_complete"));
+    assert_eq!(events.lock().unwrap().len(), 9);
+}
+
+#[test]
+fn previous_layer_prediction_cannot_use_predecessor_or_target_sequence_state() {
+    use std::sync::{Arc, Mutex};
+    let mut first = random_model(116);
+    let mut second = random_model(116);
+    first.prefill(&[1, 2]);
+    second.prefill(&[9, 8, 7]);
+    let predictions = Arc::new(Mutex::new(Vec::new()));
+    for model in [&mut first, &mut second] {
+        let target = Arc::clone(&predictions);
+        model.set_previous_layer_route_observer(Some(Arc::new(move |layer, gate| {
+            if layer == 1 {
+                target.lock().unwrap().push(gate.clone());
+            }
+        })));
+        model.forward_token(4);
+    }
+    let captured = predictions.lock().unwrap();
+    assert_eq!(captured.len(), 2);
+    assert_eq!(captured[0], captured[1]);
+    assert_eq!(first.len(), 3);
+    assert_eq!(second.len(), 4);
+}
