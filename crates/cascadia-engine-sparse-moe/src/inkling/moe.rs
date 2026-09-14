@@ -170,12 +170,17 @@ impl MoeLayer {
             return None;
         }
         let selected = if super::predicted_read::second_reads_requested() {
-            self.expert_cache.selective_uncached(
+            self.expert_cache.predicted_uncached(
                 &prediction.idx,
                 super::predicted_read::second_prediction_rank_ceiling(),
+                super::predicted_read::third_reads_requested(),
             )
         } else {
-            [self.expert_cache.first_uncached(&prediction.idx), None]
+            [
+                self.expert_cache.first_uncached(&prediction.idx),
+                None,
+                None,
+            ]
         };
         let first = selected[0].and_then(|expert| {
             let mapped = self.w.experts[expert].as_mmap()?;
@@ -185,7 +190,11 @@ impl MoeLayer {
             let mapped = self.w.experts[expert].as_mmap()?;
             super::predicted_read::start_second(expert, mapped.bin_path(), mapped.bin_len())
         });
-        super::predicted_read::PendingReadGroup::new(first, second)
+        let third = selected[2].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start_third(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        super::predicted_read::PendingReadGroup::new(first, second, third)
     }
 
     pub(crate) fn reset_expert_cache_history(&self) {

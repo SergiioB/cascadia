@@ -2,13 +2,21 @@
 //!
 //! This caches destination allocations, never expert contents. A lease owns its
 //! buffers while Rayon reads and computes; no pool lock covers I/O or compute.
-//! The idle pool is shared across layers and capped at 256 MiB per process.
+//! The idle pool is shared across layers: 256 MiB normally, 320 MiB with the
+//! bounded third-reader experiment to avoid repeated scratch allocation.
 use std::io::{self, Read};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 const MAX_IDLE_BYTES: usize = 256 * 1024 * 1024;
+pub fn read_buffer_idle_limit_bytes() -> usize {
+    if super::predicted_read::third_reads_requested() {
+        320 * 1024 * 1024
+    } else {
+        MAX_IDLE_BYTES
+    }
+}
 static POOL: Mutex<Vec<ReadBuffer>> = Mutex::new(Vec::new());
 static UNCACHED_BYTES: AtomicU64 = AtomicU64::new(0);
 static UNCACHED_FALLBACKS: AtomicU64 = AtomicU64::new(0);
@@ -198,9 +206,10 @@ impl Drop for ReadBuffers {
     fn drop(&mut self) {
         let mut pool = POOL.lock().unwrap_or_else(|e| e.into_inner());
         let mut bytes: usize = pool.iter().map(|b| b.bytes.capacity()).sum();
+        let limit = read_buffer_idle_limit_bytes();
         for buffer in self.buffers.drain(..) {
             let capacity = buffer.bytes.capacity();
-            if capacity > 0 && capacity <= MAX_IDLE_BYTES - bytes {
+            if capacity > 0 && capacity <= limit.saturating_sub(bytes) {
                 bytes += capacity;
                 pool.push(buffer);
             }

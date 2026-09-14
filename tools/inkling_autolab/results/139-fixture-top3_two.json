@@ -1,0 +1,137 @@
+{
+  "correctness_verified": true,
+  "early_prediction_reads_effective": false,
+  "embedding_mapped": true,
+  "expert_cache": {
+    "admissions": 20,
+    "capacity_bytes": 3145728,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 9,
+    "hit_bytes": 584064,
+    "hits": 169,
+    "misses": 20,
+    "recent_tie_admissions": 0,
+    "retained_bytes": 69120
+  },
+  "export": "/private/tmp/139-fixture-top3-local/model",
+  "manifest": {
+    "experts": 8,
+    "hidden": 64,
+    "layers": 4
+  },
+  "output_hash": "cab94449a78517d3",
+  "owned_shared_bytes": 20736,
+  "pipelined_read_layers": 63,
+  "prediction_read_workers": 2,
+  "prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 17,
+    "successful": 17,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 17,
+    "useful_bytes": 58752,
+    "worker_failures": 0
+  },
+  "prefill_read_experts": 72,
+  "prefill_uncached_read_bytes": 0,
+  "prefill_uncached_read_fallbacks": 0,
+  "read_buffer_idle_limit_bytes": 268435456,
+  "samples": [
+    {
+      "case": "tiny_top3_legacy",
+      "decode_ended_unix": 1789393312.895783,
+      "decode_seconds": 0.015394875,
+      "decode_started_unix": 1789393312.880387,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789393312.88038,
+      "prefill_seconds": 0.022140292,
+      "prefill_started_unix": 1789393312.85824,
+      "repetition": 0
+    },
+    {
+      "case": "tiny_top3_legacy",
+      "decode_ended_unix": 1789393312.932046,
+      "decode_seconds": 0.014852583,
+      "decode_started_unix": 1789393312.917193,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789393312.917187,
+      "prefill_seconds": 0.021383,
+      "prefill_started_unix": 1789393312.895803,
+      "repetition": 1
+    },
+    {
+      "case": "tiny_top3_legacy",
+      "decode_ended_unix": 1789393312.969033,
+      "decode_seconds": 0.014777958,
+      "decode_started_unix": 1789393312.954255,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789393312.954248,
+      "prefill_seconds": 0.022185375,
+      "prefill_started_unix": 1789393312.932063,
+      "repetition": 2
+    }
+  ],
+  "scope": "fixture_model_decode",
+  "second_prediction_rank_ceiling": 2,
+  "second_prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 6,
+    "successful": 6,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 6,
+    "useful_bytes": 20736,
+    "worker_failures": 0
+  },
+  "second_prediction_reads_effective": true,
+  "slowest_case_decode_tokens_per_s": 454.69677408877953,
+  "third_prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 0,
+    "successful": 0,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 0,
+    "useful_bytes": 0,
+    "worker_failures": 0
+  },
+  "third_prediction_reads_effective": false,
+  "uncached_read_bytes": 0,
+  "uncached_read_effective": false,
+  "uncached_read_fallbacks": 0
+}

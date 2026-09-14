@@ -76,12 +76,13 @@ pub mod moe;
 mod expert_cache;
 pub use expert_cache::ExpertCacheStats;
 mod read_buffers;
+pub use read_buffers::read_buffer_idle_limit_bytes;
 pub use read_buffers::uncached_read_statistics;
 pub use read_buffers::prefill_read_statistics;
 mod predicted_read;
 pub use predicted_read::{
     prediction_read_statistics, prediction_read_worker_count, second_prediction_rank_ceiling,
-    second_prediction_read_statistics,
+    second_prediction_read_statistics, third_prediction_read_statistics,
     PredictionReadStats,
 };
 pub mod relpos;

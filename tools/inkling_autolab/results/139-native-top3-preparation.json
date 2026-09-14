@@ -1,0 +1,233 @@
+{
+  "scope": "tiny_top3_frozen_runtime_reference",
+  "binary_sha256": "83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2",
+  "source_manifest_sha256": "3b7533350bbe8772bfa57c20aa4cf56fffe6410466968a812a64268b97a234a6",
+  "variant_manifest_sha256": "c914f8da853cfc475bc0e42922002a7c113cc3253a5405d8a8468144adcbeea5",
+  "manifest_only_change": "top_k2 to3",
+  "all_weight_bytes_unchanged": true,
+  "weights": [
+    {
+      "path": "embed.safetensors",
+      "sha256": "06f33e35429b2b0e3fa1352860282be32df0003fbd68a3d6a41c86d1ac5bd393"
+    },
+    {
+      "path": "experts\\layer_00\\dense.bin",
+      "sha256": "3558b8216bc546bec070e4151cd69cf983d6bd7d05426e1f4bd091b3cc83c25f"
+    },
+    {
+      "path": "experts\\layer_01\\expert_000.bin",
+      "sha256": "cf47ed5128c4757b250f763e6e206e560bd49ff8149d0ea7a6dbeb6f6954ab0d"
+    },
+    {
+      "path": "experts\\layer_01\\expert_001.bin",
+      "sha256": "4980052b206e55310e20136b91b2a27a66b4b6a23909c4c76da7a2538f7874c2"
+    },
+    {
+      "path": "experts\\layer_01\\expert_002.bin",
+      "sha256": "5ada5d454de7810ed19ef58cddd032368faa1ca6f8aee0ed6a430b33a4ef7778"
+    },
+    {
+      "path": "experts\\layer_01\\expert_003.bin",
+      "sha256": "5bca4475f7deb621d19dc403ccbdd3ac96e6448547d06da674c88acb915bdabc"
+    },
+    {
+      "path": "experts\\layer_01\\expert_004.bin",
+      "sha256": "448e7c690cfa674d4b1f812c3309f0889864f08a733d12c731f6dad37c922d56"
+    },
+    {
+      "path": "experts\\layer_01\\expert_005.bin",
+      "sha256": "b34f32b11d456e2f2e6c2330545da18005ff446a8d14f1d1c35ce27f9407d73b"
+    },
+    {
+      "path": "experts\\layer_01\\expert_006.bin",
+      "sha256": "3eb645fb60a5c2983555c8c960c2c58a048c7a87f237ef23e064ca604b1cecfe"
+    },
+    {
+      "path": "experts\\layer_01\\expert_007.bin",
+      "sha256": "f9772632faf7ae022e8b53ec9c4f5bdce8951b0c11bacc5633ea42bb18170186"
+    },
+    {
+      "path": "experts\\layer_01\\expert_shared0.bin",
+      "sha256": "6a87e54ca405c566cb5ba546959b3f5bbe890192b9775edd15c305ffc26ebdd1"
+    },
+    {
+      "path": "experts\\layer_01\\expert_shared1.bin",
+      "sha256": "fb45ee92a91d6a2aeda987c94172f43c62cb7936c4e060e651a90416addab8bc"
+    },
+    {
+      "path": "experts\\layer_02\\expert_000.bin",
+      "sha256": "611869448a4ce3d8b470e24de8037f473a2a02735d4b6cff29cd42ba756ae286"
+    },
+    {
+      "path": "experts\\layer_02\\expert_001.bin",
+      "sha256": "88300575b61365e268ac0a9c8cc4a1b9668fe88aece519618323df2182482b1e"
+    },
+    {
+      "path": "experts\\layer_02\\expert_002.bin",
+      "sha256": "2187546789257655e05d96477208054c8bcd9e9a93e572e2616f2d3fb6a151ad"
+    },
+    {
+      "path": "experts\\layer_02\\expert_003.bin",
+      "sha256": "76fabbf4b49c8dd470eafa92415d7bbcd415fb3d4a556680bbac14e350496b5b"
+    },
+    {
+      "path": "experts\\layer_02\\expert_004.bin",
+      "sha256": "4180d58f4e49989348c6ae2111c83d4d6ecfcd47ce7901d031eae54490642b04"
+    },
+    {
+      "path": "experts\\layer_02\\expert_005.bin",
+      "sha256": "0b9ef96c25793368998bf20934953ff34461f46f22cb3e3956a3a83778fe4938"
+    },
+    {
+      "path": "experts\\layer_02\\expert_006.bin",
+      "sha256": "4e3cc8229140a9215d592fb121d93dc637c013d47397d405c00e9ef90c2bb695"
+    },
+    {
+      "path": "experts\\layer_02\\expert_007.bin",
+      "sha256": "b7eede1f8de1da7646dff918025489ff01c3207d74793074c089821dfbdb7819"
+    },
+    {
+      "path": "experts\\layer_02\\expert_shared0.bin",
+      "sha256": "d648763e886729395e94f9fa92f275a7f9e2e422c9c0540dd35a4be85f945810"
+    },
+    {
+      "path": "experts\\layer_02\\expert_shared1.bin",
+      "sha256": "f1557c4ddaa4db4dbb5351d73772e1f363373ff1d11170988ad650bfe700539b"
+    },
+    {
+      "path": "experts\\layer_03\\expert_000.bin",
+      "sha256": "c788ffbf5536a51c4a8a79d4665e0ab54997bdb3b0b7e0ecf459d51d64bb561d"
+    },
+    {
+      "path": "experts\\layer_03\\expert_001.bin",
+      "sha256": "6163025ca0b296f09d3f9b7133fb2ffeb6a79e37ef849e287586325cdf2bbeed"
+    },
+    {
+      "path": "experts\\layer_03\\expert_002.bin",
+      "sha256": "a1542022d415ba3825ef309f908677f2ade55ae830562ed1b5478908d4fe894f"
+    },
+    {
+      "path": "experts\\layer_03\\expert_003.bin",
+      "sha256": "5b29cf69aee93c4d2db09b5b7936e19e640c15fbc9b1c73ef632a7e673d26488"
+    },
+    {
+      "path": "experts\\layer_03\\expert_004.bin",
+      "sha256": "70fd43598bf2d10ebe22a0e11a2ed80a98dc36e52da3acf0de265b95c6df3b10"
+    },
+    {
+      "path": "experts\\layer_03\\expert_005.bin",
+      "sha256": "6e8aa2d5217870b694af6b4cd9bf8087f908d17b37a12d63c68879e362c7fa75"
+    },
+    {
+      "path": "experts\\layer_03\\expert_006.bin",
+      "sha256": "73216e3fd584282c39e4db5a46c95b6dfae7473a5f6c924e3cfbc46d5a9268dc"
+    },
+    {
+      "path": "experts\\layer_03\\expert_007.bin",
+      "sha256": "cb9897f1480da87a744613b4716fe2e05ee53eff1fd08c136e2ddac8fb8ce932"
+    },
+    {
+      "path": "experts\\layer_03\\expert_shared0.bin",
+      "sha256": "7cbf71214203513cb79c0f960e96991407522c712c149f346dbaad2b20473da4"
+    },
+    {
+      "path": "experts\\layer_03\\expert_shared1.bin",
+      "sha256": "afa72458ab850b39817c260a84ea9d4b91c955baa2b361ab01f80c6d6a34925d"
+    },
+    {
+      "path": "head.safetensors",
+      "sha256": "0953c383bb8f743b6dffa7dbb1fdbecf8bf79de514f776812174707b5bbee5b8"
+    },
+    {
+      "path": "reference.json",
+      "sha256": "9a08abc80b467f2241659cd303e44f6a3085167e62b17b64668d4ef72138a465"
+    },
+    {
+      "path": "shells\\layer_00.safetensors",
+      "sha256": "099114e4e886cb38d689c060f50372535489f85094c017db5433bba5cdfbd11b"
+    },
+    {
+      "path": "shells\\layer_01.safetensors",
+      "sha256": "873b8d1b230c98cd246cc39acf1a62d71ebebc45931e8e4254da128a9ec30f46"
+    },
+    {
+      "path": "shells\\layer_02.safetensors",
+      "sha256": "a63728d253f68f87a4ccd2278ab886b3398cd8342af6070637d57d1a8ce67103"
+    },
+    {
+      "path": "shells\\layer_03.safetensors",
+      "sha256": "a7fbb82a400aac4c965635f3b6520e5647d6e3f282b78376b598b208630566d5"
+    },
+    {
+      "path": "source_config.json",
+      "sha256": "350ed0207fde87556ee17162563d28a3e705d6b50d034c0865c4a0c60c5b6876"
+    }
+  ],
+  "output_hash": "3b872132795009f1",
+  "generated_ids": [
+    28,
+    48,
+    106,
+    84,
+    28,
+    48,
+    106,
+    84
+  ],
+  "expert_cache": {
+    "admissions": 20,
+    "capacity_bytes": 3145728,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 9,
+    "hit_bytes": 584064,
+    "hits": 169,
+    "misses": 20,
+    "recent_tie_admissions": 0,
+    "retained_bytes": 69120
+  },
+  "hf_top3_oracle": false,
+  "reference_binary_scope": "previously qualified runtime before any third-read implementation",
+  "artifacts": [
+    {
+      "path": "cases-reference.json",
+      "sha256": "07ea15a49d5a4cf46944253ccc29e73c4988d8b9f93302fee492f373993f55ce"
+    },
+    {
+      "path": "cases-unchecked.json",
+      "sha256": "056fe8fedf7bdee56ae857bf11a48b351a2608fdd993610b25c75af10776baf3"
+    },
+    {
+      "path": "reference-predicted.json",
+      "sha256": "72bd7eb60011615b872c467c4372aaf45dabbc5222c7b25ef1c8c8ad3d2a6cf5"
+    },
+    {
+      "path": "reference-routes.json",
+      "sha256": "03d2d0e5c0fd3816397b10bd855e9231f51046dcac9fd46d95a2cc6df2c5052a"
+    },
+    {
+      "path": "reference-unchecked-predicted.json",
+      "sha256": "8fe6f1b4e5edc09bab0fb8150e7b63ab8723b7c2cab2765216f2c58a5121ee58"
+    },
+    {
+      "path": "reference-unchecked-routes.json",
+      "sha256": "7951c20085df148f124dcb54eae66ab4f6f68cda357db2abb6c30957ad632664"
+    },
+    {
+      "path": "reference-unchecked.json",
+      "sha256": "b00e33542f653df82bf7cf8abaf9ec3732d4a5fe117bea29317c17283563c668"
+    },
+    {
+      "path": "reference-unchecked.log",
+      "sha256": "c8b37f4778f139e9d33fa28735372cca1254ef13900008ee4d54cc8593ae1eb3"
+    },
+    {
+      "path": "reference.json",
+      "sha256": "53f439fdd116565ffbc7a016b18161444cef5646aa1b86e8d286af744163c838"
+    },
+    {
+      "path": "reference.log",
+      "sha256": "dcb2121085ce2fb1c8469e3e840ddc5d78d9cd378601663ba73e503741034d6d"
+    }
+  ]
+}

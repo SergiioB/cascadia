@@ -147,6 +147,7 @@ impl Drop for Reader {
 
 static READER: OnceLock<Option<Reader>> = OnceLock::new();
 static SECOND_READER: OnceLock<Option<Reader>> = OnceLock::new();
+static THIRD_READER: OnceLock<Option<Reader>> = OnceLock::new();
 
 fn parse_second_rank(raw: Option<&str>) -> usize {
     raw.and_then(|value| value.parse::<usize>().ok())
@@ -175,6 +176,24 @@ pub(super) fn second_reads_requested() -> bool {
         && *ENABLED.get_or_init(|| super::env_flag("CASCADIA_INKLING_SECOND_PREDICT_READS"))
 }
 
+pub(super) fn third_reads_requested() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    second_reads_requested()
+        && *ENABLED.get_or_init(|| {
+            super::env_flag("CASCADIA_INKLING_THIRD_PREDICT_READS")
+                && super::env_flag("CASCADIA_INKLING_PREDICT_READS")
+                && super::expert_cache::ExpertCache::configured_bytes() > 0
+        })
+}
+
+pub fn third_prediction_read_statistics() -> PredictionReadStats {
+    THIRD_READER
+        .get()
+        .and_then(Option::as_ref)
+        .map(|reader| reader.counters.snapshot())
+        .unwrap_or_default()
+}
+
 pub fn second_prediction_read_statistics() -> PredictionReadStats {
     SECOND_READER
         .get()
@@ -184,7 +203,7 @@ pub fn second_prediction_read_statistics() -> PredictionReadStats {
 }
 
 pub fn prediction_read_worker_count() -> usize {
-    [&READER, &SECOND_READER]
+    [&READER, &SECOND_READER, &THIRD_READER]
         .iter()
         .filter(|reader| reader.get().and_then(Option::as_ref).is_some())
         .count()
@@ -211,6 +230,16 @@ pub fn prediction_read_statistics() -> PredictionReadStats {
     total.dispatch_failures += second.dispatch_failures;
     total.useful_bytes += second.useful_bytes;
     total.unused_bytes += second.unused_bytes;
+    let third = third_prediction_read_statistics();
+    total.scheduled += third.scheduled;
+    total.successful += third.successful;
+    total.useful += third.useful;
+    total.unused += third.unused;
+    total.read_failures += third.read_failures;
+    total.worker_failures += third.worker_failures;
+    total.dispatch_failures += third.dispatch_failures;
+    total.useful_bytes += third.useful_bytes;
+    total.unused_bytes += third.unused_bytes;
     total
 }
 
@@ -228,19 +257,30 @@ pub(super) fn start_second(expert: usize, path: &Path, length: usize) -> Option<
         .start(expert, path, length)
 }
 
-/// At most two independent, complete expert reads for the current layer.
+pub(super) fn start_third(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
+    THIRD_READER
+        .get_or_init(|| Reader::new().ok())
+        .as_ref()?
+        .start(expert, path, length)
+}
+
+/// At most three independent, complete expert reads for the current layer.
 /// Each request retains its own expert identity and drains on drop.
 pub(super) struct PendingReadGroup {
-    requests: [Option<PendingRead>; 2],
+    requests: [Option<PendingRead>; 3],
 }
 
 impl PendingReadGroup {
-    pub fn new(first: Option<PendingRead>, second: Option<PendingRead>) -> Option<Self> {
-        if first.is_none() && second.is_none() {
+    pub fn new(
+        first: Option<PendingRead>,
+        second: Option<PendingRead>,
+        third: Option<PendingRead>,
+    ) -> Option<Self> {
+        if first.is_none() && second.is_none() && third.is_none() {
             return None;
         }
         Some(Self {
-            requests: [first, second],
+            requests: [first, second, third],
         })
     }
 
@@ -362,6 +402,7 @@ mod tests {
         let group = PendingReadGroup::new(
             readers[0].start(3, files[0].path(), 4096),
             readers[1].start(7, files[1].path(), 4096),
+            None,
         )
         .unwrap();
         let timeout = std::time::Duration::from_secs(5);
@@ -393,6 +434,90 @@ mod tests {
                 (1, 1, 1, 0)
             );
             assert_eq!(stats.useful_bytes, 4096);
+        }
+    }
+
+    #[test]
+    fn three_concurrent_requests_preserve_identity_and_drain_unused_read() {
+        let mut files = [
+            tempfile::NamedTempFile::new().unwrap(),
+            tempfile::NamedTempFile::new().unwrap(),
+            tempfile::NamedTempFile::new().unwrap(),
+        ];
+        for (file, value) in files.iter_mut().zip([17, 93, 61]) {
+            file.write_all(&[value; 4096]).unwrap();
+        }
+        let (entered, arrived) = sync_channel(3);
+        let mut releases = Vec::new();
+        let readers: Vec<_> = (0..3)
+            .map(|index| {
+                let entered = entered.clone();
+                let (release, wait) = sync_channel(1);
+                releases.push(release);
+                Reader::with_read_fn(move |buffer, path, length| {
+                    entered.send(index).unwrap();
+                    wait.recv().unwrap();
+                    buffer.read(path, length)
+                })
+                .unwrap()
+            })
+            .collect();
+        struct ReleaseAll(Vec<SyncSender<()>>);
+        impl Drop for ReleaseAll {
+            fn drop(&mut self) {
+                for release in &self.0 {
+                    let _ = release.try_send(());
+                }
+            }
+        }
+        // Declared after readers, so assertion unwinding releases blocked I/O
+        // before any Reader::drop tries to join its worker.
+        let releases = ReleaseAll(releases);
+        let group = PendingReadGroup::new(
+            readers[0].start(3, files[0].path(), 4096),
+            readers[1].start(7, files[1].path(), 4096),
+            readers[2].start(9, files[2].path(), 4096),
+        )
+        .unwrap();
+        let entered: Vec<_> = (0..3)
+            .map(|_| arrived.recv_timeout(std::time::Duration::from_secs(5)))
+            .collect();
+        // Release all on failed startup, so assertion failure cannot deadlock cleanup.
+        if entered.iter().any(Result::is_err) {
+            for release in &releases.0 {
+                let _ = release.try_send(());
+            }
+            panic!("not all readers started independently");
+        }
+        let mut entered: Vec<_> = entered.into_iter().map(Result::unwrap).collect();
+        entered.sort();
+        assert_eq!(entered, [0, 1, 2]);
+        releases.0[0].send(()).unwrap();
+        releases.0[2].send(()).unwrap();
+        let mut destination = ReadBuffer::default();
+        assert!(!group.take_for(8, &mut destination));
+        assert!(group.take_for(9, &mut destination));
+        assert_eq!(destination.as_slice(), [61; 4096]);
+        assert!(!group.take_for(9, &mut destination));
+        assert!(group.take_for(3, &mut destination));
+        assert_eq!(destination.as_slice(), [17; 4096]);
+        let (finished, done) = sync_channel(1);
+        let dropper = std::thread::spawn(move || {
+            drop(group);
+            finished.send(()).unwrap();
+        });
+        assert!(done.try_recv().is_err());
+        releases.0[1].send(()).unwrap();
+        done.recv().unwrap();
+        dropper.join().unwrap();
+        for (index, reader) in readers.iter().enumerate() {
+            let stats = reader.counters.snapshot();
+            assert_eq!((stats.scheduled, stats.successful), (1, 1));
+            assert_eq!(
+                (stats.useful, stats.unused),
+                if index == 1 { (0, 1) } else { (1, 0) }
+            );
+            assert_eq!(stats.useful_bytes + stats.unused_bytes, 4096);
         }
     }
 

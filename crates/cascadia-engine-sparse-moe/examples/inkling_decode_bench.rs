@@ -481,6 +481,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         println!("second_prediction_read_{name}={value}");
     }
+    let third_prediction_reads =
+        cascadia_engine_sparse_moe::inkling::third_prediction_read_statistics();
+    let third_prediction_reads_effective = third_prediction_reads.scheduled > 0;
+    let read_buffer_idle_limit_bytes =
+        cascadia_engine_sparse_moe::inkling::read_buffer_idle_limit_bytes();
+    println!("read_buffer_idle_limit_bytes={read_buffer_idle_limit_bytes}");
+    println!(
+        "third_prediction_reads_effective={}",
+        u8::from(third_prediction_reads_effective)
+    );
+    for (name, value) in serde_json::to_value(&third_prediction_reads)?
+        .as_object()
+        .unwrap()
+    {
+        println!("third_prediction_read_{name}={value}");
+    }
     let early_prediction_reads_effective =
         model.early_prediction_reads_enabled() && prediction_reads.scheduled > 0;
     println!(
@@ -520,6 +536,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "second_prediction_reads":second_prediction_reads,
                 "second_prediction_rank_ceiling":second_prediction_rank_ceiling,
                 "prediction_read_workers":prediction_read_workers,
+                "third_prediction_reads":third_prediction_reads,
+                "third_prediction_reads_effective":third_prediction_reads_effective,
+                "read_buffer_idle_limit_bytes":read_buffer_idle_limit_bytes,
                 "second_prediction_reads_effective":second_prediction_reads_effective,
                 "early_prediction_reads_effective":early_prediction_reads_effective,
                 "prefill_read_experts":prefill_read_experts,

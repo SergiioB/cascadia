@@ -126,23 +126,43 @@ impl ExpertCache {
         predictions: &[usize],
         second_rank_ceiling: usize,
     ) -> [Option<usize>; 2] {
+        let [first, second, _] = self.predicted_uncached(predictions, second_rank_ceiling, false);
+        [first, second]
+    }
+
+    /// The third read is eligible only at original predicted rank2: all three
+    /// leading predictions must be distinct, valid and currently uncached.
+    pub fn predicted_uncached(
+        &self,
+        predictions: &[usize],
+        second_rank_ceiling: usize,
+        third: bool,
+    ) -> [Option<usize>; 3] {
         let state = self.0.lock().unwrap_or_else(|e| e.into_inner());
-        let mut selected = [None, None];
+        let mut selected = [None, None, None];
         if state.stats.capacity_bytes == 0 {
             return selected;
         }
         for (rank, &expert) in predictions.iter().enumerate() {
             if expert >= state.frequency.len()
                 || state.entries.iter().any(|entry| entry.expert == expert)
-                || selected[0] == Some(expert)
+                || selected.contains(&Some(expert))
             {
                 continue;
             }
             if selected[0].is_none() {
                 selected[0] = Some(expert);
+            } else if selected[1].is_none() {
+                if rank > second_rank_ceiling {
+                    break;
+                }
+                selected[1] = Some(expert);
+                if !third {
+                    break;
+                }
             } else {
-                if rank <= second_rank_ceiling {
-                    selected[1] = Some(expert);
+                if rank <= 2 {
+                    selected[2] = Some(expert);
                 }
                 break;
             }
@@ -369,6 +389,53 @@ mod tests {
                 [Some(3), None]
             );
         }
+    }
+
+    #[test]
+    fn third_prediction_requires_three_leading_uncached_distinct_experts() {
+        let cache = ExpertCache::with_policy(8, 32, 4, true);
+        drop(cache.lookup(&[0]));
+        cache.retain(0, &mut bytes(17, 32));
+        let before = serde_json::to_value(cache.stats()).unwrap();
+        let history = {
+            let s = cache.0.lock().unwrap();
+            (s.frequency.clone(), s.last.clone(), s.clock)
+        };
+        assert_eq!(
+            cache.predicted_uncached(&[1, 2, 3], 2, true),
+            [Some(1), Some(2), Some(3)]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[1, 2, 3], 1, true),
+            [Some(1), Some(2), Some(3)]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[1, 2, 3], 2, false),
+            [Some(1), Some(2), None]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[0, 1, 2, 3], 2, true),
+            [Some(1), Some(2), None]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[1, 1, 2, 3], 5, true),
+            [Some(1), Some(2), None]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[9, 1, 2, 3], 5, true),
+            [Some(1), Some(2), None]
+        );
+        assert_eq!(
+            cache.predicted_uncached(&[0, 1, 2, 3], 1, true),
+            [Some(1), None, None]
+        );
+        assert_eq!(
+            ExpertCache::new(8, 0).predicted_uncached(&[1, 2, 3], 2, true),
+            [None, None, None]
+        );
+        assert_eq!(serde_json::to_value(cache.stats()).unwrap(), before);
+        let s = cache.0.lock().unwrap();
+        assert_eq!((s.frequency.clone(), s.last.clone(), s.clock), history);
     }
 
     #[test]

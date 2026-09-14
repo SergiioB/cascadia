@@ -1,0 +1,81 @@
+{
+  "proof": {
+    "scope": "tiny_top3_frozen_runtime_reference",
+    "binary_sha256": "83a1a50f49efff8b973bad6f2a89464f30ce47521a9ecbaf086b3c3a9a1b1ee2",
+    "source_manifest_sha256": "3b7533350bbe8772bfa57c20aa4cf56fffe6410466968a812a64268b97a234a6",
+    "variant_manifest_sha256": "c914f8da853cfc475bc0e42922002a7c113cc3253a5405d8a8468144adcbeea5",
+    "manifest_only_change": "top_k2 to3",
+    "all_weight_bytes_unchanged": true,
+    "output_hash": "3b872132795009f1",
+    "generated_ids": [
+      28,
+      48,
+      106,
+      84,
+      28,
+      48,
+      106,
+      84
+    ],
+    "expert_cache": {
+      "admissions": 20,
+      "capacity_bytes": 3145728,
+      "evictions": 0,
+      "frequency_decays": 0,
+      "history_resets": 9,
+      "hit_bytes": 584064,
+      "hits": 169,
+      "misses": 20,
+      "recent_tie_admissions": 0,
+      "retained_bytes": 69120
+    },
+    "hf_top3_oracle": false,
+    "reference_binary_scope": "previously qualified runtime before any third-read implementation"
+  },
+  "files": [
+    {
+      "name": "cases-reference.json",
+      "sha256": "07ea15a49d5a4cf46944253ccc29e73c4988d8b9f93302fee492f373993f55ce"
+    },
+    {
+      "name": "cases-unchecked.json",
+      "sha256": "056fe8fedf7bdee56ae857bf11a48b351a2608fdd993610b25c75af10776baf3"
+    },
+    {
+      "name": "preparation.json",
+      "sha256": "99383e02049a35945ea3e4bada4d00468f210309a79c9cfa52c1f64dbc411adc"
+    },
+    {
+      "name": "reference-predicted.json",
+      "sha256": "72bd7eb60011615b872c467c4372aaf45dabbc5222c7b25ef1c8c8ad3d2a6cf5"
+    },
+    {
+      "name": "reference-routes.json",
+      "sha256": "03d2d0e5c0fd3816397b10bd855e9231f51046dcac9fd46d95a2cc6df2c5052a"
+    },
+    {
+      "name": "reference-unchecked-predicted.json",
+      "sha256": "8fe6f1b4e5edc09bab0fb8150e7b63ab8723b7c2cab2765216f2c58a5121ee58"
+    },
+    {
+      "name": "reference-unchecked-routes.json",
+      "sha256": "7951c20085df148f124dcb54eae66ab4f6f68cda357db2abb6c30957ad632664"
+    },
+    {
+      "name": "reference-unchecked.json",
+      "sha256": "b00e33542f653df82bf7cf8abaf9ec3732d4a5fe117bea29317c17283563c668"
+    },
+    {
+      "name": "reference-unchecked.log",
+      "sha256": "c8b37f4778f139e9d33fa28735372cca1254ef13900008ee4d54cc8593ae1eb3"
+    },
+    {
+      "name": "reference.json",
+      "sha256": "53f439fdd116565ffbc7a016b18161444cef5646aa1b86e8d286af744163c838"
+    },
+    {
+      "name": "reference.log",
+      "sha256": "dcb2121085ce2fb1c8469e3e840ddc5d78d9cd378601663ba73e503741034d6d"
+    }
+  ]
+}
