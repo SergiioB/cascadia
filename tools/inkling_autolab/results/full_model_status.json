@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-09-14T08:10:35.648150+00:00",
+  "updated_at": "2026-09-14T08:19:29.336900+00:00",
   "target_decode_tokens_per_s": 25,
   "target_reached": false,
   "full_model_decode_tokens_per_s": 0.5679137350358697,
-  "status": "071_072_cache_decay_running",
+  "status": "074_repeated_cache_confirmation_running",
   "checkpoint_available": true,
   "required_export_bytes_approx": 548985140942,
   "physical_ram_kib": 66427728,
   "full_model_benchmark_built": true,
   "full_model_benchmark_fixture_verified": true,
-  "next_action": "Complete worker16/8/12/24/32 sweep; compare cache decay4096/32 in qualifiednewbinary usingbestworker; three-repeatconfirmation; continueoptimization.",
+  "next_action": "Complete and verify 074 three-repeat confirmation, promote confirmed profile if valid, then qualify and retest BF16/int4 row tiling under improved cache/prefill settings. Continue optimization.",
   "checkpoint_available_on_source": true,
   "source_ssh_alias": "miner",
   "source_export": "/mnt/external_ssd/inkling/out",
@@ -43,32 +43,30 @@
   "full_baseline_decode_steps_min": 63,
   "full_baseline_repeated_ids_and_logits_match": true,
   "full_baseline_text_reviewed": true,
-  "best_single_pass_full_model_decode_tokens_per_s": 0.9175664024235638,
+  "best_single_pass_full_model_decode_tokens_per_s": 0.9370410437110593,
   "best_repeated_full_model_decode_tokens_per_s": 0.5679137350358697,
   "last_verified_campaign": "046_full_final_confirmation",
-  "active_campaign": "071_full_cache_decay_4096",
+  "active_campaign": "074_full_cache_confirmation",
   "record_verification": "046_final_verification.json",
   "target_constraint": "For the current packed export and measured continuations, even a perfect initial cache using all nominal 64 GiB RAM requires 32.5\u201342.5 GB/s of routed reads at 25 tok/s; the NVMe link ceiling is 15.754 GB/s. See 047_all_RAM_traffic_bound.json and 046_route_identity.json.",
   "active_task_jobs": [
     {
-      "native_pid": 5952,
-      "created_unix": 1789373120.0706015,
+      "native_pid": 6112,
+      "created_unix": 1789373844.4969847,
       "binary": "full-cache-decay.exe",
-      "campaign": "071_full_cache_decay_4096"
+      "campaign": "074_full_cache_confirmation"
     }
   ],
   "sampler_stopped": false,
   "free_disk_bytes_final": 264601800704,
-  "queued_campaigns": [
-    "072_full_cache_decay_32"
-  ],
+  "queued_campaigns": [],
   "sampler_pid": 3036,
   "sampler_output": "048-host-resources.jsonl",
-  "controller_session": 51214,
+  "controller_session": 54245,
   "pending_storage_probe": {
-    "pid": 10092,
-    "parent_pid": 10616,
+    "pid": 2520,
+    "parent_pid": 2460,
     "status": "complete_and_exited",
-    "output": "069-async-read-probe.json"
+    "output": "073-async-read-paired.json"
   }
 }

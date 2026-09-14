@@ -1572,3 +1572,5 @@ Preparedpaired-async-read-probe.py,syntaxpasses,notlaunchedyet. Itwaitsfor071/07
 andnoactivefullbeforelock/probe; next3-repeatfullmustwaitforprobecompletion.
 071default4096controlactive5952created1789373120.0706015;072decay32queuedunder
 51214. Frozenbinary3874c863...verifiedandnoactive069processbeforelaunch.
+
+071 control completed 0.9193077063 tok/s; 072 decay32 completed 0.9370410437, all exact output/hash/counter gates pass. Select decay32 for the required three-repeat confirmation. 073 paired read probe completed 30 pairs, all byte/error checks pass: no consistent async advantage, with strong order effects at four/six files. Defer runtime async changes. Prepared 074, using nine-sample causal predictions from 070: 94235 hits, 123493 misses, 25801 admissions, 25289 evictions, 6336 decays, 576 history resets. No new runtime change before confirmation. Scratch-pool inspection shows it is already process-wide and capped at 256 MiB, so per-layer scratch consolidation is not an available gain.

@@ -1,0 +1,50 @@
+{
+  "status": "complete",
+  "pid": 2520,
+  "unix": 1789373770.9528599,
+  "summaries": [
+    {
+      "files": 2,
+      "pairs": 10,
+      "async_wins": 5,
+      "median_pair_speedup": 1.0006980938251187,
+      "median_seconds": {
+        "sync": 0.007852549897506833,
+        "async_whole": 0.007551549933850765
+      },
+      "median_pair_speedup_by_first_mode": {
+        "sync": 1.0432310012677157,
+        "async_whole": 0.974399293340225
+      }
+    },
+    {
+      "files": 4,
+      "pairs": 10,
+      "async_wins": 5,
+      "median_pair_speedup": 1.1075182393173486,
+      "median_seconds": {
+        "sync": 0.015979250194504857,
+        "async_whole": 0.014456799952313304
+      },
+      "median_pair_speedup_by_first_mode": {
+        "sync": 1.3086678114214472,
+        "async_whole": 0.6543869804862634
+      }
+    },
+    {
+      "files": 6,
+      "pairs": 10,
+      "async_wins": 5,
+      "median_pair_speedup": 0.8751573030492055,
+      "median_seconds": {
+        "sync": 0.021385350031778216,
+        "async_whole": 0.024560549994930625
+      },
+      "median_pair_speedup_by_first_mode": {
+        "sync": 1.1661530307838288,
+        "async_whole": 0.6242335469594206
+      }
+    }
+  ],
+  "full_model_speedup_measured": false
+}

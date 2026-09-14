@@ -52,10 +52,10 @@ questions:
   question: How much time and cost does the designated 8xA100 export host save?
   status: answered
   priority: 9
-  answer: "Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98\
-    \ experts/s in the measured component; seeq12. Estimated whole export15\u201330minutes with local\
-    \ raw source ($4\u20138), initial download+export2\u20133hours ($30\u201345); no full export timed.\
-    \ Host backed up/idle, no termination performed."
+  answer: Designated8xA100 host is qualified for CUDA exports. Final default is8 processes x1 worker,58.98
+    experts/s in the measured component; seeq12. Estimated whole export15–30minutes with local raw source
+    ($4–8), initial download+export2–3hours ($30–45); no full export timed. Host backed up/idle, no termination
+    performed.
 - id: q10
   question: Can independent SSH jump transports fill PTL Ethernet better than one?
   status: answered
@@ -67,9 +67,9 @@ questions:
   question: How much routed-expert reuse is available within PTL's memory budget?
   status: answered
   priority: 6
-  answer: "Actual routes and causal models are archived in 037; all nine final 046 samples preserve those\
-    \ routes. Even a perfect cache using all nominal 64 GiB still needs 32.5\u201342.5 GB/s at 25 tok/s,\
-    \ beyond the 15.754 GB/s SSD link. Cache models are not measured runtime gains."
+  answer: Actual routes and causal models are archived in 037; all nine final 046 samples preserve those
+    routes. Even a perfect cache using all nominal 64 GiB still needs 32.5–42.5 GB/s at 25 tok/s, beyond
+    the 15.754 GB/s SSD link. Cache models are not measured runtime gains.
 - id: q12
   question: Can separate converter processes improve throughput beyond the A100 GPU thread pool?
   status: answered
@@ -157,23 +157,24 @@ questions:
     pressure?
   status: answered
   priority: 2
-  answer: "Matched053/054: streamedprefill improves slowestdecode20.83% to0.709011tok/s, allcases/IDs/logits/routesmatch;\
-    \ prefills4.27\u20134.37x faster at24\u201325sec. MinimumavailableRAM14.183GB anddecodefaults58/s.\
-    \ Onepass; repeatedconfirmationpending."
+  answer: 'Matched053/054: streamedprefill improves slowestdecode20.83% to0.709011tok/s, allcases/IDs/logits/routesmatch;
+    prefills4.27–4.37x faster at24–25sec. MinimumavailableRAM14.183GB anddecodefaults58/s. Onepass; repeatedconfirmationpending.'
 - id: q50
   question: After uncached pipelining, does separating read concurrency from kernel concurrency improve
     full-model latency?
-  status: active
+  status: answered
   priority: 3
-  reason: "064\u2013068samebinaryfullworker16/8/12/24/32sweep aftercache/prefill improvements."
+  answer: Worker sweep064–068 selects16. Async probes069/073 show no consistent matched component gain;
+    defer runtime async changes.
 - id: q51
   question: Can causal next-layer expert prefetch overlap storage with earlier-layer work while retaining
     exact routing and outputs?
   status: open
   priority: 4
-  reason: "061previous-routepredictoradds11\u201339%extraI/O,so deferred; otherpredictorsunexplored."
+  reason: 061previous-routepredictoradds11–39%extraI/O,so deferred; otherpredictorsunexplored.
 - id: q62
   question: Can shorter frequency history adapt the routed cache within a response?
-  status: active
+  status: answered
   priority: 4
-  reason: 058causalreplaypredictssmallmissreduction;063nativecandidatequalified. Fullmatched4096/32comparisonfollowstheworkersweep.
+  answer: 'Matched071/072: decay32 improves every prompt1.48–2.11%, slowest0.937041 tok/s, 3.116% fewer
+    read bytes; exact outputs/routes/counters. Three-repeat confirmation074 active.'

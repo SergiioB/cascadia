@@ -1,0 +1,35 @@
+{
+  "scope": "full_model_matched_cache_decay",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "routes_identical": true,
+  "selected_decay_requests": 32,
+  "repetitions": 1,
+  "slowest_control": 0.9193077062554648,
+  "slowest_candidate": 0.9370410437110593,
+  "slowest_speedup": 1.0192898823048337,
+  "decode_read_byte_reduction": 0.03116327202596547,
+  "cases": [
+    {
+      "case": "water_cycle",
+      "control_tok_s": 0.9608136074461553,
+      "candidate_tok_s": 0.9750145993346739,
+      "speedup": 1.01478017357213
+    },
+    {
+      "case": "binary_search",
+      "control_tok_s": 0.9193077062554648,
+      "candidate_tok_s": 0.9370410437110593,
+      "speedup": 1.0192898823048337
+    },
+    {
+      "case": "short_story",
+      "control_tok_s": 0.9439392473268773,
+      "candidate_tok_s": 0.9638654831963156,
+      "speedup": 1.0211096592560032
+    }
+  ],
+  "caveats": [
+    "One pass per setting; repeated confirmation follows."
+  ]
+}

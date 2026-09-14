@@ -5,18 +5,16 @@ The confirmed three-repeat record is **0.567914 decode tokens/s** on tate-07,
 checks; their rates range from 0.567914 to 0.593815, with median 0.583751.
 **The 25 tokens/s target has not been reached.**
 
-The resumed loop has reached **0.915789 tok/s over one pass** with streamed
-prefill, request-history reset and a 16.31GB routed cache. Every prompt improved
-when increasing the cache from 4GB to 8GB to 16GB under this profile. The
-[cache comparison](results/057_cache_history_budget_comparison.json) retains
-all rates and memory measurements. Prefill takes24–25seconds; the selected
-run kept at least2GB available RAM. All baseline tokens, logits and routes match.
+The resumed loop has reached **0.937041 tok/s over one pass** with streamed
+prefill, a 16.31 GB routed cache, request-history reset and cache-frequency decay
+at 32 routed requests. All three prompts improved against the matched default
+decay control; [the comparison](results/072_cache_decay_comparison.json) records
+exact output and route equality. Prefill takes 24–25 seconds. The worker sweep
+selected 16 threads, and the paired storage probe found no consistent async gain.
 
-A fresh worker16/8/12/24/32 comparison is running. A separately qualified cache
-decay candidate will follow, then repeated confirmation. See[HANDOFF.md](HANDOFF.md)
-for active jobs and[RUNTIME_OPTIONS.md](RUNTIME_OPTIONS.md) for the opt-in settings.
-The three-repeat record above remains the confirmed result until another
-repeated verification. The25tok/s target is still unmet.
+Three-repeat confirmation campaign 074 is running. See [HANDOFF.md](HANDOFF.md)
+for active jobs and [RUNTIME_OPTIONS.md](RUNTIME_OPTIONS.md) for opt-in settings.
+The three-repeat record above remains the confirmed result until this finishes.
 
 ## What was measured
 
