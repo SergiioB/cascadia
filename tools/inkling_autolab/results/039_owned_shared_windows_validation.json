@@ -1,0 +1,16 @@
+{
+  "scope": "owned_shared_native_qualification",
+  "state": {
+    "status": "qualified_needs_full_trial",
+    "pid": 10264,
+    "unix": 1789344882.0159311,
+    "fixture_hash": "1f7cd0eb14a22662",
+    "binary_sha256": "0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb",
+    "full_model_speedup_measured": false
+  },
+  "tests_passed": 229,
+  "fixture_and_wrapper_passed": true,
+  "fixture_owned_shared_bytes": 20736,
+  "full_model_performance_measured": false,
+  "log_sha256": "655382bd0e778b7258b1a42408cbddc7cedd577572c45aa3f1aee2b75082f85c"
+}

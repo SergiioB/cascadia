@@ -1,0 +1,22 @@
+{
+  "scope": "completed_full_model_native_artifact_verification",
+  "campaign": "036_full_reused_buffers_diagnostics",
+  "correctness_verified": true,
+  "output_hash": "ce0fbb9a116d3d09",
+  "samples": 9,
+  "decode_steps_min": 63,
+  "repetitions": 3,
+  "slowest_decode_tokens_per_s": 0.1969341563127117,
+  "baseline_slowest_decode_tokens_per_s": 0.13533393807754676,
+  "speedup_over_baseline": 1.4551719924079045,
+  "binary_sha256": "497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861",
+  "native_pid": 9472,
+  "created_unix": 1789340940.291343,
+  "native_model_and_wrapper_exited": true,
+  "transport_status": "Original SSH client remained open after native exit; closed exact local client23331. Autolab transport failure retained unchanged.",
+  "artifact_sha256": {
+    "036-buffered.json": "cbb39ab096e8a6ae13f4a69f09ca7298e6411220d02d9517009d87b8ac099b6a",
+    "036-buffered.log": "e754452704959d9a7bae9bbcf2cbe47736d35a729cd8213f19796fde248d7d9b"
+  },
+  "target_reached": false
+}

@@ -1,13 +1,13 @@
 # Inkling / Panther Lake Autolab restart handoff
 
-Updated 2026-09-13. Target is **25 decode tok/s for large975B Inkling on ONE
+Updated 2026-09-14 00:18 UTC. Target is **25 decode tok/s for large975B Inkling on ONE
 PTL machine**, not a component rate, aggregate throughput or remote inference.
 **Target has not been reached.** Continue in this session autonomously.
 
 ## Ownership and locations
 
 - Our worktree: `/private/tmp/tahoma-inkling-panther-autolab`.
-- Branch: `perf/inkling-panther-autolab`, pushed through `f40f4385` before this
+- Branch: `perf/inkling-panther-autolab`, pushed through `47867911` before this
   handoff refresh; run `git log -1` for the current commit.
 - Origin: https://github.com/labscommunity/cascadia.git.
 - Author AND committer: `Tate Berenbaum <t8@users.noreply.github.com>`.
@@ -65,22 +65,30 @@ transports reached103.70 MB/s
 versus2.67 MB/s old DERP. Historical details are in DEPLOYMENT_HISTORY.md and
 JOURNAL.md; they are NOT current instructions.
 
-Current live state (2026-09-13 23:10 UTC; refresh before any action):
+Current live state (2026-09-14 00:18 UTC; refresh before any action):
 
-- **Campaign 036_full_reused_buffers_diagnostics is RUNNING.**
-- Native **full-read-buffers.exe PID 9472**, created1789340940.291343.
-- Controller tool session **88421**; log
-  `/private/tmp/inkling-full-buffered-campaign.log`.
-- Nine samples: three cases x three repetitions,64 tokens /63 decode steps.
-  Reads0, rows2/4, MmapEmbed1, ReuseBuffers1, SkipBulkPrefetch1.
-- Native `036-buffered.log` saves each completed sample. JSON, routes and layer
-  timings use `036-buffered*.json`. Expected full hashce0fbb9a116d3d09.
-- Sampler4208,parent1420 remains active with `host-trials-resources.jsonl`,
-  six-hour limit from22:38 UTC, stop marker `stop-trials-sampler`.
-- Baseline,034 direct trial, both native qualifiers and all component probes
-  have ended. Qualifier9788 is complete, not waiting. No competing builds/runs.
-- 034 verified slowest case0.1541889212 tok/s over one repetition. Repeated
-  baseline record remains0.1353339381 until036 completes and passes all checks.
+- **040_full_owned_shared_diagnostics is RUNNING**, controller session69544,
+  log`/private/tmp/inkling-full-owned-shared-campaign.log`.
+- Full-owned-shared.exe SHA0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb.
+- Three cases x1 repetition,63 decode steps each; same036 knobs plusOwnShared1.
+  Expectedfullhashce0fbb9a116d3d09 and actual owned bytes4076863488.
+  Native`040-owned-shared*.json` and`.log`. SSH keepalives enabled.
+- **036 completed and independently verified**: nine samples, slowest
+  **0.1969341563127117tok/s**,45.52% over baseline; range0.196934–0.200669.
+  Exact reference IDs and full-logits hash match. Median attention0.368731,
+  MLP4.628557,outside-layers0.024826seconds/token. Target25 remains unmet.
+- The036 native process9472 and wrappers exited, but its original SSH client
+  did not return. Closed exact local SSH23331 after copying native artifacts.
+  Autolab036 transport failure is retained; do not rerun it or rewrite history.
+  **036_completed_artifact_verification.json** records verified actual results.
+- Native038 uncached probe COMPLETE: cached38.7819ms vsuncached31.7165ms per
+  255MB =1.2228x read throughput, all96 expert SHAs/canaries pass. No full gain.
+- Native039 shared-storage qualification COMPLETE:229 tests plus plain/owned
+  and production wrapper fixtures allhash1f7cd0eb14a22662,ownedbytes0/20736.
+- Sampler4208,parent1420 remains active with`host-trials-resources.jsonl`,
+  six-hour limit from22:38 UTC, stop marker`stop-trials-sampler`.
+- No other native task build/probe active. Prepare uncached-read code locally
+  while040 runs; no native build until it ends. Preserve all frozen binaries.
 
 ## Baseline and qualified candidates
 
@@ -100,7 +108,7 @@ New **full-mmap-embed.exe** qualified with216 native tests and all8 HF greedy
 IDs x3 repetitions; fixture hash1f7cd0eb14a22662 in all four wrapper arms.
 SHA **95f664c6a4af52f5dcdaf5fe6d12886cb45c6bb70edecb79a65d8b52daf5ec6d**.
 Mapped embedding is opt-in/defaultoff. It avoids the private ~2.47GB copy;
-head remains resident. No full-model memory/speed result yet.217 local tests
+head remains resident. Full results are in036 for the combined settings.217 local tests
 passed separately (ARM fixture hash5122e042f9b1fb30).
 
 Resource baseline window(result028): ~5.29 CPU core-equivalents,84.7% kernel,
@@ -136,20 +144,20 @@ fixture modes plus the production wrapper passed beforehand. Candidate SHA:
 **497b4bc83802bb7a21ced260e68cad49353ba5b78f851b4bf982a5c9360ca861**.
 Source revisionffa23e6f; both previous frozen binaries remain unchanged.
 
-When036 finishes, verify all samples/hash/IDs, copy artifacts and analyze
-performance plus private memory/page faults. Do not promote a partial result.
-The controller's target gate requires full975B scope, expected IDs/hash,
->=32 decode steps,>=3 repetitions and slowest rate>=25tok/s. Target is unmet.
+036 final artifacts are under`/private/tmp/inkling-full-buffered-artifacts`
+and committed results036, including gzip traces/resources with SHA manifest.
+Resource lifetime includes prefill/load: private peak22.078GB vs24.536GBbaseline,
+faults107292/s vs494348/s, minimum availableRAM819200B,swap peak14.551GB. This
+shows transient pressure remains despite low decode faults. Machine-wide disk
+2.940GB/s is not exclusively attributable to model. Resource analyzer exactly
+reproduces the prior033 baseline aggregates and keys on PID+creation time.
 
-While036 runs, evaluate online cache policies against the real trace. A global
-LRU can thrash across64 layers; compare a per-layer quota/frequency policy using
-only past/current routes. Do not train on future benchmark answers. Account for
-shared/fixed weights, scratch and other services beyond any routed-cache budget.
-A future-information oracle is acceptable ONLY as an explicitly labeled offline
-lower bound, never as a production cache or token-throughput measurement.
-
-Stop sampler by creating its marker when the campaign sequence ends. Do not
-stop protected services. No new export or A100 job is needed for current work.
+Finish040 and assess actual owned bytes, reference hash/IDs, layer timings and
+memory. Prepare opt-in uncached reads from038 evidence with safe aligned scratch
+and cached fallback; native qualification must wait for040. Reconfirm a winning
+full configuration with >=3 repetitions before reporting a new repeated record.
+Stop the sampler with its marker when the campaign sequence ends. No new export
+or A100 job is needed. Do not stop protected services.
 
 Earlier resident knobs improve component rates only. Prefetch parallel/batched
 variants lost (023); serial-hint mapped copy beat allocating buffered reads
@@ -204,58 +212,30 @@ are opt-in/defaultoff. Pool retains allocations, not expert contents, capped at
 is not held during either. Full successful reads overwrite all bytes; errors
 cannot expose stale contents. Direct mapped execution takes precedence and
 prefill retains its prior hints.218 local tests and220 MSVC tests passed.
-Native full-read-buffers.exe is QUALIFIED and currently running036.
+Native full-read-buffers.exe is QUALIFIED and completed036.
 
-## Pending disk probe and cache analysis
+## Cache analysis and target limit
 
-037 online cache models and whole-trace offline bounds are saved. Eight tests
-passed, including an exhaustive tiny optimal-paging oracle. Global LFU4GiB
-simulates9.51–10.07GB routed reads/token; best8GiB policies7.96–8.77GB/token.
-This is not evidence that adding private cache outperforms the OS cache.
-Offline16GiB bound3.95–4.52GB/token excludes shared/fixed work. Use whole-trace
-partition bounds for average throughput; worst-window bounds alone do not
-bound a whole-generation average.
+037 causal cache models and offline bounds are saved; eight tests pass, including
+an exhaustive tiny optimal-paging oracle. Best tested8GiB policies simulate
+7.96–8.77GB routed reads/token. This is not evidence that adding private cache
+outperforms the OS cache. Extra private storage competes with fixed weights,
+scratch and protected services.
 
-**038 uncached-read probe is QUEUED**, parent2348. State
-`uncached-probe-state.json`, log`uncached-read-probe.log`, output
-`uncached-read-probe.json`. Waits at most2hours for036's nine verified samples
-and all task full processes to exit, then runs a small canary and12 SHA-checked
-component cohorts. Do NOT start another full run/build before this probe is
-terminal. It holds baseline-queue.lock only while probing, and never changes
-model files or flushes caches. Native overlap refusal passed; data/canary tests
-have not run yet. Sources consulted are linked in the probe/JOURNAL.
+037_full_span_traffic_bound.json allows perfect reuse across all63 continuation
+positions regardless of execution order. With optimistic initial32GiB routed
+cache,25tok/s still requires46–56GB/s. Native NVMe PCIe5x4 properties imply
+15.754GB/s maximum before packet overhead. Disk-only ceilings8.54/7.01/7.55tok/s
+exclude all compute/fixed/shared/draft work. This applies to the current packed
+representation/workloads/SSD, not hypothetical new compression. User was told
+25tok/s is not attainable through ordinary tuning of this export on this SSD.
 
-036 first two case rates0.199603 and0.198590tok/s, exact IDs. All repetitions
-remain pending; primary repeated record is still0.1353339381tok/s.
+## Owned shared expert implementation
 
-## Shared-expert candidate39 under preparation
-
-CASCADIA_INKLING_OWN_SHARED=1 retains just the shared expert bins as owned
-packed int4 bytes (4.077GB for this model), with the same kernel/arithmetic.
-Routed experts and default behavior are unchanged.227 local tests pass,
-including affected GLM tests; fixture hash5122e042f9b1fb30 and actual owned
-bytes0/20736 match expected plain/owned modes. This is not physical page locking.
-
-Native full-owned-shared.exe is NOT YET QUALIFIED. Scripts
-qualify-owned-shared.py/test-owned-shared.bat wait for036 plus038 completion
-before building/testing once, preserving all three frozen binaries. No native
-full trial is launched by that qualifier. Source deployed after all six prior-SHA checks. Qualifier **10264**,parent10844
-is waiting_for_uncached_probe; state owned-shared-qualification-state.json.
-Refresh native state before taking action. No performance gain claimed.
-
-Campaign040_full_owned_shared_diagnostics is prepared and parsed, NOT launched.
-It tests OwnShared1 on the same036 knobs over all3 cases,1rep, expectedfullhash.
-Wait for039 qualification before considering it; retain the repeated036 result.
-
-037_full_span_traffic_bound.json adds a bound allowing perfect reuse across the
-whole63-token continuation (valid even if execution is reordered). At an
-optimistic initial32GiB routed cache,25tok/s needs46–56GB/s. Native NVMe PCIe5x4
-properties imply15.754GB/s maximum before packet overhead. Disk-only ceilings
-are8.54/7.01/7.55tok/s, excluding all compute/fixed/shared/draft work, for the
-current packed representation. Do not imply current measured speed is near this
-ideal bound or that ordinary tuning can attain25tok/s on this SSD.
-
-040 now has automatic expected_metrics gates for owned_shared_bytes4076863488,
-embedding_mapped1,full_model1,repetitions1. Controller/routing checks pass.
-036 has completed six of nine samples at last check,0.196934–0.199989tok/s,
-all exact IDs; final repeated hash/rate remains pending.
+CASCADIA_INKLING_OWN_SHARED=1 retains just the shared expert bins as owned packed
+int4 bytes (4.077GB full model), using the same kernel/arithmetic. Routed experts
+and default behavior are unchanged.227 local tests and229 native tests pass.
+Fixturehash5122e042f9b1fb30 on ARMdebug,1f7cd0eb14a22662 on MSVCrelease; do not
+mix architectures. Actual owned bytes0/20736 for tiny fixture. This is not
+physical page locking; its full memory/performance tradeoff is measured by040.
+Controller expected_metrics gates ensure the candidate is actually enabled.

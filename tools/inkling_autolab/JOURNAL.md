@@ -985,3 +985,45 @@ to the current packed-matrix representation, not hypothetical new compression.
 It establishes why25tok/s cannot be reached by ordinary tuning of this export
 on the current SSD, even though further practical gains remain worth testing.
 References and native properties are retained in037_full_span_traffic_bound.json.
+
+
+## 36 completed — verified repeated improvement, recovered native artifacts
+
+All nine samples pass exact reference IDs and full-logits hashce0fbb9a116d3d09.
+Slowest0.1969341563tok/s,45.52% above baseline0.1353339381; range0.196934–0.200669.
+Median seconds/token: attention0.368731,MLP4.628557,outside layers0.024826,
+wall5.017980. The combined knobs are measured; individual causes are not isolated.
+Sampled lifetime private peak22.078GB (baseline24.536GB), faults107292/s versus
+494348/s, including soft faults and prefills. Minimum available RAM819200B and
+machine swap peak14.551GB show transient pressure persists. Machine disk2.940GB/s
+is not exclusively attributed to model. Resource analyzer reproduces all prior
+baseline aggregates exactly and rejects the wrong process creation time.
+
+The original SSH client23331 remained open after native9472 and both wrappers
+exited. Closed only that stale client after independently copying complete
+native artifacts. Autolab records the transport as failed; retained unchanged.
+036_completed_artifact_verification.json records independent model result
+verification, matching all nine JSON/log samples, exact IDs/hash and recomputed
+slowest rate. Raw traces and resource snapshot are compressed with SHA manifests.
+No repeat inference was fabricated or launched to hide the transport failure.
+
+## 38 completed — uncached reads justify a production experiment
+
+Native canary/missing/short/misaligned checks pass, plus96 disjoint real expert
+SHA checks. Six rotating cohorts/mode: cached38.7819ms,uncached31.7165ms for
+254803968B =6.570/8.034GB/s,1.2228x throughput. Median machine read bytes
+255514624/256833536. CPU counters are too coarse for precise short uncached CPU
+rates (median0); do not call this zero CPU overhead. Cache state natural, no
+flush; no full-model benefit established. Prepare an opt-in aligned reusable
+read path preserving cached fallback and exact numerical kernels.
+
+## 39 qualified; 40 launched
+
+229 native tests pass; plain/owned fixture and production wrapper preserve
+1f7cd0eb14a22662, owned bytes0/20736. Full-owned-shared.exe SHA
+0bd35a624e3fb7e5f0b78bfdf4202f548095ebb90b6f71137bb8d9683b7b96cb.
+040 all-three-case single-pass full diagnostic launched under controller session
+69544,log/private/tmp/inkling-full-owned-shared-campaign.log. Same036 settings
+plusOwnShared1, expected4076863488 actual owned bytes. SSH keepalives now enabled.
+Sampler4208 remains active;038 and039 jobs have ended. No simultaneous native
+build/probe allowed during040. Repeated record remains036; target25 is unmet.

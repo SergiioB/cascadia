@@ -1,0 +1,564 @@
+{
+  "scope": "windows_cached_vs_uncached_read_component",
+  "full_model_measured": false,
+  "cache_state": "natural_mixed_no_flush",
+  "excludes_observed_full_routes": true,
+  "storage_info": {
+    "logical": 512,
+    "physical_atomic": 4096,
+    "physical_performance": 4096,
+    "effective_physical": 4096,
+    "flags": 15,
+    "sector_offset": 0,
+    "partition_offset": 0
+  },
+  "canary_bytes_verified": true,
+  "buffer_setup_seconds": 0.037498199846595526,
+  "reusable_buffer_bytes": 254803968,
+  "samples": [
+    {
+      "mode": "cached",
+      "block": 0,
+      "seconds": 0.05512969987466931,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_21\\expert_244.bin",
+          "sha256": "9c48d98ec5e4d545bd967214f3d593a205fa62b392bdfc365b4f581813820832"
+        },
+        {
+          "path": "model\\experts\\layer_16\\expert_245.bin",
+          "sha256": "026bfdd62fd01e58737c2306e4704c17da5e12d456d4954ddad77027ee652bca"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_174.bin",
+          "sha256": "a83a526f0d1547731e53bcf40b77d3109a0f41917c840b29c9d2b5d18a169eba"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_103.bin",
+          "sha256": "3a6dacdbac52af524ac7a800e72c9b0996948238b30af862ee1f0a8b7fe558fd"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_099.bin",
+          "sha256": "5f25c15914e63081d3f292f26127e098e64284f06b1a0e9ba8831271eaf254b2"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_050.bin",
+          "sha256": "d6c7c8c563f1e867985de6e0bb7deeb059dd18b02dfc75cdf48120ab3779af0c"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_165.bin",
+          "sha256": "37479a08e3a31406146a07432dacb5c61e975b1f304d5ebd584fb773467e593c"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_033.bin",
+          "sha256": "2cf9fe4b45cfcea208d283d431116a6346f52b48a55d73b7ce8e4051d8e30ba5"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 463,
+      "user_cpu_seconds": 0.046875,
+      "kernel_cpu_seconds": 0.0625,
+      "machine_disk_read_bytes": 259261440
+    },
+    {
+      "mode": "uncached",
+      "block": 0,
+      "seconds": 0.031823699828237295,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_05\\expert_046.bin",
+          "sha256": "efaf6737829c521713b8baed596828150682a12197ab7a414f4a9eead5c28769"
+        },
+        {
+          "path": "model\\experts\\layer_17\\expert_157.bin",
+          "sha256": "2b9df4f3dc19b2a51110517d58176f52b6a3e655f4a01ec80a25ac66a42492b8"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_204.bin",
+          "sha256": "8e2a63a0eb0a8eaceae4a725d52e3ea64aff75aae96c757a6a3e1b488f35364a"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_010.bin",
+          "sha256": "7b27397dd94c9e39e78a20bf58c4ddeac6e36552646f4d48d48ee410e7753a33"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_196.bin",
+          "sha256": "22498becd646a532d05ada1d40353b1b12846a35d8ff0751909df5ab4d1a0668"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_058.bin",
+          "sha256": "2601a55fe74cf9efc1987aa8895af9cf5660e8eb48f153c8139b72dc92430e9b"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_080.bin",
+          "sha256": "37ff675b42522c3dc7b4c3e6ba7127ed81e998a17926d1ae1e4348f5df64e0fa"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_183.bin",
+          "sha256": "d99b7b3ab1b1cc309134fa84640f217c85e6683e11b464679a3cc8cda5dbb7d0"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 257572864
+    },
+    {
+      "mode": "uncached",
+      "block": 1,
+      "seconds": 0.03186100022867322,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_09\\expert_010.bin",
+          "sha256": "f5c5316226a8cb4f179168d43658c36f69503ed9ad35342ffe6cd41c9f82fc67"
+        },
+        {
+          "path": "model\\experts\\layer_10\\expert_238.bin",
+          "sha256": "a7252d538cf4aeb4456cc171d45a69c052d714a94f33f9724a8dec1435b5f3f2"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_020.bin",
+          "sha256": "4b6769da74615dc33b613c3284380980c3c9f2b340dade3e4dd6c05049ae837d"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_246.bin",
+          "sha256": "19f3dc961fdcaa6d23be99c6c3b62b37e9cb3cc4563a5e748faba6c10cf73214"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_201.bin",
+          "sha256": "aba142c58c13fc5175d863b88e5768b9446e898ee85ff7406d502d511094a031"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_197.bin",
+          "sha256": "a29a6c61db45d9c664096152d5c5d419fd99f04c58a128cf438017a848d3bbc6"
+        },
+        {
+          "path": "model\\experts\\layer_16\\expert_222.bin",
+          "sha256": "adb4a8bcbf07d586377d0c1df44c857bfc9a0ca17ee6a54fa7dee6a347b35a74"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_169.bin",
+          "sha256": "46b3d977ef3d3dd2accad0f1c06f1a74adeda642f20af8cacac0c97091829478"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 2,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 256933888
+    },
+    {
+      "mode": "cached",
+      "block": 1,
+      "seconds": 0.03914929972961545,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_18\\expert_057.bin",
+          "sha256": "c74b89f176e0f8d3045360f16a46bf388efb220747cd2652d53d46a32ade9854"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_004.bin",
+          "sha256": "13801870b6958e241b3e658dc0da90e03d4d7db6d78bc288a88fd6bbcea7b362"
+        },
+        {
+          "path": "model\\experts\\layer_11\\expert_169.bin",
+          "sha256": "8eaaf78814f60991a5bbb320f84d17f35d34526f16d669744b7ed998f7636114"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_000.bin",
+          "sha256": "b02cf942cf1c7f9e6a35191f0f14c028b83c7c1b7850c0b2db7fc02c7dbf2b21"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_114.bin",
+          "sha256": "016e9ff3a94708e2cea19861551f97c18233083b815e3a7bc96ef8328dd977b5"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_004.bin",
+          "sha256": "2a73b769ad03be3269baf4a67137c4cd7bce42e3c1084ef18746af9ea31e0ef4"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_172.bin",
+          "sha256": "22b052cb84f0659f964aa25fa8317031e64e798ea944bb517a50abf8b62b7cef"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_207.bin",
+          "sha256": "1303677af44d7c2ebfff1e02041be9d52ad6aeed9a65009e0b3b41edaee0a71a"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 1,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.03125,
+      "machine_disk_read_bytes": 255746048
+    },
+    {
+      "mode": "cached",
+      "block": 2,
+      "seconds": 0.037916400004178286,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_09\\expert_244.bin",
+          "sha256": "bc5c779f21fcc37c0a7a79f7082f1de4c57848cd3ea3ac5165ed586a011f4182"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_131.bin",
+          "sha256": "2b4daad500509c34a21d55b8556f60b90f90b11373457af4fc927a2ce7417a11"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_071.bin",
+          "sha256": "bc27b4d7cc1e72684a5c05ad4aadaa6f281f9889fe3cd2078f9083e666515b1f"
+        },
+        {
+          "path": "model\\experts\\layer_17\\expert_029.bin",
+          "sha256": "9e18d9a2452c7498ec98179c69db3cca5b82f7ff5a120e5c54d39e388ea15b15"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_097.bin",
+          "sha256": "166afea0b187a7bd8485f50f83a7ecfc7a11fa60b2f7ffcb64851bef5a5a9404"
+        },
+        {
+          "path": "model\\experts\\layer_16\\expert_007.bin",
+          "sha256": "c3696179819125ba1c2d064fe10f5587226720699dd4a14d6a64e45b52dee896"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_180.bin",
+          "sha256": "ac547b870ec5674c50870c53d1bbf18d024c286dd2c2d7a8ceca1d2d47ea93cb"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_242.bin",
+          "sha256": "dbf153a77ee94136d7f877ec300cf1a612298a7c1f0ec7da9fdb390a1361ee74"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.015625,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 256352256
+    },
+    {
+      "mode": "uncached",
+      "block": 2,
+      "seconds": 0.030998399946838617,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_06\\expert_133.bin",
+          "sha256": "78800b8042951ba747c8a9064a5247e33677ee872ffa10377563c5d4da8b28b2"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_158.bin",
+          "sha256": "414b23a698fa7043cbe0d1ebe5e9a4e78d12ecd8c460e2481874a92a01c6bd67"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_136.bin",
+          "sha256": "fe52fff11a26cc538d4e2ca40d962eed0a2150102397f1571c78a61d55156cde"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_231.bin",
+          "sha256": "8908da07d739a66a800f502df24586a662a56ceda216f087812c80b7f955e02e"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_039.bin",
+          "sha256": "545dd41eb6299cf8534da3fa6a4d89326745c169facfd9f459d9aa63722bd205"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_211.bin",
+          "sha256": "57d5cc98cf80023ef74c176e9ac2cb4211a04c2847e8538560a7c4dbcd3407c0"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_083.bin",
+          "sha256": "012f40f873629ffde2e907d9a3577b955773de7804634bc380acbe61fea2062e"
+        },
+        {
+          "path": "model\\experts\\layer_08\\expert_033.bin",
+          "sha256": "3637e82d3408dc896b3ff5b6120f1db9c2fecac76c94e656f279c0df8088ddc7"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 1,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 256180224
+    },
+    {
+      "mode": "uncached",
+      "block": 3,
+      "seconds": 0.03231560019776225,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_21\\expert_129.bin",
+          "sha256": "d6274911820fb7677e51fdf036565d2ec78eccdb26e1f79c581592d54b0a1ea9"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_209.bin",
+          "sha256": "44a862a8cebad32cc9301cb3f0348df5571aac72652f280bd115a6c204a802ac"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_042.bin",
+          "sha256": "a16055ae68fdb4b86965e69a97ae9037160581dc1feb014fad64c030919d8948"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_184.bin",
+          "sha256": "9c683dea379e0558bd54e24a353706bbd3a9d585bf3728dacf38f24548197954"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_081.bin",
+          "sha256": "6166e34823e686ef73e22c87877cf6f5f6f1e3c4d009bdb1f0730d7aa1770d3e"
+        },
+        {
+          "path": "model\\experts\\layer_04\\expert_212.bin",
+          "sha256": "a90056e5a49cafc47468dae73f8c37ed6da850c0157203c8983d8bc825b81b46"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_035.bin",
+          "sha256": "10533faabaa5e66fafaca4b6298798bc8b5a9d5c78909f86ebebd15cfc1ff18d"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_167.bin",
+          "sha256": "cb9255775f41c814c00193e4801ba5bd31c3f3325451ee11bbdfa584ea03cc22"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.015625,
+      "machine_disk_read_bytes": 256155648
+    },
+    {
+      "mode": "cached",
+      "block": 3,
+      "seconds": 0.03985850000753999,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_10\\expert_243.bin",
+          "sha256": "b796b568285b9227dc7067c7a2936107a1b21cbfccca8b02856dbab0d7494abb"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_000.bin",
+          "sha256": "7bb99e6c70506bc68aac346067de59cc076c7b5770a09c4b81718ed62b0b424b"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_175.bin",
+          "sha256": "7e2682629b8a8c1728f8cdb37b3282dfadb643b6a1d86892efe5bb7323e9305f"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_070.bin",
+          "sha256": "c725d395b4790f29d17ddf8265b43131ce56ab19dbb294d5b751dac8c29967ae"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_046.bin",
+          "sha256": "b997c255260ac97dffedd76ad3d718867f755d505e1d8a0aa9ebe35bb130eadb"
+        },
+        {
+          "path": "model\\experts\\layer_14\\expert_253.bin",
+          "sha256": "3a474ccde8091a7a193c9104733bf720f6d774b9753b9a8d557f759f95da701a"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_254.bin",
+          "sha256": "e98b0bf9cc2807778f80d8b9e2fc4deaf2b8035c6b00266168c38b183a12b5a3"
+        },
+        {
+          "path": "model\\experts\\layer_20\\expert_089.bin",
+          "sha256": "0c4d8a2bb5ea62e31a0d5f330d83e45788aeb5723d72c8a265642a216144b745"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0625,
+      "kernel_cpu_seconds": 0.09375,
+      "machine_disk_read_bytes": 255164416
+    },
+    {
+      "mode": "cached",
+      "block": 4,
+      "seconds": 0.03841450018808246,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_02\\expert_225.bin",
+          "sha256": "72d4fa96ea4950393b9d8e7ac6ddad331b0ab37de1b3bcf9de217b6db8475df9"
+        },
+        {
+          "path": "model\\experts\\layer_18\\expert_096.bin",
+          "sha256": "3cca5be834832896814a1b84a5dbec9f5625f08004ed686614d29259410bdf81"
+        },
+        {
+          "path": "model\\experts\\layer_03\\expert_085.bin",
+          "sha256": "f91fc5dd19186f58f0f1ecdd7707808bc8859c8c73d747b6ac6d552f987fdde0"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_229.bin",
+          "sha256": "50e4c7dc30cbc3067180444dadb0de930aeac59a9a884433fd78585f3896a4e0"
+        },
+        {
+          "path": "model\\experts\\layer_11\\expert_218.bin",
+          "sha256": "ce5b2faae9f4f959e7dddbafff491cfd4182565eb2bc4910032acffb7a24d219"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_048.bin",
+          "sha256": "51444e38c55f3cef78c3104b2cdc9e3e316ef5a6ab11676ae3af910a3ce6fc91"
+        },
+        {
+          "path": "model\\experts\\layer_10\\expert_225.bin",
+          "sha256": "33ab0372dd6243c69d5ad09836a22b6c820d6ee16e1cc84c8ba7f49f0622828e"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_154.bin",
+          "sha256": "337a666ddd195f36a88308c457040183ebb6470c5ba72f7a4c2aaa798bee830d"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.078125,
+      "machine_disk_read_bytes": 255258624
+    },
+    {
+      "mode": "uncached",
+      "block": 4,
+      "seconds": 0.031609300058335066,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_21\\expert_202.bin",
+          "sha256": "9216e7e71f4a30fda7270a2164e6efb83fb3c2581e65d68b10dfbffe4b9f4fbf"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_086.bin",
+          "sha256": "0e40eb67f0dfd1818de273c1b6d4ed43b3cfccf0456723795369cf85c8ab2b6a"
+        },
+        {
+          "path": "model\\experts\\layer_11\\expert_154.bin",
+          "sha256": "cde530c392bb483ea997bc6600a6ad970dc7bbf7bf099fcaa7b4c62ac8a25156"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_126.bin",
+          "sha256": "ffa38431656fd7ce56bc48caf255facce5ec77e843fefc95f0a96573efe6704e"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_058.bin",
+          "sha256": "11934127c1c2facd6dcce84bb4e2d08148f3f0e629829b62da7fb9f3de080806"
+        },
+        {
+          "path": "model\\experts\\layer_13\\expert_064.bin",
+          "sha256": "8569aa50ee9920ba5b41fb292d64ff9eb306d18d558c577e2a5a1240235abfeb"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_096.bin",
+          "sha256": "cdf46b94c6f9f1c820d2f0bfd1323111d3e8442d50a3164c299e50f361b8835a"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_007.bin",
+          "sha256": "36383b919881a687d24e268c2c443fa427e15dfeebe9aa34b6c4b24c9185db07"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 256733184
+    },
+    {
+      "mode": "uncached",
+      "block": 5,
+      "seconds": 0.029769600369036198,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_11\\expert_105.bin",
+          "sha256": "5ddc6b4c8d87e05513ea815afb60c0a1331d434a7d378ac417563ece6580f14f"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_234.bin",
+          "sha256": "88f01b5024bc988606fe01e864cdb627b3f79561a6da4e3a872412a4958f7701"
+        },
+        {
+          "path": "model\\experts\\layer_02\\expert_192.bin",
+          "sha256": "fa3572c1650dc682401bac1110c072246b07f1e84894a262ce9e6307c8fc7dab"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_240.bin",
+          "sha256": "ded5ecc60086312fb63070aeacaa6cc1a7e512b878375476a998d43c86c18e63"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_159.bin",
+          "sha256": "b92f4f79927c3c0c3acf3881d426296668aaeec619dd311e4e2f7757c7cc1ec3"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_061.bin",
+          "sha256": "61b955ea85f3552cfeba709c73edd90cb14ace935892e3bc8e53365d3b15f1e7"
+        },
+        {
+          "path": "model\\experts\\layer_15\\expert_254.bin",
+          "sha256": "dc80d91869aeb2921fa12eeb2eb94a1e503be3984e44c940adb0981571b342f6"
+        },
+        {
+          "path": "model\\experts\\layer_07\\expert_234.bin",
+          "sha256": "bfc2e415b62a0b2c336dcc08b21a3b2720b285c1297f53d05027de54edf57715"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.0,
+      "kernel_cpu_seconds": 0.0,
+      "machine_disk_read_bytes": 257056768
+    },
+    {
+      "mode": "cached",
+      "block": 5,
+      "seconds": 0.038362199906259775,
+      "bytes": 254803968,
+      "files": [
+        {
+          "path": "model\\experts\\layer_12\\expert_010.bin",
+          "sha256": "fcba494da51fcbb36cafa053a0c96999906d14f5c2cdd02e307a9f20e32aef3f"
+        },
+        {
+          "path": "model\\experts\\layer_06\\expert_143.bin",
+          "sha256": "c9c89228986cccc6c6ec32da845456c7cb0324eb76f8eeb742575446e7f044da"
+        },
+        {
+          "path": "model\\experts\\layer_13\\expert_014.bin",
+          "sha256": "854c649b3adc6ab3ae193dbb713d74730f0859cddcd51ca088bc44afa40b5799"
+        },
+        {
+          "path": "model\\experts\\layer_19\\expert_178.bin",
+          "sha256": "5bd57ddc45a88fdd6aeb24bd1b975039c1f421cc27322cc62308813338a8567a"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_051.bin",
+          "sha256": "0bb71b8e5531e38a875b83a0e5b0cf8694f15ed70dcaea0b8db91c0aeaa154b3"
+        },
+        {
+          "path": "model\\experts\\layer_09\\expert_147.bin",
+          "sha256": "de6d30707093fb8f9b2cd2114b2c3fdb47b4364aecdc94431f3deea5ad421c98"
+        },
+        {
+          "path": "model\\experts\\layer_12\\expert_124.bin",
+          "sha256": "cda7e78523969c3274082700814205d762ad38561a0165bfe25eb431b8bdf2bf"
+        },
+        {
+          "path": "model\\experts\\layer_21\\expert_177.bin",
+          "sha256": "2716598b056624978e7f7d02d59c7d625548973a474e49c5a5946de11795efe0"
+        }
+      ],
+      "sha256_verified": true,
+      "process_faults_includes_soft": 0,
+      "user_cpu_seconds": 0.03125,
+      "kernel_cpu_seconds": 0.03125,
+      "machine_disk_read_bytes": 255283200
+    }
+  ],
+  "median_seconds": {
+    "cached": 0.03878189995884895,
+    "uncached": 0.03171649994328618
+  }
+}

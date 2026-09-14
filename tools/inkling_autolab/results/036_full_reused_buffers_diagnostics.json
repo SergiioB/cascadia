@@ -1,0 +1,23 @@
+[
+  {
+    "run_id": "036_full_reused_buffers_diagnostics_reuse=1_0d122360",
+    "timestamp": "2026-09-14T00:16:00.943044+00:00",
+    "campaign_name": "036_full_reused_buffers_diagnostics",
+    "experiment_name": "036_full_reused_buffers_diagnostics_reuse=1",
+    "status": "failed",
+    "wall_time_s": 4021.651513125049,
+    "raw_output": "bf16_rows=2 int4_rows=4 reads=0 mmap_embed=1 reuse_buffers=1 skip_bulk_prefetch=1\r\n",
+    "error": "",
+    "metrics": {
+      "reuse_buffers": 1
+    },
+    "config": {
+      "model": "C:/Users/devcloud/inkling-autolab/model",
+      "cases": "C:/Users/devcloud/inkling-autolab/large-cases.baseline-reference.json",
+      "expected_hash": "ce0fbb9a116d3d09",
+      "reuse": 1,
+      "name": "036_full_reused_buffers_diagnostics_reuse=1",
+      "campaign_name": "036_full_reused_buffers_diagnostics"
+    }
+  }
+]

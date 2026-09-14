@@ -17,9 +17,15 @@ reported as full-model throughput or multiplied into a model speed claim.
 
 Hardware: Core Ultra X7 358H (16 cores/16 threads), 64 GB RAM, Windows 11 Pro.
 The complete **548,985,140,942-byte export is now SHA-256 verified on PTL**;
-about 276 GB disk remains free after deployment. The full-model Paris smoke
-passed at 0.109008 tok/s over three decode steps. Longer baseline measurements
-are active; this smoke is not the >=32-step/three-repeat target measurement.
+about 276 GB disk remained free after deployment. The full-model baseline
+completed three prompts × three repetitions, each with 63 decode steps. Its
+slowest rate was 0.135334 tok/s. Candidates must match its saved greedy tokens
+and full-logits hash, `ce0fbb9a116d3d09`. The earlier three-step Paris smoke
+is not the >=32-step/three-repeat target measurement.
+The verified repeated candidate036 reaches **0.196934 tok/s** (45.52% faster),
+with all nine samples matching. Its native result is verified independently in
+`results/036_completed_artifact_verification.json`; the original SSH transport
+failure is retained separately in Autolab history. The 25 tok/s target is unmet.
 See `HANDOFF.md` for current jobs and `EXPORT_HOST.md` for rental restoration
 and billing release readiness. The resident component scope above describes
 the earlier campaigns only.
@@ -143,15 +149,18 @@ accounted to prefill. Decode includes complete model calls, argmax, and correctn
 hash overhead. The primary rate is the **slowest case/repetition**, including the
 first decode run, so no hot-cache trial can hide a slow one.
 
-1. Finish the all-files SHA-256 transfer from `miner:/mnt/external_ssd/inkling/out`.
-   The authorized cleanup reclaimed 822 GB; the complete 549 GB export now fits.
-   `model-ready.json` is written only after every file matches its source digest.
-2. Prepare `large-cases.json`: an array of `{name, prompt_ids}` for at least three
+1. Verify the existing `model-ready.json` and export manifest. The all-files
+   SHA-256 transfer from `miner:/mnt/external_ssd/inkling/out` is complete;
+   do not restart its archived transfer jobs. The authorized cleanup reclaimed
+   822 GB, and the complete 549 GB export is already on PTL.
+2. For a new workload, prepare an array of `{name, prompt_ids}` for at least three
    representative long completions, tokenized with the checkpoint's tokenizer.
    Run `bin/full-decode.exe --export MODEL --cases CASES --tokens 64 --samples 3
    --out BASELINE.json` under original row settings and controlled priority.
    A baseline without expected IDs is explicitly not correctness-verified. Inspect
    its output and use each case's generated IDs as `greedy_ids` in the cases file.
+   The current workload already has a reviewed baseline and saved reference in
+   `large-cases.baseline-reference.json`; preserve those comparison artifacts.
 3. Copy `full-model-campaign.template.yaml` into `campaigns/` with a fresh name,
    actual model/cases paths, and the baseline output hash as `expected_hash`.
    Run it through `run_campaign.py`. It compares direct/adaptive reads and row

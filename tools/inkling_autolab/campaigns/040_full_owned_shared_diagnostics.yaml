@@ -11,6 +11,7 @@ runner:
   host: inkling-ptl-direct
   user: devcloud
   timeout_seconds: 3600
+  ssh_options: [-o, ServerAliveInterval=15, -o, ServerAliveCountMax=3]
   command: powershell -NoProfile -File C:/Users/devcloud/inkling-autolab/run-full.ps1
     -Model "{model}" -Cases "{cases}" -Binary full-owned-shared.exe -Reads 0 -Bf16Rows
     2 -Int4Rows 4 -MmapEmbed 1 -ReuseBuffers 1 -OwnShared {own_shared} -SkipBulkPrefetch
