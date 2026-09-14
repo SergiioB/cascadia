@@ -571,7 +571,10 @@ pub fn load_stage(
     if let Some(ov) = super::ov_expert::OvExperts::from_env(dir, hidden) {
         let ov = std::sync::Arc::new(ov);
         for (i, l) in layers.iter_mut().enumerate() {
-            l.attach_ov((lo + i) as u32, std::sync::Arc::clone(&ov));
+            let lid = (lo + i) as u32;
+            if ov.has_layer(lid) {
+                l.attach_ov(lid, std::sync::Arc::clone(&ov));
+            }
         }
     }
     // Optional fused-MoE backend (`CASCADIA_INKLING_OV_MOE=1` + `<model>/moe_ov`):
