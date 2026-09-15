@@ -93,12 +93,18 @@ attention. Both draw on the same LPDDR5X bus (the CPU at ~50 GB/s effective,
 the iGPU at ~75 GB/s), so the iGPU is **1.1–1.6× the tuned CPU per resident
 layer, not the 6× that the untuned 30 ms/layer dump figure implied**. A
 12-rank resident pipeline is therefore ≈ 1.5–2 tok/s single stream on
-either engine, and the iGPU's practical value on a rank is prefill (89 vs
-208 ms per layer at 23 rows) and freeing the CPU. The clean resident
-comparison in one harness (experts loaded eagerly, three fused layers) is
-reported below once measured. On Windows the iGPU holds three fused layers
-per 64 GB box (the driver caps shared memory at half of RAM); Linux ranks
-or 96–128 GB boxes lift that.
+either engine, and the iGPU's practical value on a rank is prefill and
+freeing the CPU. The layer-dump harness (5 layers, tuned env, pinned)
+puts the same comparison at 18 ms per MoE layer on the CPU with experts
+memory-mapped (each call copies 256 MB out of the page cache) against 7.8 ms
+with the fused kernel resident on the iGPU (and 9.0 vs 4.8 ms for a dense
+layer, 340 vs 54–94 ms for a 23-row prefill), i.e. 2.3× — an upper bound on
+the iGPU's edge, since a rank that owns its experts in RAM (the whole-model
+expert cache) is the 5 ms case, not the 18 ms one. (`--experts eager` in that
+harness expands the experts and runs out of memory at three MoE layers, so
+the owned-RAM CPU case is only available from the whole-model profile.) On
+Windows the iGPU holds three fused layers per 64 GB box (the driver caps
+shared memory at half of RAM); Linux ranks or 96–128 GB boxes lift that.
 
 ## Serving-path note
 
@@ -113,5 +119,8 @@ the same env profile and no fused MoE layers is reported below once measured.
 
 | `cascadia run`, same profile, 16-token request (23-token prompt) | prefill | decode tok/s (from the task log) |
 |---|---|---|
-| ours on iGPU (attention + head) | 17.1 s | 15 steps in 12.8 s = **1.17** (the log's whole-request `tok_s` says 0.53) |
-| CPU | _pending_ | _pending_ |
+| CPU | 20.2 s | 15 steps in 13.0 s = **1.15** (the log's whole-request `tok_s` says 0.48) |
+| ours on iGPU (attention + head) | 17.1 s | 15 steps in 12.8 s = **1.17** (whole-request `tok_s` 0.53) |
+
+Both match the benchmark's decode rate for their configuration; the
+serving path is not slower than the harness.
