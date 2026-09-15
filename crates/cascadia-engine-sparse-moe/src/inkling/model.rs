@@ -454,6 +454,8 @@ impl WideTable {
 /// `logits_mup_width_multiplier` of 24 the reciprocal form is 1 ULP off on
 /// most elements, enough to flip argmax ties.
 pub struct Head {
+    /// Optional OpenVINO backend for the unembed GEMV; see [`super::ov_head`].
+    ov: Option<Arc<super::ov_head::OvHead>>,
     /// `norm.weight` `[hidden]`.
     pub norm: Vec<f32>,
     /// `unembed.weight` `[vocab, hidden]`.
@@ -482,6 +484,7 @@ impl Head {
             unembed.len() / hidden
         );
         Self {
+            ov: None,
             norm,
             unembed,
             eps,
@@ -494,6 +497,21 @@ impl Head {
         self.norm.len()
     }
 
+    /// Route the unembed GEMV through an OpenVINO backend (see
+    /// [`super::ov_head`]).
+    pub fn attach_ov(&mut self, ov: Arc<super::ov_head::OvHead>) {
+        self.ov = Some(ov);
+    }
+
+    pub fn ov(&self) -> Option<&Arc<super::ov_head::OvHead>> {
+        self.ov.as_ref()
+    }
+
+    /// Compile the head's IR ahead of time; `None` without a backend.
+    pub fn warm_ov(&self) -> Option<bool> {
+        Some(self.ov.as_ref()?.warm())
+    }
+
     /// `unembed · (rmsnorm(x, norm) / mup)[..unpadded_vocab]` for one hidden
     /// `x` (`[hidden]`).
     pub fn logits(&self, x: &[f32]) -> Vec<f32> {
@@ -503,6 +521,11 @@ impl Head {
         rmsnorm_f32(&mut y, &self.norm, self.eps);
         for v in y.iter_mut() {
             *v /= self.mup;
+        }
+        if let Some(ov) = &self.ov {
+            if let Some(l) = ov.logits(&y) {
+                return l;
+            }
         }
         let mut logits = vec![0.0f32; self.unpadded_vocab];
         self.unembed.matvec_f32(&y, hidden, &mut logits);
@@ -688,6 +711,16 @@ impl Model {
         for (i, l) in self.layers.iter_mut().enumerate() {
             l.attach_ov(i as u32, Arc::clone(&ov));
         }
+    }
+
+    /// Route the head's unembed GEMV through an OpenVINO backend (last rank
+    /// only; a stage without a head ignores it).
+    pub fn attach_ov_head(&mut self, ov: Arc<super::ov_head::OvHead>) {
+        self.head.attach_ov(ov);
+    }
+
+    pub fn ov_head(&self) -> Option<&Arc<super::ov_head::OvHead>> {
+        self.head.ov()
     }
 
     /// Route every MoE layer through a fused-MoE backend (layer index =
