@@ -1591,7 +1591,19 @@ pub fn template_speaks_effort_words(
         |w: &str| render_with_chat_env(env, &msgs, bos_token, eos_token, true, Some(w), None);
     match (render("low"), render("medium")) {
         (Ok(a), Ok(b)) => a != b,
-        _ => false,
+        // A probe render that errors is indeterminate, not "identical" — a
+        // template that genuinely speaks the effort words but throws on the
+        // bare probe input (e.g. it requires a system turn) would otherwise be
+        // silently mapped GLM-style, escalating a thinking-off/low request.
+        // Fall back to the mapping but leave a trace so the mis-detection is
+        // visible.
+        (Err(e), _) | (_, Err(e)) => {
+            warn!(
+                error = %e,
+                "reasoning_effort probe could not render the chat template; assuming GLM-style high/max mapping (effort words will not reach the template)"
+            );
+            false
+        }
     }
 }
 
