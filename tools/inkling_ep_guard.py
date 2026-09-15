@@ -62,6 +62,19 @@ def run(root, job):
                if x["name"].lower() in {"ovms.exe", "cascadia-node.exe"}}
     for p in watched.values():
         p.cpu_percent()
+    # Windows accounts CPU time in coarse ticks. A startup interval of a few
+    # milliseconds can report a large percentage for one background tick;
+    # retain the same threshold, but always measure a full 500 ms window.
+    next_service_sample = time.monotonic() + 0.5
+
+    def service_busy():
+        nonlocal next_service_sample
+        now = time.monotonic()
+        if now < next_service_sample:
+            return False
+        next_service_sample = now + 0.5
+        return any(p.cpu_percent() > 20 for p in watched.values() if p.is_running())
+
     with (root / (label + ".log")).open("x") as log:
         child = subprocess.Popen(job["argv"], cwd=root, env=env, stdout=log,
                                  stderr=subprocess.STDOUT, creationflags=subprocess.BELOW_NORMAL_PRIORITY_CLASS)
@@ -85,7 +98,7 @@ def run(root, job):
                     reason = "available memory below reserve"
                 elif rss > job.get("max_rss_gib", 10) * 2**30:
                     reason = "benchmark RSS exceeded cap"
-                elif any(p.cpu_percent() > 20 for p in watched.values() if p.is_running()):
+                elif service_busy():
                     reason = "existing inference service became busy"
                 if reason:
                     break

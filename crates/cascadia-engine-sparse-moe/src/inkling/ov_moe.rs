@@ -113,6 +113,8 @@ pub struct OvMoe {
     /// dummies after them (see `tools/inkling_moe_layer_ov.py --pad-experts`).
     n_experts: usize,
     offload: Option<String>,
+    require_fused: bool,
+    profiles: Mutex<HashMap<u32, String>>,
     layers: Mutex<HashMap<u32, Arc<Mutex<Runtime>>>>,
     failed: Mutex<std::collections::HashSet<u32>>,
     /// Layers whose first call failure has been reported.
@@ -201,6 +203,9 @@ impl OvMoe {
         cache_dir: Option<&str>,
         offload: Option<String>,
     ) -> Self {
+        if std::env::var_os("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD").is_none() {
+            set_process_env("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
+        }
         let mut plugin = PluginConfig::new().with("INFERENCE_PRECISION_HINT", "f16");
         match &offload {
             Some(r) => {
@@ -228,6 +233,8 @@ impl OvMoe {
             k_total,
             n_experts,
             offload,
+            require_fused: false,
+            profiles: Mutex::new(HashMap::new()),
             layers: Mutex::new(HashMap::new()),
             failed: Mutex::new(Default::default()),
             noted: Mutex::new(Default::default()),
@@ -238,6 +245,18 @@ impl OvMoe {
             compile_ns: AtomicU64::new(0),
             fallbacks: AtomicU64::new(0),
         }
+    }
+
+    /// Reject execution unless the runtime reports the compressed fused MoE
+    /// node. Profiling is enabled before compile, and evidence retained.
+    pub fn requiring_fusion(mut self) -> Self {
+        self.require_fused = true;
+        self.plugin = self.plugin.with("PERF_COUNT", "YES");
+        self
+    }
+
+    pub fn fusion_profiles(&self) -> HashMap<u32, String> {
+        self.profiles.lock().unwrap().clone()
     }
 
     pub fn device(&self) -> &str {
@@ -428,6 +447,32 @@ impl OvMoe {
                 self.note_call_failure(lid, &why);
                 self.fallbacks.fetch_add(1, Ordering::Relaxed);
                 return None;
+            }
+            if self.require_fused && !self.profiles.lock().unwrap().contains_key(&lid) {
+                let profile = rt.profiling().unwrap_or_default();
+                let fused = profile.lines().any(|line| {
+                    let fields: Vec<_> = line.split('\t').collect();
+                    fields.len() >= 3
+                        && ((fields[1] == "MOECompressed"
+                            && fields[2].contains("ocl::moe::moe_3gemm_"))
+                            || fields[1..3].iter().any(|field| {
+                                field
+                                    .chars()
+                                    .filter(|c| c.is_ascii_alphanumeric())
+                                    .collect::<String>()
+                                    .to_ascii_lowercase()
+                                    .contains("moe3gemmfusedcompressed")
+                            }))
+                });
+                if !fused {
+                    self.mark_failed(
+                        lid,
+                        &format!("required fused compressed MoE absent from profiling: {profile}"),
+                    );
+                    self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                    return None;
+                }
+                self.profiles.lock().unwrap().insert(lid, profile);
             }
             let (_, _, bytes) = match rt.output(0) {
                 Ok(o) => o,

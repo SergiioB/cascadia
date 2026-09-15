@@ -1,8 +1,9 @@
 //! Real expert-weight phase benchmark, NOT full-model inference.
 //! --export DIR --frames JSON --out JSON [--reference-out BIN | --reference BIN]
 //! [--workers IP:PORT,... --placement JSON] [--samples N]
-//! Frames contain {layer, ids, seed}; deterministic synthetic normalized inputs
-//! and equal expert weights isolate expert execution and transport costs.
+//! Frames contain {layer, ids, seed, weights?, extra_rows?}; deterministic
+//! synthetic inputs isolate expert execution and transport costs. Optional
+//! weights and extra rows exercise routing numerics and batched requests.
 
 use cascadia_engine_sparse_moe::dist::ExpertDispatchBody;
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
@@ -13,10 +14,26 @@ use serde::Deserialize;
 use std::{path::PathBuf, sync::Arc, time::Instant};
 
 #[derive(Deserialize)]
-struct Frame {
-    layer: usize,
+struct FrameRow {
     ids: Vec<usize>,
     seed: u32,
+    #[serde(default)]
+    weights: Option<Vec<f32>>,
+}
+
+#[derive(Deserialize)]
+struct Frame {
+    layer: usize,
+    #[serde(flatten)]
+    first: FrameRow,
+    #[serde(default)]
+    extra_rows: Vec<FrameRow>,
+}
+
+impl Frame {
+    fn rows(&self) -> impl Iterator<Item = &FrameRow> {
+        std::iter::once(&self.first).chain(&self.extra_rows)
+    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -141,7 +158,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     // Isolate transport using a padded expert slot: the worker returns a zero
     // hidden row without reading weights. Same sockets/framing as inference.
-    for (wi, connection) in connections.iter().enumerate() {
+    let fused = std::env::var("CASCADIA_INKLING_EP_FUSED").is_ok_and(|v| v == "1");
+    for (wi, connection) in connections.iter().enumerate().filter(|_| !fused) {
         let mut us = Vec::new();
         for round in 0..34 {
             let start = Instant::now();
@@ -183,47 +201,72 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let inputs: Vec<Vec<f32>> = frames
         .iter()
         .map(|f| {
-            let mut seed = f.seed;
-            (0..m.hidden_size)
-                .map(|_| {
-                    seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
-                    ((seed >> 8) as f32 / 16777216.0 - 0.5) * 0.25
+            f.rows()
+                .flat_map(|row| {
+                    let mut seed = row.seed;
+                    (0..m.hidden_size).map(move |_| {
+                        seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+                        ((seed >> 8) as f32 / 16777216.0 - 0.5) * 0.25
+                    })
                 })
                 .collect()
         })
         .collect();
+    let mut offsets = vec![0usize];
+    for input in &inputs {
+        offsets.push(offsets.last().unwrap() + input.len() * 4);
+    }
     let evaluate = |i: usize| -> Result<Vec<f32>, String> {
         let f = &frames[i];
         let x = &inputs[i];
-        if f.ids.len() != m.top_k + m.n_shared_experts
-            || f.ids
-                .iter()
-                .any(|&id| id >= m.num_experts + m.n_shared_experts)
-        {
-            return Err("invalid frame experts".into());
-        }
-        let weight = 1.0 / f.ids.len() as f32;
+        let routing: Vec<Vec<(usize, f32)>> = f
+            .rows()
+            .map(|row| {
+                if row.ids.len() != m.top_k + m.n_shared_experts
+                    || row
+                        .ids
+                        .iter()
+                        .any(|&id| id >= m.num_experts + m.n_shared_experts)
+                {
+                    return Err("invalid frame experts".to_string());
+                }
+                let weights = row
+                    .weights
+                    .clone()
+                    .unwrap_or_else(|| vec![1.0 / row.ids.len() as f32; row.ids.len()]);
+                if weights.len() != row.ids.len() || weights.iter().any(|w| !w.is_finite()) {
+                    return Err("invalid frame routing weights".to_string());
+                }
+                Ok(row.ids.iter().copied().zip(weights).collect())
+            })
+            .collect::<Result<_, _>>()?;
         if let Some(c) = &remote {
-            return c.dispatch(
-                f.layer as u32,
-                x,
-                &[f.ids.iter().map(|&id| (id, weight)).collect()],
-            );
+            return c.dispatch(f.layer as u32, x, &routing);
         }
+        let rows = routing.len();
+        let k = m.top_k + m.n_shared_experts;
+        let weights: Vec<f32> = routing.iter().flatten().map(|&(_, w)| w).collect();
         let body = ExpertDispatchBody {
             layer: f.layer as u32,
-            rows: 1,
-            k: f.ids.len() as u32,
+            rows: rows as u32,
+            k: k as u32,
             hidden: x.clone(),
-            hidden_shape: [1, m.hidden_size as u32, 1],
-            ids: f.ids.iter().map(|&id| id as i32).collect(),
-            ids_shape: [1, f.ids.len() as u32, 1],
+            hidden_shape: [rows as u32, m.hidden_size as u32, 1],
+            ids: routing.iter().flatten().map(|&(id, _)| id as i32).collect(),
+            ids_shape: [rows as u32, k as u32, 1],
         };
+        if fused {
+            return bank.as_ref().unwrap().serve_fused(&body, &weights);
+        }
         let raw = bank.as_ref().unwrap().serve(&body)?;
-        let mut out = vec![0.; m.hidden_size];
-        for y in raw.chunks_exact(m.hidden_size) {
-            for (o, &v) in out.iter_mut().zip(y) {
-                *o += weight * v;
+        let mut out = vec![0.; rows * m.hidden_size];
+        for (slot, y) in raw.chunks_exact(m.hidden_size).enumerate() {
+            let row = slot / k;
+            for (o, &v) in out[row * m.hidden_size..(row + 1) * m.hidden_size]
+                .iter_mut()
+                .zip(y)
+            {
+                *o += weights[slot] * v;
             }
         }
         Ok(out)
@@ -288,7 +331,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for _ in 1..warm_passes {
         for i in 0..frames.len() {
             let out = evaluate(i)?;
-            let expected = &reference[i * m.hidden_size * 4..(i + 1) * m.hidden_size * 4];
+            let expected = &reference[offsets[i]..offsets[i + 1]];
             if !out
                 .iter()
                 .zip(expected.chunks_exact(4))
@@ -304,7 +347,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let start = Instant::now();
             let out = evaluate(i)?;
             let elapsed = start.elapsed().as_secs_f64() * 1000.;
-            let expected = &reference[i * m.hidden_size * 4..(i + 1) * m.hidden_size * 4];
+            let expected = &reference[offsets[i]..offsets[i + 1]];
             if !out
                 .iter()
                 .zip(expected.chunks_exact(4))
@@ -320,8 +363,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let result = serde_json::json!({"scope":"real_expert_phase_with_synthetic_inputs","full_model_inference":false,
         "hidden":m.hidden_size,"intermediate":m.moe_intermediate,"model_layers_in_export":m.num_layers,
-        "frames":frames.len(),"samples":samples,"warm_passes":warm_passes,"workers":connections.len(),"reference_verified":flags.contains_key("--reference"),
-        "self_consistency_verified":true,"workers_arg":flags.get("--workers"),"timings":timings,"wire_probes":wire_probes,
+        "frames":frames.len(),"rows_per_frame":frames.iter().map(|f|f.rows().count()).collect::<Vec<_>>(),"samples":samples,"warm_passes":warm_passes,"workers":connections.len(),"reference_verified":flags.contains_key("--reference"),
+        "fused_MoE_sharding":fused,"self_consistency_verified":true,"workers_arg":flags.get("--workers"),"timings":timings,"wire_probes":wire_probes,
         "reference_comparison":reference_comparison,"local_backend":bank.as_ref().map(|b|b.backend_stats()),
         "limitation":"Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s."});
     serde_json::to_writer_pretty(

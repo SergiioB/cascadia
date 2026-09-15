@@ -839,3 +839,141 @@ fn two_workers_one_fails_a_dispatch_but_the_survivor_stays_frame_aligned() {
         assert!(frames > 0, "worker {wi} served no frames");
     }
 }
+
+#[test]
+fn fused_wire_preserves_weights_compacts_rows_and_sums_partials() {
+    use cascadia_engine_sparse_moe::dist::recv_fused_expert_dispatch_body_server;
+    let rt = runtime();
+    let mut clients = Vec::new();
+    let mut tasks = Vec::new();
+    for wi in 0..3 {
+        let (server, client) = rt.block_on(loopback());
+        clients.push(client);
+        tasks.push(rt.spawn(async move {
+            assert_eq!(
+                recv_kind_server(&server).await.unwrap(),
+                Some(FrameKind::FusedExpertDispatch)
+            );
+            let (b, weights, shape) = recv_fused_expert_dispatch_body_server(&server)
+                .await
+                .unwrap();
+            assert_eq!(shape, b.ids_shape);
+            let mut out = vec![0.; b.rows as usize * 2];
+            for (slot, (&id, &weight)) in b.ids.iter().zip(&weights).enumerate() {
+                if id == EXPERT_PAD {
+                    assert_eq!(weight, 0.);
+                    continue;
+                }
+                assert_eq!(id as usize % 3, wi);
+                let r = slot / b.k as usize;
+                for j in 0..2 {
+                    out[r * 2 + j] += weight * (b.hidden[r * 2 + j] + id as f32 * 10.);
+                }
+            }
+            send_expert_result_ok(&server, b.rows, 1, 2, &out)
+                .await
+                .unwrap();
+        }));
+    }
+    let ep = EpClient::new(clients.clone(), rt.handle().clone(), 2, 6, 2).with_fused(true);
+    let rows = vec![
+        vec![(1, 0.5), (3, -0.25), (6, 0.75)],
+        vec![],
+        vec![(2, 0.125), (7, 0.25)],
+    ];
+    let xs = [1., 2., 3., 4., 5., 6.];
+    let out = ep.dispatch(1, &xs, &rows).unwrap();
+    let expected: Vec<f32> = rows
+        .iter()
+        .enumerate()
+        .flat_map(|(r, ids)| {
+            (0..2).map(move |j| {
+                ids.iter()
+                    .map(|&(id, w)| w * (xs[r * 2 + j] + id as f32 * 10.))
+                    .sum::<f32>()
+            })
+        })
+        .collect();
+    assert_eq!(out, expected);
+    close_all(&rt, &clients);
+    for t in tasks {
+        rt.block_on(t).unwrap();
+    }
+}
+
+#[test]
+fn unsupported_fused_request_is_drained_without_cpu_fallback() {
+    let rt = runtime();
+    let bank = load_expert_bank(&export_dir(), 0, 1, ExpertsMode::Mmap).unwrap();
+    let hidden = bank.hidden();
+    let (clients, threads) = spawn_workers(&rt, vec![bank]);
+    let ep = EpClient::new(clients.clone(), rt.handle().clone(), hidden, 8, 2).with_fused(true);
+    assert!(ep
+        .dispatch(1, &vec![0.; hidden], &[vec![(0, 0.25)]])
+        .unwrap_err()
+        .contains("does not support fused"));
+    // The weighted tensor was consumed before rejection; a subsequent raw
+    // request on this exact socket succeeds, proving framing was preserved.
+    let ep = ep.with_fused(false);
+    assert!(ep
+        .dispatch(1, &vec![0.; hidden], &[vec![(0, 0.25)]])
+        .is_ok());
+    close_all(&rt, &clients);
+    for t in threads {
+        assert_eq!(t.join().unwrap(), 1);
+    }
+}
+
+#[test]
+fn invalid_fused_header_still_drains_the_weights_tensor() {
+    use cascadia_engine_sparse_moe::dist::recv_fused_expert_dispatch_body_server;
+    use cascadia_transport::{DType, Tensor};
+    let rt = runtime();
+    rt.block_on(async {
+        let (server, client) = loopback().await;
+        {
+            let mut c = client.lock().await;
+            let header: Vec<u8> = [
+                FrameKind::FusedExpertDispatch as u32,
+                1,
+                MAX_BATCH_COUNT + 1,
+                1,
+            ]
+            .into_iter()
+            .flat_map(u32::to_be_bytes)
+            .collect();
+            c.send_raw(&header).await.unwrap();
+            c.send(&Tensor::new(DType::F32, [1, 2, 1], vec![0; 8]))
+                .await
+                .unwrap();
+            c.send(&Tensor::new(DType::I32, [1, 1, 1], vec![0; 4]))
+                .await
+                .unwrap();
+            c.send(&Tensor::new(DType::F32, [1, 1, 1], vec![0; 4]))
+                .await
+                .unwrap();
+        }
+        send_expert_dispatch(&client, 1, 1, 1, 2, &[3., 4.], &[0])
+            .await
+            .unwrap();
+        assert_eq!(
+            recv_kind_server(&server).await.unwrap(),
+            Some(FrameKind::FusedExpertDispatch)
+        );
+        assert!(recv_fused_expert_dispatch_body_server(&server)
+            .await
+            .is_err());
+        assert_eq!(
+            recv_kind_server(&server).await.unwrap(),
+            Some(FrameKind::ExpertDispatch)
+        );
+        assert_eq!(
+            recv_expert_dispatch_body_server(&server)
+                .await
+                .unwrap()
+                .hidden,
+            vec![3., 4.]
+        );
+        client.lock().await.close().await;
+    });
+}

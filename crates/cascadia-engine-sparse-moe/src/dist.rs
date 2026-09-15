@@ -168,7 +168,9 @@ pub enum FrameKind {
     // `ExpertDispatch` per involved worker per MoE layer and awaits one `ExpertResult` from each;
     // a worker is stateless and replies `ExpertResult{status 1}` to any other kind.
     ExpertDispatch = 0x53_4D_45_50, // "SME\x50" — driver → worker: layer, rows, k, hidden, ids
-    ExpertResult = 0x53_4D_45_51,   // "SME\x51" — worker → driver: status + outputs | message
+    /// Version 1 weighted fused-shard request; result uses ExpertResult with k=1.
+    FusedExpertDispatch = 0x53_4D_45_52,
+    ExpertResult = 0x53_4D_45_51, // "SME\x51" — worker → driver: status + outputs | message
 }
 
 impl FrameKind {
@@ -194,6 +196,7 @@ impl FrameKind {
             x if x == FrameKind::RestoreCarry as u32 => Some(FrameKind::RestoreCarry),
             x if x == FrameKind::CaptureV2 as u32 => Some(FrameKind::CaptureV2),
             x if x == FrameKind::ExpertDispatch as u32 => Some(FrameKind::ExpertDispatch),
+            x if x == FrameKind::FusedExpertDispatch as u32 => Some(FrameKind::FusedExpertDispatch),
             x if x == FrameKind::ExpertResult as u32 => Some(FrameKind::ExpertResult),
             _ => None,
         }
@@ -1459,6 +1462,41 @@ pub async fn send_expert_dispatch(
     hidden: &[f32],
     ids: &[i32],
 ) -> TransportResult<()> {
+    send_expert_dispatch_impl(cli, layer, rows, k, hidden_size, hidden, ids, None).await
+}
+
+/// Versioned fused request: the normal dispatch body plus original F32 gate
+/// weights [rows,k,1]. The worker replies with one weighted partial per row.
+#[allow(clippy::too_many_arguments)]
+pub async fn send_fused_expert_dispatch(
+    cli: &Mutex<ActivationClient>,
+    layer: u32,
+    rows: u32,
+    k: u32,
+    hidden_size: u32,
+    hidden: &[f32],
+    ids: &[i32],
+    weights: &[f32],
+) -> TransportResult<()> {
+    send_expert_dispatch_impl(cli, layer, rows, k, hidden_size, hidden, ids, Some(weights)).await
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn send_expert_dispatch_impl(
+    cli: &Mutex<ActivationClient>,
+    layer: u32,
+    rows: u32,
+    k: u32,
+    hidden_size: u32,
+    hidden: &[f32],
+    ids: &[i32],
+    weights: Option<&[f32]>,
+) -> TransportResult<()> {
+    if weights.is_some_and(|w| w.len() != ids.len() || w.iter().any(|x| !x.is_finite())) {
+        return Err(TransportError::Io(std::io::Error::other(
+            "invalid fused routing weights",
+        )));
+    }
     if rows == 0 || rows > MAX_BATCH_COUNT {
         return Err(TransportError::Io(std::io::Error::other(format!(
             "send_expert_dispatch: rows {rows} out of range 1..={MAX_BATCH_COUNT}"
@@ -1484,7 +1522,12 @@ pub async fn send_expert_dispatch(
         ))));
     }
     let mut header = [0u8; 16];
-    header[0..4].copy_from_slice(&(FrameKind::ExpertDispatch as u32).to_be_bytes());
+    let kind = if weights.is_some() {
+        FrameKind::FusedExpertDispatch
+    } else {
+        FrameKind::ExpertDispatch
+    };
+    header[0..4].copy_from_slice(&(kind as u32).to_be_bytes());
     header[4..8].copy_from_slice(&layer.to_be_bytes());
     header[8..12].copy_from_slice(&rows.to_be_bytes());
     header[12..16].copy_from_slice(&k.to_be_bytes());
@@ -1494,6 +1537,9 @@ pub async fn send_expert_dispatch(
     guard.send_raw(&header).await?;
     guard.send(&ht).await?;
     guard.send(&it).await?;
+    if let Some(weights) = weights {
+        guard.send(&hidden_to_tensor(weights, [rows, k, 1])).await?;
+    }
     Ok(())
 }
 
@@ -1532,6 +1578,48 @@ pub async fn recv_expert_dispatch_body_server(
         ids,
         ids_shape,
     })
+}
+
+/// Receive the entire weighted request before semantic validation.
+pub async fn recv_fused_expert_dispatch_body_server(
+    srv: &Mutex<ActivationServer>,
+) -> TransportResult<(ExpertDispatchBody, Vec<f32>, [u32; 3])> {
+    let mut guard = srv.lock().await;
+    let raw = guard.recv_raw(12).await?;
+    if raw.len() != 12 {
+        return Err(TransportError::SocketClosed);
+    }
+    let (ht, _) = guard.recv().await?;
+    let (it, _) = guard.recv().await?;
+    let (wt, _) = guard.recv().await?;
+    drop(guard);
+    // Drain all three tensors even if the header, IDs, or weights are
+    // semantically invalid. Reusing the two-tensor decoder here would leave
+    // weights unread when that decoder rejects an oversized row count.
+    let layer = u32::from_be_bytes(raw[0..4].try_into().unwrap());
+    let rows = u32::from_be_bytes(raw[4..8].try_into().unwrap());
+    let k = u32::from_be_bytes(raw[8..12].try_into().unwrap());
+    if rows == 0 || rows > MAX_BATCH_COUNT {
+        return Err(TransportError::Io(std::io::Error::other(
+            "fused dispatch row count out of range",
+        )));
+    }
+    let (hidden, hidden_shape) = tensor_to_hidden(&ht)?;
+    let (ids, ids_shape) = tensor_to_ids(&it)?;
+    let (weights, shape) = tensor_to_hidden(&wt)?;
+    Ok((
+        ExpertDispatchBody {
+            layer,
+            rows,
+            k,
+            hidden,
+            hidden_shape,
+            ids,
+            ids_shape,
+        },
+        weights,
+        shape,
+    ))
 }
 
 /// Reply `ExpertResult{status 0}` from the worker: kind + status byte + the outputs
