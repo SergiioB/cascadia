@@ -786,6 +786,28 @@ impl GlmRunner {
         n
     }
 
+    /// One-shot warning when gated prefill streaming stands down because the
+    /// residency probe is unavailable (every expert reads as resident, so
+    /// nothing is enqueued). Silent when experts are genuinely resident (a
+    /// correct no-op). Mirrors [`super::moe::MoeLayer::warn_if_probe_unavailable`].
+    fn warn_prefill_stream_probe_dead(layers: &[GlmLayer]) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        W.call_once(|| {
+            let dead = layers
+                .iter()
+                .filter_map(GlmLayer::moe)
+                .any(|m| m.residency_probe_dead());
+            if dead {
+                eprintln!(
+                    "[glm5] prefill_stream: residency probe unavailable on this \
+                     platform; gated streaming stands down (warmed nothing). Set \
+                     CASCADIA_GLM5_PREFILL_STREAM=all to bypass the gate."
+                );
+            }
+        });
+    }
+
     /// Persist the learned-pin routing histogram to `<dir>/.coli_usage` so the
     /// next run mlocks a better initial set ("faster the more you use it").
     /// Each node writes its own file (it only records its own layers); best-effort.
@@ -977,6 +999,14 @@ impl StagedRunner for GlmRunner {
             x = self.layers[i].forward_prefill(&x, rows, &mut carries);
         }
         self.stream_enqueued += enq;
+        // Gated streaming enqueued nothing: if the residency probe is dead the
+        // gate reports every expert resident, so the feature silently stands
+        // down. Warn once so the operator isn't left with warmed=0 and no cause
+        // (mirrors the hot/cold path's probe-unavailable warning). Genuinely
+        // resident experts are a correct no-op and stay silent.
+        if stream == Some(PrefillStream::Gated) && enq == 0 {
+            Self::warn_prefill_stream_probe_dead(&self.layers);
+        }
         self.pos += rows;
         x
     }

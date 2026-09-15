@@ -338,21 +338,26 @@ impl MoeLayer {
             return;
         }
         W.call_once(|| {
-            // Probe any mmap routed expert; `probed == 0` means the OS query is
-            // dead. No mmap experts -> nothing to probe, not a failure.
-            let probe_dead = self
-                .w
-                .experts
-                .iter()
-                .find_map(AnyExpert::as_mmap)
-                .is_some_and(|m| m.resident_pages_sampled(8).1 == 0);
-            if probe_dead {
+            if self.residency_probe_dead() {
                 eprintln!(
                     "[glm5] hotcold: residency probe unavailable on this platform; \
                      running all-hot (no read overlap)"
                 );
             }
         });
+    }
+
+    /// True when the residency probe (`mincore` / `QueryWorkingSetEx`) is dead
+    /// on this platform: an mmap routed expert exists but its working-set query
+    /// samples nothing (`probed == 0`), so `expert_cold` reports every expert
+    /// resident and any miss-only gate (hot/cold, prefill streaming) silently
+    /// stands down. No mmap experts -> nothing to probe, not dead.
+    pub fn residency_probe_dead(&self) -> bool {
+        self.w
+            .experts
+            .iter()
+            .find_map(AnyExpert::as_mmap)
+            .is_some_and(|m| m.resident_pages_sampled(8).1 == 0)
     }
 
     /// This layer's routed-expert bin table for the LOOKAHEAD worker (paths + sizes;
