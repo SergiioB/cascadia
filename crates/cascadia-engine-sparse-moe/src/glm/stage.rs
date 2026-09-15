@@ -33,7 +33,9 @@ const PREFETCH_EXPERTS: usize = 32;
 /// Minimum batch rows before Gated prefill layer streaming engages. Below
 /// this, the batch's routed union is a small fraction of the next layer's
 /// expert set and whole-layer warming would over-read (see
-/// `forward_layers_batch`). 64 rows × top-8 draws ≈ full-set coverage.
+/// `forward_layers_batch`). The threshold is a heuristic: at the production
+/// expert count a batch this wide draws enough routes to approach whole-set
+/// coverage.
 const PREFILL_STREAM_MIN_ROWS: usize = 64;
 
 /// The layer range `[lo, hi)` that rank `rank` of `total` owns.
@@ -317,8 +319,9 @@ pub struct GlmRunner {
     /// (warming the OS page cache) so demand faults hit the cache. Predicts via
     /// the next layer's own router on an attention-free proxy. `Some` only on an
     /// mmap-expert rank when a consumer flag is set (decode lookahead and/or
-    /// prefill streaming — the worker is shared). Takes precedence over
-    /// `prefetch`.
+    /// prefill streaming — the worker is shared). On the decode path it takes
+    /// precedence over `prefetch` only when `lookahead_decode` is set; with just
+    /// prefill streaming on, decode still falls through to `prefetch`.
     lookahead: Option<super::lookahead::Lookahead>,
     /// Decode-side router-proxy lookahead enabled (CASCADIA_GLM5_LOOKAHEAD).
     /// Kept separate from `lookahead`'s presence because the prefill streamer
@@ -770,9 +773,10 @@ impl GlmRunner {
 
     /// Enqueue local layer `li`'s routed experts for the lookahead worker to
     /// warm — the whole set under `All`, only the not-yet-resident ones under
-    /// `Gated` (the probe costs microseconds; re-reading a hot bin costs
-    /// milliseconds of NVMe bandwidth). Shared experts are excluded like the
-    /// decode lookahead: they are pinned whenever pinning is on.
+    /// `Gated` (the residency probe costs microseconds; re-reading an
+    /// already-resident bin wastes read/copy work). Shared experts are excluded
+    /// like the decode lookahead: the shared expert is a standing pin candidate,
+    /// not a routed bin the worker warms.
     /// Returns the number of experts enqueued (0 for a dense layer or when
     /// every expert is resident under `Gated`).
     fn stream_enqueue_layer(
@@ -1000,12 +1004,12 @@ impl StagedRunner for GlmRunner {
         // identical whether or not a warm lands in time.
         //
         // Whole-layer warming assumes the batch's routed union covers most of
-        // the next layer (true for wide batches: 64 rows × top-8 draws ≈ the
-        // full expert set). A narrow batch's union is far smaller, so the warm
-        // would over-read cold bins the prefill never touches — measured 1552
-        // warmed vs a few-hundred-bin union on a 16-row prompt — hence Gated
-        // streaming stands down below the row threshold. `All` stays
-        // unconditional: it is the explicit test/bench lever.
+        // the next layer — true for wide batches, which draw enough routes to
+        // approach whole-set coverage at the production expert count. A narrow
+        // batch's union is far smaller, so the warm would over-read cold bins
+        // the prefill never touches; Gated streaming stands down below the row
+        // threshold. `All` stays unconditional: it is the explicit test/bench
+        // lever.
         let stream = prefill_stream_gate(self.prefill_stream, rows);
         // Gated but stood down for this batch's width: note once so a warmed=0
         // on narrow batches has a cause (wide-batch prefill is where
