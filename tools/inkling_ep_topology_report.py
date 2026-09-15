@@ -110,6 +110,7 @@ def main():
     assert sum(b['fused']['selected_expert_rows'] for b in bb.values()) == expected_rows
     baseline_files = read(a.artifacts/(a.baseline+'.json.gz'))
     counts, seen, text, total_expert_rows = [], set(), {}, 0
+    wire_bytes = wire_equivalent = compact_replies = 0
     for label in a.candidate:
         candidate, ct, cb = inspect(a.artifacts, label, False, audit)
         assert candidate['tokens_per_case'] == tokens
@@ -125,6 +126,12 @@ def main():
         expected = sum(len(c['prompt_ids'])+tokens-1 for c in subset)*64*8
         assert sum(b['fused']['selected_expert_rows'] for b in cb.values()) == expected
         total_expert_rows += expected
+        for backend in cb.values():
+            assert backend.get('wire_f16_replies',0)>0 and backend.get('wire_f32_replies')==0
+            assert backend.get('wire_tensor_bytes',0)*2==backend.get('wire_f32_equivalent_bytes')
+            compact_replies += backend['wire_f16_replies']
+            wire_bytes += backend['wire_tensor_bytes']
+            wire_equivalent += backend['wire_f32_equivalent_bytes']
         if subset != cases:
             proof = read(a.artifacts/(label+'.json.gz'))['reference-slice-provenance.json']
             assert len(subset) == 1 and proof['case'] == subset[0]['name']
@@ -144,7 +151,8 @@ def main():
                   twelve_physical_hosts_tested=False,cpu_gpu_numerical_parity_established=False,
                   generated_tokens=tokens*len(cases),selected_expert_rows_per_run=expected_rows,
                   matched_tensors=sum(c['matched_tensors'] for c in counts),different_float_bits=0,
-                  maximum_relative_rms=0.,baseline=a.baseline,candidates=counts,generated_text=text)
+                  maximum_relative_rms=0.,wire_tensor_bytes=wire_bytes,wire_f32_equivalent_bytes=wire_equivalent,
+                  lossless_compact_replies=compact_replies,wire_scale_header_bytes=compact_replies,baseline=a.baseline,candidates=counts,generated_text=text)
     with a.out.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
     print(json.dumps(result,indent=2))
 

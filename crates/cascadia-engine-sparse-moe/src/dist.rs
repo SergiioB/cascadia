@@ -1648,6 +1648,48 @@ pub async fn send_expert_result_ok(
     Ok(())
 }
 
+/// Losslessly encode an expert reply as FP16 * 2^exponent (status 2),
+/// falling back to the original F32 frame if any value cannot round-trip.
+/// Every f32 bit, including signed zero, is checked BEFORE anything is sent.
+/// Older clients reject status 2; enable only after upgrading all peers.
+/// Returns true when the compact frame was sent.
+pub async fn send_expert_result_lossless(
+    srv: &Mutex<ActivationServer>,
+    rows: u32,
+    k: u32,
+    hidden_size: u32,
+    out: &[f32],
+    exponent: u8,
+) -> TransportResult<bool> {
+    let want = (rows as usize)
+        .checked_mul(k as usize)
+        .and_then(|n| n.checked_mul(hidden_size as usize));
+    if want != Some(out.len()) || exponent > 8 || out.iter().any(|v| !v.is_finite()) {
+        return Err(TransportError::Io(std::io::Error::other(
+            "invalid lossless expert reply",
+        )));
+    }
+    let scale = 2.0f32.powi(exponent as i32);
+    let mut bytes = Vec::with_capacity(out.len() * 2);
+    for &v in out {
+        let half = half::f16::from_f32(v / scale);
+        if (half.to_f32() * scale).to_bits() != v.to_bits() {
+            send_expert_result_ok(srv, rows, k, hidden_size, out).await?;
+            return Ok(false);
+        }
+        bytes.extend_from_slice(&half.to_le_bytes());
+    }
+    let mut header = [0u8; 6];
+    header[..4].copy_from_slice(&(FrameKind::ExpertResult as u32).to_be_bytes());
+    header[4] = 2;
+    header[5] = exponent;
+    let tensor = Tensor::new(DType::F16, [rows, k, hidden_size], bytes);
+    let mut guard = srv.lock().await;
+    guard.send_raw(&header).await?;
+    guard.send(&tensor).await?;
+    Ok(true)
+}
+
 /// Reply `ExpertResult{status 1}` from the worker: kind + status byte + u32 BE length + UTF-8
 /// message (truncated to [`MAX_EXPERT_ERR_BYTES`] on a char boundary).
 pub async fn send_expert_result_err(
@@ -1686,6 +1728,40 @@ pub async fn recv_expert_result_body_client(
             drop(guard);
             let (out, shape) = tensor_to_hidden(&t)?;
             Ok(Ok((out, shape)))
+        }
+        2 => {
+            let exponent = guard.recv_raw(1).await?;
+            if exponent.len() != 1 {
+                return Err(TransportError::SocketClosed);
+            }
+            // Consume the tensor before validating the new status payload, so
+            // a malformed scale/dtype cannot leave the next frame misaligned.
+            let (tensor, _) = guard.recv().await?;
+            drop(guard);
+            let size = tensor
+                .shape
+                .iter()
+                .try_fold(1usize, |n, &d| n.checked_mul(d as usize));
+            if exponent[0] > 8
+                || tensor.dtype != DType::F16
+                || size.and_then(|n| n.checked_mul(2)) != Some(tensor.data.len())
+            {
+                return Err(TransportError::Io(std::io::Error::other(
+                    "invalid scaled FP16 expert tensor",
+                )));
+            }
+            let scale = 2.0f32.powi(exponent[0] as i32);
+            let out: Vec<f32> = tensor
+                .data
+                .chunks_exact(2)
+                .map(|b| half::f16::from_le_bytes([b[0], b[1]]).to_f32() * scale)
+                .collect();
+            if out.iter().any(|v| !v.is_finite()) {
+                return Err(TransportError::Io(std::io::Error::other(
+                    "nonfinite scaled FP16 expert tensor",
+                )));
+            }
+            Ok(Ok((out, tensor.shape)))
         }
         1 => {
             let raw = guard.recv_raw(4).await?;

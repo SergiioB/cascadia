@@ -6,7 +6,7 @@ This extends [fused expert sharding](INKLING_FUSED_EXPERT_SHARDING.md) from
 individual MoE measurements to the complete 66-layer decoder. The CPU qualification compares every layer residual, every output logit, and
 greedy token IDs against a saved single-machine CPU reference. The GPU topology
 qualification compares a GPU recording with the same GPU arithmetic distributed
-over more worker processes. These are separate contracts. The validator accepts
+over more worker processes and an optional lossless wire format. These are separate contracts. The validator accepts
 any worker count; the LAN operator targets three authorized NUCs, with either
 one or four isolated worker processes per NUC.
 
@@ -32,7 +32,7 @@ Native v13 returns individual compact GPU expert outputs to the driver. The
 driver applies each original routing weight and adds in original gate order.
 Worker partial sums used before v13 change FP32 addition order with placement;
 the model can amplify those small differences through subsequent layers and
-router choices. A three-versus-twelve-worker GPU test is running with v13,
+router choices. A v13 three-worker GPU baseline and v14 twelve-worker comparison are running with
 a 2,400 MiB aggregate IR admission budget per physical host, and eight token
 positions per prompt. Results will be recorded separately from CPU parity.
 
@@ -209,6 +209,30 @@ all workers must use the new binary before these shards are loaded. Tests
 verify rollback after an injected write-stage failure and byte identity between
 a fresh scaled export and an updated shard.
 
+## Lossless expert replies and the network budget
+
+FP32 raw decode replies carry `64 × 8 × 6144 × 4 = 12,582,912` bytes per
+token (12 MiB), before transport headers. A 2.5 Gb/s driver link therefore has
+an ideal receive ceiling of 24.835 tok/s for those replies alone. This is an
+arithmetic link bound, not measured model throughput.
+
+Native v14 adds optional `CASCADIA_INKLING_EP_FUSED_F16_WIRE=1` on compact GPU
+workers. Each reply carries FP16 values and the IR's power-of-two scale, cutting
+the tensor payload to 6 MiB per decoded token. Before sending, every value must
+round-trip to the original FP32 bits, including signed zero; otherwise the
+worker sends the original FP32 frame. No additional quantization error is
+allowed. The driver restores those exact bits before the original gate-order
+sum. `ExpertResult` status 2 carries one exponent byte and an F16 tensor; older
+clients reject it, so all peers must be upgraded before enabling it.
+
+The native loopback test covers all 63,488 finite FP16 bit patterns multiplied
+by 16, as well as arbitrary FP32 fallback and malformed-frame rejection. The
+full-model candidate uses this format against the original v13 FP32 recording.
+The operator's `--lossless-wire` gate requires observed compact replies on
+every worker, no FP32 replies for this dataset, and exactly half the equivalent
+FP32 tensor bytes. This does not imply the disk-streaming correctness runs
+will approach the link limit.
+
 ## Second overflow and independent FP16 reference
 
 The version-2 IR alone did not fix every range failure. At layer 40, expert 15
@@ -269,7 +293,7 @@ python3 tools/inkling_ep_full_run.py \
 
 # Repartition the same files into 12 isolated processes on the three NUCs.
 python3 tools/inkling_ep_full_run.py \
-  --label full-gpu-12-NEW --mode fused-stream --workers-per-host 4 \
+  --label full-gpu-12-NEW --mode fused-stream --workers-per-host 4 --lossless-wire \
   --placement docs/perf/inkling-ep-full/placement.json \
   --reference full-gpu-base-NEW --tokens 8 --max-relative-rms 0 \
   --cache-mb-per-host 2400 --out /tmp/full-gpu-12-NEW
@@ -313,8 +337,10 @@ terminating any remaining task worker and removes only the task firewall rule.
 
 The completion gate requires every guarded job to exit successfully, preserved
 service process identities, full-model numerical/token parity, and final
-backend evidence. GPU mode additionally requires a fused GPU profile for
-every owned MoE layer, nonzero ordered expert replies and zero CPU fallbacks/errors.
+backend evidence. GPU mode additionally requires fused GPU profiles within each worker’s owned
+layers, collective coverage of every MoE layer, nonzero ordered expert replies
+on every worker, and zero CPU fallbacks/errors. A short prompt need not route
+an expert to every worker at every layer; an unvisited view is not GPU fallback.
 A recording completion only verifies that the recording and backend checks
 finished; its native report retains `correctness_verified=false`.
 

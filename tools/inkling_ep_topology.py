@@ -39,7 +39,7 @@ def prepare_views(parent_path, children, inventories):
     plan = split_plan(json.loads(parent_bytes), children)
     plan_text = json.dumps(plan, indent=2)+'\n'
     plan_hash = hashlib.sha256(plan_text.encode()).hexdigest()
-    script = '''from pathlib import Path
+    script = r'''from pathlib import Path
 import hashlib,json,os,psutil
 root=Path(ROOT);plan_text=PLAN_TEXT;plan=json.loads(plan_text)
 if hashlib.sha256((root/'full-placement.json').read_bytes()).hexdigest()!=PARENT_HASH: raise RuntimeError('parent placement changed')
@@ -48,8 +48,10 @@ def exact_file(path,text):
  if path.exists():
   if path.read_text()!=text: raise RuntimeError('existing view metadata differs: '+str(path))
  else:
-  with path.open('x') as f:f.write(text)
-exact_file(root/('full-topology-'+str(CHILDREN)+'.json'),plan_text)
+  with path.open('x',newline='\n') as f:f.write(text)
+plan_path=root/('full-topology-'+str(CHILDREN)+'.json')
+exact_file(plan_path,plan_text)
+if hashlib.sha256(plan_path.read_bytes()).hexdigest()!=PLAN_HASH:raise RuntimeError('logical placement bytes differ')
 result={}
 for child in range(CHILDREN):
  wi=INDEX*CHILDREN+child;layers={}
@@ -82,6 +84,7 @@ print(json.dumps(result))
                             ('CHILDREN',children),('INDEX',pi),('INVENTORY',inventories[host]),
                             ('PLAN_HASH',plan_hash),('HOST',host)]:
             code = code.replace(name,repr(value))
+        compile(code, '<remote-view-preparation>', 'exec')
         return json.loads(remote(host,code,180))
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         results=list(pool.map(prepare,enumerate(HOSTS)))

@@ -1047,3 +1047,98 @@ fn ordered_expert_replies_preserve_cancellation_across_three_and_twelve_workers(
         }
     }
 }
+
+#[tokio::test]
+async fn lossless_half_reply_preserves_all_finite_half_bits_and_falls_back_exactly() {
+    use cascadia_engine_sparse_moe::dist::send_expert_result_lossless;
+    let (server, client) = loopback().await;
+    let values: Vec<f32> = (0..=u16::MAX)
+        .map(half::f16::from_bits)
+        .filter(|h| h.is_finite())
+        .map(|h| h.to_f32() * 16.)
+        .collect();
+    assert!(
+        send_expert_result_lossless(&server, 1, 1, values.len() as u32, &values, 4)
+            .await
+            .unwrap()
+    );
+    assert_eq!(
+        recv_kind_client(&client).await.unwrap(),
+        Some(FrameKind::ExpertResult)
+    );
+    let (back, shape) = recv_expert_result_body_client(&client)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(shape, [1, 1, values.len() as u32]);
+    assert_eq!(
+        back.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+        values.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+    );
+    // Arbitrary F32 precision is never silently quantized, nor is its exponent enlarged.
+    let precise = [1.0000001f32, -0., 1e30];
+    assert!(!send_expert_result_lossless(&server, 1, 1, 3, &precise, 4)
+        .await
+        .unwrap());
+    assert_eq!(
+        recv_kind_client(&client).await.unwrap(),
+        Some(FrameKind::ExpertResult)
+    );
+    let (back, _) = recv_expert_result_body_client(&client)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        back.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+        precise.map(f32::to_bits)
+    );
+    assert!(send_expert_result_lossless(&server, 1, 1, 3, &precise, 9)
+        .await
+        .is_err());
+    assert!(
+        send_expert_result_lossless(&server, 1, 1, 1, &[f32::NAN], 4)
+            .await
+            .is_err()
+    );
+}
+
+#[tokio::test]
+async fn malformed_half_reply_is_rejected_and_drained_before_next_frame() {
+    use cascadia_transport::{DType, Tensor};
+    let (server, client) = loopback().await;
+    for (exponent, dtype, data) in [
+        (9, DType::F16, vec![0, 0]),
+        (4, DType::F32, vec![0, 0, 0, 0]),
+        (4, DType::F16, vec![0, 0x7c]),
+    ] {
+        let mut header = (FrameKind::ExpertResult as u32).to_be_bytes().to_vec();
+        header.extend([2, exponent]);
+        {
+            let mut srv = server.lock().await;
+            srv.send_raw(&header).await.unwrap();
+            srv.send(&Tensor::new(dtype, [1, 1, 1], data))
+                .await
+                .unwrap();
+        }
+        assert_eq!(
+            recv_kind_client(&client).await.unwrap(),
+            Some(FrameKind::ExpertResult)
+        );
+        assert!(recv_expert_result_body_client(&client).await.is_err());
+        send_expert_result_ok(&server, 1, 1, 1, &[3.])
+            .await
+            .unwrap();
+        assert_eq!(
+            recv_kind_client(&client).await.unwrap(),
+            Some(FrameKind::ExpertResult)
+        );
+        assert_eq!(
+            recv_expert_result_body_client(&client)
+                .await
+                .unwrap()
+                .unwrap()
+                .0,
+            [3.]
+        );
+    }
+}

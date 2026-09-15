@@ -142,6 +142,19 @@ class OperatorTests(unittest.TestCase):
                                  worker['expert_capacity_bytes'])
         self.assertTrue(all(w['expert_capacity_bytes']>0 for w in plan['workers']))
 
+    def test_view_preparation_script_parses_before_remote_mutations(self):
+        sys.path.insert(0,str(TOOLS))
+        try:topology=load('full_topology_script','inkling_ep_topology.py')
+        finally:sys.path.pop(0)
+        scripts=[]
+        def capture(host,script,timeout):
+            ast.parse(script,feature_version=(3,11));scripts.append(script);return '{}'
+        path=TOOLS.parent/'docs/perf/inkling-ep-full/placement.json'
+        with patch.object(topology,'remote',capture):
+            topology.prepare_views(path,4,{h:{} for h in ['alpha','beta','charlie']})
+        self.assertEqual(len(scripts),3)
+        self.assertTrue(all('logical placement bytes differ' in script for script in scripts))
+
     def test_firewall_uses_native_windows_program_path(self):
         sys.path.insert(0,str(TOOLS))
         try:
@@ -184,6 +197,38 @@ class OperatorTests(unittest.TestCase):
         self.assertFalse(check(d=bad))
         self.assertFalse(check(s=dict(status,protected_processes_unchanged=False)))
         self.assertFalse(run.qualification(driver,{}, {'alpha':dict(owned_layers=[2])},True)['completed'])
+
+    def test_short_runs_require_collective_gpu_coverage_not_unused_views(self):
+        sys.path.insert(0,str(TOOLS))
+        try:run=load('full_run_coverage','inkling_ep_full_run.py')
+        finally:sys.path.pop(0)
+        status=dict(returncode=0,stop_reason=None,protected_processes_unchanged=True)
+        driver=dict(returncode=0,status=status,report={k:True for k in
+            ['full_model','reference_comparison','greedy_match','numerical_match','correctness_verified']})
+        def worker(layer):
+            stats=dict(errors=0,fused_required=True,streaming=True,calls=1,device='GPU',fusion_profiles={str(layer):'MOECompressed'})
+            return dict(returncode=0,status=status,log='backend_final='+json.dumps(dict(cpu_calls=0,ov_fallbacks=0,fused=stats)))
+        inventories={h:dict(owned_layers=[2,3]) for h in ['alpha','beta']}
+        self.assertTrue(run.qualification(driver,{'alpha':worker(2),'beta':worker(3)},inventories,True)['completed'])
+        self.assertFalse(run.qualification(driver,{'alpha':worker(2),'beta':worker(2)},inventories,True)['completed'])
+        self.assertFalse(run.qualification(driver,{'alpha':worker(2),'beta':worker(4)},inventories,True)['completed'])
+
+    def test_requested_lossless_wire_requires_observed_half_size_payloads(self):
+        sys.path.insert(0,str(TOOLS))
+        try:run=load('full_run_half_wire','inkling_ep_full_run.py')
+        finally:sys.path.pop(0)
+        status=dict(returncode=0,stop_reason=None,protected_processes_unchanged=True)
+        driver=dict(returncode=0,status=status,report={k:True for k in
+            ['full_model','reference_comparison','greedy_match','numerical_match','correctness_verified']})
+        backend=dict(cpu_calls=0,ov_fallbacks=0,wire_f16_replies=1,wire_f32_replies=0,
+                     wire_tensor_bytes=24,wire_f32_equivalent_bytes=48,
+                     fused=dict(errors=0,fused_required=True,streaming=True,calls=1,device='GPU',fusion_profiles={'2':'MOECompressed'}))
+        def check(b):
+            worker=dict(returncode=0,status=status,log='backend_final='+json.dumps(b))
+            return run.qualification(driver,{'alpha':worker},{'alpha':dict(owned_layers=[2],lossless_wire_required=True)},True)['completed']
+        self.assertTrue(check(backend))
+        for key,value in [('wire_f16_replies',0),('wire_f32_replies',1),('wire_tensor_bytes',48),('wire_f32_equivalent_bytes',0)]:
+            self.assertFalse(check(dict(backend,**{key:value})))
 
     def test_generated_preflight_script_supports_nuc_python311(self):
         sys.path.insert(0,str(TOOLS))

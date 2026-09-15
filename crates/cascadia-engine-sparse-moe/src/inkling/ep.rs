@@ -505,6 +505,10 @@ pub struct ExpertBank {
     gpu_name: Option<String>,
     cpu_calls: AtomicU64,
     cpu_f16_reference: bool,
+    wire_f16_replies: AtomicU64,
+    wire_f32_replies: AtomicU64,
+    wire_tensor_bytes: AtomicU64,
+    wire_f32_equivalent_bytes: AtomicU64,
 }
 
 type ExpertSlotOutputs = Vec<(usize, Vec<f32>)>;
@@ -548,6 +552,10 @@ impl ExpertBank {
             "device":self.ov.as_ref().map(OvExperts::device),
             "cpu_calls":self.cpu_calls.load(Ordering::Relaxed),
             "cpu_f16_reference":self.cpu_f16_reference,
+            "wire_f16_replies":self.wire_f16_replies.load(Ordering::Relaxed),
+            "wire_f32_replies":self.wire_f32_replies.load(Ordering::Relaxed),
+            "wire_tensor_bytes":self.wire_tensor_bytes.load(Ordering::Relaxed),
+            "wire_f32_equivalent_bytes":self.wire_f32_equivalent_bytes.load(Ordering::Relaxed),
             "uncached_read_bytes":uncached_bytes,"uncached_read_fallbacks":uncached_fallbacks,
             "ov_successful_calls":stats.hits+stats.misses,"ov_cache_hits":stats.hits,
             "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks,
@@ -923,6 +931,10 @@ pub fn load_expert_bank_with_placement(
         gpu_name: None,
         cpu_calls: AtomicU64::new(0),
         cpu_f16_reference,
+        wire_f16_replies: AtomicU64::new(0),
+        wire_f32_replies: AtomicU64::new(0),
+        wire_tensor_bytes: AtomicU64::new(0),
+        wire_f32_equivalent_bytes: AtomicU64::new(0),
     };
     let bank = if super::env_flag("CASCADIA_INKLING_EP_REQUIRE_GPU") {
         bank.require_gpu().map_err(LoadError::Manifest)?
@@ -1092,14 +1104,47 @@ impl ExpertWorkerEngine {
                 let compute = t0.elapsed();
                 match served {
                     Ok(out) => {
-                        self.block_on(send_expert_result_ok(
-                            &server,
-                            body.rows,
-                            body.k,
-                            body.hidden_size() as u32,
-                            &out,
-                        ))
-                        .map_err(|e| format!("send result: {e}"))?;
+                        let exponent = self
+                            .bank
+                            .fused
+                            .as_ref()
+                            .and_then(|f| f.output_exponent(body.layer));
+                        let compact = if let Some(exponent) = exponent
+                            .filter(|_| super::env_flag("CASCADIA_INKLING_EP_FUSED_F16_WIRE"))
+                        {
+                            self.block_on(crate::dist::send_expert_result_lossless(
+                                &server,
+                                body.rows,
+                                body.k,
+                                body.hidden_size() as u32,
+                                &out,
+                                exponent,
+                            ))
+                            .map_err(|e| format!("send lossless result: {e}"))?
+                        } else {
+                            self.block_on(send_expert_result_ok(
+                                &server,
+                                body.rows,
+                                body.k,
+                                body.hidden_size() as u32,
+                                &out,
+                            ))
+                            .map_err(|e| format!("send result: {e}"))?;
+                            false
+                        };
+                        if compact {
+                            &self.bank.wire_f16_replies
+                        } else {
+                            &self.bank.wire_f32_replies
+                        }
+                        .fetch_add(1, Ordering::Relaxed);
+                        self.bank.wire_tensor_bytes.fetch_add(
+                            (out.len() * if compact { 2 } else { 4 }) as u64,
+                            Ordering::Relaxed,
+                        );
+                        self.bank
+                            .wire_f32_equivalent_bytes
+                            .fetch_add((out.len() * 4) as u64, Ordering::Relaxed);
                         self.frames += 1;
                         tracing::trace!(
                             layer = body.layer,
