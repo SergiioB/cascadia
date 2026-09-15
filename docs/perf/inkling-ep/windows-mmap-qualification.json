@@ -1,0 +1,11 @@
+{
+  "scope": "tiny_fixture_three_process_expert_parallel_correctness",
+  "passed": true,
+  "output_hash": "1f7cd0eb14a22662",
+  "workers": 3,
+  "samples": 2,
+  "driver_has_moe_bins": false,
+  "workers_have_only_assigned_bins": true,
+  "owned_packed_expert_workers": false,
+  "performance_claim": "none; loopback processes share one machine's memory bandwidth"
+}

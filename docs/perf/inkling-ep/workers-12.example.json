@@ -1,0 +1,86 @@
+[
+  {
+    "name": "example-worker-0",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-1",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-2",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-3",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-4",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-5",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-6",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-7",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-8",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-9",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-10",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  },
+  {
+    "name": "example-worker-11",
+    "expert_capacity_bytes": 51539607552,
+    "read_us": 100,
+    "compute_us": 10,
+    "dispatch_us": 250
+  }
+]

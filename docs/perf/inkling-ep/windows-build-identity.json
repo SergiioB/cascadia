@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-15",
+  "hostname": "pdx88-pa0794",
+  "fleet_name": "tate-07",
+  "root": "C:/Users/devcloud/inkling-ep-20260915",
+  "profile": "debug",
+  "openvino_feature": false,
+  "inference_scope": "complete tiny fixture; no 975B throughput measurement",
+  "ep_source_sha256": "daecf52b47035ca7f87e17c6413152eba5037f97d1a5d47503517eebd1015336",
+  "binary_sha256": {
+    "inkling_decode_bench.exe": "25dcb8cdf71fcd4847eee63a3dfec153a7ae4bd80568e7f47b2dfc49585d2485",
+    "inkling_ep_worker.exe": "ee2b874aaaf6a85df65a7fab01a0c9fa7c4ce203512da00c2d4aa9a1941fb3bf"
+  },
+  "ep_tests_passed": 9,
+  "mmap_process_test_passed": true,
+  "owned_process_test_passed": true,
+  "local_and_remote_logits_hash": "1f7cd0eb14a22662",
+  "task_processes_remaining_after_qualification": 0,
+  "existing_services_observed_after_qualification": [
+    {"pid": 6344, "name": "cascadia-ca.exe"},
+    {"pid": 6728, "name": "ovms.exe"},
+    {"pid": 8356, "name": "cascadia-node.exe"}
+  ]
+}

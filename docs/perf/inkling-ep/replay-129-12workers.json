@@ -1,0 +1,40 @@
+{
+  "inference_executed": false,
+  "involved_workers": {
+    "modulo": {
+      "max": 8.0,
+      "mean": 6.138475529100529,
+      "p50": 6.0,
+      "p99": 8.0
+    },
+    "placement": {
+      "max": 8.0,
+      "mean": 6.9155092592592595,
+      "p50": 7.0,
+      "p99": 8.0
+    }
+  },
+  "layer_dispatches": 36288,
+  "limitation": "Routing load only; replicas consume additional memory. Network, kernels, residency and token throughput are not measured.",
+  "max_experts_per_worker": {
+    "modulo": {
+      "max": 6.0,
+      "mean": 2.2121362433862433,
+      "p50": 2.0,
+      "p99": 4.0
+    },
+    "placement": {
+      "max": 5.0,
+      "mean": 1.8742559523809523,
+      "p50": 2.0,
+      "p99": 3.0
+    }
+  },
+  "samples": 9,
+  "scope": "recorded_decode_route_load_only",
+  "selector_mean_us": 5.174490630511464,
+  "source_full_model": true,
+  "source_output_hash": "ce0fbb9a116d3d09",
+  "source_routes": "/private/tmp/inkling-ep-routes129.json",
+  "workers": 12
+}

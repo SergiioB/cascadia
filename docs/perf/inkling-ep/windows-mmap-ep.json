@@ -1,0 +1,265 @@
+{
+  "bf16_gemv_min_rows_configured": 1,
+  "correctness_verified": true,
+  "early_prediction_reads_effective": false,
+  "embedding_mapped": false,
+  "ep_placement": {
+    "expert_bytes": 3456,
+    "hidden_size": 64,
+    "layers": [
+      [],
+      [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      [
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      [
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ]
+    ],
+    "moe_intermediate": 32,
+    "n_shared_experts": 2,
+    "num_experts": 8,
+    "version": 1,
+    "workers": [
+      {
+        "compute_us": 1.0,
+        "dispatch_us": 2.0,
+        "expert_capacity_bytes": 1073741824,
+        "name": "worker-0",
+        "read_us": 10.0
+      },
+      {
+        "compute_us": 1.0,
+        "dispatch_us": 2.0,
+        "expert_capacity_bytes": 1073741824,
+        "name": "worker-1",
+        "read_us": 10.0
+      },
+      {
+        "compute_us": 1.0,
+        "dispatch_us": 2.0,
+        "expert_capacity_bytes": 1073741824,
+        "name": "worker-2",
+        "read_us": 10.0
+      }
+    ]
+  },
+  "ep_workers": [
+    "127.0.0.1:54270",
+    "127.0.0.1:54271",
+    "127.0.0.1:54272"
+  ],
+  "expert_cache": {
+    "admissions": 0,
+    "capacity_bytes": 0,
+    "evictions": 0,
+    "frequency_decays": 0,
+    "history_resets": 0,
+    "hit_bytes": 0,
+    "hits": 0,
+    "misses": 0,
+    "recent_tie_admissions": 0,
+    "retained_bytes": 0
+  },
+  "export": "C:\\Users\\devcloud\\inkling-ep-20260915\\smoke-final\\driver",
+  "local_expert_counters_cover_remote_workers": false,
+  "manifest": {
+    "experts": 8,
+    "hidden": 64,
+    "layers": 4
+  },
+  "output_hash": "1f7cd0eb14a22662",
+  "owned_shared_bytes": 0,
+  "pipelined_read_layers": 0,
+  "prediction_read_workers": 0,
+  "prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 0,
+    "successful": 0,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 0,
+    "useful_bytes": 0,
+    "worker_failures": 0
+  },
+  "prefill_read_experts": 0,
+  "prefill_uncached_read_bytes": 0,
+  "prefill_uncached_read_fallbacks": 0,
+  "read_buffer_idle_limit_bytes": 268435456,
+  "samples": [
+    {
+      "case": "hf-fixture",
+      "decode_ended_unix": 1789479057.7847848,
+      "decode_seconds": 0.015939,
+      "decode_started_unix": 1789479057.7688453,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789479057.7688382,
+      "prefill_seconds": 0.0145293,
+      "prefill_started_unix": 1789479057.754308,
+      "repetition": 0
+    },
+    {
+      "case": "hf-fixture",
+      "decode_ended_unix": 1789479057.8135436,
+      "decode_seconds": 0.0164144,
+      "decode_started_unix": 1789479057.7971287,
+      "decode_steps": 7,
+      "generated_ids": [
+        28,
+        48,
+        106,
+        84,
+        28,
+        48,
+        106,
+        84
+      ],
+      "prefill_ended_unix": 1789479057.7971232,
+      "prefill_seconds": 0.01227,
+      "prefill_started_unix": 1789479057.7848525,
+      "repetition": 1
+    }
+  ],
+  "scope": "fixture_model_decode",
+  "second_prediction_rank_ceiling": 2,
+  "second_prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 0,
+    "successful": 0,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 0,
+    "useful_bytes": 0,
+    "worker_failures": 0
+  },
+  "second_prediction_reads_effective": false,
+  "slowest_case_decode_tokens_per_s": 426.45482015791015,
+  "third_prediction_reads": {
+    "dispatch_failures": 0,
+    "read_failures": 0,
+    "scheduled": 0,
+    "successful": 0,
+    "unused": 0,
+    "unused_bytes": 0,
+    "useful": 0,
+    "useful_bytes": 0,
+    "worker_failures": 0
+  },
+  "third_prediction_reads_effective": false,
+  "uncached_read_bytes": 0,
+  "uncached_read_effective": false,
+  "uncached_read_fallbacks": 0
+}
