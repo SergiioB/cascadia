@@ -542,7 +542,7 @@ pub fn load_stage(
     } else {
         None
     };
-    let head = if last {
+    let mut head = if last {
         let h = StFile::open(&dir.join("head.safetensors"))?;
         let norm = h.f32("norm.weight")?.1;
         if norm.len() != hidden {
@@ -603,6 +603,14 @@ pub fn load_stage(
             if ov.has_layer(lid) {
                 l.attach_ov_attn(lid, std::sync::Arc::clone(&ov));
             }
+        }
+    }
+    // Optional OpenVINO head backend (`CASCADIA_INKLING_OV_HEAD=1` +
+    // `<model>/head_ov`), last rank only.
+    if let Some(h) = head.as_mut() {
+        let unpadded = m.unpadded_vocab_size.unwrap_or(m.vocab_size);
+        if let Some(ov) = super::ov_head::OvHead::from_env(dir, unpadded) {
+            h.attach_ov(std::sync::Arc::new(ov));
         }
     }
     Ok(InklingStage {

@@ -386,6 +386,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    if let Some(ovh) = stage.head.as_ref().and_then(|h| h.ov()) {
+        println!(
+            "[inkling_layer_dump] OpenVINO head backend attached: device={}",
+            ovh.device()
+        );
+        if args.warm_ov {
+            let t0 = Instant::now();
+            let ok = stage.head.as_ref().and_then(|h| h.warm_ov()).unwrap_or(false);
+            println!(
+                "[inkling_layer_dump] warmed the head IR in {:.1}s (ok={ok})",
+                t0.elapsed().as_secs_f64()
+            );
+        }
+    }
+
     // ---- embeddings (shared by both paths) ----
     let mut embed_out = Vec::with_capacity(t_len * hidden);
     for &t in &args.tokens {
@@ -487,6 +502,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
             st.compiles,
             if st.compiles > 0 { st.compile_ns as f64 / st.compiles as f64 / 1e9 } else { 0.0 },
+            st.fallbacks,
+            if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
+        );
+    }
+    if let Some(ovh) = stage.head.as_ref().and_then(|h| h.ov()) {
+        let st = ovh.stats();
+        println!(
+            "[inkling_layer_dump] OpenVINO head: {} calls @ {:.3} ms mean, {} fell back{}",
+            st.calls,
+            if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
             st.fallbacks,
             if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
         );

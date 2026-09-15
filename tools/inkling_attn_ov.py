@@ -25,9 +25,14 @@ the same weights (so it measures the plugin, not the quantisation); the
 quantisation error itself is what the layer dump's CPU-vs-iGPU comparison and
 `tools/inkling_ref/real_layer_parity.py` measure.
 
-Layout written (opt-in for the runtime: `CASCADIA_INKLING_OV_ATTN=1`):
+`--head` writes the unembed head instead: `x [1, rows, hidden] -> logits`, the
+2.46 GB bf16 GEMV every token pays on the last rank (~31 ms on this CPU).
+
+Layout written (opt-in for the runtime: `CASCADIA_INKLING_OV_ATTN=1`,
+`CASCADIA_INKLING_OV_HEAD=1`):
   <out>/attn_ov/layer_NN/qkvr/openvino_model.{xml,bin}
   <out>/attn_ov/layer_NN/o/openvino_model.{xml,bin}
+  <out>/head_ov/openvino_model.{xml,bin}
 
 Usage:
   python tools/inkling_attn_ov.py --src /data/inkling-int4 --layers 0,1,2,3
@@ -153,6 +158,20 @@ def build_o(wo, weights):
     return Model([y], [x], "inkling_attn_o")
 
 
+def head_model(src, weights):
+    """unembed [vocab, hidden] -> one FC IR: x [1, rows, hidden] -> logits [1, rows, vocab].
+    The RMSNorm and the mup divide stay in Rust; only the 2.46 GB bf16 GEMV moves."""
+    st = RawSafetensors(os.path.join(src, "head.safetensors"))
+    w = load_bf16(st, "unembed.weight")
+    vocab, hidden = w.shape
+    x = ops.parameter(PartialShape([1, -1, hidden]), Type.f32, name="x")
+    x.get_output_tensor(0).set_names({"x"})
+    y = ops.matmul(x, weight_node(w, weights), False, True)
+    y.get_output_tensor(0).set_names({"logits"})
+    m = Model([y], [x], "inkling_head")
+    return m, w
+
+
 def layer_models(src, lid, weights):
     st = RawSafetensors(os.path.join(src, "shells", f"layer_{lid:02d}.safetensors"))
     ws = [(n, load_bf16(st, t)) for n, t in PROJ]
@@ -211,20 +230,65 @@ def validate(src, lid, weights, device):
     print(f"  steady 2-row calls: qkvr {tq:.2f} ms, o {to:.2f} ms (sum {tq+to:.2f} ms per layer)")
 
 
+def validate_head(src, weights, device):
+    m, w = head_model(src, weights)
+    core = ov.Core()
+    t0 = time.time()
+    cm = core.compile_model(m, device, {"INFERENCE_PRECISION_HINT": "f16"})
+    print(f"head: compiled on {device} in {time.time()-t0:.1f}s ({weights}), unembed {w.shape}")
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal((1, 1, w.shape[1])).astype(np.float32) * 0.1
+    r = cm.create_infer_request()
+    got = np.array(r.infer({"x": x})[0]).reshape(-1)
+    if weights == "int8":
+        q, s = quant_int8(w); wref = (q.astype(np.float32) - 128.0) * s[:, None]
+    elif weights == "int4":
+        q, s = quant_int4(w); wref = ((q.astype(np.float32) - 8.0) * s[..., None]).reshape(w.shape)
+    else:
+        wref = w.astype(np.float16).astype(np.float32)
+    ref = (x[0, 0] @ wref.T)
+    d = np.abs(got - ref)
+    print(f"  vs numpy on the same weights: max_abs={d.max():.3e} rel_rms={float(np.sqrt(np.mean(d*d))/(np.sqrt(np.mean(ref*ref))+1e-12)):.3e}")
+    print(f"  argmax match: {int(np.argmax(got)) == int(np.argmax(ref))} (got {int(np.argmax(got))}, ref {int(np.argmax(ref))})")
+    dq = np.abs(wref - w)
+    print(f"  quantisation vs bf16 weights: rel_rms={float(np.sqrt(np.mean(dq*dq))/(np.sqrt(np.mean(w*w))+1e-12)):.3e}")
+    for _ in range(3):
+        r.infer({"x": x})
+    n = 20; t0 = time.time()
+    for _ in range(n):
+        r.infer({"x": x})
+    print(f"  steady 1-row call: {1e3*(time.time()-t0)/n:.2f} ms")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Inkling attention projections -> per-layer OpenVINO IRs")
     ap.add_argument("--src", required=True)
-    ap.add_argument("--layers", required=True, help="comma list of layer indices")
+    ap.add_argument("--layers", default="", help="comma list of layer indices (not needed with --head)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--weights", choices=["int4", "int8", "f16"], default="int8")
     ap.add_argument("--dir-name", default="attn_ov", help="output subdirectory under --out (runtime: CASCADIA_INKLING_OV_ATTN_DIR)")
     ap.add_argument("--validate", action="store_true")
     ap.add_argument("--validate-device", default="GPU")
     ap.add_argument("--skip-existing", action="store_true")
+    ap.add_argument("--head", action="store_true", help="write (or --validate) the unembed head IR instead of layers")
     args = ap.parse_args()
     man = json.load(open(os.path.join(args.src, "manifest.json")))
     assert man.get("arch") == "inkling", man.get("arch")
     out = args.out or args.src
+    if args.head:
+        if args.validate:
+            validate_head(args.src, args.weights, args.validate_device)
+            return
+        dst = os.path.join(out, "head_ov")
+        if args.skip_existing and os.path.exists(os.path.join(dst, "openvino_model.xml")):
+            print("head: exists, skipped")
+            return
+        t0 = time.time()
+        m, _ = head_model(args.src, args.weights)
+        os.makedirs(dst, exist_ok=True)
+        ov.save_model(m, os.path.join(dst, "openvino_model.xml"), compress_to_fp16=False)
+        print(f"head: written ({args.weights}) in {time.time()-t0:.0f}s")
+        return
     for lid in [int(v) for v in args.layers.split(",")]:
         if args.validate:
             validate(args.src, lid, args.weights, args.validate_device)

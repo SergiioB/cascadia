@@ -76,6 +76,7 @@ pub mod model;
 pub mod moe;
 pub mod ov_attn;
 pub mod ov_expert;
+pub mod ov_head;
 pub mod ov_moe;
 pub use expert_cache::ExpertCacheStats;
 mod read_buffers;
