@@ -2,6 +2,8 @@
 
 For the subsequent fused GPU implementation and measured comparison, see
 [INKLING_FUSED_EXPERT_SHARDING.md](INKLING_FUSED_EXPERT_SHARDING.md).
+The later [full-model correctness qualification](INKLING_FULL_MODEL_EP_VALIDATION.md)
+records exact GPU output parity between 3 and 12 workers on three physical NUCs.
 The results and limitations below describe the earlier per-expert implementation.
 
 Branch: `feat/inkling-expert-routing`, based on the completed iGPU branch at

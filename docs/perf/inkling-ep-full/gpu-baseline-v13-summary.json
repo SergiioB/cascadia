@@ -1,0 +1,28 @@
+{
+  "label": "full-gpu-ordered3-v13",
+  "recording_complete": true,
+  "full_model": true,
+  "physical_hosts": 3,
+  "generated_tokens": 24,
+  "captured_tensors": 1608,
+  "payload_bytes": 204115392,
+  "original_bf16_cpu_matching_token_choices": 22,
+  "independent_fp16_cpu_matching_token_choices": 24,
+  "cpu_gpu_numerical_parity_established": false,
+  "selected_expert_rows": 58368,
+  "cpu_expert_calls": 0,
+  "fused_errors": 0,
+  "elapsed_seconds": 2627.3487902,
+  "driver_peak_rss_gib": 3.7365341186523438,
+  "minimum_available_gib": {
+    "alpha": 21.15334701538086,
+    "beta": 20.341590881347656,
+    "charlie": 16.587936401367188
+  },
+  "generated_text": [
+    "<|content_text|>1. The sun heats water in",
+    "<|content_text|>**Binary search** is an efficient",
+    "<|content_text|>The bottle arrived with the tide,"
+  ],
+  "scope": "Reference recording with original F32 expert replies, not a numerical comparison or throughput record."
+}

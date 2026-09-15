@@ -1,0 +1,103 @@
+{
+  "alpha": {
+    "utc": "2026-09-15T22:43:40.566185+00:00",
+    "protected": [
+      {
+        "pid": 6756,
+        "name": "ovms.exe",
+        "create_time": 1789443072.9351397
+      },
+      {
+        "pid": 7084,
+        "name": "cascadia-node.exe",
+        "create_time": 1789443069.9987726
+      }
+    ],
+    "health": {
+      "live": 200,
+      "ready": 200
+    },
+    "task_processes_absent": true,
+    "task_processes": [],
+    "firewall_absent": true,
+    "firewall_rules": [],
+    "task_listeners_absent": true,
+    "task_listener_pids": [],
+    "free_gib": 89.84619140625,
+    "available_gib": 22.993946075439453
+  },
+  "beta": {
+    "utc": "2026-09-15T22:43:40.723261+00:00",
+    "protected": [
+      {
+        "pid": 3248,
+        "name": "RunnerService.exe",
+        "create_time": 1789444103.5947213
+      },
+      {
+        "pid": 5240,
+        "name": "Runner.Listener.exe",
+        "create_time": 1789444103.7406857
+      },
+      {
+        "pid": 6196,
+        "name": "ovms.exe",
+        "create_time": 1789443989.2103715
+      },
+      {
+        "pid": 6676,
+        "name": "cascadia-node.exe",
+        "create_time": 1789443988.1137116
+      }
+    ],
+    "health": {
+      "live": 200,
+      "ready": 200
+    },
+    "task_processes_absent": true,
+    "task_processes": [],
+    "firewall_absent": true,
+    "firewall_rules": [],
+    "task_listeners_absent": true,
+    "task_listener_pids": [],
+    "free_gib": 95.34833145141602,
+    "available_gib": 22.843505859375
+  },
+  "charlie": {
+    "utc": "2026-09-15T22:43:40.361568+00:00",
+    "protected": [
+      {
+        "pid": 7852,
+        "name": "RunnerService.exe",
+        "create_time": 1789443148.6079037
+      },
+      {
+        "pid": 7924,
+        "name": "Runner.Listener.exe",
+        "create_time": 1789443148.7476103
+      },
+      {
+        "pid": 7960,
+        "name": "cascadia-node.exe",
+        "create_time": 1789443063.1990523
+      },
+      {
+        "pid": 8172,
+        "name": "ovms.exe",
+        "create_time": 1789443063.5933473
+      }
+    ],
+    "health": {
+      "live": 200,
+      "ready": 200
+    },
+    "task_processes_absent": true,
+    "task_processes": [],
+    "firewall_absent": true,
+    "firewall_rules": [],
+    "task_listeners_absent": true,
+    "task_listener_pids": [],
+    "free_gib": 95.35071563720703,
+    "available_gib": 23.07852554321289
+  }
+}

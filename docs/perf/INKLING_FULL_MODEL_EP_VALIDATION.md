@@ -19,22 +19,60 @@ CPU resources. This is not a new throughput record. Driver peak RSS was
 of direct expert reads with zero read fallbacks. Protected services remained
 unchanged. The complete reports are in `full-cpu-v7.json.gz`.
 
-Full fused GPU qualification remains in progress. Full generation exposed two
-FP16 overflow cases that smaller synthetic tests missed. Both captured expert
-replays now pass, but this does not establish full CPU/GPU numerical parity.
-`full-gpu-v11` completed 45 token positions, all matching the original CPU token
-choices, before Charlie's available memory crossed the 12 GiB guard reserve.
-Its internal numerical differences also exceeded the original 0.5% limit.
-It is retained as an **interrupted, failed qualification**, not a full pass.
-Service PIDs and health checks remained unchanged after cleanup.
+The full GPU topology qualification **passed all 24 token choices and all
+1,608 tensors bit for bit** between three GPU expert workers and twelve GPU
+expert workers on the same three physical NUCs. This covers 51,028,848 float
+values, every layer residual and every output logit, across three prompts with
+eight generated positions each. The twelve-worker run also enables lossless
+FP16 expert replies; the candidate payload SHA256 equals the corresponding
+reference slice for every prompt. The independently checked result is
+[gpu-topology-v14-summary.json](inkling-ep-full/gpu-topology-v14-summary.json).
 
-Native v13 returns individual compact GPU expert outputs to the driver. The
-driver applies each original routing weight and adds in original gate order.
-Worker partial sums used before v13 change FP32 addition order with placement;
-the model can amplify those small differences through subsequent layers and
-router choices. A v13 three-worker GPU baseline and v14 twelve-worker comparison are running with
-a 2,400 MiB aggregate IR admission budget per physical host, and eight token
-positions per prompt. Results will be recorded separately from CPU parity.
+All 64 MoE layers use fused iGPU experts, with zero CPU expert calls or fused
+errors. Attention, the two dense layers, embedding, output head and driver
+remain on CPU. Every expert is available from the complete export; weights
+stream from SSD. Twelve physical machines have **not** yet been tested.
+
+This GPU routing pass is separate from CPU/GPU precision equivalence. The
+three-worker GPU baseline matches all 24 choices from the independent FP16 CPU
+reference, and 22 of 24 from the original BF16 CPU reference. The two different
+choices are in the water-cycle continuation. Full CPU/GPU numerical parity
+has not been established, and the earlier failed comparisons remain failures.
+
+Native v13 returns individual compact GPU expert outputs to the driver, which
+applies each original routing weight and adds in original gate order. Earlier
+worker partial sums changed FP32 addition order with placement; subsequent
+layers and router choices can amplify those differences. Native v14 preserves
+the v13 GPU arithmetic and adds the lossless reply encoding. Both topologies
+used a 2,400 MiB aggregate IR admission budget per physical host.
+
+## Completed GPU topology evidence
+
+The baseline is `full-gpu-ordered3-v13`. Its free generation is recorded once;
+each v14 candidate follows an exact, checksummed single-prompt slice of that
+recording and must independently choose the same greedy token at every step.
+
+| Twelve-worker candidate | Generated choices | Exact tensors | Different float bits | Guarded elapsed seconds |
+|---|---:|---:|---:|---:|
+| `full-gpu-ordered12-v14-water_cycle` | 8 / 8 | 536 / 536 | 0 | 741.311 |
+| `full-gpu-ordered12-v14-binary_search` | 8 / 8 | 536 / 536 | 0 | 755.997 |
+| `full-gpu-ordered12-v14-short_story` | 8 / 8 | 536 / 536 | 0 | 750.737 |
+
+Both complete corpora execute 58,368 selected expert rows. The candidate's
+10,972 replies carry 1,168,207,872 tensor bytes, versus 2,336,415,744 bytes for
+the same tensors in FP32, plus one scale byte per compact reply. No reply
+needed the FP32 fallback. These counters include batched prefill and wire
+padding; they are not a decode-only network measurement.
+
+These are instrumented correctness runs with restricted CPU resources, SSD
+streaming, tensor capture/comparison and repeated graph compilation under a
+small cache. Their elapsed times are not a throughput benchmark or evidence
+of reaching 25 tok/s. Candidate driver peak RSS stayed below 3.676 GiB and
+available memory stayed above 16.98 GiB. The final audit found all protected
+service process identities unchanged, live/ready endpoints returning 200,
+at least 89.84 GiB disk free on every NUC, and no remaining task workers,
+listeners or firewall rule. Tate's separate reference/build jobs also exited
+with its protected services unchanged.
 
 ## Model and placement
 
@@ -227,7 +265,8 @@ clients reject it, so all peers must be upgraded before enabling it.
 
 The native loopback test covers all 63,488 finite FP16 bit patterns multiplied
 by 16, as well as arbitrary FP32 fallback and malformed-frame rejection. The
-full-model candidate uses this format against the original v13 FP32 recording.
+completed full-model candidates use this format against the original v13
+FP32 recording.
 The operator's `--lossless-wire` gate requires observed compact replies on
 every worker, no FP32 replies for this dataset, and exactly half the equivalent
 FP32 tensor bytes. This does not imply the disk-streaming correctness runs
@@ -256,6 +295,16 @@ relative RMS in a residual; the first token is identical. The independent
 at position 6. These are precision diagnostics, not successful full equivalence
 claims. Exact inputs, reports, and build snapshots are retained alongside the
 failed full runs.
+
+In particular, `full-gpu-v11` reached 45 completed token positions, all matching
+the original CPU choices, before Charlie crossed the 12 GiB memory reserve.
+Its retained progress contains 3,036 layer comparisons, of which 1,815 exceed
+the original 0.5% relative RMS tolerance; the maximum relative RMS is 0.139104.
+It has no completed full trace/report and remains an **interrupted, failed
+qualification**. That run used the earlier reduction path; these errors are
+not a measurement of the v13/v14 topology comparison. Both captured FP16
+overflow replays now pass, but that alone does not establish full numerical
+parity. See `full-gpu-v11-progress.jsonl.gz` for the preserved progress evidence.
 
 Saved traces can be compared without another model execution:
 
@@ -296,7 +345,7 @@ python3 tools/inkling_ep_full_run.py \
   --label full-gpu-12-NEW --mode fused-stream --workers-per-host 4 --lossless-wire \
   --placement docs/perf/inkling-ep-full/placement.json \
   --reference full-gpu-base-NEW --tokens 8 --max-relative-rms 0 \
-  --cache-mb-per-host 2400 --out /tmp/full-gpu-12-NEW
+  --cache-mb-per-host 2400 --seconds 3400 --out /tmp/full-gpu-12-NEW
 ```
 
 For slower hosts, split a completed recording into one-prompt references with
@@ -306,6 +355,10 @@ selected tensor bytes exactly, and records their source offsets. Pass the
 matching one-case JSON with `--cases` and run each eight-token candidate under
 its own bounded lease. The split report is clearly marked as a recording slice;
 its elapsed time still belongs to the parent recording.
+The completed v14 campaign used this per-prompt form with `--seconds 3400`,
+`--workers-per-host 4`, `--lossless-wire`, and `--max-relative-rms 0`.
+References and case JSON files are resolved under the isolated root on charlie;
+the trace slicer must run where the original `tensors.f32` is available.
 
 `inkling_ep_full_collect.py --run RUN_DIR --out NEW_BUNDLE.json.gz` retrieves
 native trace metadata and hashes the retained payload. After final service
@@ -315,6 +368,17 @@ tensor identity, exact float bits, greedy IDs, expert-row coverage, backend
 profiles, process identities and provenance. It requires all three prompts,
 each with at least eight token positions. It reports physical and logical
 worker counts separately and makes no CPU/GPU precision-equivalence claim.
+The following command rechecks the committed evidence without starting model
+jobs or accessing the NUCs. Use a new output filename:
+
+```sh
+python3 tools/inkling_ep_topology_report.py \
+  --artifacts docs/perf/inkling-ep-full \
+  --baseline full-gpu-ordered3-v13 \
+  --candidate full-gpu-ordered12-v14-water_cycle \
+    full-gpu-ordered12-v14-binary_search full-gpu-ordered12-v14-short_story \
+  --out /tmp/inkling-gpu-topology-NEW.json
+```
 
 Use fresh labels: jobs, logs and output directories do not overwrite earlier
 evidence. The operator checks completed staging, placement/manifest agreement,
@@ -355,7 +419,6 @@ budget. This adds negligible disk usage and exercises twelve sockets/processes,
 but **does not constitute a twelve-physical-machine performance or compatibility
 test**. The actual twelve machines must pass the same full-model comparison.
 
-
 Create a placement for the actual 12 hosts and their available capacity; do
 not reuse the three-host placement. Stage and checksum every owned expert,
 build each host's fused graphs from those same packed files, and verify the
@@ -365,9 +428,16 @@ Its reference format and comparison are independent of worker count.
 Use version-2 scaled shards for the fused path and retain each shard's source,
 derived blob and scale metadata in the deployment inventory.
 
-Run CPU EP first with tolerance zero, then fused GPU EP against the declared
-reference and tolerance. Retain per-layer differences and worker fusion
-profiles, rather than accepting just an exit code or aggregate throughput.
+Run CPU EP against the original CPU reference with tolerance zero, then fused
+GPU EP against the saved GPU reference with tolerance zero. Keep the original
+CPU/GPU precision comparison separate; the GPU topology pass does not make
+that currently failing contract pass. Every new topology must retain exact
+greedy choices and all layer/logit comparisons, plus proof that every MoE
+layer ran on GPU with no expert fallback. The native validator supports any
+worker count, but the current LAN launcher and archive auditor are specific
+to alpha/beta/charlie; extend their inventory and service guards for the actual
+12 hosts before using them there. Retain per-layer differences and worker
+fusion profiles, rather than accepting just an exit code or aggregate throughput.
 Re-run with longer prompts, representative production cases and free generation
 before serving real traffic. Passing this bounded corpus does not establish
 fault tolerance, concurrent serving or parity for untested contexts.
@@ -389,6 +459,7 @@ cargo test -p cascadia-engine-sparse-moe --test inkling_ep --test inkling_loader
 cargo test -p cascadia-engine-sparse-moe --example inkling_ep_validate
 python3 -m unittest discover -s tools/tests -p test_inkling_ep_full.py
 python3 -m unittest discover -s tools/tests -p test_inkling_ep_fused_export.py
+python3 -m unittest discover -s tools/tests -p test_inkling_ep_trace.py
 cargo build -p cascadia-engine-sparse-moe \
   --example inkling_ep_worker --example inkling_decode_bench
 python3 tools/inkling_ep_smoke.py --bin-dir target/debug/examples \
@@ -399,7 +470,9 @@ The tiny export must exist at the fixture path; older integration tests skip
 when it is missing. Validator negative tests reject changed values, tensor
 order/count errors, nonfinite values and reference checksum corruption. Operator
 tests reject missing GPU coverage, fallback, output mismatch and missing service
-preservation evidence.
+preservation evidence. Archive tests also reject a changed payload SHA256 even
+when every native verdict still says pass, and refuse a full-corpus result
+when one of the three prompts is omitted.
 
 ## Artifacts and reconstruction
 
@@ -409,6 +482,12 @@ cache probe reports, and the native source snapshot atop `dce74385`.
 `build-v7-provenance.json` identifies the successful distributed CPU binary;
 `build-v10-provenance.json` identifies the GPU overflow correction. Both source
 snapshots apply atop `060feeb2`; `run-builds.json` maps full runs to their builds.
+The v13 ordered baseline uses `build-v13-provenance.json` and its native source
+snapshot atop `4d3dc7ced71da2bc9f28b2f67e187722ba2dfbad`. The v14 lossless-wire
+candidates use `build-v14-provenance.json` and its snapshot atop
+`43e16f841396aecf8d418bbb86f4fe972b6e80f4`. The provenance records the snapshot
+SHA256 and all four executable hashes; every run's preflight checks those
+binaries and the private runtime DLLs across the participating workers.
 Large f32 payloads stay in the isolated remote reference directories and the
 session's `/private/tmp/inkling-ep-full/` directory rather than in Git.
 `build-provenance.json` identifies native binaries and the snapshot checksum.
@@ -425,11 +504,15 @@ on all NUCs, and the union of their verified packed files covers all
 16,588 source files with matching replicated checksums.
 
 After each full run, archive the controller's JSON files together under its
-label. `inkling_ep_full_report.py` reads these compressed archives and checks
+label with `inkling_ep_full_collect.py`. The GPU topology checker above checks
+the completed v13/v14 comparison. The older, separate
+`inkling_ep_full_report.py` reads compressed archives and checks
 all 3,216 tensor identities, every greedy ID, numerical limits, backend proof,
 run-specific binary hashes and final service/resource audits independently of
 the driver's verdict flags. It deliberately fails if either full CPU or GPU
-qualification is missing or fails.
+qualification against the original CPU reference is missing or fails. This
+**original CPU/GPU contract is currently not satisfied**; the command below
+must not be used to describe the successful GPU-to-GPU routing result.
 
 ```sh
 python3 tools/inkling_ep_full_audit.py \
