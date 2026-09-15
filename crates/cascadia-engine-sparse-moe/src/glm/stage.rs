@@ -595,13 +595,20 @@ impl GlmRunner {
             .unwrap_or_else(|| crate::glm::env_flag("CASCADIA_GLM5_LOOKAHEAD"));
         // Prefill layer streaming shares the same worker; mmap ranks only
         // (eager/bf16 experts have nothing to warm).
+        let prefill_stream_requested =
+            parse_prefill_stream(std::env::var("CASCADIA_GLM5_PREFILL_STREAM").ok().as_deref());
         let prefill_stream = if mode == ExpertsMode::Mmap {
-            parse_prefill_stream(
-                std::env::var("CASCADIA_GLM5_PREFILL_STREAM")
-                    .ok()
-                    .as_deref(),
-            )
+            prefill_stream_requested
         } else {
+            // Requested but the experts aren't mmap: nothing to warm. Say so,
+            // otherwise the flag is silently ignored (no worker line appears)
+            // and the operator can't tell it was dropped vs never engaged.
+            if prefill_stream_requested.is_some() {
+                eprintln!(
+                    "[glm5] rank {rank}: CASCADIA_GLM5_PREFILL_STREAM set but experts \
+                     are not mmap; prefill streaming ignored (nothing to warm)"
+                );
+            }
             None
         };
         let lookahead = if mode == ExpertsMode::Mmap && (lookahead_on || prefill_stream.is_some()) {
@@ -784,6 +791,22 @@ impl GlmRunner {
             }
         }
         n
+    }
+
+    /// One-shot note that gated prefill streaming stood down for a batch
+    /// narrower than [`PREFILL_STREAM_MIN_ROWS`] — the cause of a warmed=0 on
+    /// narrow prompts (whole-layer warming only pays off on wide batches).
+    fn warn_prefill_stream_narrow_batch(rows: usize) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        W.call_once(|| {
+            eprintln!(
+                "[glm5] prefill_stream: gated streaming stands down below \
+                 {PREFILL_STREAM_MIN_ROWS} rows (this batch: {rows}); wide-batch \
+                 prefill is where whole-layer warming pays off. Set \
+                 CASCADIA_GLM5_PREFILL_STREAM=all to force it."
+            );
+        });
     }
 
     /// One-shot warning when gated prefill streaming stands down because the
@@ -984,6 +1007,12 @@ impl StagedRunner for GlmRunner {
         // streaming stands down below the row threshold. `All` stays
         // unconditional: it is the explicit test/bench lever.
         let stream = prefill_stream_gate(self.prefill_stream, rows);
+        // Gated but stood down for this batch's width: note once so a warmed=0
+        // on narrow batches has a cause (wide-batch prefill is where
+        // whole-layer warming pays off; `=all` forces it regardless).
+        if self.prefill_stream == Some(PrefillStream::Gated) && stream.is_none() {
+            Self::warn_prefill_stream_narrow_batch(rows);
+        }
         let mut enq: u64 = 0;
         if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
             lk.set_cur_layer(0);
