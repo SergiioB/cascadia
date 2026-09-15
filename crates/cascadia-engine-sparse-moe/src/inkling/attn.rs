@@ -143,7 +143,7 @@ pub struct AttnWeights {
 }
 
 pub struct AttentionLayer {
-    pub dims: AttnDims,
+    dims: AttnDims,
     scale: f32,
     w: AttnWeights,
     k_sconv: ShortConv,
@@ -222,9 +222,9 @@ impl AttentionLayer {
         assert_eq!(w.wo.len(), hd * hq * d, "attn: wo shape");
         assert_eq!(w.q_norm.len(), d, "attn: q_norm len != head_dim");
         assert_eq!(w.k_norm.len(), d, "attn: k_norm len != head_dim");
-        assert_eq!(k_sconv.c, hkv * d, "attn: k_sconv channels != Hkv·D");
-        assert_eq!(v_sconv.c, hkv * d, "attn: v_sconv channels != Hkv·D");
-        assert_eq!(relpos.d_rel, dr, "attn: relpos d_rel mismatch");
+        assert_eq!(k_sconv.c(), hkv * d, "attn: k_sconv channels != Hkv·D");
+        assert_eq!(v_sconv.c(), hkv * d, "attn: v_sconv channels != Hkv·D");
+        assert_eq!(relpos.d_rel(), dr, "attn: relpos d_rel mismatch");
         let rows = match dims.window {
             Some(win) => {
                 assert!(win >= 1, "attn: sliding window must be >= 1");
@@ -257,6 +257,11 @@ impl AttentionLayer {
 
     pub fn is_empty(&self) -> bool {
         self.len == 0
+    }
+
+    /// Shape + behaviour of this layer (read-only).
+    pub fn dims(&self) -> &AttnDims {
+        &self.dims
     }
 
     /// `Some(window)` for a sliding layer.
@@ -473,7 +478,7 @@ impl AttentionLayer {
         };
         let n_keys = p + 1 - j0;
         let group = hq / hkv;
-        let extent = self.relpos.extent;
+        let extent = self.relpos.extent();
 
         let mut ctx = vec![0.0f32; hq * d];
         let mut score = vec![0.0f32; n_keys];

@@ -38,11 +38,11 @@ use super::DEFAULT_REWIND;
 /// One depthwise causal conv with its decode history.
 pub struct ShortConv {
     /// Kernel `[C, K]` (row-major: channel `c`'s taps are `w[c*K .. c*K+K]`).
-    pub w: Vec<f32>,
+    w: Vec<f32>,
     /// Channels.
-    pub c: usize,
+    c: usize,
     /// Kernel width (4 for Inkling).
-    pub k: usize,
+    k: usize,
     rewind: usize,
     /// Ring rows `= (K - 1) + rewind` (at least 1); position `p` lives in row `p % hist`.
     hist: usize,
@@ -104,6 +104,21 @@ impl ShortConv {
             len: 0,
             hwm: 0,
         }
+    }
+
+    /// The kernel weights `[C, K]` row-major (read-only).
+    pub fn w(&self) -> &[f32] {
+        &self.w
+    }
+
+    /// Channels.
+    pub fn c(&self) -> usize {
+        self.c
+    }
+
+    /// Kernel width.
+    pub fn k(&self) -> usize {
+        self.k
     }
 
     /// Positions consumed so far.

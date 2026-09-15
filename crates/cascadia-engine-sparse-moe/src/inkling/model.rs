@@ -76,9 +76,9 @@ impl Layer {
     ) -> Self {
         assert_eq!(attn_norm.len(), hidden, "layer: attn_norm len");
         assert_eq!(mlp_norm.len(), hidden, "layer: mlp_norm len");
-        assert_eq!(attn.dims.hidden, hidden, "layer: attention hidden");
-        assert_eq!(attn_sconv.c, hidden, "layer: attn_sconv channels");
-        assert_eq!(mlp_sconv.c, hidden, "layer: mlp_sconv channels");
+        assert_eq!(attn.dims().hidden, hidden, "layer: attention hidden");
+        assert_eq!(attn_sconv.c(), hidden, "layer: attn_sconv channels");
+        assert_eq!(mlp_sconv.c(), hidden, "layer: mlp_sconv channels");
         match &mlp {
             LayerMlp::Moe(m) => assert_eq!(m.hidden, hidden, "layer: moe hidden"),
             LayerMlp::Dense(_) => {}

@@ -19,9 +19,9 @@
 
 pub struct RelPos {
     /// `[d_rel, extent]` row-major.
-    pub proj: Vec<f32>,
-    pub d_rel: usize,
-    pub extent: usize,
+    proj: Vec<f32>,
+    d_rel: usize,
+    extent: usize,
 }
 
 impl RelPos {
@@ -37,6 +37,21 @@ impl RelPos {
             d_rel,
             extent,
         }
+    }
+
+    /// The bias-vs-distance profiles `[d_rel, extent]` row-major (read-only).
+    pub fn proj(&self) -> &[f32] {
+        &self.proj
+    }
+
+    /// Relative-state dimension.
+    pub fn d_rel(&self) -> usize {
+        self.d_rel
+    }
+
+    /// Number of stored backward distances (bias is zero at or beyond it).
+    pub fn extent(&self) -> usize {
+        self.extent
     }
 
     /// The bias-vs-distance row for one head's relative state `r` (`[d_rel]`):
