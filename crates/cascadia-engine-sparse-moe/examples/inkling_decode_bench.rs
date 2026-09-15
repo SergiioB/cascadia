@@ -1,6 +1,6 @@
 //! Complete autoregressive Inkling decode, separate from the synthetic layer probe.
 //!
-//! --export DIR --cases cases.json [--tokens 64] [--samples 3] [--out result.json]
+//! --export DIR --cases cases.json [--tokens 64] [--samples 3] [--out result.json] [--warm-ov]
 //! [--route-trace routes.json] captures routed expert IDs without changing logits.
 //! [--layer-profile profile.json] records attention/MLP branch timings per layer.
 //! cases.json: [{"name":"case", "prompt_ids":[...], "greedy_ids":[...]}].
@@ -144,8 +144,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tokens = 64usize;
     let mut repetitions = 3usize;
     let mut allow_fixture = false;
+    let mut warm_ov = false;
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
+        if flag == "--warm-ov" {
+            warm_ov = true;
+            continue;
+        }
         if flag == "--allow-fixture" {
             allow_fixture = true;
             continue;
@@ -242,6 +247,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("sequence length overflow")?;
     let load = Instant::now();
     let mut model = load_model_with(&export, max_seq, ExpertsMode::Mmap)?;
+    if warm_ov {
+        // Compile the attached OpenVINO backends before any timed region.
+        let t0 = Instant::now();
+        let (ok, bad) = model.warm_ov_backends();
+        println!(
+            "warm_ov_backends={ok} warm_ov_failed={bad} warm_ov_seconds={:.1}",
+            t0.elapsed().as_secs_f64()
+        );
+    }
     assert_eq!(model.layers().len(), manifest.num_layers);
     println!("load_seconds={}", load.elapsed().as_secs_f64());
     let embedding_mapped = model.embedding_is_mapped();
