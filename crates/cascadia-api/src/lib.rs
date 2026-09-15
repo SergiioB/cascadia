@@ -184,23 +184,58 @@ impl MarkerDialect {
     /// `<|content_thinking|>`; `None` for every other template.
     pub fn load(tok_dir: &std::path::Path, template: Option<&str>) -> Option<Self> {
         if !template?.contains("<|content_thinking|>") {
+            // This template does not frame its output with special tokens;
+            // there is nothing to translate. Silent None is correct here.
             return None;
         }
-        let v = std::fs::read(tok_dir.join("tokenizer_config.json"))
+        // From here the template DOES frame with markers, so failing to resolve
+        // the ids is a broken export, not an ordinary non-marker template. Warn
+        // instead of silently returning None (which strips the markers from the
+        // stream and glues the model's reasoning into the visible answer).
+        let cfg = tok_dir.join("tokenizer_config.json");
+        let v = match std::fs::read(&cfg)
             .ok()
-            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())?;
-        let table = v.get("added_tokens_decoder")?.as_object()?;
+            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+        {
+            Some(v) => v,
+            None => {
+                warn!(
+                    path = %cfg.display(),
+                    "chat template frames output with <|content_thinking|> but tokenizer_config.json could not be read/parsed; marker translation disabled (reasoning may be merged into the answer)"
+                );
+                return None;
+            }
+        };
+        let table = match v.get("added_tokens_decoder").and_then(|t| t.as_object()) {
+            Some(t) => t,
+            None => {
+                warn!(
+                    "marker-framed template but tokenizer_config.json has no added_tokens_decoder object; marker translation disabled (reasoning may be merged into the answer)"
+                );
+                return None;
+            }
+        };
         let id_of = |name: &str| -> Option<i64> {
             table.iter().find_map(|(id, tok)| {
                 (tok.get("content")?.as_str()? == name).then(|| id.parse::<i64>().ok())?
             })
         };
+        let need = |name: &str| -> Option<i64> {
+            let id = id_of(name);
+            if id.is_none() {
+                warn!(
+                    token = name,
+                    "marker-framed template but this marker token id is missing/unparseable in added_tokens_decoder; marker translation disabled (reasoning may be merged into the answer)"
+                );
+            }
+            id
+        };
         let d = Self {
-            message_model: id_of("<|message_model|>")?,
-            content_text: id_of("<|content_text|>")?,
-            content_thinking: id_of("<|content_thinking|>")?,
-            end_message: id_of("<|end_message|>")?,
-            invoke_tool_json: id_of("<|content_invoke_tool_json|>")?,
+            message_model: need("<|message_model|>")?,
+            content_text: need("<|content_text|>")?,
+            content_thinking: need("<|content_thinking|>")?,
+            end_message: need("<|end_message|>")?,
+            invoke_tool_json: need("<|content_invoke_tool_json|>")?,
         };
         info!(
             ?d,
