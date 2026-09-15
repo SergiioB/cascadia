@@ -203,6 +203,18 @@ impl Layer {
         self.attn.warm_ov()
     }
 
+    /// Free this layer's Rust projection tables once its OpenVINO attention
+    /// backend compiled (`None` without a backend, `Some(0)` if it failed to
+    /// warm and the Rust tables must stay).
+    pub fn release_rust_attention_weights(&mut self) -> Option<usize> {
+        let ok = self.attn.warm_ov()?;
+        Some(if ok {
+            self.attn.release_rust_projections()
+        } else {
+            0
+        })
+    }
+
     /// The attached fused-MoE backend, if any.
     pub fn ov_moe(&self) -> Option<&Arc<super::ov_moe::OvMoe>> {
         match &self.mlp {
@@ -721,6 +733,16 @@ impl Model {
 
     pub fn ov_head(&self) -> Option<&Arc<super::ov_head::OvHead>> {
         self.head.ov()
+    }
+
+    /// Free the Rust attention projections of every layer whose OpenVINO
+    /// attention backend compiles (see `Layer::release_rust_attention_weights`);
+    /// one entry per layer.
+    pub fn release_rust_attention_weights(&mut self) -> Vec<Option<usize>> {
+        self.layers
+            .iter_mut()
+            .map(|l| l.release_rust_attention_weights())
+            .collect()
     }
 
     /// Route every MoE layer through a fused-MoE backend (layer index =

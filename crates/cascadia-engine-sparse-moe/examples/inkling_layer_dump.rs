@@ -393,7 +393,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         if args.warm_ov {
             let t0 = Instant::now();
-            let ok = stage.head.as_ref().and_then(|h| h.warm_ov()).unwrap_or(false);
+            let ok = stage
+                .head
+                .as_ref()
+                .and_then(|h| h.warm_ov())
+                .unwrap_or(false);
             println!(
                 "[inkling_layer_dump] warmed the head IR in {:.1}s (ok={ok})",
                 t0.elapsed().as_secs_f64()
@@ -511,9 +515,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!(
             "[inkling_layer_dump] OpenVINO head: {} calls @ {:.3} ms mean, {} fell back{}",
             st.calls,
-            if st.calls > 0 { st.call_ns as f64 / st.calls as f64 / 1e6 } else { 0.0 },
+            if st.calls > 0 {
+                st.call_ns as f64 / st.calls as f64 / 1e6
+            } else {
+                0.0
+            },
             st.fallbacks,
-            if st.fallbacks > 0 { " — NOT a clean device measurement" } else { "" }
+            if st.fallbacks > 0 {
+                " — NOT a clean device measurement"
+            } else {
+                ""
+            }
         );
     }
     if let Some(ova) = stage.layers.iter().find_map(|l| l.ov_attn()) {
