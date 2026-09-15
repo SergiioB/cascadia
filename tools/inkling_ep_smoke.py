@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify three real EP worker processes against a local tiny-model oracle.
+"""Qualify separate EP worker processes against a local tiny-model oracle.
 
 Makes partial exports: the driver has no MoE bins, workers have only their
 placement's bins and manifest. These fixture rates are not 975B measurements.
@@ -27,10 +27,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bin-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True, help="new directory for logs/results")
-    parser.add_argument("--owned-workers", action="store_true", help="copy each shard to owned packed bytes once")
+    parser.add_argument("--workers", type=int, default=3, help="number of separate worker processes (1..64)")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--owned-workers", action="store_true", help="copy each shard to owned packed bytes once")
+    mode.add_argument("--stream-cpu-workers", action="store_true", help="use bounded packed expert reads")
     parser.add_argument("--export", type=Path, default=Path(__file__).resolve().parents[1] /
                         "crates/cascadia-engine-sparse-moe/tests/fixtures/inkling_export")
     args = parser.parse_args()
+    if not 1 <= args.workers <= 64:
+        parser.error("workers must be 1..64")
     args.bin_dir = args.bin_dir.resolve()
     args.out = args.out.resolve()
     manifest = json.loads((args.export / "manifest.json").read_text())
@@ -38,7 +43,7 @@ def main():
         parser.error("smoke test only accepts a tiny fixture")
     reference = json.loads((args.export / "reference.json").read_text())
     plan = make_plan(manifest, [dict(name=f"worker-{i}", expert_capacity_bytes=1 << 30,
-                                    read_us=10, compute_us=1, dispatch_us=2) for i in range(3)])
+                                    read_us=10, compute_us=1, dispatch_us=2) for i in range(args.workers)])
     args.out.mkdir(parents=True, exist_ok=False)
     placement = args.out / "placement.json"
     placement.write_text(json.dumps(plan, indent=2) + "\n")
@@ -57,6 +62,8 @@ def main():
     worker_env = dict(env)
     if args.owned_workers:
         worker_env["CASCADIA_INKLING_EP_OWN_EXPERTS"] = "1"
+    if args.stream_cpu_workers:
+        worker_env["CASCADIA_INKLING_EP_STREAM_CPU"] = "1"
     base = [str(bench), "--cases", str(cases), "--tokens", str(len(reference["greedy_ids"])),
             "--samples", "2", "--allow-fixture"]
     def run_bench(tag, model, extra):
@@ -66,7 +73,7 @@ def main():
         return json.loads((args.out / f"{tag}.json").read_text())
     local = run_bench("local", args.export, [])
     # Reserve all ports together to avoid duplicate ephemeral-port choices.
-    sockets = [socket.socket() for _ in range(3)]
+    sockets = [socket.socket() for _ in range(args.workers)]
     for s in sockets:
         s.bind(("127.0.0.1", 0))
     ports = [s.getsockname()[1] for s in sockets]
@@ -79,10 +86,10 @@ def main():
             logs.append(log)
             sockets[wi].close()
             children.append(subprocess.Popen([str(worker), "--export", str(model), "--index", str(wi),
-                                               "--count", "3", "--listen", f"127.0.0.1:{port}",
+                                               "--count", str(args.workers), "--listen", f"127.0.0.1:{port}",
                                                "--placement", str(placement)], stdout=log, stderr=subprocess.STDOUT, env=worker_env))
         deadline = time.monotonic() + 30
-        while not all("listening=" in (args.out / f"worker-{i}.log").read_text() for i in range(3)):
+        while not all("listening=" in (args.out / f"worker-{i}.log").read_text() for i in range(args.workers)):
             if any(p.poll() is not None for p in children) or time.monotonic() > deadline:
                 raise RuntimeError("worker startup failed; inspect worker logs")
             time.sleep(0.05)
@@ -94,10 +101,11 @@ def main():
         assert local["correctness_verified"] and remote["correctness_verified"]
         assert local["output_hash"] == remote["output_hash"]
         assert [s["generated_ids"] for s in local["samples"]] == [s["generated_ids"] for s in remote["samples"]]
-        report = dict(scope="tiny_fixture_three_process_expert_parallel_correctness", passed=True,
-                      output_hash=remote["output_hash"], workers=3, samples=2,
+        report = dict(scope="tiny_fixture_process_expert_parallel_correctness", passed=True,
+                      output_hash=remote["output_hash"], workers=args.workers, samples=2,
                       driver_has_moe_bins=False, workers_have_only_assigned_bins=True,
                       owned_packed_expert_workers=args.owned_workers,
+                      streamed_cpu_expert_workers=args.stream_cpu_workers,
                       performance_claim="none; loopback processes share one machine's memory bandwidth")
         (args.out / "qualification.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report, indent=2))

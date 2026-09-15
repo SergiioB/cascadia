@@ -94,6 +94,41 @@ class GuardTests(unittest.TestCase):
 
 
 class OperatorTests(unittest.TestCase):
+    def test_requested_direct_reads_require_bytes_and_zero_fallbacks(self):
+        sys.path.insert(0,str(TOOLS))
+        try:
+            run=load('full_run_direct','inkling_ep_full_run.py')
+        finally:
+            sys.path.pop(0)
+        status=dict(returncode=0,stop_reason=None,protected_processes_unchanged=True)
+        driver=dict(returncode=0,status=status,report={k:True for k in
+            ['full_model','reference_comparison','greedy_match','numerical_match','correctness_verified']})
+        status=dict(status,job=dict(env=dict(CASCADIA_INKLING_UNCACHED_READS='1')))
+        def check(size,fallbacks):
+            b=dict(cpu_calls=1,fused=None,uncached_read_bytes=size,uncached_read_fallbacks=fallbacks)
+            w=dict(returncode=0,status=status,log='backend_final='+json.dumps(b))
+            return run.qualification(driver,{'charlie':w},{'charlie':{}},False)['completed']
+        self.assertTrue(check(4096,0))
+        self.assertFalse(check(0,0))
+        self.assertFalse(check(4096,1))
+
+    def test_firewall_uses_native_windows_program_path(self):
+        sys.path.insert(0,str(TOOLS))
+        try:
+            run=load('full_run_firewall','inkling_ep_full_run.py')
+        finally:
+            sys.path.pop(0)
+        calls=[]
+        def capture(host,script,timeout):
+            # Extract the structured subprocess argument without executing it.
+            tree=ast.parse(script)
+            argv=ast.literal_eval(tree.body[1].value.args[0])
+            calls.append(argv[-1])
+            return 'ok'
+        with patch.object(run,'remote',capture): run.firewall('alpha',True)
+        self.assertIn("-Program 'C:\\Users\\tatef\\inkling-ep-lan-20260915\\bin-full\\inkling_ep_worker.exe'",calls[0])
+        self.assertIn('-RemoteAddress 192.168.0.188',calls[0])
+
     def test_qualification_requires_output_gpu_coverage_and_service_evidence(self):
         sys.path.insert(0,str(TOOLS))
         try:

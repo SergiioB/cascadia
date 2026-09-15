@@ -21,6 +21,7 @@ def main():
     p.add_argument('--seconds', type=int, default=10800)
     p.add_argument('--source', default='http://192.168.0.235:29484')
     p.add_argument('--mib-per-second', type=float, default=48)
+    p.add_argument('--up-scale-exponent', type=int, choices=range(9), default=4)
     a = p.parse_args()
     root = a.root.resolve()
     if not (root/'.inkling_ep_deployment').is_file() or not 1 <= a.seconds <= 14400:
@@ -64,8 +65,11 @@ def main():
         if not dest.exists():
             build(argparse.Namespace(recipe=root/'fused-recipe-v1.json', export=model,
                   placement=root/'full-placement.json', index=a.index, layer=li,
-                  out=out, guarded=True, rate_mib=a.mib_per_second, reserve_gib=12, pause_for_service=True))
+                  out=out, guarded=True, rate_mib=a.mib_per_second, reserve_gib=12, pause_for_service=True,
+                  up_scale_exponent=a.up_scale_exponent))
         meta = json.loads((dest/'shard.json').read_text())
+        if meta.get('up_scale_exponent',0) != a.up_scale_exponent:
+            raise RuntimeError('existing shard scale differs; stop workers and use inkling_ep_rebalance.py before resuming')
         if meta['expert_ids'] != ids or meta['source_sha256'] != {str(i):verified[name]['sha256'] for i,name in paths.items()}:
             raise RuntimeError('fused shard does not match verified source/ownership')
         k1 = root/'full-fused-compact'/f'layer_{li:02}'

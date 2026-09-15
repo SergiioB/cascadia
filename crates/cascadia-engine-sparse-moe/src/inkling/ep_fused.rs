@@ -20,6 +20,10 @@ pub struct FusedShardManifest {
     pub expert_ids: Vec<usize>,
     pub padded_experts: usize,
     pub ir_bytes: u64,
+    /// Version 2 attenuates the IR's up projection by 2^-n. Compensate in
+    /// routing weights after the down GEMM, preventing FP16 intermediate overflow.
+    #[serde(default)]
+    pub up_scale_exponent: u8,
 }
 
 impl FusedShardManifest {
@@ -29,7 +33,8 @@ impl FusedShardManifest {
         layer: usize,
         owned: &[usize],
     ) -> Result<(), String> {
-        if self.version != 1
+        if !((self.version == 1 && self.up_scale_exponent == 0)
+            || (self.version == 2 && (1..=8).contains(&self.up_scale_exponent)))
             || self.layer as usize != layer
             || self.hidden_size != model.hidden_size
             || self.moe_intermediate != model.moe_intermediate
@@ -46,7 +51,8 @@ impl FusedShardManifest {
         Ok(())
     }
 
-    /// Keep global weights unchanged. Only unused slots use the dedicated
+    /// Preserve global routing, compensating only for versioned IR scaling.
+    /// Only unused slots use the dedicated
     /// dummy expert, so scatter padding cannot overwrite a real expert weight.
     pub fn map_request(
         &self,
@@ -90,7 +96,11 @@ impl FusedShardManifest {
                     .binary_search(&(id as usize))
                     .map_err(|_| format!("fused shard does not own expert {id}"))?;
                 ids[r * self.k + j] = local as i32;
-                mapped_weights[r * self.k + j] = weight;
+                let compensated = weight * 2.0f32.powi(self.up_scale_exponent as i32);
+                if !compensated.is_finite() {
+                    return Err("fused routing compensation overflow".into());
+                }
+                mapped_weights[r * self.k + j] = compensated;
             }
         }
         Ok((ids, mapped_weights))
@@ -294,7 +304,7 @@ impl FusedExpertBank {
             .layers
             .get(&body.layer)
             .ok_or("fused shard has no requested layer")?;
-        let (ids, weights) = meta.map_request(body, weights)?;
+        let (ids, mapped_weights) = meta.map_request(body, weights)?;
         // Serialize admission and inference so evicted models cannot remain
         // live in concurrent callers outside the accounting lock.
         let mut state = self.state.lock().unwrap();
@@ -328,10 +338,13 @@ impl FusedExpertBank {
         }
         let entry = state.cache.get_mut(&body.layer).unwrap();
         entry.used = clock;
-        let result =
-            entry
-                .runtime
-                .forward(body.layer, &body.hidden, body.rows as usize, &ids, &weights);
+        let result = entry.runtime.forward(
+            body.layer,
+            &body.hidden,
+            body.rows as usize,
+            &ids,
+            &mapped_weights,
+        );
         let profiles = entry.runtime.fusion_profiles();
         state.profiles.extend(profiles);
         match result {
@@ -339,6 +352,41 @@ impl FusedExpertBank {
                 state.calls += 1;
                 state.rows += body.rows as u64;
                 Ok(values)
+            }
+            Some(values) => {
+                state.errors += 1;
+                let nonfinite = values.iter().filter(|x| !x.is_finite()).count();
+                let message = format!(
+                    "fused GPU nonfinite output: layer={} ids={:?} rows={} nonfinite={nonfinite}",
+                    body.layer, body.ids, body.rows
+                );
+                eprintln!("{message}");
+                if let Some(dir) = std::env::var_os("CASCADIA_INKLING_EP_DIAGNOSTICS_DIR") {
+                    let path = PathBuf::from(dir).join(format!(
+                        "failed-layer-{}-pid-{}-call-{}.json",
+                        body.layer,
+                        std::process::id(),
+                        state.calls
+                    ));
+                    let save = || -> Result<(), Box<dyn std::error::Error>> {
+                        let file = std::fs::OpenOptions::new()
+                            .write(true)
+                            .create_new(true)
+                            .open(&path)?;
+                        serde_json::to_writer(
+                            std::io::BufWriter::new(file),
+                            &serde_json::json!({
+                            "layer":body.layer,"rows":body.rows,"k":body.k,"hidden":body.hidden,
+                            "ids":body.ids,"weights":weights,"nonfinite_outputs":nonfinite,
+                            "message":message}),
+                        )?;
+                        Ok(())
+                    };
+                    if let Err(e) = save() {
+                        eprintln!("fused diagnostic write failed: {e}");
+                    }
+                }
+                Err(message)
             }
             _ => {
                 state.errors += 1;
@@ -356,6 +404,7 @@ impl FusedExpertBank {
             "streaming":self.stream,"admission_is_runtime_estimate":self.stream,
             "ir_cache_budget_bytes":self.budget,"expanded_row_chunk":self.max_rows,"fusion_profiles":s.profiles,
             "graph_k":self.layers.iter().map(|(l,m)|(l.to_string(),m.k)).collect::<HashMap<_,_>>(),
+            "up_scale_exponent":self.layers.iter().map(|(l,m)|(l.to_string(),m.up_scale_exponent)).collect::<HashMap<_,_>>(),
             "cached_runtime_call_ns":s.cache.values().map(|c|c.runtime.stats().call_ns).sum::<u64>(),
             "cached_runtime_compiles":s.cache.values().map(|c|c.runtime.stats().compiles).sum::<u64>(),
             "cached_runtime_compile_ns":s.cache.values().map(|c|c.runtime.stats().compile_ns).sum::<u64>()})
@@ -393,6 +442,7 @@ mod tests {
             expert_ids: vec![0, 3, 8],
             padded_experts: 4,
             ir_bytes: 100,
+            up_scale_exponent: 0,
         };
         let body = ExpertDispatchBody {
             layer: 2,
@@ -412,6 +462,18 @@ mod tests {
         let (ids, mapped) = meta.map_request(&body, &weights).unwrap();
         assert_eq!(ids, vec![2, 0, 3, 3, 1, 3, 3, 3]);
         assert_eq!(mapped, vec![0.75, -0.125, 0., 0., 0.2, 0., 0., 0.]);
+    }
+
+    #[test]
+    fn scaled_ir_compensates_signed_routes_and_preserves_padding() {
+        let (mut meta, body, weights) = fixture();
+        meta.version = 2;
+        meta.up_scale_exponent = 4;
+        let (_, mapped) = meta.map_request(&body, &weights).unwrap();
+        assert_eq!(mapped, vec![12., -2., 0., 0., 3.2, 0., 0., 0.]);
+        let mut overflow = weights;
+        overflow[0] = f32::MAX;
+        assert!(meta.map_request(&body, &overflow).is_err());
     }
 
     #[test]

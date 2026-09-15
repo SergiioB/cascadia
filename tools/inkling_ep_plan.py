@@ -2,7 +2,8 @@
 """Build a capacity-checked EP placement and per-worker copy lists (no exports).
 
 Worker JSON is an array of name, expert_capacity_bytes, read_us, compute_us,
-dispatch_us. Budgets cover packed weights only; reserve runtime/KV/OS memory.
+dispatch_us. Budgets cover packed storage only. GPU copies and runtime/KV/OS
+memory need separate reserves; an emitted placement does not prove residency.
 Costs should come from measurements on the intended interconnect and devices.
 """
 import argparse
@@ -49,8 +50,8 @@ def make_plan(manifest, workers, routed_replicas=1, shared_replicas=None):
         for _ in range(replicas):
             eligible = [wi for wi in range(count) if wi not in owners and used[wi] < capacity[wi]]
             if not eligible:
-                raise ValueError(f"insufficient expert memory for layer {li} expert {eid}; "
-                                 "reduce replicas or add capacity (no paging plan was emitted)")
+                raise ValueError(f"insufficient expert storage for layer {li} expert {eid}; "
+                                 "reduce replicas or add capacity (no placement was emitted)")
             # Spread storage in proportion to budget, with deterministic ties.
             wi = min(eligible, key=lambda i: ((used[i] + 1) / capacity[i], used[i], i))
             owners.append(wi)

@@ -9,7 +9,7 @@ import argparse
 import concurrent.futures
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import time
 
@@ -51,6 +51,9 @@ def qualification(driver, workers, inventories, fused):
                 failures.append(host+': incomplete GPU fusion/coverage or fallback detected')
         elif backend.get('cpu_calls', 0) <= 0 or backend.get('fused') is not None:
             failures.append(host+': CPU reference backend evidence is invalid')
+        elif status.get('job', {}).get('env', {}).get('CASCADIA_INKLING_UNCACHED_READS') == '1':
+            if backend.get('uncached_read_bytes', 0) <= 0 or backend.get('uncached_read_fallbacks') != 0:
+                failures.append(host+': required direct expert reads were not verified')
     return dict(completed=not failures, failures=failures, backends=backends)
 
 
@@ -65,7 +68,8 @@ status=root/(job['label']+'.status.json');log=root/(job['label']+'.log')
 report=root/job['label']/'report.json'
 print(json.dumps(dict(returncode=r.returncode,guard_stdout=r.stdout,guard_stderr=r.stderr,
  status=json.loads(status.read_text()) if status.exists() else None,
- log=log.read_text() if log.exists() else '',report=json.loads(report.read_text()) if report.exists() else None)))
+ log=log.read_text(encoding='utf-8',errors='replace') if log.exists() else '',
+ report=json.loads(report.read_text(encoding='utf-8')) if report.exists() else None)))
 '''.replace('ROOT', repr(ROOT)).replace('JOB', repr(job)).replace('PYTHON', repr(PYTHON))
     result = json.loads(remote(host, script, job['seconds']+80))
     (out/(host+'-'+job['label']+'.json')).write_text(json.dumps(result, indent=2)+'\n')
@@ -74,9 +78,10 @@ print(json.dumps(dict(returncode=r.returncode,guard_stdout=r.stdout,guard_stderr
 
 def firewall(host, add):
     if add:
+        program = str(PureWindowsPath(ROOT) / 'bin-full' / 'inkling_ep_worker.exe')
         script = f"""$ErrorActionPreference='Stop'
 if (Get-NetFirewallRule -Name '{RULE}' -ErrorAction SilentlyContinue) {{ throw 'Task rule already exists' }}
-New-NetFirewallRule -Name '{RULE}' -DisplayName '{RULE}' -Direction Inbound -Action Allow -Profile Any -Protocol TCP -LocalPort {PORT} -RemoteAddress {HOSTS['charlie']} -Program '{ROOT}/bin-full/inkling_ep_worker.exe' | Out-Null
+New-NetFirewallRule -Name '{RULE}' -DisplayName '{RULE}' -Direction Inbound -Action Allow -Profile Any -Protocol TCP -LocalPort {PORT} -RemoteAddress {HOSTS['charlie']} -Program '{program}' | Out-Null
 """
     else:
         script = f"Get-NetFirewallRule -Name '{RULE}' -ErrorAction SilentlyContinue | Remove-NetFirewallRule"
@@ -112,7 +117,7 @@ if hashlib.sha256(plan_bytes).hexdigest()!=PLAN_HASH: raise RuntimeError('placem
 plan=json.loads(plan_bytes);m=json.loads((model/'manifest.json').read_text());nr=m['num_experts']
 if m['num_layers']!=66 or m['num_experts']!=256 or m['hidden_size']!=6144: raise RuntimeError('not the full architecture')
 verified=json.loads((root/'full-stage-journal.json').read_text())
-expert_count=0
+expert_count=0;fused_shards={}
 for li,layer in enumerate(plan['layers']):
  ids=[i for i,owners in enumerate(layer) if INDEX in owners]
  expected={}
@@ -123,8 +128,11 @@ for li,layer in enumerate(plan['layers']):
   expected[str(eid)]=v['sha256'];expert_count+=1
  if FUSED and ids:
   d=root/'full-fused-compact'/f'layer_{li:02}';meta=json.loads((d/'shard.json').read_text())
+  if (root/'full-fused'/f'layer_{li:02}'/'.rebalance').exists(): raise RuntimeError('fused scale transaction incomplete')
+  if not (meta['version']==1 and meta.get('up_scale_exponent',0)==0 or meta['version']==2 and 1<=meta.get('up_scale_exponent',0)<=8): raise RuntimeError('unsupported fused scale metadata')
   if meta['expert_ids']!=ids or meta['source_sha256']!=expected or meta['k']!=1 or meta['placement_sha256']!=PLAN_HASH: raise RuntimeError('fused shard provenance differs')
   if (d/'openvino_model.bin').stat().st_size!=meta['ir_bytes'] or hashlib.sha256((d/'openvino_model.xml').read_bytes()).hexdigest()!=meta['xml_sha256']: raise RuntimeError('fused IR size/XML changed')
+  fused_shards[str(li)]={k:meta.get(k) for k in ['version','bin_sha256','up_scale_exponent','up_scale_relative_rms','unscaled_bin_sha256']}
 if INDEX==2:
  ref=root/REFERENCE
  if json.loads((ref/'trace.json').read_text())['model_manifest']!=m: raise RuntimeError('reference model differs')
@@ -137,7 +145,7 @@ if INDEX==2:
   p=model/name;v=verified[name];s=p.stat()
   if s.st_size!=v['bytes'] or s.st_mtime_ns!=v['mtime_ns']: raise RuntimeError('driver file changed: '+name)
 health={n:urllib.request.urlopen('http://127.0.0.1:9000/v2/health/'+n,timeout=3).status for n in ['live','ready']}
-print(json.dumps(dict(host=HOST,expert_count=expert_count,model_manifest=m,placement_sha256=PLAN_HASH,
+print(json.dumps(dict(host=HOST,expert_count=expert_count,model_manifest=m,placement_sha256=PLAN_HASH,fused_shards=fused_shards,
  owned_layers=[li for li,layer in enumerate(plan['layers']) if any(INDEX in owners for owners in layer)],
  executable_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [root/'bin-full'/'inkling_ep_worker.exe',root/'bin-full'/'inkling_ep_validate.exe',*sorted((root/'bin-full').glob('*.dll'))]},
  available_gib=psutil.virtual_memory().available/2**30,free_gib=psutil.disk_usage(str(root)).free/2**30,health=health)))
@@ -176,12 +184,17 @@ def main():
     jobs = []
     for wi, host in enumerate(HOSTS):
         env = dict(CASCADIA_INKLING_EP_STREAM_CPU='1', CASCADIA_ACTIVATION_TIMEOUT_SECS='180', CASCADIA_FRAME_IDLE_CEILING_SECS='3600')
+        if not fused and host == 'charlie':
+            # Preserve the decoder's file-cache pages on the co-located worker.
+            env['CASCADIA_INKLING_UNCACHED_READS'] = '1'
         if fused:
             env.update(CASCADIA_INKLING_EP_FUSED='1', CASCADIA_INKLING_EP_FUSED_STREAM='1', CASCADIA_INKLING_EP_FUSED_DIR=ROOT+'/full-fused-compact',
                        CASCADIA_INKLING_EP_FUSED_CACHE_MB='6000', CASCADIA_INKLING_EP_REQUIRE_GPU='1', OV_GPU_MOE_BATCHED_GEMV_THRESHOLD='0')
+            env['CASCADIA_INKLING_EP_DIAGNOSTICS_DIR'] = ROOT
         job = dict(label=a.label+'-worker-'+str(wi), argv=[ROOT+'/bin-full/inkling_ep_worker.exe', '--export', ROOT+'/full', '--listen', HOSTS[host]+':'+str(PORT),
                    '--index', str(wi), '--count', '3', '--placement', ROOT+'/full-placement.json'], env=env,
-                   cores=[0,1,2,3], seconds=3000, min_available_gib=12, max_rss_gib=6 if host=='charlie' else 8, pause_for_service=True)
+                   cores=[4,5] if fused and host=='charlie' else [0,1,2,3],
+                   seconds=3000, min_available_gib=12, max_rss_gib=6 if host=='charlie' else 8, pause_for_service=True)
         jobs.append((host,job))
     added, futures, cleanup = [], [], {}
     driver_result, worker_results = None, []
@@ -207,7 +220,8 @@ def main():
             job = dict(label=a.label, argv=[ROOT+'/bin-full/inkling_ep_validate.exe', '--export', ROOT+'/full', '--cases', ROOT+'/'+a.cases,
                        '--tokens',str(a.tokens),'--out',ROOT+'/'+a.label,'--reference',ROOT+'/'+a.reference,'--ep-workers',','.join(ip+':'+str(PORT) for ip in HOSTS.values()),
                        '--ep-placement',ROOT+'/full-placement.json','--max-relative-rms',str(a.max_relative_rms)], env=env,
-                       cores=[4,5],seconds=2700,min_available_gib=12,max_rss_gib=4,pause_for_service=True)
+                       cores=[0,1,2,3] if fused else [4,5],
+                       seconds=2700,min_available_gib=12,max_rss_gib=4,pause_for_service=True)
             driver_result = run_job('charlie',job,a.out)
             print('driver_returncode',driver_result['returncode'],flush=True)
             concurrent.futures.wait(futures,timeout=15)

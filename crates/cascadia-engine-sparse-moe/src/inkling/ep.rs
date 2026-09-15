@@ -537,9 +537,11 @@ impl ExpertBank {
 
     pub fn backend_stats(&self) -> serde_json::Value {
         let stats = self.ov.as_ref().map(OvExperts::stats).unwrap_or_default();
+        let (uncached_bytes, uncached_fallbacks) = super::read_buffers::uncached_read_statistics();
         serde_json::json!({"gpu_required":self.require_gpu,"gpu_name":self.gpu_name,
             "device":self.ov.as_ref().map(OvExperts::device),
             "cpu_calls":self.cpu_calls.load(Ordering::Relaxed),
+            "uncached_read_bytes":uncached_bytes,"uncached_read_fallbacks":uncached_fallbacks,
             "ov_successful_calls":stats.hits+stats.misses,"ov_cache_hits":stats.hits,
             "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks,
             "fused":self.fused.as_ref().map(|f| f.stats())})
@@ -688,6 +690,7 @@ impl ExpertBank {
             let e = &table[&id];
             let mut cpu_ready = false;
             let mut buf = None;
+            let mut stream_buf = None;
             slots
                 .iter()
                 .map(|&slot| {
@@ -705,9 +708,18 @@ impl ExpertBank {
                             self.cpu_calls.fetch_add(1, Ordering::Relaxed);
                             if !cpu_ready {
                                 if streamed_cpu {
-                                    buf = e.as_mmap().map(|m| m.read_bytes()).transpose().map_err(
-                                        |e| format!("{tag}: expert {id} streamed read failed: {e}"),
-                                    )?;
+                                    if let Some(m) = e.as_mmap() {
+                                        let mut lease =
+                                            super::read_buffers::ReadBuffers::acquire(1);
+                                        lease.buffers[0].read(m.bin_path(), m.bin_len()).map_err(
+                                            |e| {
+                                                format!(
+                                                    "{tag}: expert {id} streamed read failed: {e}"
+                                                )
+                                            },
+                                        )?;
+                                        stream_buf = Some(lease);
+                                    }
                                 } else {
                                     e.prefetch();
                                     buf = e
@@ -717,8 +729,11 @@ impl ExpertBank {
                                 }
                                 cpu_ready = true;
                             }
-                            match (buf.as_ref(), e.as_mmap()) {
-                                (Some(buf), Some(m)) => m.swiglu_from(buf, x),
+                            match (stream_buf.as_ref(), buf.as_ref(), e.as_mmap()) {
+                                (Some(lease), _, Some(m)) => {
+                                    m.swiglu_from(lease.buffers[0].as_slice(), x)
+                                }
+                                (_, Some(buf), Some(m)) => m.swiglu_from(buf, x),
                                 _ => e.forward(x, h, inter),
                             }
                         }

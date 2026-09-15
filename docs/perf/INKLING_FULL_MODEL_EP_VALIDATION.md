@@ -8,13 +8,27 @@ compares every layer residual, every output logit, and greedy token IDs against
 a saved single-machine CPU reference. The validator accepts any worker count;
 the LAN operator currently targets the three authorized NUCs.
 
+The complete three-NUC CPU run, `full-cpu-v7`, **passed all 48 token choices
+and all 3,216 tensors bit for bit**. All 66 layers execute; every expert is
+available across the workers. Its instrumented decode rate is 0.1101 tok/s
+(9.0827 seconds/token), including tensor capture/comparison and restricted
+CPU resources. This is not a new throughput record. Driver peak RSS was
+3.749 GiB; each worker stayed below 0.194 GiB. Charlie performed 480.53 GB
+of direct expert reads with zero read fallbacks. Protected services remained
+unchanged. The complete reports are in `full-cpu-v7.json.gz`.
+
+Full fused GPU qualification remains in progress. The first full run exposed
+FP16 overflow that the smaller synthetic tests did not catch; the isolated
+replay and correction below pass, but that alone is not a full-model pass.
+
 ## Model and placement
 
 The source is `miner:/mnt/external_ssd/inkling/out`, the complete large Inkling
 export: 548,985,140,942 unique bytes. It has 66 layers, 64 MoE layers, hidden
 size 6,144, intermediate size 3,072, 256 routed experts and two shared experts
 per MoE layer, and six selected routed experts per token. Layers 0 and 1 are
-dense. The vocabulary contains 201,024 tokens.
+dense. The manifest declares a vocabulary capacity of 201,024; the exported
+head emits 200,058 logits, all of which are captured in each comparison.
 
 "Full model" means all decoder layers, attention, convolution/relative-position
 state, routers, dense MLPs, embedding and output head execute. Each token uses
@@ -41,6 +55,22 @@ directories is deleted or replaced.
 Deployment root on each NUC: `C:/Users/tatef/inkling-ep-lan-20260915`.
 `full/` holds packed files and the complete manifest; `full-fused-compact/`
 holds the 64 K=1 GPU graphs. These are separate from earlier layer fixtures.
+
+The exact placement reproduces with the saved worker capacities:
+
+```sh
+python3 tools/inkling_ep_plan.py \
+  --manifest docs/perf/inkling-ep-full/manifest.json \
+  --workers docs/perf/inkling-ep-full/workers.json --out /tmp/inkling-plan-NEW
+```
+
+The output includes each worker's packed copy list. Add embedding, head, all
+shells, dense bins and tokenizer files to the driver's copy list. Staging's
+`--files` argument takes a JSON array of relative filenames; convert the
+planner's newline-separated list before using that operator. For this streaming
+deployment the expert budgets represent disk capacity, with GPU blobs reserved
+separately. They are not resident memory budgets. The saved cost coefficients
+are illustrative and must be calibrated before optimizing placement.
 
 ## Reference and correctness contract
 
@@ -120,6 +150,47 @@ all 64 graphs, varying expert IDs and nonuniform/zero/negative weights. Its
 22.93 seconds on bounded CPU reads. These synthetic phases expose the cost of
 streaming and shape transitions; they do not predict full-model throughput.
 
+## FP16 overflow regression and version-2 shards
+
+The first full GPU prefill fails at layer 8, shared expert 256, on alpha.
+The exact 30-row request has finite hidden vectors and routing weights, but
+two unweighted down-projection values are outside FP16's finite range (about
+−94,909 at the extreme). Routing later reduces them to values within range.
+The GPU returns two nonfinite outputs; the same request succeeds on CPU.
+An FP32 inference hint fails compilation in this OpenVINO fused path, and
+the worker refuses fallback.
+
+Version-2 shards divide the up-projection scales by 16 and the worker
+multiplies the original routing weights by 16. Since the up branch and down
+projection are linear, this preserves the real-arithmetic expert function
+while reducing the intermediate dynamic range. The gate/Swish calculation
+and packed nibbles remain unchanged. FP16 rounding still applies: export
+rejects a scale conversion exceeding 0.01% relative weight RMS, and the full
+output comparison retains its original 0.5% limit and exact greedy criterion.
+
+The captured request passes on the fused GPU after this change with relative
+RMS **0.00252557**, no nonfinite outputs and zero CPU fallback. The unscaled
+replay fails reproducibly. These artifacts include the exact input frames,
+CPU output, source expert checksum and kernel profile, so another agent can
+replay the failure without running the entire decoder.
+
+Fresh exports can use `inkling_ep_fused_export.py build
+--up-scale-exponent 4`. For the existing isolated deployment, stop its workers
+and run on each host:
+
+```powershell
+C:/cascadia/fleet/venv/Scripts/python.exe inkling_ep_rebalance.py `
+  --root C:/Users/tatef/inkling-ep-lan-20260915 --exponent 4 --seconds 2400
+```
+
+The updater backs up only the scale range, marks both hardlinked graphs
+unusable during mutation, checksums the changed blob, and atomically publishes
+version-2 metadata. Interrupted layers restore from their journal before retry.
+The original packed model bins remain unchanged. Old workers reject version 2;
+all workers must use the new binary before these shards are loaded. Tests
+verify rollback after an injected write-stage failure and byte identity between
+a fresh scaled export and an updated shard.
+
 ## Run the full three-NUC comparison
 
 Build with `tools/inkling_ep_build_gpu_windows.bat`. Put the same executables
@@ -149,7 +220,9 @@ Blob hashes are recorded while constructing the IR; preflight checks blob
 size rather than rereading hundreds of gigabytes for each run.
 
 Private port 29475 admits only charlie and only the task worker executable.
-Workers use cores 0–3; charlie's driver uses cores 4–5. Jobs run below normal
+In CPU mode, workers use cores 0–3 and charlie's driver uses cores 4–5.
+In GPU mode, charlie gives cores 0–3 to its decoder and cores 4–5 to the GPU
+worker; alpha/beta retain cores 0–3. Jobs run below normal
 priority, keep at least 12 GiB available, and have bounded lifetimes. Existing
 inference activity pauses only this task's child; a CI job or memory limit
 stops it. Cleanup checks the executable and process creation time before
@@ -168,6 +241,8 @@ build each host's fused graphs from those same packed files, and verify the
 same executable/runtime versions. The driver then uses all 12 ordered worker
 endpoints and that placement with the same `inkling_ep_validate` command.
 Its reference format and comparison are independent of worker count.
+Use version-2 scaled shards for the fused path and retain each shard's source,
+derived blob and scale metadata in the deployment inventory.
 
 Run CPU EP first with tolerance zero, then fused GPU EP against the declared
 reference and tolerance. Retain per-layer differences and worker fusion
@@ -182,11 +257,21 @@ prefill crossing the transport frame limit. Separate 3/12-worker fused-wire
 tests cover weighted partial sums, negative weights and empty rows. These
 tests validate routing behavior; **12 physical machines have not been tested**.
 
+The separate-process CLI smoke test also passed with 12 workers using bounded
+CPU reads: two complete tiny-model generations match the local oracle's IDs
+and logits hash `5122e042f9b1fb30` on macOS. The driver has no MoE weights and
+each worker has only its assigned bins. This exercises actual worker startup,
+placement arguments and clean shutdown as well as dispatch.
+
 ```sh
 cargo test -p cascadia-engine-sparse-moe --test inkling_ep --test inkling_loader
 cargo test -p cascadia-engine-sparse-moe --example inkling_ep_validate
 python3 -m unittest discover -s tools/tests -p test_inkling_ep_full.py
 python3 -m unittest discover -s tools/tests -p test_inkling_ep_fused_export.py
+cargo build -p cascadia-engine-sparse-moe \
+  --example inkling_ep_worker --example inkling_decode_bench
+python3 tools/inkling_ep_smoke.py --bin-dir target/debug/examples \
+  --workers 12 --stream-cpu-workers --out /tmp/inkling-smoke-12-NEW
 ```
 
 The tiny export must exist at the fixture path; older integration tests skip
@@ -200,6 +285,9 @@ preservation evidence.
 [inkling-ep-full](inkling-ep-full/) contains the exact placement/cases, model
 manifest, CPU reference reports and SHA256 manifests, full mapped comparison,
 cache probe reports, and the native source snapshot atop `dce74385`.
+`build-v7-provenance.json` identifies the successful distributed CPU binary;
+`build-v10-provenance.json` identifies the GPU overflow correction. Both source
+snapshots apply atop `060feeb2`; `run-builds.json` maps full runs to their builds.
 Large f32 payloads stay in the isolated remote reference directories and the
 session's `/private/tmp/inkling-ep-full/` directory rather than in Git.
 `build-provenance.json` identifies native binaries and the snapshot checksum.
@@ -210,3 +298,7 @@ hash. `inkling_ep_full_fused.py` waits for verified layer inputs and checks the
 exporter's source hashes against that journal. Both default to 48 MiB/s and
 allow up to 96 MiB/s, with the same service/memory/disk guards. The temporary
 source is restricted to the three NUC addresses and has a bounded lease.
+The temporary miner HTTP source and its three task firewall rules have now
+been removed; all unrelated firewall rules were preserved. Staging is complete
+on all NUCs, and the union of their verified packed files covers all
+16,588 source files with matching replicated checksums.

@@ -1,0 +1,12 @@
+{
+  "base_commit": "060feeb2cf0211342a33353a328b739f98fdde24",
+  "native_label": "full-v7",
+  "executable_sha256": {
+    "bin-full/inkling_ep_worker.exe": "3f7a796882e0ab4fb303b7e4821aeb797569887b90479fc2e88b4beab5297859",
+    "bin-full/inkling_ep_layer_bench.exe": "d59fbeafc0ef02791ce29beff2fb442fd6d25072ed299a2dbc14b2e7823278d3",
+    "bin-full/inkling_ep_validate.exe": "cc96cd539606a098411b45db0b6996f39bb2e21b3a2826fea21390da63864002",
+    "bin-full/inkling_decode_bench.exe": "05ad0b61fd0ab2455834c2ca083297d019cae0101c5ca39696a764e67ca20025"
+  },
+  "source_snapshot_sha256": "69f84e60fbc85c68b0a1e84218a75126adf138482e5ee8e13dd53be868572cfd",
+  "note": "Adds reusable aligned direct reads to EP CPU workers and per-layer numerical progress. GPU kernel path unchanged from full-v6."
+}

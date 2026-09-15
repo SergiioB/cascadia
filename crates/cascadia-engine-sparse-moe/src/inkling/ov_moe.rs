@@ -209,7 +209,9 @@ impl OvMoe {
         if std::env::var_os("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD").is_none() {
             set_process_env("OV_GPU_MOE_BATCHED_GEMV_THRESHOLD", "0");
         }
-        let mut plugin = PluginConfig::new().with("INFERENCE_PRECISION_HINT", "f16");
+        let precision =
+            std::env::var("CASCADIA_INKLING_OV_MOE_PRECISION").unwrap_or_else(|_| "f16".into());
+        let mut plugin = PluginConfig::new().with("INFERENCE_PRECISION_HINT", precision);
         match &offload {
             Some(r) => {
                 plugin = plugin.with("OFFLOAD_RATIO", r.clone());

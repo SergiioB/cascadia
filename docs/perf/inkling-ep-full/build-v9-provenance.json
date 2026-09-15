@@ -1,0 +1,11 @@
+{
+  "base_commit": "060feeb2cf0211342a33353a328b739f98fdde24",
+  "native_label": "full-v9",
+  "executable_sha256": {
+    "bin-full/inkling_ep_worker.exe": "3bf56278abb3e68dc16fcddaaa4b6e8d483636c30371bf123ce18b2ade277583",
+    "bin-full/inkling_ep_layer_bench.exe": "3efa2454587903ebef42542188b45ae3bc7763277a1cf90d9cc5e47c30dbe201",
+    "bin-full/inkling_ep_validate.exe": "ff493dbd03843d1000bcf19ead7830bec4be35ea94103dd90edb596419b6dc59",
+    "bin-full/inkling_decode_bench.exe": "6522fc03cd2eee94b4697a99b2e6811f07fb69945cf2fc3b1be20bc5927eaf03"
+  },
+  "source_snapshot_sha256": "9ec3e27d126ba9c17c693c5eddece312d278a2d4593f19c1ea290caea6dbebb2"
+}
