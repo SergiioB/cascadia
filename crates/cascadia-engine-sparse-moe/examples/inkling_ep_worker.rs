@@ -42,6 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "bank_loaded index={index} count={count} experts={}",
         bank.n_experts()
     );
+    println!("backend_start={}", bank.backend_stats());
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
         .enable_all()
@@ -64,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     println!("frames_served={}", engine.frames_served());
+    println!("backend_final={}", engine.bank().backend_stats());
     engine.close();
     Ok(())
 }

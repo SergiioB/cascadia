@@ -11,8 +11,12 @@
 //! ([`crate::dist::FrameKind::ExpertResult`]). The driver applies the gate
 //! weights and sums **in gate order** (routed, then the shared experts with
 //! their gammas — the shared experts are dispatched like routed ones, so the
-//! driver reads no expert weights at all), which makes the result
-//! bit-identical to the single-process [`MoeLayer`](super::moe::MoeLayer).
+//! driver reads no expert weights at all). CPU workers reproduce the
+//! single-process [`MoeLayer`](super::moe::MoeLayer) bits. Optional per-expert
+//! OpenVINO GPU workers preserve routing and accumulation order, but their
+//! kernel numerics differ from CPU; compare them to a matching GPU reference.
+//! `CASCADIA_INKLING_EP_REQUIRE_GPU=1` rejects missing GPU support/IRs and
+//! forbids CPU fallback. Full-layer fused GPU MoE graphs are not sharded here.
 //!
 //! Default placement is deterministic and manifest-free: [`expert_home`]`(id, W) =
 //! id % W`, with ids `0..n_routed` for routed experts and `n_routed + s` for
@@ -31,6 +35,7 @@
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -424,9 +429,50 @@ pub struct ExpertBank {
     index: u32,
     count: u32,
     ov: Option<OvExperts>,
+    require_gpu: bool,
+    gpu_name: Option<String>,
+    cpu_calls: AtomicU64,
 }
 
+type ExpertSlotOutputs = Vec<(usize, Vec<f32>)>;
+
 impl ExpertBank {
+    /// Qualification mode: require a concrete GPU device and every owned IR.
+    /// Missing support or any failed GPU call must fail instead of using CPU.
+    pub fn require_gpu(mut self) -> Result<Self, String> {
+        let ov = self
+            .ov
+            .as_ref()
+            .ok_or("GPU required but OpenVINO experts are not enabled/present")?;
+        if ov.device() != "GPU" && !ov.device().starts_with("GPU.") {
+            return Err(format!("GPU required, got device {}", ov.device()));
+        }
+        self.gpu_name = Some(
+            cascadia_ov_genai_shim::device_full_name(ov.device())
+                .map_err(|e| format!("GPU required but device query failed: {e}"))?,
+        );
+        for (layer, experts) in self.layers.iter().enumerate() {
+            for &id in experts.keys() {
+                if !ov.has_expert(layer as u32, id as u32, self.n_routed as u32) {
+                    return Err(format!(
+                        "GPU required but layer {layer} expert {id} has no IR"
+                    ));
+                }
+            }
+        }
+        self.require_gpu = true;
+        Ok(self)
+    }
+
+    pub fn backend_stats(&self) -> serde_json::Value {
+        let stats = self.ov.as_ref().map(OvExperts::stats).unwrap_or_default();
+        serde_json::json!({"gpu_required":self.require_gpu,"gpu_name":self.gpu_name,
+            "device":self.ov.as_ref().map(OvExperts::device),
+            "cpu_calls":self.cpu_calls.load(Ordering::Relaxed),
+            "ov_successful_calls":stats.hits+stats.misses,"ov_cache_hits":stats.hits,
+            "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks})
+    }
+
     /// This worker's index of `count()`.
     pub fn index(&self) -> u32 {
         self.index
@@ -487,7 +533,8 @@ impl ExpertBank {
     /// each with the exact per-expert kernel the local `MoeLayer` uses
     /// (`AnyExpert::forward`, or the overlapped whole-bin read +
     /// `MmapExpert::swiglu_from` for a one-row decode frame, mirroring
-    /// `MoeLayer::forward`; both are bit-identical to the mmap kernel).
+    /// `MoeLayer::forward`; both CPU paths match the mmap kernel). Optional
+    /// per-expert OpenVINO calls run first and have their own numerics.
     /// Returns `[rows · k · hidden]` with zeros in pad slots. `Err` is the
     /// status-1 reply text, naming this worker and the layer.
     pub fn serve(&self, b: &ExpertDispatchBody) -> Result<Vec<f32>, String> {
@@ -550,7 +597,7 @@ impl ExpertBank {
         }
         let inter = self.inter;
         let ov = self.ov.as_ref().filter(|ov| ov.has_layer(b.layer));
-        let computed: Vec<Vec<(usize, Vec<f32>)>> = occurrences
+        let computed: Result<Vec<ExpertSlotOutputs>, String> = occurrences
             .par_iter()
             .map(|(&id, slots)| {
                 let e = &table[&id];
@@ -560,9 +607,17 @@ impl ExpertBank {
                     .iter()
                     .map(|&slot| {
                         let x = &b.hidden[(slot / k) * h..(slot / k + 1) * h];
-                        let y = ov
-                            .and_then(|ov| ov.expert(b.layer, id as u32, self.n_routed as u32, x))
-                            .unwrap_or_else(|| {
+                        let gpu = ov
+                            .and_then(|ov| ov.expert(b.layer, id as u32, self.n_routed as u32, x));
+                        let y = match gpu {
+                            Some(y) => y,
+                            None if self.require_gpu => {
+                                return Err(format!(
+                                    "{tag}: GPU expert {id} failed; CPU fallback forbidden"
+                                ))
+                            }
+                            None => {
+                                self.cpu_calls.fetch_add(1, Ordering::Relaxed);
                                 if !cpu_ready {
                                     e.prefetch();
                                     buf = e
@@ -575,14 +630,15 @@ impl ExpertBank {
                                     (Some(buf), Some(m)) => m.swiglu_from(buf, x),
                                     _ => e.forward(x, h, inter),
                                 }
-                            });
-                        (slot, y)
+                            }
+                        };
+                        Ok((slot, y))
                     })
                     .collect()
             })
             .collect();
         let mut out = vec![0.0f32; rows * k * h];
-        for (slot, y) in computed.into_iter().flatten() {
+        for (slot, y) in computed?.into_iter().flatten() {
             out[slot * h..(slot + 1) * h].copy_from_slice(&y);
         }
         Ok(out)
@@ -672,6 +728,14 @@ pub fn load_expert_bank_with_placement(
         index,
         count,
         ov: OvExperts::from_env(dir, m.hidden_size),
+        require_gpu: false,
+        gpu_name: None,
+        cpu_calls: AtomicU64::new(0),
+    };
+    let bank = if super::env_flag("CASCADIA_INKLING_EP_REQUIRE_GPU") {
+        bank.require_gpu().map_err(LoadError::Manifest)?
+    } else {
+        bank
     };
     info!(
         index,
@@ -680,6 +744,7 @@ pub fn load_expert_bank_with_placement(
         moe_layers = bank.moe.iter().filter(|&&b| b).count(),
         mode = ?mode,
         owned_packed_weights = own,
+        backend = %bank.backend_stats(),
         elapsed_ms = t0.elapsed().as_millis() as u64,
         "inkling expert bank loaded"
     );
@@ -689,6 +754,49 @@ pub fn load_expert_bank_with_placement(
 /// Cool-off after a failed frame so a misbehaving peer cannot make the relay
 /// loop hot-spin (the pipeline worker's value).
 const WORKER_BACKOFF: Duration = Duration::from_millis(200);
+
+#[cfg(test)]
+mod gpu_requirement_tests {
+    use super::*;
+
+    fn fixture() -> ExpertBank {
+        load_expert_bank(
+            &Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/inkling_export"),
+            0,
+            1,
+            ExpertsMode::Mmap,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn requiring_gpu_rejects_a_cpu_bank() {
+        let mut bank = fixture();
+        bank.ov = None;
+        assert!(bank.require_gpu().is_err());
+    }
+
+    #[test]
+    fn strict_dispatch_never_falls_back_to_cpu() {
+        let mut bank = fixture();
+        bank.require_gpu = true;
+        bank.ov = None; // Emulate a missing/disabled backend at dispatch time.
+        let body = ExpertDispatchBody {
+            layer: 1,
+            rows: 1,
+            k: 1,
+            hidden: vec![0.; bank.hidden],
+            hidden_shape: [1, bank.hidden as u32, 1],
+            ids: vec![0],
+            ids_shape: [1, 1, 1],
+        };
+        assert!(bank
+            .serve(&body)
+            .unwrap_err()
+            .contains("CPU fallback forbidden"));
+        assert_eq!(bank.cpu_calls.load(Ordering::Relaxed), 0);
+    }
+}
 
 /// The engine an expert worker rank runs: `step()` serves one
 /// `ExpertDispatch` frame (recv → compute → reply), like

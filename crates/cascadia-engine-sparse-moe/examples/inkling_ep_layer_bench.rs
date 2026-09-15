@@ -29,9 +29,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--out",
             "--reference-out",
             "--reference",
+            "--reference-rel-rms",
             "--workers",
             "--placement",
             "--samples",
+            "--warm-passes",
         ]
         .contains(&k.as_str())
         {
@@ -57,6 +59,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(3);
     if samples == 0 {
         return Err("samples must be positive".into());
+    }
+    let warm_passes = flags
+        .get("--warm-passes")
+        .map(|v| v.parse::<usize>())
+        .transpose()?
+        .unwrap_or(1);
+    if !(1..=10).contains(&warm_passes) {
+        return Err("warm-passes must be 1..10".into());
     }
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
@@ -228,10 +238,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             reference.extend_from_slice(&v.to_le_bytes());
         }
     }
+    let mut reference_comparison = None;
     if let Some(path) = flags.get("--reference") {
-        if std::fs::read(path)? != reference {
-            return Err("expert outputs differ from local reference".into());
+        let expected = std::fs::read(path)?;
+        if expected.len() != reference.len() {
+            return Err("reference size differs".into());
         }
+        let limit = flags
+            .get("--reference-rel-rms")
+            .map(|v| v.parse::<f64>())
+            .transpose()?
+            .unwrap_or(0.0);
+        if !limit.is_finite() || !(0.0..=0.02).contains(&limit) {
+            return Err("reference RMS limit must be 0..0.02".into());
+        }
+        let mut square_error = 0.0;
+        let mut square_reference = 0.0;
+        let mut max_abs = 0.0f64;
+        for (a, b) in reference.chunks_exact(4).zip(expected.chunks_exact(4)) {
+            let a = f32::from_le_bytes(a.try_into().unwrap()) as f64;
+            let b = f32::from_le_bytes(b.try_into().unwrap()) as f64;
+            if !b.is_finite() {
+                return Err("nonfinite reference".into());
+            }
+            square_error += (a - b) * (a - b);
+            square_reference += b * b;
+            max_abs = max_abs.max((a - b).abs());
+        }
+        let rel_rms = (square_error / square_reference.max(1e-30)).sqrt();
+        if (limit == 0.0 && expected != reference) || rel_rms > limit {
+            return Err(
+                format!("expert outputs differ: relative RMS {rel_rms}, limit {limit}").into(),
+            );
+        }
+        reference_comparison = Some(
+            serde_json::json!({"bit_exact":expected==reference,"relative_rms":rel_rms,"limit":limit,"max_abs":max_abs}),
+        );
     }
     if let Some(path) = flags.get("--reference-out") {
         use std::io::Write;
@@ -240,6 +282,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .create_new(true)
             .open(path)?
             .write_all(&reference)?;
+    }
+    // Additional full passes make warm-up explicit; do not discard measured
+    // outliers after the fact. Every warm output must retain the same bits.
+    for _ in 1..warm_passes {
+        for i in 0..frames.len() {
+            let out = evaluate(i)?;
+            let expected = &reference[i * m.hidden_size * 4..(i + 1) * m.hidden_size * 4];
+            if !out
+                .iter()
+                .zip(expected.chunks_exact(4))
+                .all(|(x, b)| x.to_le_bytes() == b)
+            {
+                return Err("output changed during additional warm-up".into());
+            }
+        }
     }
     let mut timings = Vec::new();
     for sample in 0..samples {
@@ -263,8 +320,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let result = serde_json::json!({"scope":"real_expert_phase_with_synthetic_inputs","full_model_inference":false,
         "hidden":m.hidden_size,"intermediate":m.moe_intermediate,"model_layers_in_export":m.num_layers,
-        "frames":frames.len(),"samples":samples,"workers":connections.len(),"reference_verified":flags.contains_key("--reference"),
+        "frames":frames.len(),"samples":samples,"warm_passes":warm_passes,"workers":connections.len(),"reference_verified":flags.contains_key("--reference"),
         "self_consistency_verified":true,"workers_arg":flags.get("--workers"),"timings":timings,"wire_probes":wire_probes,
+        "reference_comparison":reference_comparison,"local_backend":bank.as_ref().map(|b|b.backend_stats()),
         "limitation":"Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s."});
     serde_json::to_writer_pretty(
         std::fs::OpenOptions::new()

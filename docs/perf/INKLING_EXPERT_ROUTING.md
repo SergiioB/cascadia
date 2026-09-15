@@ -55,10 +55,12 @@ expert layers on CPU; it was not a resident 975B GPU run.
   if the configured budget exceeds available physical memory.
 - Workers can use the existing per-expert OpenVINO backend via
   `CASCADIA_INKLING_OV_EXPERTS=1`. It consumes existing per-expert IRs, with the
-  backend's CPU fallback and cache limits. This connection is implemented but
-  **distributed GPU numerics/performance have not been qualified here**. CPU
-  bit equality does not extend to different GPU numerics or mixed CPU/GPU
-  replicas. Full fused 256-expert MoE IRs are not sharded by this change.
+  backend's CPU fallback and cache limits. The subsequent
+  [iGPU LAN qualification](INKLING_IGPU_EXPERT_ROUTING.md) verifies per-expert
+  GPU execution with `CASCADIA_INKLING_EP_REQUIRE_GPU=1`, which forbids fallback.
+  Distributed GPU phase outputs match the local GPU reference; CPU bit equality
+  does not extend to different GPU numerics or mixed CPU/GPU replicas.
+  Full fused 256-expert MoE IRs are not sharded by this change.
 - `--ep-placement` is available on `cascadia run`, `cascadia worker`, and
   `inkling_decode_bench`. The benchmark loads no MoE bins on its driver and
   labels a 975B distributed run `full_large_model_expert_parallel_decode`.
