@@ -16,7 +16,9 @@
 //! OpenVINO GPU workers preserve routing and accumulation order, but their
 //! kernel numerics differ from CPU; compare them to a matching GPU reference.
 //! `CASCADIA_INKLING_EP_REQUIRE_GPU=1` rejects missing GPU support/IRs and
-//! forbids CPU fallback. `CASCADIA_INKLING_EP_FUSED=1` uses weighted partial
+//! forbids CPU fallback. Compact `CASCADIA_INKLING_EP_FUSED=1` workers return
+//! individual GPU expert outputs for placement-independent gate-order sums.
+//! `CASCADIA_INKLING_EP_FUSED_PARTIAL_SUMS=1` opts into weighted partial
 //! sums and strict fused GPU shards; see [`super::ep_fused`].
 //!
 //! Default placement is deterministic and manifest-free: [`expert_home`]`(id, W) =
@@ -139,7 +141,10 @@ impl EpClient {
             n_routed,
             n_shared,
             placement: None,
-            fused: super::env_flag("CASCADIA_INKLING_EP_FUSED"),
+            // Compact GPU shards return individual expert outputs by default.
+            // Weighted partial sums change f32 accumulation order with placement.
+            fused: super::env_flag("CASCADIA_INKLING_EP_FUSED")
+                && super::env_flag("CASCADIA_INKLING_EP_FUSED_PARTIAL_SUMS"),
         }
     }
 
@@ -499,6 +504,7 @@ pub struct ExpertBank {
     require_gpu: bool,
     gpu_name: Option<String>,
     cpu_calls: AtomicU64,
+    cpu_f16_reference: bool,
 }
 
 type ExpertSlotOutputs = Vec<(usize, Vec<f32>)>;
@@ -541,6 +547,7 @@ impl ExpertBank {
         serde_json::json!({"gpu_required":self.require_gpu,"gpu_name":self.gpu_name,
             "device":self.ov.as_ref().map(OvExperts::device),
             "cpu_calls":self.cpu_calls.load(Ordering::Relaxed),
+            "cpu_f16_reference":self.cpu_f16_reference,
             "uncached_read_bytes":uncached_bytes,"uncached_read_fallbacks":uncached_fallbacks,
             "ov_successful_calls":stats.hits+stats.misses,"ov_cache_hits":stats.hits,
             "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks,
@@ -623,8 +630,8 @@ impl ExpertBank {
     }
 
     pub fn serve(&self, b: &ExpertDispatchBody) -> Result<Vec<f32>, String> {
-        if self.is_fused() {
-            return Err("fused worker requires weighted dispatch protocol".into());
+        if let Some(fused) = &self.fused {
+            return fused.serve_raw(b);
         }
         let tag = format!(
             "expert worker {}/{}: layer {}",
@@ -691,6 +698,7 @@ impl ExpertBank {
             let mut cpu_ready = false;
             let mut buf = None;
             let mut stream_buf = None;
+            let mut f16_reference = None;
             slots
                 .iter()
                 .map(|&slot| {
@@ -718,6 +726,14 @@ impl ExpertBank {
                                                 )
                                             },
                                         )?;
+                                        if self.cpu_f16_reference {
+                                            f16_reference =
+                                                Some(super::f16_reference::Prepared::new(
+                                                    lease.buffers[0].as_slice(),
+                                                    h,
+                                                    inter,
+                                                )?);
+                                        }
                                         stream_buf = Some(lease);
                                     }
                                 } else {
@@ -730,9 +746,12 @@ impl ExpertBank {
                                 cpu_ready = true;
                             }
                             match (stream_buf.as_ref(), buf.as_ref(), e.as_mmap()) {
-                                (Some(lease), _, Some(m)) => {
-                                    m.swiglu_from(lease.buffers[0].as_slice(), x)
-                                }
+                                (Some(lease), _, Some(m)) => match &f16_reference {
+                                    Some(reference) => {
+                                        reference.forward(lease.buffers[0].as_slice(), x)
+                                    }
+                                    None => m.swiglu_from(lease.buffers[0].as_slice(), x),
+                                },
                                 (_, Some(buf), Some(m)) => m.swiglu_from(buf, x),
                                 _ => e.forward(x, h, inter),
                             }
@@ -791,6 +810,17 @@ pub fn load_expert_bank_with_placement(
     }
     let m = read_manifest(dir)?;
     let own = super::env_flag("CASCADIA_INKLING_EP_OWN_EXPERTS");
+    let cpu_f16_reference = super::env_flag("CASCADIA_INKLING_EP_CPU_F16_REFERENCE");
+    if cpu_f16_reference
+        && (own
+            || !super::env_flag("CASCADIA_INKLING_EP_STREAM_CPU")
+            || super::env_flag("CASCADIA_INKLING_EP_FUSED")
+            || super::env_flag("CASCADIA_INKLING_OV_EXPERTS"))
+    {
+        return Err(LoadError::Manifest(
+            "diagnostic FP16 reference requires streamed CPU experts only".into(),
+        ));
+    }
     if own && placement.is_none() {
         return Err(LoadError::Manifest(
             "CASCADIA_INKLING_EP_OWN_EXPERTS requires a capacity-checked EP placement".into(),
@@ -835,6 +865,11 @@ pub fn load_expert_bank_with_placement(
         } else {
             set
         };
+        if cpu_f16_reference && set.iter().any(|(_, e)| e.as_mmap().is_none()) {
+            return Err(LoadError::Manifest(
+                "diagnostic FP16 reference requires packed int4 bins".into(),
+            ));
+        }
         layers.push(set.into_iter().collect());
         moe.push(true);
     }
@@ -887,6 +922,7 @@ pub fn load_expert_bank_with_placement(
         require_gpu: false,
         gpu_name: None,
         cpu_calls: AtomicU64::new(0),
+        cpu_f16_reference,
     };
     let bank = if super::env_flag("CASCADIA_INKLING_EP_REQUIRE_GPU") {
         bank.require_gpu().map_err(LoadError::Manifest)?

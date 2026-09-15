@@ -19,13 +19,19 @@ PORT = 29475
 RULE = 'InklingEP-Full-20260915'
 
 
-def qualification(driver, workers, inventories, fused):
+def qualification(driver, workers, inventories, fused, recording=False):
     """Fail closed on missing numerical, backend, coverage or service evidence."""
     failures, backends = [], {}
     if not inventories or set(workers) != set(inventories):
         failures.append('worker evidence does not match the deployment')
     report = (driver or {}).get('report') or {}
-    if not all(report.get(k) is True for k in ['full_model', 'reference_comparison', 'greedy_match', 'numerical_match', 'correctness_verified']):
+    if recording:
+        if (report.get('full_model') is not True or report.get('reference_comparison') is not False
+                or report.get('teacher_forced') is not False or report.get('tensor_errors') != []
+                or not report.get('generated_ids')
+                or any(len(ids) != report.get('tokens_per_case') for ids in report['generated_ids'])):
+            failures.append('full-model reference recording did not complete')
+    elif not all(report.get(k) is True for k in ['full_model', 'reference_comparison', 'greedy_match', 'numerical_match', 'correctness_verified']):
         failures.append('full-model output comparison did not pass')
     for host, result in [('driver', driver), *workers.items()]:
         status = (result or {}).get('status') or {}
@@ -49,6 +55,12 @@ def qualification(driver, workers, inventories, fused):
                     or set(profiles) != expected
                     or any('MOECompressed' not in value for value in profiles.values())):
                 failures.append(host+': incomplete GPU fusion/coverage or fallback detected')
+            if inventories[host].get('ordered_replies_required') and stats.get('ordered_replies', 0) <= 0:
+                failures.append(host+': ordered per-expert GPU replies were not verified')
+            shards = inventories[host].get('fused_shards')
+            if shards is not None and stats.get('up_scale_exponent') != {
+                    layer:meta.get('up_scale_exponent') or 0 for layer,meta in shards.items()}:
+                failures.append(host+': runtime IR scaling differs from deployment evidence')
         elif backend.get('cpu_calls', 0) <= 0 or backend.get('fused') is not None:
             failures.append(host+': CPU reference backend evidence is invalid')
         elif status.get('job', {}).get('env', {}).get('CASCADIA_INKLING_UNCACHED_READS') == '1':
@@ -76,12 +88,13 @@ print(json.dumps(dict(returncode=r.returncode,guard_stdout=r.stdout,guard_stderr
     return result
 
 
-def firewall(host, add):
+def firewall(host, add, ports=None):
+    ports = ports or [PORT]
     if add:
         program = str(PureWindowsPath(ROOT) / 'bin-full' / 'inkling_ep_worker.exe')
         script = f"""$ErrorActionPreference='Stop'
 if (Get-NetFirewallRule -Name '{RULE}' -ErrorAction SilentlyContinue) {{ throw 'Task rule already exists' }}
-New-NetFirewallRule -Name '{RULE}' -DisplayName '{RULE}' -Direction Inbound -Action Allow -Profile Any -Protocol TCP -LocalPort {PORT} -RemoteAddress {HOSTS['charlie']} -Program '{program}' | Out-Null
+New-NetFirewallRule -Name '{RULE}' -DisplayName '{RULE}' -Direction Inbound -Action Allow -Profile Any -Protocol TCP -LocalPort {",".join(map(str, ports))} -RemoteAddress {HOSTS['charlie']} -Program '{program}' | Out-Null
 """
     else:
         script = f"Get-NetFirewallRule -Name '{RULE}' -ErrorAction SilentlyContinue | Remove-NetFirewallRule"
@@ -165,11 +178,21 @@ def main():
     p.add_argument('--cases', default='full-cases.json')
     p.add_argument('--tokens', type=int, default=4)
     p.add_argument('--max-relative-rms', type=float, default=0)
+    p.add_argument('--record', action='store_true', help='record a free-running GPU baseline; does not certify correctness')
+    p.add_argument('--workers-per-host', type=int, choices=[1, 4], default=1)
+    p.add_argument('--cache-mb-per-host', type=int, default=2400)
+    p.add_argument('--seconds', type=int, default=3000)
+    p.add_argument('--bf16-expert-output', action='store_true',
+                   help='round each K=1 raw expert output to BF16 before f32 routing, matching the CPU projection boundary')
     a = p.parse_args()
     if any(not re.fullmatch(r'[a-zA-Z0-9_-]+', n) for n in [a.label, a.reference]):
         p.error('label/reference must be simple names')
     if Path(a.cases).name != a.cases or a.tokens < 1 or not 0 <= a.max_relative_rms <= 0.02:
         p.error('invalid cases/tokens/tolerance')
+    if not 256 <= a.cache_mb_per_host <= 6000 or not 300 <= a.seconds <= 3400:
+        p.error('invalid cache/lease')
+    if a.workers_per_host > 1 and a.mode != 'fused-stream':
+        p.error('multiple workers per host requires fused-stream')
     a.out.mkdir(parents=True, exist_ok=False)
     plan_hash = hashlib.sha256(a.placement.read_bytes()).hexdigest()
     fused = a.mode == 'fused-stream'
@@ -180,31 +203,48 @@ def main():
         raise RuntimeError('worker binaries or runtime DLLs differ')
     if len({json.dumps(i['model_manifest'], sort_keys=True) for i in inventories.values()}) != 1:
         raise RuntimeError('worker model manifests differ')
+    for inventory in inventories.values():
+        inventory['ordered_replies_required'] = fused
     (a.out/'preflight.json').write_text(json.dumps(inventories, indent=2)+'\n')
+    parent_inventories = inventories
+    if a.workers_per_host > 1:
+        from inkling_ep_topology import prepare_views
+        deployment = prepare_views(a.placement, a.workers_per_host, parent_inventories)
+        (a.out/'topology.json').write_text(json.dumps(deployment, indent=2)+'\n')
+        plan_path = ROOT+'/full-topology-'+str(a.workers_per_host)+'.json'
+        inventories = deployment['inventories']
+    else:
+        plan_path = ROOT+'/full-placement.json'
     jobs = []
-    for wi, host in enumerate(HOSTS):
+    for pi, host in enumerate(HOSTS):
+      for child in range(a.workers_per_host):
+        wi = pi*a.workers_per_host+child
+        key = host if a.workers_per_host == 1 else host+'-'+str(child)
         env = dict(CASCADIA_INKLING_EP_STREAM_CPU='1', CASCADIA_ACTIVATION_TIMEOUT_SECS='180', CASCADIA_FRAME_IDLE_CEILING_SECS='3600')
         if not fused and host == 'charlie':
-            # Preserve the decoder's file-cache pages on the co-located worker.
             env['CASCADIA_INKLING_UNCACHED_READS'] = '1'
         if fused:
-            env.update(CASCADIA_INKLING_EP_FUSED='1', CASCADIA_INKLING_EP_FUSED_STREAM='1', CASCADIA_INKLING_EP_FUSED_DIR=ROOT+'/full-fused-compact',
-                       CASCADIA_INKLING_EP_FUSED_CACHE_MB='6000', CASCADIA_INKLING_EP_REQUIRE_GPU='1', OV_GPU_MOE_BATCHED_GEMV_THRESHOLD='0')
+            fused_dir = ROOT+'/full-fused-compact' if a.workers_per_host == 1 else ROOT+'/full-views-'+str(a.workers_per_host)+'/worker-'+str(wi)
+            env.update(CASCADIA_INKLING_EP_FUSED='1', CASCADIA_INKLING_EP_FUSED_STREAM='1', CASCADIA_INKLING_EP_FUSED_DIR=fused_dir,
+                       CASCADIA_INKLING_EP_FUSED_CACHE_MB=str(a.cache_mb_per_host//a.workers_per_host), CASCADIA_INKLING_EP_REQUIRE_GPU='1', OV_GPU_MOE_BATCHED_GEMV_THRESHOLD='0')
             env['CASCADIA_INKLING_EP_DIAGNOSTICS_DIR'] = ROOT
-        job = dict(label=a.label+'-worker-'+str(wi), argv=[ROOT+'/bin-full/inkling_ep_worker.exe', '--export', ROOT+'/full', '--listen', HOSTS[host]+':'+str(PORT),
-                   '--index', str(wi), '--count', '3', '--placement', ROOT+'/full-placement.json'], env=env,
-                   cores=[4,5] if fused and host=='charlie' else [0,1,2,3],
-                   seconds=3000, min_available_gib=12, max_rss_gib=6 if host=='charlie' else 8, pause_for_service=True)
-        jobs.append((host,job))
+            if a.bf16_expert_output:
+                env['CASCADIA_INKLING_EP_FUSED_BF16_OUTPUT'] = '1'
+        cores = ([4+child] if host=='charlie' else [child]) if a.workers_per_host > 1 else ([4,5] if fused and host=='charlie' else [0,1,2,3])
+        job = dict(label=a.label+'-worker-'+str(wi), argv=[ROOT+'/bin-full/inkling_ep_worker.exe', '--export', ROOT+'/full', '--listen', HOSTS[host]+':'+str(PORT+child),
+                   '--index', str(wi), '--count', str(3*a.workers_per_host), '--placement', plan_path], env=env,
+                   cores=cores, seconds=a.seconds+150, min_available_gib=12,
+                   max_rss_gib=3 if a.workers_per_host > 1 else (6 if host=='charlie' else 8), pause_for_service=True)
+        jobs.append((host,key,job))
     added, futures, cleanup = [], [], {}
     driver_result, worker_results = None, []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(jobs)) as pool:
         try:
             for host in HOSTS:
-                firewall(host, True)
+                firewall(host, True, list(range(PORT, PORT+a.workers_per_host)))
                 added.append(host)
-            futures = [pool.submit(run_job, host, job, a.out) for host,job in jobs]
-            for host,job in jobs:
+            futures = [pool.submit(run_job, host, job, a.out) for host,key,job in jobs]
+            for host,key,job in jobs:
                 deadline = time.monotonic()+180
                 while True:
                     log = remote(host, "from pathlib import Path; p=Path("+repr(ROOT+'/'+job['label']+'.log')+"); print(p.read_text()[-2000:] if p.exists() else '')", 30)
@@ -218,24 +258,30 @@ def main():
             if fused:
                 env['CASCADIA_INKLING_EP_FUSED']='1'
             job = dict(label=a.label, argv=[ROOT+'/bin-full/inkling_ep_validate.exe', '--export', ROOT+'/full', '--cases', ROOT+'/'+a.cases,
-                       '--tokens',str(a.tokens),'--out',ROOT+'/'+a.label,'--reference',ROOT+'/'+a.reference,'--ep-workers',','.join(ip+':'+str(PORT) for ip in HOSTS.values()),
-                       '--ep-placement',ROOT+'/full-placement.json','--max-relative-rms',str(a.max_relative_rms)], env=env,
+                       '--tokens',str(a.tokens),'--out',ROOT+'/'+a.label,*([] if a.record else ['--reference',ROOT+'/'+a.reference]),'--ep-workers',','.join(ip+':'+str(PORT+c) for ip in HOSTS.values() for c in range(a.workers_per_host)),
+                       '--ep-placement',plan_path,'--max-relative-rms',str(a.max_relative_rms)], env=env,
                        cores=[0,1,2,3] if fused else [4,5],
-                       seconds=2700,min_available_gib=12,max_rss_gib=4,pause_for_service=True)
+                       seconds=a.seconds,min_available_gib=12,max_rss_gib=4,pause_for_service=True)
             driver_result = run_job('charlie',job,a.out)
             print('driver_returncode',driver_result['returncode'],flush=True)
             concurrent.futures.wait(futures,timeout=15)
         finally:
-            for host,job in jobs:
+            for host,key,job in jobs:
                 if host in added:
                     try:
-                        cleanup[host]=cleanup_worker(host,job)
-                    finally:
-                        firewall(host,False)
+                        cleanup[key]=cleanup_worker(host,job)
+                    except Exception as error:
+                        cleanup[key] = {'cleanup_error':str(error)}
+            for host in added:
+                firewall(host,False)
             (a.out/'cleanup.json').write_text(json.dumps(cleanup,indent=2)+'\n')
         worker_results = [f.result() for f in futures]
-    result = qualification(driver_result, dict(zip(HOSTS, worker_results)), inventories, fused)
-    result.update(mode=a.mode,label=a.label)
+    result = qualification(driver_result, dict(zip([key for _,key,_ in jobs], worker_results)), inventories, fused, a.record)
+    result.update(mode=a.mode,label=a.label,recording=a.record,physical_hosts=3,workers=3*a.workers_per_host)
+    if a.record and result['completed']:
+        # Publish checksums only after every backend and guard completed.
+        script = "from pathlib import Path; import hashlib,json; p=Path("+repr(ROOT+'/'+a.label)+"); hashes={n:hashlib.file_digest((p/n).open('rb'),'sha256').hexdigest() for n in ['trace.json','tensors.f32','report.json']}; (p.parent/(p.name+'-sha256.json')).write_text(json.dumps(hashes,indent=2)); print(json.dumps(hashes))"
+        result['recording_sha256'] = json.loads(remote('charlie',script,120))
     (a.out/'completion.json').write_text(json.dumps(result,indent=2)+'\n')
     if not result['completed']:
         raise SystemExit('full-model qualification failed; inspect retained artifacts')

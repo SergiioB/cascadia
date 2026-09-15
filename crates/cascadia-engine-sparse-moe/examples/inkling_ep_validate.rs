@@ -58,8 +58,8 @@ struct ErrorMetric {
     passed: bool,
 }
 
-struct Trace {
-    output: BufWriter<File>,
+struct Trace<W: Write = BufWriter<File>> {
+    output: W,
     reference: Option<BufReader<File>>,
     expected: Vec<Tensor>,
     tensors: Vec<Tensor>,
@@ -77,7 +77,7 @@ fn fnv(hash: &mut u64, bytes: &[u8]) {
     }
 }
 
-impl Trace {
+impl<W: Write> Trace<W> {
     fn push(&mut self, tensor: Tensor, values: &[f32]) -> Result<(), Box<dyn std::error::Error>> {
         if values.len() != tensor.rows * tensor.width || values.iter().any(|x| !x.is_finite()) {
             return Err(format!("invalid/nonfinite tensor: {tensor:?}").into());
@@ -137,10 +137,108 @@ impl Trace {
     }
 }
 
+/// Compare immutable captures without executing the model again. A teacher-
+/// forced candidate is reusable only when its actual greedy choices equal
+/// the supplied input trajectory, so its saved states are self-consistent.
+fn compare_saved(
+    reference: PathBuf,
+    candidate: PathBuf,
+    trajectory: Option<PathBuf>,
+    output: PathBuf,
+    tolerance: f64,
+    fixture: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let load = |dir: &PathBuf| -> Result<Reference, Box<dyn std::error::Error>> {
+        let r: Reference = serde_json::from_slice(&std::fs::read(dir.join("trace.json"))?)?;
+        if r.version != 1
+            || (!fixture && !r.full_model)
+            || r.cases.is_empty()
+            || r.tokens == 0
+            || r.generated_ids.len() != r.cases.len()
+            || r.generated_ids.iter().any(|ids| ids.len() != r.tokens)
+            || std::fs::metadata(dir.join("tensors.f32"))?.len() != r.payload_bytes
+        {
+            return Err("invalid saved trace metadata/payload size".into());
+        }
+        Ok(r)
+    };
+    let r = load(&reference)?;
+    let c = load(&candidate)?;
+    if r.model_manifest != c.model_manifest
+        || r.cases != c.cases
+        || r.tokens != c.tokens
+        || r.full_model != c.full_model
+        || r.tensors != c.tensors
+    {
+        return Err("saved traces have different models/cases/tensor identities".into());
+    }
+    let report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(candidate.join("report.json"))?)?;
+    if report["teacher_forced"] == true {
+        let t =
+            load(&trajectory.ok_or("teacher-forced candidate requires --candidate-trajectory")?)?;
+        if t.model_manifest != c.model_manifest
+            || t.cases != c.cases
+            || t.generated_ids != c.generated_ids
+        {
+            return Err("candidate greedy IDs differ from its forced input trajectory; re-run against the intended reference".into());
+        }
+    }
+    let mut actual = BufReader::new(File::open(candidate.join("tensors.f32"))?);
+    let mut trace = Trace {
+        output: std::io::sink(),
+        reference: Some(BufReader::new(File::open(reference.join("tensors.f32"))?)),
+        expected: r.tensors,
+        tensors: vec![],
+        errors: vec![],
+        tolerance,
+        bytes: 0,
+        hash: 0xcbf29ce484222325,
+        expected_hash: Some(r.payload_fnv1a64),
+        reference_hash: 0xcbf29ce484222325,
+    };
+    for tensor in &c.tensors {
+        let mut bytes = vec![0; tensor.rows * tensor.width * 4];
+        actual.read_exact(&mut bytes)?;
+        let values = bytes
+            .chunks_exact(4)
+            .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
+            .collect::<Vec<_>>();
+        trace.push(tensor.clone(), &values)?;
+    }
+    trace.finish()?;
+    if actual.read(&mut [0])? != 0
+        || trace.bytes != c.payload_bytes
+        || format!("{:016x}", trace.hash) != c.payload_fnv1a64
+    {
+        return Err("candidate payload checksum/length mismatch".into());
+    }
+    let greedy = r.generated_ids == c.generated_ids;
+    let numerical = trace.errors.iter().all(|e| e.passed);
+    serde_json::to_writer_pretty(
+        OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(output)?,
+        &serde_json::json!({"version":1,"full_model":r.full_model,"saved_trace_comparison":true,
+            "reference":reference,"candidate":candidate,"tokens_per_case":r.tokens,
+            "reference_generated_ids":r.generated_ids,"generated_ids":c.generated_ids,
+            "greedy_match":greedy,"numerical_match":numerical,"correctness_verified":greedy && numerical,
+            "relative_rms_tolerance":tolerance,"tensor_errors":trace.errors,
+            "candidate_payload_fnv1a64":c.payload_fnv1a64,"payload_checksums_verified":true}),
+    )?;
+    if !greedy || !numerical {
+        return Err("saved trace correctness comparison failed".into());
+    }
+    println!("saved_trace_correctness_verified=true");
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (mut export, mut cases_path, mut output, mut reference_path, mut placement_path) =
         (None, None, None, None, None);
     let mut workers = Vec::<String>::new();
+    let (mut candidate, mut trajectory) = (None, None);
     let (mut tokens, mut tolerance, mut fixture) = (4usize, 0f64, false);
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
@@ -154,6 +252,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--cases" => cases_path = Some(PathBuf::from(v)),
             "--out" => output = Some(PathBuf::from(v)),
             "--reference" => reference_path = Some(PathBuf::from(v)),
+            "--candidate" => candidate = Some(PathBuf::from(v)),
+            "--candidate-trajectory" => trajectory = Some(PathBuf::from(v)),
             "--ep-placement" => placement_path = Some(PathBuf::from(v)),
             "--ep-workers" => workers = v.split(',').map(str::to_owned).collect(),
             "--tokens" => tokens = v.parse()?,
@@ -163,6 +263,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     if tokens == 0 || !tolerance.is_finite() || tolerance < 0. {
         return Err("invalid tokens/tolerance".into());
+    }
+    if let Some(candidate) = candidate {
+        return compare_saved(
+            reference_path.ok_or("--reference required")?,
+            candidate,
+            trajectory,
+            output.ok_or("--out required (new JSON file)")?,
+            tolerance,
+            fixture,
+        );
     }
     let export = export.ok_or("--export required")?;
     let output = output.ok_or("--out required (new directory)")?;
@@ -406,6 +516,90 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn saved_comparison_checks_forced_trajectory_and_candidate_checksum() {
+        let root = tempfile::tempdir().unwrap();
+        let reference = root.path().join("reference");
+        let candidate = root.path().join("candidate");
+        let payload = [1f32, 0.]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect::<Vec<_>>();
+        let mut hash = 0xcbf29ce484222325;
+        fnv(&mut hash, &payload);
+        let mut r = Reference {
+            version: 1,
+            full_model: false,
+            model_manifest: serde_json::json!({"fixture":true}),
+            cases: vec![Case {
+                name: "a".into(),
+                prompt_ids: vec![0],
+            }],
+            tokens: 1,
+            generated_ids: vec![vec![0]],
+            tensors: vec![Tensor {
+                case: "a".into(),
+                step: 0,
+                layer: None,
+                rows: 1,
+                width: 2,
+            }],
+            payload_bytes: 8,
+            payload_fnv1a64: format!("{hash:016x}"),
+        };
+        for dir in [&reference, &candidate] {
+            std::fs::create_dir(dir).unwrap();
+            std::fs::write(dir.join("trace.json"), serde_json::to_vec(&r).unwrap()).unwrap();
+            std::fs::write(dir.join("tensors.f32"), &payload).unwrap();
+            std::fs::write(dir.join("report.json"), br#"{"teacher_forced":false}"#).unwrap();
+        }
+        let compare = |trajectory, name| {
+            compare_saved(
+                reference.clone(),
+                candidate.clone(),
+                trajectory,
+                root.path().join(name),
+                0.,
+                true,
+            )
+        };
+        compare(None, "ok.json").unwrap();
+        std::fs::write(candidate.join("report.json"), br#"{"teacher_forced":true}"#).unwrap();
+        assert!(compare(None, "missing.json")
+            .unwrap_err()
+            .to_string()
+            .contains("trajectory"));
+        compare(Some(reference.clone()), "forced.json").unwrap();
+        r.generated_ids[0][0] = 1;
+        std::fs::write(
+            candidate.join("trace.json"),
+            serde_json::to_vec(&r).unwrap(),
+        )
+        .unwrap();
+        assert!(compare(Some(reference.clone()), "wrong.json")
+            .unwrap_err()
+            .to_string()
+            .contains("forced input"));
+        r.generated_ids[0][0] = 0;
+        std::fs::write(
+            candidate.join("trace.json"),
+            serde_json::to_vec(&r).unwrap(),
+        )
+        .unwrap();
+        std::fs::write(
+            candidate.join("tensors.f32"),
+            [2f32, 0.]
+                .into_iter()
+                .flat_map(f32::to_le_bytes)
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        assert!(compare(Some(reference.clone()), "corrupt.json")
+            .unwrap_err()
+            .to_string()
+            .contains("checksum"));
+    }
 
     fn with_reference(run: impl FnOnce(&mut Trace, Tensor)) {
         let dir = tempfile::tempdir().unwrap();

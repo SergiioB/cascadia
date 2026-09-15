@@ -110,6 +110,7 @@ def main():
     for host in ['alpha','beta','charlie']:
         assert audit[host]['health']==dict(live=200,ready=200)
         assert audit[host]['task_processes_absent'] and audit[host]['firewall_absent']
+        assert audit[host]['task_listeners_absent']
         assert audit[host]['free_gib']>=80
     cleanup=read(root/'miner-source-cleanup.json')
     assert cleanup['temporary_rules_remaining']==0 and cleanup['other_firewall_rules_unchanged']

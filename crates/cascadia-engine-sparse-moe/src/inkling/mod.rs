@@ -71,6 +71,7 @@ pub mod ep;
 pub mod ep_fused;
 pub mod ep_placement;
 mod expert_cache;
+mod f16_reference;
 pub mod ffn;
 pub mod gate;
 pub mod loader;
