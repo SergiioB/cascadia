@@ -30,6 +30,14 @@ pub const GLM5_DEFAULT_MAX_SEQ: usize = 4096;
 /// always-active shared expert). ~4x top_k covers the common routes.
 const PREFETCH_EXPERTS: usize = 32;
 
+/// Minimum batch rows before Gated prefill layer streaming engages. Below
+/// this, the batch's routed union is a small fraction of the next layer's
+/// expert set and whole-layer warming would over-read (see
+/// `forward_layers_batch`). The threshold is a heuristic: at the production
+/// expert count a batch this wide draws enough routes to approach whole-set
+/// coverage.
+const PREFILL_STREAM_MIN_ROWS: usize = 64;
+
 /// The layer range `[lo, hi)` that rank `rank` of `total` owns.
 ///
 /// Single source of truth for the split: [`GlmRunner::load_staged`] derives its
@@ -246,6 +254,47 @@ impl StageOpts {
     }
 }
 
+/// Prefill layer-streaming mode, from `CASCADIA_GLM5_PREFILL_STREAM`.
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub(crate) enum PrefillStream {
+    /// Warm only routed experts whose pages probe non-resident (production).
+    Gated,
+    /// Warm every routed expert of the next layer (`=all`) — deterministic
+    /// coverage for tests and an A/B lever for the residency gate.
+    All,
+}
+
+/// Parse `CASCADIA_GLM5_PREFILL_STREAM`. Off-values follow
+/// [`crate::glm::env_flag`]; `all` disables the residency gate; anything else
+/// enables gated streaming.
+fn parse_prefill_stream(v: Option<&str>) -> Option<PrefillStream> {
+    let v = v.map(str::trim).unwrap_or("");
+    if v.is_empty()
+        || v == "0"
+        || v.eq_ignore_ascii_case("false")
+        || v.eq_ignore_ascii_case("no")
+        || v.eq_ignore_ascii_case("off")
+    {
+        None
+    } else if v.eq_ignore_ascii_case("all") {
+        Some(PrefillStream::All)
+    } else {
+        Some(PrefillStream::Gated)
+    }
+}
+
+/// Resolve the effective prefill-stream mode for a batch of `rows` rows.
+/// `Gated` stands down below [`PREFILL_STREAM_MIN_ROWS`] (a narrow batch's
+/// routed union is a small fraction of the next layer, so whole-layer warming
+/// would over-read cold bins the prefill never touches); `All` ignores the
+/// threshold (the deterministic test/bench lever); `None` stays off.
+fn prefill_stream_gate(mode: Option<PrefillStream>, rows: usize) -> Option<PrefillStream> {
+    match mode {
+        Some(PrefillStream::Gated) if rows < PREFILL_STREAM_MIN_ROWS => None,
+        m => m,
+    }
+}
+
 pub struct GlmRunner {
     embed: Option<WideTable>,            // [vocab, hidden] on rank 0
     layers: Vec<GlmLayer>,               // this rank's slice
@@ -269,8 +318,31 @@ pub struct GlmRunner {
     /// does REAL cross-layer reads of the predicted, non-resident experts
     /// (warming the OS page cache) so demand faults hit the cache. Predicts via
     /// the next layer's own router on an attention-free proxy. `Some` only on an
-    /// mmap-expert rank with the env set. Takes precedence over `prefetch`.
+    /// mmap-expert rank when a consumer flag is set (decode lookahead and/or
+    /// prefill streaming — the worker is shared). On the decode path it takes
+    /// precedence over `prefetch` only when `lookahead_decode` is set; with just
+    /// prefill streaming on, decode still falls through to `prefetch`.
     lookahead: Option<super::lookahead::Lookahead>,
+    /// Decode-side router-proxy lookahead enabled (CASCADIA_GLM5_LOOKAHEAD).
+    /// Kept separate from `lookahead`'s presence because the prefill streamer
+    /// below shares the same worker without opting into decode prediction.
+    lookahead_decode: bool,
+    /// Prefill layer streaming (CASCADIA_GLM5_PREFILL_STREAM): while the
+    /// batch-union prefill computes layer i, the lookahead worker sequentially
+    /// warms layer i+1's not-yet-resident routed bins, so prefill's expert
+    /// reads overlap compute instead of serializing between layers —
+    /// FreeToken's full-layer double buffering (arXiv:2608.16157) on the OS
+    /// page cache. No routing prediction: prefill touches most of the next
+    /// layer's experts, so the whole (cold) set is warmed. Best-effort and
+    /// output-identical. `All` skips the residency gate (tests / bench lever).
+    prefill_stream: Option<PrefillStream>,
+    /// Running count of routed-expert warms enqueued by prefill streaming.
+    /// Diagnostic + test hook: a non-zero value proves streaming actually
+    /// engaged (enqueued work) rather than standing down or no-op'ing; stays 0
+    /// when the feature is off, on a non-mmap rank, or gated below the row
+    /// threshold. Distinct from the worker's warmed/dropped counters, which are
+    /// async and best-effort.
+    stream_enqueued: u64,
     /// Per-rank KV-prefix cache of this rank's layer slice, keyed by a prefix key
     /// rank 0 assigns. Disabled (cap 0) unless `CASCADIA_GLM5_PREFIX_CACHE` is set.
     prefix_cache: SliceKvCache,
@@ -524,13 +596,46 @@ impl GlmRunner {
         let lookahead_on = opts
             .lookahead
             .unwrap_or_else(|| crate::glm::env_flag("CASCADIA_GLM5_LOOKAHEAD"));
-        let lookahead = if mode == ExpertsMode::Mmap && lookahead_on {
+        // Prefill layer streaming shares the same worker; mmap ranks only
+        // (eager/bf16 experts have nothing to warm).
+        let prefill_stream_requested = parse_prefill_stream(
+            std::env::var("CASCADIA_GLM5_PREFILL_STREAM")
+                .ok()
+                .as_deref(),
+        );
+        let prefill_stream = if mode == ExpertsMode::Mmap {
+            prefill_stream_requested
+        } else {
+            // Requested but the experts aren't mmap: nothing to warm. Say so,
+            // otherwise the flag is silently ignored (no worker line appears)
+            // and the operator can't tell it was dropped vs never engaged.
+            if prefill_stream_requested.is_some() {
+                eprintln!(
+                    "[glm5] rank {rank}: CASCADIA_GLM5_PREFILL_STREAM set but experts \
+                     are not mmap; prefill streaming ignored (nothing to warm)"
+                );
+            }
+            None
+        };
+        let lookahead = if mode == ExpertsMode::Mmap && (lookahead_on || prefill_stream.is_some()) {
             let table: super::lookahead::LookaheadTable = s
                 .layers
                 .iter()
                 .map(|l| l.moe().map(|ml| ml.expert_bins()))
                 .collect();
-            eprintln!("[glm5] rank {rank}: lookahead prefetch thread started");
+            // Log the resolved prefill-stream mode, not just on/off: `all` and
+            // `gated` behave differently (gated is residency- and row-gated), so
+            // an `all` A/B lever silently downgraded to `gated` by a typo
+            // (parse_prefill_stream falls unknown values through to Gated) must
+            // be visible here.
+            let prefill_stream_label = match prefill_stream {
+                Some(PrefillStream::All) => "all",
+                Some(PrefillStream::Gated) => "gated",
+                None => "off",
+            };
+            eprintln!(
+                "[glm5] rank {rank}: lookahead prefetch thread started (decode={lookahead_on} prefill_stream={prefill_stream_label})"
+            );
             Some(super::lookahead::Lookahead::new(table))
         } else {
             None
@@ -552,6 +657,9 @@ impl GlmRunner {
             usage_path,
             prefetch: crate::glm::env_flag("CASCADIA_GLM5_PREFETCH"),
             lookahead,
+            lookahead_decode: lookahead_on,
+            prefill_stream,
+            stream_enqueued: 0,
             prefix_cache: SliceKvCache::new(
                 opts.prefix_cache_depth
                     .map(|d| d as usize)
@@ -666,11 +774,82 @@ impl GlmRunner {
         residency::pin_expert_count(residency::mem_available(), resident, kv, eb)
     }
 
+    /// Enqueue local layer `li`'s routed experts for the lookahead worker to
+    /// warm — the whole set under `All`, only the not-yet-resident ones under
+    /// `Gated` (the residency probe costs microseconds; re-reading an
+    /// already-resident bin wastes read/copy work). Shared experts are excluded
+    /// like the decode lookahead: the shared expert is a standing pin candidate,
+    /// not a routed bin the worker warms.
+    /// Returns the number of experts enqueued (0 for a dense layer or when
+    /// every expert is resident under `Gated`).
+    fn stream_enqueue_layer(
+        lk: &super::lookahead::Lookahead,
+        layers: &[GlmLayer],
+        li: usize,
+        mode: PrefillStream,
+    ) -> u64 {
+        let mut n = 0;
+        if let Some(m) = layers[li].moe() {
+            for e in 0..m.n_experts as u32 {
+                if mode == PrefillStream::All || m.expert_cold(e) {
+                    lk.enqueue(li, e);
+                    n += 1;
+                }
+            }
+        }
+        n
+    }
+
+    /// One-shot note that gated prefill streaming stood down for a batch
+    /// narrower than [`PREFILL_STREAM_MIN_ROWS`] — the cause of a warmed=0 on
+    /// narrow prompts (whole-layer warming only pays off on wide batches).
+    fn warn_prefill_stream_narrow_batch(rows: usize) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        W.call_once(|| {
+            eprintln!(
+                "[glm5] prefill_stream: gated streaming stands down below \
+                 {PREFILL_STREAM_MIN_ROWS} rows (this batch: {rows}); wide-batch \
+                 prefill is where whole-layer warming pays off. Set \
+                 CASCADIA_GLM5_PREFILL_STREAM=all to force it."
+            );
+        });
+    }
+
+    /// One-shot warning when gated prefill streaming stands down because the
+    /// residency probe is unavailable (every expert reads as resident, so
+    /// nothing is enqueued). Silent when experts are genuinely resident (a
+    /// correct no-op). Mirrors [`super::moe::MoeLayer::warn_if_probe_unavailable`].
+    fn warn_prefill_stream_probe_dead(layers: &[GlmLayer]) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        W.call_once(|| {
+            let dead = layers
+                .iter()
+                .filter_map(GlmLayer::moe)
+                .any(|m| m.residency_probe_dead());
+            if dead {
+                eprintln!(
+                    "[glm5] prefill_stream: residency probe unavailable on this \
+                     platform; gated streaming stands down (warmed nothing). Set \
+                     CASCADIA_GLM5_PREFILL_STREAM=all to bypass the gate."
+                );
+            }
+        });
+    }
+
     /// Persist the learned-pin routing histogram to `<dir>/.coli_usage` so the
     /// next run mlocks a better initial set ("faster the more you use it").
     /// Each node writes its own file (it only records its own layers); best-effort.
     pub fn save_usage(&self) -> std::io::Result<()> {
         self.usage.lock().unwrap().save(&self.usage_path)
+    }
+
+    /// Total routed-expert warms enqueued by prefill streaming so far. A
+    /// non-zero value proves the streaming path actually engaged rather than
+    /// standing down or no-op'ing (test/diagnostic hook).
+    pub fn stream_enqueued(&self) -> u64 {
+        self.stream_enqueued
     }
 }
 
@@ -768,7 +947,7 @@ impl StagedRunner for GlmRunner {
         // output is identical whether or not it fires.
         let n = self.layers.len();
         for i in 0..n {
-            if let Some(lookahead) = &self.lookahead {
+            if let (true, Some(lookahead)) = (self.lookahead_decode, self.lookahead.as_ref()) {
                 // Async lookahead: mark the current layer, compute it, then
                 // predict layer i+1's experts (its router on an attention-free
                 // proxy of i's output) and enqueue the non-resident ones for the
@@ -820,8 +999,49 @@ impl StagedRunner for GlmRunner {
         // Each layer runs per-position attention (KV in order) + batch-union MoE.
         let mut x = hidden;
         let mut carries: Vec<Option<Vec<usize>>> = vec![None; rows]; // per-row IndexShare
-        for l in &mut self.layers {
-            x = l.forward_prefill(&x, rows, &mut carries);
+        let n = self.layers.len();
+        // Prefill layer streaming (FreeToken-style double buffering,
+        // arXiv:2608.16157): warm layer i+1's cold routed bins while layer i
+        // computes, and layer 0's before the loop so its warm overlaps layer
+        // 0's per-row attention. Enqueue-only + best-effort — output is
+        // identical whether or not a warm lands in time.
+        //
+        // Whole-layer warming assumes the batch's routed union covers most of
+        // the next layer — true for wide batches, which draw enough routes to
+        // approach whole-set coverage at the production expert count. A narrow
+        // batch's union is far smaller, so the warm would over-read cold bins
+        // the prefill never touches; Gated streaming stands down below the row
+        // threshold. `All` stays unconditional: it is the explicit test/bench
+        // lever.
+        let stream = prefill_stream_gate(self.prefill_stream, rows);
+        // Gated but stood down for this batch's width: note once so a warmed=0
+        // on narrow batches has a cause (wide-batch prefill is where
+        // whole-layer warming pays off; `=all` forces it regardless).
+        if self.prefill_stream == Some(PrefillStream::Gated) && stream.is_none() {
+            Self::warn_prefill_stream_narrow_batch(rows);
+        }
+        let mut enq: u64 = 0;
+        if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
+            lk.set_cur_layer(0);
+            enq += Self::stream_enqueue_layer(lk, &self.layers, 0, mode);
+        }
+        for i in 0..n {
+            if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
+                lk.set_cur_layer(i);
+                if i + 1 < n {
+                    enq += Self::stream_enqueue_layer(lk, &self.layers, i + 1, mode);
+                }
+            }
+            x = self.layers[i].forward_prefill(&x, rows, &mut carries);
+        }
+        self.stream_enqueued += enq;
+        // Gated streaming enqueued nothing: if the residency probe is dead the
+        // gate reports every expert resident, so the feature silently stands
+        // down. Warn once so the operator isn't left with warmed=0 and no cause
+        // (mirrors the hot/cold path's probe-unavailable warning). Genuinely
+        // resident experts are a correct no-op and stay silent.
+        if stream == Some(PrefillStream::Gated) && enq == 0 {
+            Self::warn_prefill_stream_probe_dead(&self.layers);
         }
         self.pos += rows;
         x
@@ -839,6 +1059,72 @@ impl StagedRunner for GlmRunner {
 #[cfg(test)]
 mod tests {
     use super::WideTable;
+    use super::{
+        parse_prefill_stream, prefill_stream_gate, PrefillStream, PREFILL_STREAM_MIN_ROWS,
+    };
+
+    /// `CASCADIA_GLM5_PREFILL_STREAM` parsing: off-values match `env_flag`'s
+    /// off set, `all` skips the residency gate, anything else gates.
+    #[test]
+    fn prefill_stream_env_parse() {
+        for off in [
+            None,
+            Some(""),
+            Some("0"),
+            Some("false"),
+            Some("no"),
+            Some("OFF"),
+        ] {
+            assert_eq!(parse_prefill_stream(off), None, "{off:?} must disable");
+        }
+        for all in ["all", "ALL", " all "] {
+            assert_eq!(parse_prefill_stream(Some(all)), Some(PrefillStream::All));
+        }
+        for on in ["1", "true", "gated", "yes"] {
+            assert_eq!(
+                parse_prefill_stream(Some(on)),
+                Some(PrefillStream::Gated),
+                "{on:?} must gate"
+            );
+        }
+    }
+
+    /// The row-threshold gate: `Gated` stands down below
+    /// `PREFILL_STREAM_MIN_ROWS`, engages at/above it; `All` ignores the
+    /// threshold; `None` stays off — regardless of row count.
+    #[test]
+    fn prefill_stream_gate_row_threshold() {
+        let min = PREFILL_STREAM_MIN_ROWS;
+        // Gated stands down strictly below the threshold, engages at the
+        // boundary and above (guards the `<` vs `<=` and the constant).
+        for rows in [0, 1, min - 1] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::Gated), rows),
+                None,
+                "Gated must stand down at {rows} rows (< {min})"
+            );
+        }
+        for rows in [min, min + 1, 4096] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::Gated), rows),
+                Some(PrefillStream::Gated),
+                "Gated must engage at {rows} rows (>= {min})"
+            );
+        }
+        // All is unconditional; None stays off — at every row count.
+        for rows in [0, 1, min - 1, min, 4096] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::All), rows),
+                Some(PrefillStream::All),
+                "All must ignore the threshold at {rows} rows"
+            );
+            assert_eq!(
+                prefill_stream_gate(None, rows),
+                None,
+                "None must stay off at {rows} rows"
+            );
+        }
+    }
 
     /// The bf16 edge table must round-trip its rows and produce logits within
     /// bf16 tolerance of the f32 path — the opt-in `CASCADIA_GLM5_BF16_HEAD`
