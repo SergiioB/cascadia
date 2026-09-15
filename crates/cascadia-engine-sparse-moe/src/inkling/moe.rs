@@ -16,19 +16,24 @@
 //!
 //! Expert I/O (the mmap'd real model): after routing, every expert the token
 //! touches — the `top_k` routed plus both shared — is prefetched
-//! (`madvise(WILLNEED)` / `PrefetchVirtualMemory`) and then read whole,
-//! concurrently (rayon over the selection, one sequential `read` per bin), and
-//! the GEMVs run from those buffers — glm's light-R1 path
+//! (`madvise(WILLNEED)` / `PrefetchVirtualMemory`). An mmap'd expert whose
+//! pages are NOT mostly resident (a 64-page `mincore` sample, see
+//! [`MmapExpert::mostly_resident`](crate::dsv4::expert_mmap::MmapExpert::mostly_resident))
+//! is then streamed whole into an owned buffer, concurrently with the others
+//! (rayon over the selection, one sequential `read` per bin), and its GEMV
+//! runs from that buffer — glm's light-R1 path
 //! ([`MmapExpert::read_bytes`](crate::dsv4::expert_mmap::MmapExpert::read_bytes)
-//! → `swiglu_from`). The bytes are the mmap's bytes and the kernel is the
+//! → `swiglu_from`). An expert already resident is computed straight off the
+//! mapping (the whole-bin copy would only cost when the pages are already in
+//! RAM). Either way the bytes are the mmap's bytes and the kernel is the
 //! same, so the output is bit-identical to faulting the pages in mid-GEMV one
-//! expert at a time; only the disk sees the difference (8 experts in flight
-//! instead of one). `CASCADIA_INKLING_SEQ_READS=1` restores the serial
-//! fault-on-touch behaviour (the family's escape hatch; glm's
-//! `CASCADIA_GLM5_R1READ` is the same switch with the opposite default). The
-//! batch-union prefill prefetches every expert with rows before its expert
-//! pass and computes from the mmap (each expert's pages are touched once per
-//! block anyway).
+//! expert at a time; only the disk sees the difference (paged-out experts in
+//! flight together instead of one). `CASCADIA_INKLING_SEQ_READS=1` forces the
+//! straight-off-mapping (fault-on-touch) path for every expert, resident or
+//! not (the family's escape hatch; glm's `CASCADIA_GLM5_R1READ` is the same
+//! switch with the opposite default). The batch-union prefill prefetches every
+//! expert with rows before its expert pass and computes from the mmap (each
+//! expert's pages are touched once per block anyway).
 //!
 //! Expert-parallel (remote) experts: a layer built with
 //! [`ExpertSet::None`](super::loader::ExpertSet::None) holds the router only
