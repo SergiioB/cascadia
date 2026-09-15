@@ -20,8 +20,11 @@ use cascadia_engine_sparse_moe::dist::{
 };
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
 use cascadia_engine_sparse_moe::inkling::ep::{
-    expert_home, load_expert_bank, EpClient, ExpertBank, ExpertWorkerEngine,
+    expert_home, load_expert_bank, load_expert_bank_with_placement, EpClient, ExpertBank,
+    ExpertWorkerEngine,
 };
+use cascadia_engine_sparse_moe::inkling::ep_placement::{EpPlacement, EpWorkerCost};
+use cascadia_engine_sparse_moe::inkling::loader::InklingManifest;
 use cascadia_engine_sparse_moe::inkling::loader::{load_model_with, read_manifest};
 use cascadia_engine_sparse_moe::inkling::model::argmax;
 use cascadia_engine_sparse_moe::inkling::stage::InklingRunner;
@@ -315,25 +318,199 @@ fn driver_with_two_workers_matches_single_process_on_mmap_experts() {
 }
 
 fn driver_vs_single_process(mode: &str, experts: ExpertsMode) {
+    driver_vs_single_process_placed(mode, experts, false);
+}
+
+fn replicated_placement(m: &InklingManifest, workers: usize) -> EpPlacement {
+    EpPlacement {
+        version: 1,
+        hidden_size: m.hidden_size,
+        moe_intermediate: m.moe_intermediate,
+        num_experts: m.num_experts,
+        n_shared_experts: m.n_shared_experts,
+        expert_bytes: 3 * m.hidden_size as u64 * m.moe_intermediate as u64 * 9 / 16,
+        workers: (0..workers)
+            .map(|wi| EpWorkerCost {
+                name: format!("worker-{wi}"),
+                expert_capacity_bytes: 1 << 30,
+                read_us: 10.0,
+                compute_us: 1.0,
+                dispatch_us: 2.0,
+            })
+            .collect(),
+        layers: (0..m.num_layers)
+            .map(|li| {
+                if m.dense_layers.contains(&li) {
+                    return vec![];
+                }
+                (0..m.num_experts + m.n_shared_experts)
+                    .map(|id| {
+                        if id >= m.num_experts {
+                            (0..workers).collect()
+                        } else {
+                            vec![(id + li) % workers]
+                        }
+                    })
+                    .collect()
+            })
+            .collect(),
+    }
+}
+
+#[test]
+fn replicated_shared_experts_and_layer_placement_preserve_full_model_bits() {
+    driver_vs_single_process_placed("mmap", ExpertsMode::Mmap, true);
+}
+
+#[test]
+fn placement_checks_capacity_coverage_dimensions_and_costs() {
+    let m = read_manifest(&export_dir()).unwrap();
+    let p = replicated_placement(&m, 3);
+    p.validate(&m, 3).unwrap();
+    let li = m.dense_layers.len();
+    let mut bad = p.clone();
+    bad.layers[li][0].clear();
+    assert!(bad.validate(&m, 3).unwrap_err().contains("no owner"));
+    let mut bad = p.clone();
+    bad.layers[li][0] = vec![3];
+    assert!(bad.validate(&m, 3).is_err());
+    let mut bad = p.clone();
+    bad.layers[li][0] = vec![1, 1];
+    assert!(bad.validate(&m, 3).is_err());
+    let mut bad = p.clone();
+    bad.workers[0].expert_capacity_bytes = 1;
+    assert!(bad.validate(&m, 3).unwrap_err().contains("exceed budget"));
+    let mut bad = p.clone();
+    bad.workers[0].read_us = f64::NAN;
+    assert!(bad.validate(&m, 3).is_err());
+    let mut bad = p.clone();
+    bad.hidden_size += 32;
+    assert!(bad.validate(&m, 3).is_err());
+    assert!(p.validate(&m, 2).is_err());
+    let mut bad = p.clone();
+    bad.expert_bytes = 1;
+    assert!(
+        load_expert_bank_with_placement(&export_dir(), 0, 3, ExpertsMode::Mmap, Some(&bad))
+            .is_err()
+    );
+}
+
+#[test]
+fn replicas_avoid_fixed_owner_collisions_and_account_for_worker_cost() {
+    let m = read_manifest(&export_dir()).unwrap();
+    let mut p = replicated_placement(&m, 3);
+    let li = m.dense_layers.len();
+    p.layers[li][0] = vec![0];
+    p.layers[li][1] = vec![0];
+    // Shared replicas must avoid rank 0, where two fixed routed reads land.
+    let shared = m.num_experts;
+    let rows = vec![vec![(shared, 0.2), (0, 0.1), (1, 0.3), (shared + 1, 0.4)]];
+    let owners = p.assign(li, &rows).unwrap();
+    assert_eq!(
+        (owners[0], owners[1], owners[shared], owners[shared + 1]),
+        (0, 0, 1, 2)
+    );
+    p.workers[1].read_us = 1000.0;
+    let owners = p.assign(li, &rows).unwrap();
+    assert_eq!(owners[shared], 2);
+    assert_ne!(owners[shared + 1], 1);
+    assert_eq!(owners, p.assign(li, &rows).unwrap());
+}
+
+#[test]
+fn dispatch_compacts_empty_rows_and_preserves_duplicate_slot_order() {
+    let rt = runtime();
+    let mut clients = Vec::new();
+    let mut tasks = Vec::new();
+    for wi in 0..2 {
+        let (server, client) = rt.block_on(loopback());
+        clients.push(client);
+        tasks.push(rt.spawn(async move {
+            assert_eq!(
+                recv_kind_server(&server).await.unwrap(),
+                Some(FrameKind::ExpertDispatch)
+            );
+            let body = recv_expert_dispatch_body_server(&server).await.unwrap();
+            assert_eq!(body.rows, 2, "empty rows must not reach worker {wi}");
+            assert_eq!(
+                body.hidden,
+                if wi == 0 {
+                    vec![3.0, 4.0, 7.0, 8.0]
+                } else {
+                    vec![1.0, 2.0, 7.0, 8.0]
+                }
+            );
+            let mut out = vec![0.0; body.ids.len() * 2];
+            for (slot, &id) in body.ids.iter().enumerate() {
+                if id == EXPERT_PAD {
+                    continue;
+                }
+                for j in 0..2 {
+                    out[slot * 2 + j] =
+                        body.hidden[(slot / body.k as usize) * 2 + j] + id as f32 * 100.0;
+                }
+            }
+            send_expert_result_ok(&server, body.rows, body.k, 2, &out)
+                .await
+                .unwrap();
+        }));
+    }
+    let ep = EpClient::new(clients.clone(), rt.handle().clone(), 2, 2, 0);
+    let rows = vec![
+        vec![(1, 0.5)],
+        vec![(0, 0.25)],
+        vec![],
+        vec![(1, 0.5), (0, 0.25), (1, -0.125)],
+    ];
+    let out = ep
+        .dispatch(0, &[1., 2., 3., 4., 5., 6., 7., 8.], &rows)
+        .unwrap();
+    assert_eq!(
+        out,
+        vec![
+            50.5,
+            51.,
+            0.75,
+            1.,
+            0.,
+            0.,
+            (0.5 * 107. + 0.25 * 7.) - 0.125 * 107.,
+            (0.5 * 108. + 0.25 * 8.) - 0.125 * 108.
+        ]
+    );
+    for t in tasks {
+        rt.block_on(t).unwrap();
+    }
+    close_all(&rt, &clients);
+}
+
+fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: bool) {
     let Some((prompt, want)) = reference() else {
         return;
     };
     let dir = export_dir();
     let m = read_manifest(&dir).unwrap();
     let rt = runtime();
-    const W: u32 = 2;
-    let banks: Vec<ExpertBank> = (0..W)
-        .map(|k| load_expert_bank(&dir, k, W, experts).unwrap())
+    let w: u32 = if placed { 3 } else { 2 };
+    let placement = placed.then(|| Arc::new(replicated_placement(&m, w as usize)));
+    let banks: Vec<ExpertBank> = (0..w)
+        .map(|k| {
+            load_expert_bank_with_placement(&dir, k, w, experts, placement.as_deref()).unwrap()
+        })
         .collect();
     let (clients, threads) = spawn_workers(&rt, banks);
-    let ep = Arc::new(EpClient::new(
+    let mut ep = EpClient::new(
         clients.clone(),
         rt.handle().clone(),
         m.hidden_size,
         m.num_experts,
         m.n_shared_experts,
-    ));
-    assert_eq!(ep.n_workers(), W as usize);
+    );
+    if let Some(p) = placement {
+        ep = ep.with_placement(p, &m).unwrap();
+    }
+    let ep = Arc::new(ep);
+    assert_eq!(ep.n_workers(), w as usize);
     let max_seq = 320;
     let mut driver = InklingRunner::load_staged(
         &dir,
@@ -390,7 +567,7 @@ fn driver_vs_single_process(mode: &str, experts: ExpertsMode) {
     }
     assert_eq!(got, want, "EP driver greedy ids vs HF reference");
     eprintln!(
-        "inkling EP (2 workers, loopback TCP, {mode} experts): per-layer wall time \
+        "inkling EP ({w} workers, loopback TCP, {mode} experts): per-layer wall time \
          {:.1} us (driver) vs {:.1} us (single process); {steps} decode steps × {n_layers} layers",
         t_ep.as_secs_f64() * 1e6 / (steps * n_layers) as f64,
         t_local.as_secs_f64() * 1e6 / (steps * n_layers) as f64,
@@ -463,7 +640,7 @@ fn driver_vs_single_process(mode: &str, experts: ExpertsMode) {
         ep.dispatch(li, &x, std::slice::from_ref(&ids)).unwrap();
     }
     eprintln!(
-        "inkling EP dispatch RTT ({mode}): {:.1} us per MoE layer (1 row, {} experts over {W} \
+        "inkling EP dispatch RTT ({mode}): {:.1} us per MoE layer (1 row, {} experts over {w} \
          workers, loopback TCP)",
         t0.elapsed().as_secs_f64() * 1e6 / rounds as f64,
         ids.len()

@@ -14,13 +14,14 @@
 //! driver reads no expert weights at all), which makes the result
 //! bit-identical to the single-process [`MoeLayer`](super::moe::MoeLayer).
 //!
-//! Placement is deterministic and manifest-free: [`expert_home`]`(id, W) =
+//! Default placement is deterministic and manifest-free: [`expert_home`]`(id, W) =
 //! id % W`, with ids `0..n_routed` for routed experts and `n_routed + s` for
 //! the shared ones. The layer index is ignored on purpose, so worker `k` owns
 //! the same ids in every layer and `--ep-worker-index k` needs no table.
 //!
-//! Wire: every involved worker gets every row of the frame (a row is 24 KB;
-//! the simplicity is worth it), padded with [`EXPERT_PAD`] to the max slots
+//! An optional [`EpPlacement`] supplies capacity-checked replicas and calibrated
+//! worker costs. Replica selection keeps each unique expert's rows together.
+//! Wire: every involved worker gets only its active rows, padded with [`EXPERT_PAD`] to the max slots
 //! any row needs from THAT worker. Frames carry at most
 //! [`MAX_BATCH_COUNT`] rows; longer prefills are chunked by the driver. All
 //! involved workers of a layer are dispatched and awaited together (one
@@ -28,7 +29,7 @@
 //! never serially. A worker that receives any other frame kind replies
 //! `ExpertResult{status 1}` and keeps serving.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -43,9 +44,13 @@ use rayon::prelude::*;
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{info, warn};
 
+use super::ep_placement::EpPlacement;
 use super::ffn::AnyExpert;
-use super::loader::{load_moe_experts, read_manifest, ExpertSet};
+use super::loader::{
+    load_moe_experts, load_moe_experts_filtered, read_manifest, ExpertSet, InklingManifest,
+};
 use super::moe::seq_reads;
+use super::ov_expert::OvExperts;
 use crate::dist::{
     recv_expert_dispatch_body_server, recv_expert_result_body_client, recv_key_body_server,
     recv_kind_client, recv_kind_server, send_expert_dispatch, send_expert_result_err,
@@ -94,6 +99,7 @@ pub struct EpClient {
     hidden: usize,
     n_routed: usize,
     n_shared: usize,
+    placement: Option<Arc<EpPlacement>>,
 }
 
 /// One worker's share of a frame: the ids it serves per row, padded to `k`.
@@ -101,6 +107,7 @@ struct WorkerPlan {
     worker: usize,
     k: usize,
     ids: Vec<i32>,
+    hidden_rows: Vec<f32>,
 }
 
 impl EpClient {
@@ -123,7 +130,26 @@ impl EpClient {
             hidden,
             n_routed,
             n_shared,
+            placement: None,
         }
+    }
+
+    /// Opt in to explicit placement. Validate before loading/dispatching any
+    /// weights, including when constructed outside the CLI.
+    pub fn with_placement(
+        mut self,
+        placement: Arc<EpPlacement>,
+        model: &InklingManifest,
+    ) -> Result<Self, String> {
+        placement.validate(model, self.workers.len())?;
+        if self.hidden != model.hidden_size
+            || self.n_routed != model.num_experts
+            || self.n_shared != model.n_shared_experts
+        {
+            return Err("EP client dimensions do not match placement model".into());
+        }
+        self.placement = Some(placement);
+        Ok(self)
     }
 
     pub fn n_workers(&self) -> usize {
@@ -211,13 +237,23 @@ impl EpClient {
         out: &mut [f32],
     ) -> Result<(), String> {
         let (h, n, w) = (self.hidden, per_row.len(), self.workers.len());
+        let started = Instant::now();
+        let homes = match &self.placement {
+            Some(p) => p.assign(layer as usize, per_row)?,
+            None => (0..self.n_routed + self.n_shared)
+                .map(|id| expert_home(id, w))
+                .collect(),
+        };
         // Per worker, per row: the ids it serves, in gate order.
         let mut slots: Vec<Vec<Vec<i32>>> = vec![vec![Vec::new(); n]; w];
         for (r, list) in per_row.iter().enumerate() {
             for &(id, _) in list {
-                slots[expert_home(id, w)][r].push(id as i32);
+                slots[homes[id]][r].push(id as i32);
             }
         }
+        // Map original row -> compact row on each worker. Empty rows never
+        // cross the network, including padded result vectors for those rows.
+        let mut row_map = vec![vec![usize::MAX; n]; w];
         let plans: Vec<WorkerPlan> = slots
             .iter()
             .enumerate()
@@ -226,27 +262,49 @@ impl EpClient {
                 if k == 0 {
                     return None; // uninvolved: no frame at all
                 }
-                let mut ids = vec![EXPERT_PAD; n * k];
+                let active = rows_ids.iter().filter(|s| !s.is_empty()).count();
+                let mut ids = vec![EXPERT_PAD; active * k];
+                let mut hidden_rows = Vec::with_capacity(active * h);
+                let mut compact = 0;
                 for (r, s) in rows_ids.iter().enumerate() {
-                    ids[r * k..r * k + s.len()].copy_from_slice(s);
+                    if s.is_empty() {
+                        continue;
+                    }
+                    row_map[wi][r] = compact;
+                    ids[compact * k..compact * k + s.len()].copy_from_slice(s);
+                    hidden_rows.extend_from_slice(&rows[r * h..(r + 1) * h]);
+                    compact += 1;
                 }
-                Some(WorkerPlan { worker: wi, k, ids })
+                Some(WorkerPlan {
+                    worker: wi,
+                    k,
+                    ids,
+                    hidden_rows,
+                })
             })
             .collect();
-        let (rows_u32, h_u32) = (n as u32, h as u32);
         // All involved workers in flight together; each future locks only its
         // own connection. join_all (not try_join_all) so every reply is read
         // even when one worker fails — the other links stay frame-aligned.
         let results: Vec<Result<Vec<f32>, String>> =
             cascadia_runner::run_async(&self.handle, async {
-                let futs =
-                    plans.iter().map(|p| {
-                        let cli = Arc::clone(&self.workers[p.worker]);
-                        let (wi, k, ids) = (p.worker, p.k as u32, &p.ids);
-                        async move {
-                            Self::round_trip(&cli, wi, layer, rows_u32, k, h_u32, rows, ids).await
-                        }
-                    });
+                let futs = plans.iter().map(|p| {
+                    let cli = Arc::clone(&self.workers[p.worker]);
+                    let (wi, k, ids) = (p.worker, p.k as u32, &p.ids);
+                    async move {
+                        Self::round_trip(
+                            &cli,
+                            wi,
+                            layer,
+                            (p.hidden_rows.len() / h) as u32,
+                            k,
+                            h as u32,
+                            &p.hidden_rows,
+                            ids,
+                        )
+                        .await
+                    }
+                });
                 futures::future::join_all(futs).await
             });
         let mut data: Vec<Option<(usize, Vec<f32>)>> = (0..w).map(|_| None).collect();
@@ -270,18 +328,28 @@ impl EpClient {
             let o = &mut out[r * h..(r + 1) * h];
             o.fill(0.0);
             for &(id, wj) in list {
-                let wi = expert_home(id, w);
+                let wi = homes[id];
                 let (k, d) = data[wi]
                     .as_ref()
                     .expect("an id's home worker is always involved");
                 let j = cursor[wi];
                 cursor[wi] += 1;
-                let y = &d[(r * k + j) * h..(r * k + j + 1) * h];
+                let compact = row_map[wi][r];
+                let y = &d[(compact * k + j) * h..(compact * k + j + 1) * h];
                 for (oo, &yi) in o.iter_mut().zip(y) {
                     *oo += wj * yi;
                 }
             }
         }
+        tracing::debug!(
+            layer,
+            rows = n,
+            workers = plans.len(),
+            sent_hidden_bytes = plans.iter().map(|p| p.hidden_rows.len() * 4).sum::<usize>(),
+            result_bytes = plans.iter().map(|p| p.ids.len() * h * 4).sum::<usize>(),
+            elapsed_us = started.elapsed().as_micros() as u64,
+            "inkling expert dispatch complete"
+        );
         Ok(())
     }
 
@@ -355,6 +423,7 @@ pub struct ExpertBank {
     n_shared: usize,
     index: u32,
     count: u32,
+    ov: Option<OvExperts>,
 }
 
 impl ExpertBank {
@@ -460,10 +529,10 @@ impl ExpertBank {
                 b.ids.len()
             ));
         }
-        // Resolve every requested expert once: ownership check + prefetch.
-        let mut unique: Vec<usize> = Vec::new();
-        let mut seen = HashSet::new();
-        for &id in &b.ids {
+        // Group slots by expert, so a prefill reads each expert once and uses
+        // those bytes for all its rows before releasing the temporary buffer.
+        let mut occurrences: HashMap<usize, Vec<usize>> = HashMap::new();
+        for (slot, &id) in b.ids.iter().enumerate() {
             if id == EXPERT_PAD {
                 continue;
             }
@@ -471,56 +540,51 @@ impl ExpertBank {
                 return Err(format!("{tag}: invalid expert id {id}"));
             }
             let id = id as usize;
-            if seen.insert(id) {
-                if !table.contains_key(&id) {
-                    return Err(format!(
-                        "{tag}: does not own expert {id} (home is worker {} of {}; this bank holds {:?})",
-                        expert_home(id, self.count as usize),
-                        self.count,
-                        self.owned_ids(layer)
-                    ));
-                }
-                unique.push(id);
+            if !occurrences.contains_key(&id) && !table.contains_key(&id) {
+                return Err(format!(
+                    "{tag}: does not own expert {id} (this bank holds {:?})",
+                    self.owned_ids(layer)
+                ));
             }
+            occurrences.entry(id).or_default().push(slot);
         }
-        for &id in &unique {
-            table[&id].prefetch();
-        }
-        // Decode (one row): `MoeLayer::forward`'s reads — a paged-out expert
-        // is streamed whole, concurrently; a resident one is computed straight
-        // off the mmap. A batch computes off the mmap like `forward_batch`
-        // (each expert's pages are touched once per frame).
-        let bufs: HashMap<usize, Vec<u8>> =
-            if rows == 1 && !seq_reads() && unique.iter().any(|id| table[id].as_mmap().is_some()) {
-                unique
-                    .par_iter()
-                    .filter_map(|&id| {
-                        table[&id]
-                            .as_mmap()
-                            .filter(|m| !m.mostly_resident())
-                            .and_then(|m| m.read_bytes().ok())
-                            .map(|buf| (id, buf))
+        let inter = self.inter;
+        let ov = self.ov.as_ref().filter(|ov| ov.has_layer(b.layer));
+        let computed: Vec<Vec<(usize, Vec<f32>)>> = occurrences
+            .par_iter()
+            .map(|(&id, slots)| {
+                let e = &table[&id];
+                let mut cpu_ready = false;
+                let mut buf = None;
+                slots
+                    .iter()
+                    .map(|&slot| {
+                        let x = &b.hidden[(slot / k) * h..(slot / k + 1) * h];
+                        let y = ov
+                            .and_then(|ov| ov.expert(b.layer, id as u32, self.n_routed as u32, x))
+                            .unwrap_or_else(|| {
+                                if !cpu_ready {
+                                    e.prefetch();
+                                    buf = e
+                                        .as_mmap()
+                                        .filter(|m| !seq_reads() && !m.mostly_resident())
+                                        .and_then(|m| m.read_bytes().ok());
+                                    cpu_ready = true;
+                                }
+                                match (buf.as_ref(), e.as_mmap()) {
+                                    (Some(buf), Some(m)) => m.swiglu_from(buf, x),
+                                    _ => e.forward(x, h, inter),
+                                }
+                            });
+                        (slot, y)
                     })
                     .collect()
-            } else {
-                HashMap::new()
-            };
-        let inter = self.inter;
+            })
+            .collect();
         let mut out = vec![0.0f32; rows * k * h];
-        out.par_chunks_mut(h).enumerate().for_each(|(s, o)| {
-            let id = b.ids[s];
-            if id == EXPERT_PAD {
-                return; // pad slot: zeros, no work
-            }
-            let id = id as usize;
-            let x = &b.hidden[(s / k) * h..(s / k + 1) * h];
-            let e = &table[&id];
-            let y = match (bufs.get(&id), e.as_mmap()) {
-                (Some(buf), Some(m)) => m.swiglu_from(buf, x),
-                _ => e.forward(x, h, inter),
-            };
-            o.copy_from_slice(&y);
-        });
+        for (slot, y) in computed.into_iter().flatten() {
+            out[slot * h..(slot + 1) * h].copy_from_slice(&y);
+        }
         Ok(out)
     }
 }
@@ -534,12 +598,32 @@ pub fn load_expert_bank(
     count: u32,
     mode: ExpertsMode,
 ) -> Result<ExpertBank, LoadError> {
+    load_expert_bank_with_placement(dir, index, count, mode, None)
+}
+
+pub fn load_expert_bank_with_placement(
+    dir: &Path,
+    index: u32,
+    count: u32,
+    mode: ExpertsMode,
+    placement: Option<&EpPlacement>,
+) -> Result<ExpertBank, LoadError> {
     if count == 0 || index >= count {
         return Err(LoadError::Manifest(format!(
             "expert worker index {index} of {count} is out of range"
         )));
     }
     let m = read_manifest(dir)?;
+    let own = super::env_flag("CASCADIA_INKLING_EP_OWN_EXPERTS");
+    if own && placement.is_none() {
+        return Err(LoadError::Manifest(
+            "CASCADIA_INKLING_EP_OWN_EXPERTS requires a capacity-checked EP placement".into(),
+        ));
+    }
+    if let Some(p) = placement {
+        p.validate(&m, count as usize)
+            .map_err(LoadError::Manifest)?;
+    }
     let t0 = Instant::now();
     let mut layers = Vec::with_capacity(m.num_layers);
     let mut moe = Vec::with_capacity(m.num_layers);
@@ -549,7 +633,32 @@ pub fn load_expert_bank(
             moe.push(false);
             continue;
         }
-        let set = load_moe_experts(dir, &m, li, mode, ExpertSet::Shard { index, count })?;
+        let set = match placement {
+            Some(p) => {
+                load_moe_experts_filtered(dir, &m, li, mode, |id| p.owns(li, id, index as usize))?
+            }
+            None => load_moe_experts(dir, &m, li, mode, ExpertSet::Shard { index, count })?,
+        };
+        // The plan must not understate actual packed bytes to pass its capacity
+        // check. Eager fixtures have no mapping; production uses mmap int4.
+        if let Some(p) = placement {
+            if let Some((id, _)) = set.iter().find(|(_, e)| {
+                e.as_mmap()
+                    .is_some_and(|m| m.bin_len() as u64 > p.expert_bytes)
+                    || e.owned_int4_bytes() as u64 > p.expert_bytes
+            }) {
+                return Err(LoadError::Manifest(format!(
+                    "EP layer {li} expert {id}: file exceeds placement expert_bytes"
+                )));
+            }
+        }
+        let set = if own {
+            set.into_iter()
+                .map(|(id, e)| e.into_owned_int4().map(|e| (id, e)))
+                .collect::<Result<Vec<_>, _>>()?
+        } else {
+            set
+        };
         layers.push(set.into_iter().collect());
         moe.push(true);
     }
@@ -562,6 +671,7 @@ pub fn load_expert_bank(
         n_shared: m.n_shared_experts,
         index,
         count,
+        ov: OvExperts::from_env(dir, m.hidden_size),
     };
     info!(
         index,
@@ -569,6 +679,7 @@ pub fn load_expert_bank(
         experts = bank.n_experts(),
         moe_layers = bank.moe.iter().filter(|&&b| b).count(),
         mode = ?mode,
+        owned_packed_weights = own,
         elapsed_ms = t0.elapsed().as_millis() as u64,
         "inkling expert bank loaded"
     );

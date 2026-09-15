@@ -99,6 +99,8 @@ pub struct SparseMoEBuilderConfig {
     /// experts homed on shard `index` of `count` for every MoE layer and
     /// nothing else (no attention, no sequence state, no API).
     pub ep_worker: Option<(u32, u32)>,
+    /// Optional explicit expert placement, identical on driver and workers.
+    pub ep_placement: Option<PathBuf>,
     /// Pipeline stage index (0-based).
     pub rank: u32,
     /// Number of pipeline stages.
@@ -202,6 +204,7 @@ impl SparseMoEBuilderConfig {
             max_cached_experts: 0,
             ep_workers: Vec::new(),
             ep_worker: None,
+            ep_placement: None,
             rank: 0,
             total: 1,
             top_k_override: None,
@@ -586,6 +589,23 @@ impl Builder for SparseMoEBuilder {
         // arch first.
         let arch = peek_arch(&self.config.model_dir);
         if arch.as_deref() == Some("inkling") {
+            let placement = self
+                .config
+                .ep_placement
+                .as_ref()
+                .map(|path| {
+                    let m = crate::inkling::loader::read_manifest(&self.config.model_dir)
+                        .map_err(|e| EngineError::Backend(format!("inkling manifest: {e}")))?;
+                    let count = self
+                        .config
+                        .ep_worker
+                        .map(|(_, n)| n as usize)
+                        .unwrap_or(self.ep_clients.len());
+                    crate::inkling::ep_placement::EpPlacement::read(path, &m, count)
+                        .map(Arc::new)
+                        .map_err(EngineError::InvalidConfig)
+                })
+                .transpose()?;
             // Expert-parallel worker: only this shard's experts, for every MoE
             // layer. No runner, no tokenizer, no sequence state.
             if let Some((index, count)) = self.config.ep_worker {
@@ -599,11 +619,12 @@ impl Builder for SparseMoEBuilder {
                     Some("eager") => crate::dsv4::loader::ExpertsMode::Eager,
                     _ => crate::dsv4::loader::ExpertsMode::Mmap,
                 };
-                let bank = crate::inkling::ep::load_expert_bank(
+                let bank = crate::inkling::ep::load_expert_bank_with_placement(
                     &self.config.model_dir,
                     index,
                     count,
                     mode,
+                    placement.as_deref(),
                 )
                 .map_err(|e| EngineError::Backend(format!("inkling expert bank load: {e}")))?;
                 self.ep_bank = Some(bank);
@@ -632,13 +653,19 @@ impl Builder for SparseMoEBuilder {
                     workers = self.ep_clients.len(),
                     "inkling expert-parallel driver: experts dispatched to workers"
                 );
-                Some(Arc::new(crate::inkling::ep::EpClient::new(
+                let mut client = crate::inkling::ep::EpClient::new(
                     self.ep_clients.clone(),
                     handle,
                     m.hidden_size,
                     m.num_experts,
                     m.n_shared_experts,
-                )))
+                );
+                if let Some(p) = placement {
+                    client = client
+                        .with_placement(p, &m)
+                        .map_err(EngineError::InvalidConfig)?;
+                }
+                Some(Arc::new(client))
             };
             let runner = crate::inkling::stage::InklingRunner::load_staged(
                 &self.config.model_dir,

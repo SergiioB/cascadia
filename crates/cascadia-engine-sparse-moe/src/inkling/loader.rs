@@ -130,12 +130,23 @@ pub fn load_moe_experts(
             )));
         }
     }
+    load_moe_experts_filtered(dir, m, li, mode, |id| experts.owns(id))
+}
+
+/// Explicit placement opens only this worker's files, including replicas.
+pub(crate) fn load_moe_experts_filtered(
+    dir: &Path,
+    m: &InklingManifest,
+    li: usize,
+    mode: ExpertsMode,
+    owns: impl Fn(usize) -> bool,
+) -> Result<Vec<(usize, AnyExpert)>, LoadError> {
     let (hidden, inter) = (m.hidden_size, m.moe_intermediate);
     let edir = dir.join("experts").join(format!("layer_{li:02}"));
     let mut out = Vec::new();
     let mut wired = 0usize;
     for e in 0..m.num_experts {
-        if experts.owns(e) {
+        if owns(e) {
             let x = load_expert_bin(
                 &edir.join(format!("expert_{e:03}.bin")),
                 hidden,
@@ -148,7 +159,7 @@ pub fn load_moe_experts(
     }
     for s in 0..m.n_shared_experts {
         let id = m.num_experts + s;
-        if experts.owns(id) {
+        if owns(id) {
             let x = load_expert_bin(
                 &edir.join(format!("expert_shared{s}.bin")),
                 hidden,
@@ -572,7 +583,7 @@ pub fn load_stage(
         let ov = std::sync::Arc::new(ov);
         for (i, l) in layers.iter_mut().enumerate() {
             let lid = (lo + i) as u32;
-            if ov.has_layer(lid) {
+            if ov.has_layer(lid) && (experts != ExpertSet::None || l.moe().is_none()) {
                 l.attach_ov(lid, std::sync::Arc::clone(&ov));
             }
         }
@@ -589,7 +600,7 @@ pub fn load_stage(
         let ov = std::sync::Arc::new(ov);
         for (i, l) in layers.iter_mut().enumerate() {
             let lid = (lo + i) as u32;
-            if ov.has_layer(lid) && ov_moe_layer_selected(lid) {
+            if experts != ExpertSet::None && ov.has_layer(lid) && ov_moe_layer_selected(lid) {
                 l.attach_ov_moe(lid, std::sync::Arc::clone(&ov));
             }
         }
@@ -652,8 +663,30 @@ pub fn load_model(dir: &Path, max_seq: usize) -> Result<Model, LoadError> {
 }
 
 pub fn load_model_with(dir: &Path, max_seq: usize, mode: ExpertsMode) -> Result<Model, LoadError> {
+    load_model_with_remote(dir, max_seq, mode, None)
+}
+
+/// Full decoder with optional remote MoE experts. The driver opens no MoE
+/// bins; this is also the EP path used by the full-model decode benchmark.
+pub fn load_model_with_remote(
+    dir: &Path,
+    max_seq: usize,
+    mode: ExpertsMode,
+    remote: Option<std::sync::Arc<super::ep::EpClient>>,
+) -> Result<Model, LoadError> {
     let m = read_manifest(dir)?;
-    let s = load_stage(
+    if let Some(c) = &remote {
+        if c.n_workers() == 0
+            || c.hidden() != m.hidden_size
+            || c.n_routed() != m.num_experts
+            || c.n_shared() != m.n_shared_experts
+        {
+            return Err(LoadError::Manifest(
+                "EP client dimensions/workers do not match model".into(),
+            ));
+        }
+    }
+    let mut s = load_stage(
         dir,
         max_seq,
         0,
@@ -661,8 +694,19 @@ pub fn load_model_with(dir: &Path, max_seq: usize, mode: ExpertsMode) -> Result<
         true,
         true,
         mode,
-        ExpertSet::All,
+        if remote.is_some() {
+            ExpertSet::None
+        } else {
+            ExpertSet::All
+        },
     )?;
+    if let Some(client) = remote {
+        for (li, layer) in s.layers.iter_mut().enumerate() {
+            if let Some(moe) = layer.moe_mut() {
+                moe.attach_remote(li as u32, std::sync::Arc::clone(&client));
+            }
+        }
+    }
     let (embed, embed_norm) = s.embed.expect("full model has an embed");
     let Head { norm, unembed, .. } = s.head.expect("full model has a head");
     Ok(Model::new(
