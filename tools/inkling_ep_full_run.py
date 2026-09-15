@@ -52,11 +52,16 @@ def qualification(driver, workers, inventories, fused, recording=False):
                     or stats.get('errors') != 0 or stats.get('fused_required') is not True
                     or stats.get('streaming') is not True or stats.get('calls', 0) <= 0
                     or not str(stats.get('device', '')).startswith('GPU')
-                    or set(profiles) != expected
+                    or not profiles or not set(profiles).issubset(expected)
                     or any('MOECompressed' not in value for value in profiles.values())):
                 failures.append(host+': incomplete GPU fusion/coverage or fallback detected')
             if inventories[host].get('ordered_replies_required') and stats.get('ordered_replies', 0) <= 0:
                 failures.append(host+': ordered per-expert GPU replies were not verified')
+            if inventories[host].get('lossless_wire_required') and (
+                    backend.get('wire_f16_replies',0) <= 0 or backend.get('wire_f32_replies') != 0
+                    or backend.get('wire_f32_equivalent_bytes',0) <= 0
+                    or backend.get('wire_tensor_bytes',0)*2 != backend.get('wire_f32_equivalent_bytes')):
+                failures.append(host+': required lossless half-size replies were not verified')
             shards = inventories[host].get('fused_shards')
             if shards is not None and stats.get('up_scale_exponent') != {
                     layer:meta.get('up_scale_exponent') or 0 for layer,meta in shards.items()}:
@@ -66,6 +71,11 @@ def qualification(driver, workers, inventories, fused, recording=False):
         elif status.get('job', {}).get('env', {}).get('CASCADIA_INKLING_UNCACHED_READS') == '1':
             if backend.get('uncached_read_bytes', 0) <= 0 or backend.get('uncached_read_fallbacks') != 0:
                 failures.append(host+': required direct expert reads were not verified')
+    if fused:
+        expected_layers = {str(li) for inventory in inventories.values() for li in inventory['owned_layers']}
+        executed_layers = {li for backend in backends.values() for li in (backend.get('fused') or {}).get('fusion_profiles', {})}
+        if not expected_layers or executed_layers != expected_layers:
+            failures.append('collective GPU coverage does not include every MoE layer')
     return dict(completed=not failures, failures=failures, backends=backends)
 
 
@@ -178,6 +188,7 @@ def main():
     p.add_argument('--cases', default='full-cases.json')
     p.add_argument('--tokens', type=int, default=4)
     p.add_argument('--max-relative-rms', type=float, default=0)
+    p.add_argument('--lossless-wire', action='store_true', help='require lossless scaled FP16 expert replies; all native peers must support status 2')
     p.add_argument('--record', action='store_true', help='record a free-running GPU baseline; does not certify correctness')
     p.add_argument('--workers-per-host', type=int, choices=[1, 4], default=1)
     p.add_argument('--cache-mb-per-host', type=int, default=2400)
@@ -191,7 +202,7 @@ def main():
         p.error('invalid cases/tokens/tolerance')
     if not 256 <= a.cache_mb_per_host <= 6000 or not 300 <= a.seconds <= 3400:
         p.error('invalid cache/lease')
-    if a.workers_per_host > 1 and a.mode != 'fused-stream':
+    if (a.workers_per_host > 1 or a.lossless_wire) and a.mode != 'fused-stream':
         p.error('multiple workers per host requires fused-stream')
     a.out.mkdir(parents=True, exist_ok=False)
     plan_hash = hashlib.sha256(a.placement.read_bytes()).hexdigest()
@@ -205,6 +216,7 @@ def main():
         raise RuntimeError('worker model manifests differ')
     for inventory in inventories.values():
         inventory['ordered_replies_required'] = fused
+        inventory['lossless_wire_required'] = a.lossless_wire
     (a.out/'preflight.json').write_text(json.dumps(inventories, indent=2)+'\n')
     parent_inventories = inventories
     if a.workers_per_host > 1:
@@ -228,6 +240,8 @@ def main():
             env.update(CASCADIA_INKLING_EP_FUSED='1', CASCADIA_INKLING_EP_FUSED_STREAM='1', CASCADIA_INKLING_EP_FUSED_DIR=fused_dir,
                        CASCADIA_INKLING_EP_FUSED_CACHE_MB=str(a.cache_mb_per_host//a.workers_per_host), CASCADIA_INKLING_EP_REQUIRE_GPU='1', OV_GPU_MOE_BATCHED_GEMV_THRESHOLD='0')
             env['CASCADIA_INKLING_EP_DIAGNOSTICS_DIR'] = ROOT
+            if a.lossless_wire:
+                env['CASCADIA_INKLING_EP_FUSED_F16_WIRE'] = '1'
             if a.bf16_expert_output:
                 env['CASCADIA_INKLING_EP_FUSED_BF16_OUTPUT'] = '1'
         cores = ([4+child] if host=='charlie' else [child]) if a.workers_per_host > 1 else ([4,5] if fused and host=='charlie' else [0,1,2,3])

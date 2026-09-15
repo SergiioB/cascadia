@@ -1,0 +1,10 @@
+{
+  "fused_unit_tests": 5,
+  "ep_tcp_integration_tests": 16,
+  "finite_half_patterns_checked": 63488,
+  "python_ep_tests": 21,
+  "clippy": "passed; pre-existing warnings retained, introduced unwrap warning corrected",
+  "native_windows_build": "passed",
+  "full_gpu_topology": "pending",
+  "scope": "Unit/transport/operator evidence only; not a full GPU model pass"
+}

@@ -1,0 +1,12 @@
+{
+  "base_commit": "43e16f841396aecf8d418bbb86f4fe972b6e80f4",
+  "native_label": "full-v14",
+  "executable_sha256": {
+    "bin-full/inkling_ep_worker.exe": "7ed7d508435c7e757edae4364d12728a7b4bfc548e955f7dbc102d74b65760e1",
+    "bin-full/inkling_ep_layer_bench.exe": "6f9c1439ae221dab6d7f488444cc1c5afef33ff681e71c5dabfdc6dfb17785a5",
+    "bin-full/inkling_ep_validate.exe": "b493ac4e27432ca5426d7c984e1e105e4df0bd7ef0c2e80a0fa6456682ae562d",
+    "bin-full/inkling_decode_bench.exe": "5513a3b36d30da1f6b9fb390fdd765b413b4399f37148d045519ee8f9d758c94"
+  },
+  "source_snapshot_sha256": "fcff4311df4f67449ae9e49255965f6e6968a606a9c73300875f86aaba4755ad",
+  "note": "Lossless scaled-FP16 expert reply codec and wire counters; GPU expert arithmetic unchanged from native v13."
+}

@@ -490,6 +490,10 @@ impl FusedExpertBank {
         }
     }
 
+    pub fn output_exponent(&self, layer: u32) -> Option<u8> {
+        self.layers.get(&layer).map(|m| m.up_scale_exponent)
+    }
+
     pub fn stats(&self) -> serde_json::Value {
         let s = self.state.lock().unwrap();
         serde_json::json!({"device":self.device,"gpu_name":self.gpu_name,"fused_required":true,
