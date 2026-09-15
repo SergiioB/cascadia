@@ -1,0 +1,12 @@
+{
+  "base_commit": "4d3dc7ced71da2bc9f28b2f67e187722ba2dfbad",
+  "native_label": "full-v12",
+  "executable_sha256": {
+    "bin-full/inkling_ep_worker.exe": "b9fa67d99492201b698c39777a9c112b38d33fc82ecb39f13c8e23fa26d2077a",
+    "bin-full/inkling_ep_layer_bench.exe": "89636cc9b16d69b8a6370f2a7f2e70008b0546c6ec5ca7da49b6afb77b687086",
+    "bin-full/inkling_ep_validate.exe": "050d710fff9d8a858442a1e72e852e63037b9c7c73c3c06f7bf7b5809ee048ae",
+    "bin-full/inkling_decode_bench.exe": "7294daf46f93071103cb6d402b15c385833eabd6f0b102d92866c752e7ea7187"
+  },
+  "source_snapshot_sha256": "c2d5e7b8bf15df2704f54d99072cdee00eb88320b26ebfbfcbba7ac54f250ad5",
+  "note": "Diagnostic independent FP16 CPU expert reference; full recording, not a BF16 equivalence pass."
+}

@@ -904,3 +904,53 @@ fn invalid_fused_header_still_drains_the_weights_tensor() {
         client.lock().await.close().await;
     });
 }
+
+#[test]
+fn ordered_expert_replies_preserve_cancellation_across_three_and_twelve_workers() {
+    // Partial sums on three workers produce 4; original gate order produces 3.
+    for count in [3, 12] {
+        let rt = runtime();
+        let mut clients = Vec::new();
+        let mut tasks = Vec::new();
+        for wi in 0..count {
+            let (server, client) = rt.block_on(loopback());
+            clients.push(client);
+            tasks.push(rt.spawn(async move {
+                assert_eq!(
+                    recv_kind_server(&server).await.unwrap(),
+                    Some(FrameKind::ExpertDispatch)
+                );
+                let b = recv_expert_dispatch_body_server(&server).await.unwrap();
+                let values: Vec<f32> = b
+                    .ids
+                    .iter()
+                    .map(|&id| {
+                        if id == EXPERT_PAD {
+                            return 0.;
+                        }
+                        assert_eq!(id as usize % count, wi);
+                        match id {
+                            0 => 1e20,
+                            1 => 1.,
+                            3 => -1e20,
+                            2 => 3.,
+                            _ => 0.,
+                        }
+                    })
+                    .collect();
+                send_expert_result_ok(&server, b.rows, b.k, 1, &values)
+                    .await
+                    .unwrap();
+            }));
+        }
+        let ep = EpClient::new(clients.clone(), rt.handle().clone(), 1, 12, 0).with_fused(false);
+        let routes = [0, 1, 3, 2, 4, 5, 6, 7, 8, 9, 10, 11]
+            .map(|id| (id, 1.))
+            .to_vec();
+        assert_eq!(ep.dispatch(2, &[1.], &[routes]).unwrap(), [3.]);
+        close_all(&rt, &clients);
+        for task in tasks {
+            rt.block_on(task).unwrap();
+        }
+    }
+}

@@ -3,10 +3,12 @@
 2026-09-15, branch `feat/inkling-expert-routing`.
 
 This extends [fused expert sharding](INKLING_FUSED_EXPERT_SHARDING.md) from
-individual MoE measurements to the complete 66-layer decoder. The qualification
-compares every layer residual, every output logit, and greedy token IDs against
-a saved single-machine CPU reference. The validator accepts any worker count;
-the LAN operator currently targets the three authorized NUCs.
+individual MoE measurements to the complete 66-layer decoder. The CPU qualification compares every layer residual, every output logit, and
+greedy token IDs against a saved single-machine CPU reference. The GPU topology
+qualification compares a GPU recording with the same GPU arithmetic distributed
+over more worker processes. These are separate contracts. The validator accepts
+any worker count; the LAN operator targets three authorized NUCs, with either
+one or four isolated worker processes per NUC.
 
 The complete three-NUC CPU run, `full-cpu-v7`, **passed all 48 token choices
 and all 3,216 tensors bit for bit**. All 66 layers execute; every expert is
@@ -17,9 +19,22 @@ CPU resources. This is not a new throughput record. Driver peak RSS was
 of direct expert reads with zero read fallbacks. Protected services remained
 unchanged. The complete reports are in `full-cpu-v7.json.gz`.
 
-Full fused GPU qualification remains in progress. The first full run exposed
-FP16 overflow that the smaller synthetic tests did not catch; the isolated
-replay and correction below pass, but that alone is not a full-model pass.
+Full fused GPU qualification remains in progress. Full generation exposed two
+FP16 overflow cases that smaller synthetic tests missed. Both captured expert
+replays now pass, but this does not establish full CPU/GPU numerical parity.
+`full-gpu-v11` completed 45 token positions, all matching the original CPU token
+choices, before Charlie's available memory crossed the 12 GiB guard reserve.
+Its internal numerical differences also exceeded the original 0.5% limit.
+It is retained as an **interrupted, failed qualification**, not a full pass.
+Service PIDs and health checks remained unchanged after cleanup.
+
+Native v13 returns individual compact GPU expert outputs to the driver. The
+driver applies each original routing weight and adds in original gate order.
+Worker partial sums used before v13 change FP32 addition order with placement;
+the model can amplify those small differences through subsequent layers and
+router choices. A three-versus-twelve-worker GPU test is running with v13,
+a 2,400 MiB aggregate IR admission budget per physical host, and eight token
+positions per prompt. Results will be recorded separately from CPU parity.
 
 ## Model and placement
 
@@ -133,7 +148,8 @@ during prefill. Read errors fail the request.
 
 `CASCADIA_INKLING_EP_FUSED_STREAM=1` keeps each compiled K=1 GPU graph while
 OpenVINO streams expert weights into a small resident slot. Rows are grouped
-by expert to reuse that slot, then reduced in original routing order. The
+by expert to reuse that slot, then returned in their original dispatch slots.
+The driver performs the final weighted sum in original routing order. The
 cache admission estimate is not a hard GPU allocation bound; the external
 memory guard remains authoritative. CPU fallback is forbidden.
 
@@ -160,13 +176,15 @@ The GPU returns two nonfinite outputs; the same request succeeds on CPU.
 An FP32 inference hint fails compilation in this OpenVINO fused path, and
 the worker refuses fallback.
 
-Version-2 shards divide the up-projection scales by 16 and the worker
-multiplies the original routing weights by 16. Since the up branch and down
+Version-2 shards divide the up-projection scales by 16. In the current compact
+worker the GPU receives unit routing weights, and host FP32 arithmetic restores
+the factor of 16 before the driver applies the original routing weights. Since the up branch and down
 projection are linear, this preserves the real-arithmetic expert function
 while reducing the intermediate dynamic range. The gate/Swish calculation
 and packed nibbles remain unchanged. FP16 rounding still applies: export
-rejects a scale conversion exceeding 0.01% relative weight RMS, and the full
-output comparison retains its original 0.5% limit and exact greedy criterion.
+rejects a scale conversion exceeding 0.01% relative weight RMS, and the failed full
+CPU/GPU comparisons retain their original 0.5% limit and exact greedy criterion.
+The separate GPU topology comparison defaults to exact bit equality.
 
 The captured request passes on the fused GPU after this change with relative
 RMS **0.00252557**, no nonfinite outputs and zero CPU fallback. The unscaled
@@ -191,6 +209,43 @@ all workers must use the new binary before these shards are loaded. Tests
 verify rollback after an injected write-stage failure and byte identity between
 a fresh scaled export and an updated shard.
 
+## Second overflow and independent FP16 reference
+
+The version-2 IR alone did not fix every range failure. At layer 40, expert 15
+on beta produced finite unweighted outputs (maximum about 1,873), but routing
+weights around 92–105 produced a weighted value around 173,194, outside FP16.
+The current K=1 path moves only scaling/routing multiplication to host FP32;
+all three compressed GEMMs and Swish still execute in the fused GPU kernel.
+Exact v11 replays pass at relative RMS 0.002618 (layer 8) and 0.001814
+(layer 40), against the original BF16 CPU expert outputs, with zero fallback.
+K>1 partial-sum compatibility normalizes weights by a common power of two and
+restores that factor in FP32; compact ordered replies require K=1.
+
+`CASCADIA_INKLING_EP_CPU_F16_REFERENCE=1` is a diagnostic CPU path, requiring
+streamed packed experts. It independently decodes the original bins and applies
+the GPU graph's FP16 boundaries and scale conversion. It does **not** replace
+the original BF16 CPU control. The two captured experts compare to GPU at
+0.00002643 relative RMS, but tiny CPU/GPU differences still amplify in the full
+model. The first complete 66-layer prefill differs by as much as 0.05010
+relative RMS in a residual; the first token is identical. The independent
+16-token recording also diverges from the original CPU's water-cycle continuation
+at position 6. These are precision diagnostics, not successful full equivalence
+claims. Exact inputs, reports, and build snapshots are retained alongside the
+failed full runs.
+
+Saved traces can be compared without another model execution:
+
+```sh
+inkling_ep_validate --candidate CANDIDATE_DIR --reference REFERENCE_DIR \
+  --out NEW_COMPARISON.json --max-relative-rms 0
+```
+
+Both payload checksums, dimensions, tensor ordering and token choices are
+checked. A teacher-forced candidate additionally requires
+`--candidate-trajectory ORIGINAL_REFERENCE_DIR`, and its actual greedy choices
+must agree with that trajectory before saved states can be used for comparison.
+Missing or corrupt payloads and misaligned trajectories fail closed.
+
 ## Run the full three-NUC comparison
 
 Build with `tools/inkling_ep_build_gpu_windows.bat`. Put the same executables
@@ -205,12 +260,37 @@ python3 tools/inkling_ep_full_run.py \
   --reference full-reference16-v4 --tokens 16 \
   --out /tmp/full-cpu-NEW
 
+# Record a free-running GPU baseline (recording is not a correctness verdict).
 python3 tools/inkling_ep_full_run.py \
-  --label full-gpu-NEW --mode fused-stream \
+  --label full-gpu-base-NEW --mode fused-stream --record \
   --placement docs/perf/inkling-ep-full/placement.json \
-  --reference full-reference16-v4 --tokens 16 --max-relative-rms 0.005 \
-  --out /tmp/full-gpu-NEW
+  --reference full-reference16-v4 --tokens 8 --cache-mb-per-host 2400 \
+  --out /tmp/full-gpu-base-NEW
+
+# Repartition the same files into 12 isolated processes on the three NUCs.
+python3 tools/inkling_ep_full_run.py \
+  --label full-gpu-12-NEW --mode fused-stream --workers-per-host 4 \
+  --placement docs/perf/inkling-ep-full/placement.json \
+  --reference full-gpu-base-NEW --tokens 8 --max-relative-rms 0 \
+  --cache-mb-per-host 2400 --out /tmp/full-gpu-12-NEW
 ```
+
+For slower hosts, split a completed recording into one-prompt references with
+`inkling_ep_trace_slice.py --source BASE --hashes BASE-sha256.json --case NAME
+--out NEW_REFERENCE`. This checks the full source payload SHA256, copies the
+selected tensor bytes exactly, and records their source offsets. Pass the
+matching one-case JSON with `--cases` and run each eight-token candidate under
+its own bounded lease. The split report is clearly marked as a recording slice;
+its elapsed time still belongs to the parent recording.
+
+`inkling_ep_full_collect.py --run RUN_DIR --out NEW_BUNDLE.json.gz` retrieves
+native trace metadata and hashes the retained payload. After final service
+cleanup, `inkling_ep_topology_report.py --artifacts ARTIFACT_DIR --baseline BASE
+--candidate RUN1 RUN2 RUN3 --out NEW_RESULT.json` independently audits every
+tensor identity, exact float bits, greedy IDs, expert-row coverage, backend
+profiles, process identities and provenance. It requires all three prompts,
+each with at least eight token positions. It reports physical and logical
+worker counts separately and makes no CPU/GPU precision-equivalence claim.
 
 Use fresh labels: jobs, logs and output directories do not overwrite earlier
 evidence. The operator checks completed staging, placement/manifest agreement,
@@ -219,10 +299,13 @@ fused source/ownership/XML metadata, and the reference's full SHA256 hashes.
 Blob hashes are recorded while constructing the IR; preflight checks blob
 size rather than rereading hundreds of gigabytes for each run.
 
-Private port 29475 admits only charlie and only the task worker executable.
+Private ports 29475–29478 (only 29475 for three workers) admit only charlie
+and only the task worker executable.
 In CPU mode, workers use cores 0–3 and charlie's driver uses cores 4–5.
 In GPU mode, charlie gives cores 0–3 to its decoder and cores 4–5 to the GPU
-worker; alpha/beta retain cores 0–3. Jobs run below normal
+worker; alpha/beta retain cores 0–3. With four workers per NUC, each worker
+gets one core: 0–3 on alpha/beta and 4–7 on charlie. The per-host cache budget
+is divided among its workers, and each worker has a 3 GiB RSS cap. Jobs run below normal
 priority, keep at least 12 GiB available, and have bounded lifetimes. Existing
 inference activity pauses only this task's child; a CI job or memory limit
 stops it. Cleanup checks the executable and process creation time before
@@ -231,9 +314,21 @@ terminating any remaining task worker and removes only the task firewall rule.
 The completion gate requires every guarded job to exit successfully, preserved
 service process identities, full-model numerical/token parity, and final
 backend evidence. GPU mode additionally requires a fused GPU profile for
-every owned MoE layer, nonzero execution and zero CPU fallbacks/errors.
+every owned MoE layer, nonzero ordered expert replies and zero CPU fallbacks/errors.
+A recording completion only verifies that the recording and backend checks
+finished; its native report retains `correctness_verified=false`.
 
 ## Extending to 12 machines
+
+`tools/inkling_ep_topology.py` creates twelve logical worker views of the three
+existing physical shards. Each view contains only small ownership metadata and
+hardlinks to its parent's XML/bin. The parent global-to-local expert indices
+are preserved; native validation rejects any requested expert outside the
+view's assignment. The sum of child packed capacities cannot exceed the parent
+budget. This adds negligible disk usage and exercises twelve sockets/processes,
+but **does not constitute a twelve-physical-machine performance or compatibility
+test**. The actual twelve machines must pass the same full-model comparison.
+
 
 Create a placement for the actual 12 hosts and their available capacity; do
 not reuse the three-host placement. Stage and checksum every owned expert,
@@ -302,3 +397,27 @@ The temporary miner HTTP source and its three task firewall rules have now
 been removed; all unrelated firewall rules were preserved. Staging is complete
 on all NUCs, and the union of their verified packed files covers all
 16,588 source files with matching replicated checksums.
+
+After each full run, archive the controller's JSON files together under its
+label. `inkling_ep_full_report.py` reads these compressed archives and checks
+all 3,216 tensor identities, every greedy ID, numerical limits, backend proof,
+run-specific binary hashes and final service/resource audits independently of
+the driver's verdict flags. It deliberately fails if either full CPU or GPU
+qualification is missing or fails.
+
+```sh
+python3 tools/inkling_ep_full_audit.py \
+  --out docs/perf/inkling-ep-full/final-audit.json
+python3 tools/inkling_ep_full_report.py \
+  --artifacts docs/perf/inkling-ep-full --out /tmp/full-qualification-summary.json
+```
+
+To replay the layer-8 regression, decompress `overflow-replay-frames.json.gz`
+and `overflow-cpu-reference.f32.gz`, then stage them in alpha's isolated root.
+Use `inkling_ep_layer_bench` with `--local-index 0`, the full placement, those
+`--frames`, the CPU `--reference`, `--reference-rel-rms 0.005`, and a fresh
+`--out` path. Run it through the same process guard, with
+`CASCADIA_INKLING_EP_FUSED=1`, `CASCADIA_INKLING_EP_FUSED_STREAM=1`,
+`CASCADIA_INKLING_EP_REQUIRE_GPU=1` and the full compact IR directory. Original
+routing weights are in the frames; version-2 workers apply compensation.
+The saved reference is a selected-expert CPU phase, not a full-model trace.

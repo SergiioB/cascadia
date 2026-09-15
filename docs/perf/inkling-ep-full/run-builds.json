@@ -1,4 +1,7 @@
 {
   "full-cpu-v7": "build-v7-provenance.json",
-  "full-gpu-v10": "build-v10-provenance.json"
+  "full-gpu-v10": "build-v10-provenance.json",
+  "full-gpu-v11": "build-v11-provenance.json",
+  "full-gpu-ordered3-v13": "build-v13-provenance.json",
+  "full-gpu-ordered12-v13": "build-v13-provenance.json"
 }

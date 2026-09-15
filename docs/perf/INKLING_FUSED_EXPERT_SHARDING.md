@@ -8,6 +8,12 @@ process runs per configuration give **3.312 ms per layer with per-expert
 routing versus 2.733 ms with compact fused routing: 1.212× throughput**
 (17.5% less latency). This is **not a full-975B token-generation rate**.
 
+The latency figures below describe the original weighted-partial implementation.
+Full-model work subsequently added FP16 range fixes and placement-independent
+ordered expert replies; these figures have not been remeasured for that path.
+See [full-model qualification](INKLING_FULL_MODEL_EP_VALIDATION.md) for current
+correctness evidence and the three-versus-twelve-worker test.
+
 ## What changed
 
 The existing driver still owns attention, routing, sequence state, and the
@@ -19,8 +25,13 @@ Workers return one weighted partial vector per original row through
 are never renormalized within a shard, and each shared expert contributes
 exactly once through the existing replica assignment.
 
-The normal per-expert protocol remains the default. Both the driver and
-workers opt into the fused protocol with `CASCADIA_INKLING_EP_FUSED=1`.
+In the current implementation, `CASCADIA_INKLING_EP_FUSED=1` enables the fused
+GPU backend on workers. Compact K=1 shards return raw expert vectors using the
+normal EP protocol, and the driver weights and adds them in original gate order.
+The historical weighted-partial protocol described above additionally requires
+`CASCADIA_INKLING_EP_FUSED_PARTIAL_SUMS=1` on the driver (or explicit
+`EpClient::with_fused(true)`). Partial sums may change output bits when placement
+changes; they are not the default for topology correctness testing.
 Workers load shard metadata and reject mismatched dimensions, ownership,
 missing IRs, oversized cache entries, malformed routing, and non-GPU devices.
 An unsupported weighted request is fully consumed before rejection; the

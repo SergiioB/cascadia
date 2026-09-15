@@ -112,6 +112,36 @@ class OperatorTests(unittest.TestCase):
         self.assertFalse(check(0,0))
         self.assertFalse(check(4096,1))
 
+    def test_recording_is_not_accepted_as_a_correctness_comparison(self):
+        sys.path.insert(0,str(TOOLS))
+        try: run=load('full_run_recording','inkling_ep_full_run.py')
+        finally: sys.path.pop(0)
+        status=dict(returncode=0,stop_reason=None,protected_processes_unchanged=True)
+        report=dict(full_model=True,reference_comparison=False,teacher_forced=False,
+                    tensor_errors=[],generated_ids=[[1,2]],tokens_per_case=2,correctness_verified=False)
+        driver=dict(returncode=0,status=status,report=report)
+        worker=dict(returncode=0,status=status,log='backend_final='+json.dumps(dict(cpu_calls=1,fused=None)))
+        self.assertFalse(run.qualification(driver,{'alpha':worker},{'alpha':{}},False)['completed'])
+        self.assertTrue(run.qualification(driver,{'alpha':worker},{'alpha':{}},False,recording=True)['completed'])
+        report['generated_ids']=[[1]]
+        self.assertFalse(run.qualification(driver,{'alpha':worker},{'alpha':{}},False,recording=True)['completed'])
+
+    def test_twelve_views_preserve_every_physical_owner_and_aggregate_capacity(self):
+        sys.path.insert(0,str(TOOLS))
+        try: topology=load('full_topology','inkling_ep_topology.py')
+        finally: sys.path.pop(0)
+        parent=json.loads((TOOLS.parent/'docs/perf/inkling-ep-full/placement.json').read_text())
+        plan=topology.split_plan(parent,4)
+        self.assertEqual(len(plan['workers']),12)
+        for before,after in zip(parent['layers'],plan['layers']):
+            for owners,views in zip(before,after):
+                self.assertEqual(owners,[wi//4 for wi in views])
+                self.assertEqual(len(set(views)),len(views))
+        for pi,worker in enumerate(parent['workers']):
+            self.assertLessEqual(sum(w['expert_capacity_bytes'] for w in plan['workers'][pi*4:pi*4+4]),
+                                 worker['expert_capacity_bytes'])
+        self.assertTrue(all(w['expert_capacity_bytes']>0 for w in plan['workers']))
+
     def test_firewall_uses_native_windows_program_path(self):
         sys.path.insert(0,str(TOOLS))
         try:
@@ -139,15 +169,16 @@ class OperatorTests(unittest.TestCase):
         driver=dict(returncode=0,status=status.copy(),report={k:True for k in
             ['full_model','reference_comparison','greedy_match','numerical_match','correctness_verified']})
         backend=dict(cpu_calls=0,ov_fallbacks=0,fused=dict(errors=0,fused_required=True,
-            streaming=True,calls=12,device='GPU',fusion_profiles={'2':'MOECompressed'}))
+            streaming=True,calls=12,device='GPU',fusion_profiles={'2':'MOECompressed'},up_scale_exponent={'2':4}))
         def check(b=backend, d=driver, s=status):
             worker=dict(returncode=0,status=s,log='backend_final='+json.dumps(b))
-            return run.qualification(d,{'alpha':worker},{'alpha':dict(owned_layers=[2])},True)['completed']
+            return run.qualification(d,{'alpha':worker},{'alpha':dict(owned_layers=[2],
+                fused_shards={'2':dict(up_scale_exponent=4)})},True)['completed']
         self.assertTrue(check())
         import copy
         for key,value in [('cpu_calls',1),('ov_fallbacks',1)]:
             bad=copy.deepcopy(backend);bad[key]=value;self.assertFalse(check(b=bad))
-        for key,value in [('errors',1),('device','CPU'),('fusion_profiles',{}),('streaming',False)]:
+        for key,value in [('errors',1),('device','CPU'),('fusion_profiles',{}),('streaming',False),('up_scale_exponent',{'2':0})]:
             bad=copy.deepcopy(backend);bad['fused'][key]=value;self.assertFalse(check(b=bad))
         bad=copy.deepcopy(driver);bad['report']['greedy_match']=False
         self.assertFalse(check(d=bad))
