@@ -735,6 +735,26 @@ impl Model {
         self.head.ov()
     }
 
+    /// Compile every attached OpenVINO backend (attention, fused MoE,
+    /// per-expert, head) ahead of the first forward so their compile and
+    /// first-shape costs land outside any timed region. Returns
+    /// `(backends warmed, backends that failed)`.
+    pub fn warm_ov_backends(&self) -> (usize, usize) {
+        let (mut ok, mut bad) = (0usize, 0usize);
+        let mut tally = |r: Option<bool>| match r {
+            Some(true) => ok += 1,
+            Some(false) => bad += 1,
+            None => {}
+        };
+        for l in &self.layers {
+            tally(l.warm_ov_attn());
+            tally(l.warm_ov_moe());
+            tally(l.warm_ov().map(|(_, failed)| failed.is_empty()));
+        }
+        tally(self.head.warm_ov());
+        (ok, bad)
+    }
+
     /// Free the Rust attention projections of every layer whose OpenVINO
     /// attention backend compiles (see `Layer::release_rust_attention_weights`);
     /// one entry per layer.
