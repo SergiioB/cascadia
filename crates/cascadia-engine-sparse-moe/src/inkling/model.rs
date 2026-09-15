@@ -449,10 +449,11 @@ impl WideTable {
                 *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
             }),
             WideTable::MappedBf16(w) => {
-                let w = w.as_slice();
+                let weights = w.as_slice();
                 out.par_iter_mut().enumerate().for_each(|(o, y)| {
-                    *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
+                    *y = dot_bf16w(&weights[o * hidden..(o + 1) * hidden], x);
                 });
+                w.trim_working_set();
             }
         }
     }

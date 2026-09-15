@@ -365,10 +365,42 @@ pub fn load_layer(
     experts: ExpertSet,
 ) -> Result<Layer, LoadError> {
     let (hidden, eps, k) = (m.hidden_size, m.rms_norm_eps, m.conv_kernel_size);
-    let st = StFile::open(&dir.join(format!("shells/layer_{li:02}.safetensors")))?;
+    let shell_path = dir.join(format!("shells/layer_{li:02}.safetensors"));
+    let map_shell = super::env_flag("CASCADIA_INKLING_MMAP_SHELLS");
+    let st = if map_shell {
+        StFile::open_mmap(&shell_path)?
+    } else {
+        StFile::open(&shell_path)?
+    };
+    let projection_names = [
+        "attn.wq_du.weight",
+        "attn.wk_dv.weight",
+        "attn.wv_dv.weight",
+        "attn.wr_du.weight",
+        "attn.wo_ud.weight",
+    ];
+    let mapped_projections = if map_shell {
+        let mut maps = Vec::new();
+        for name in projection_names {
+            maps.push(st.mapped_bf16(name)?.ok_or_else(|| {
+                LoadError::Manifest(format!(
+                    "mapped attention requires aligned BF16 weights: {name}"
+                ))
+            })?);
+        }
+        Some(maps.try_into().ok().expect("five attention projections"))
+    } else {
+        None
+    };
     let g = |n: &str| st.f32(n).map(|t| t.1);
     // bf16 projections: the file payload as-is (no widen / narrow round trip).
-    let gb = |n: &str| st.bf16_bits(n).map(|t| t.1);
+    let gb = |n: &str| {
+        if map_shell {
+            Ok(Vec::new())
+        } else {
+            st.bf16_bits(n).map(|t| t.1)
+        }
+    };
 
     let (hq, hkv, d) = m.attn_shape(li);
     let mut dims = if m.is_sliding(li) {
@@ -406,12 +438,13 @@ pub fn load_layer(
             "layer {li}: rel_logits_proj extent {extent} != {want_extent}"
         )));
     }
-    let attn = AttentionLayer::from_parts(
+    let attn = AttentionLayer::from_parts_with_mapped(
         dims,
         aw,
         conv_from(&st, "attn.k_sconv.weight", k)?,
         conv_from(&st, "attn.v_sconv.weight", k)?,
         RelPos::new(proj, m.d_rel, extent),
+        mapped_projections,
     );
 
     let edir = dir.join("experts").join(format!("layer_{li:02}"));
@@ -554,7 +587,12 @@ pub fn load_stage(
         None
     };
     let mut head = if last {
-        let h = StFile::open(&dir.join("head.safetensors"))?;
+        let path = dir.join("head.safetensors");
+        let h = if super::env_flag("CASCADIA_INKLING_MMAP_HEAD") {
+            StFile::open_mmap(&path)?
+        } else {
+            StFile::open(&path)?
+        };
         let norm = h.f32("norm.weight")?.1;
         if norm.len() != hidden {
             return Err(LoadError::Manifest(format!(

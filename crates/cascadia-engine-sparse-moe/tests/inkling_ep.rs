@@ -318,7 +318,7 @@ fn driver_with_two_workers_matches_single_process_on_mmap_experts() {
 }
 
 fn driver_vs_single_process(mode: &str, experts: ExpertsMode) {
-    driver_vs_single_process_placed(mode, experts, false);
+    driver_vs_single_process_placed(mode, experts, false, 2);
 }
 
 fn replicated_placement(m: &InklingManifest, workers: usize) -> EpPlacement {
@@ -359,7 +359,12 @@ fn replicated_placement(m: &InklingManifest, workers: usize) -> EpPlacement {
 
 #[test]
 fn replicated_shared_experts_and_layer_placement_preserve_full_model_bits() {
-    driver_vs_single_process_placed("mmap", ExpertsMode::Mmap, true);
+    driver_vs_single_process_placed("mmap", ExpertsMode::Mmap, true, 3);
+}
+
+#[test]
+fn twelve_workers_preserve_logits_prefill_reset_and_replicated_shared_experts() {
+    driver_vs_single_process_placed("mmap", ExpertsMode::Mmap, true, 12);
 }
 
 #[test]
@@ -484,14 +489,13 @@ fn dispatch_compacts_empty_rows_and_preserves_duplicate_slot_order() {
     close_all(&rt, &clients);
 }
 
-fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: bool) {
+fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: bool, w: u32) {
     let Some((prompt, want)) = reference() else {
         return;
     };
     let dir = export_dir();
     let m = read_manifest(&dir).unwrap();
     let rt = runtime();
-    let w: u32 = if placed { 3 } else { 2 };
     let placement = placed.then(|| Arc::new(replicated_placement(&m, w as usize)));
     let banks: Vec<ExpertBank> = (0..w)
         .map(|k| {
@@ -653,7 +657,11 @@ fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: boo
     close_all(&rt, &clients);
     for (wi, t) in threads.into_iter().enumerate() {
         let frames = t.join().expect("worker thread");
-        assert!(frames > 0, "worker {wi} served no frames");
+        // A tiny fixture has fewer routed experts than a 12-node fleet; a
+        // shared-only replica may legitimately receive no selected traffic.
+        if w <= 3 {
+            assert!(frames > 0, "worker {wi} served no frames");
+        }
     }
 }
 
@@ -842,11 +850,16 @@ fn two_workers_one_fails_a_dispatch_but_the_survivor_stays_frame_aligned() {
 
 #[test]
 fn fused_wire_preserves_weights_compacts_rows_and_sums_partials() {
+    fused_wire_case(3);
+    fused_wire_case(12);
+}
+
+fn fused_wire_case(count: usize) {
     use cascadia_engine_sparse_moe::dist::recv_fused_expert_dispatch_body_server;
     let rt = runtime();
     let mut clients = Vec::new();
     let mut tasks = Vec::new();
-    for wi in 0..3 {
+    for wi in 0..count {
         let (server, client) = rt.block_on(loopback());
         clients.push(client);
         tasks.push(rt.spawn(async move {
@@ -864,7 +877,7 @@ fn fused_wire_preserves_weights_compacts_rows_and_sums_partials() {
                     assert_eq!(weight, 0.);
                     continue;
                 }
-                assert_eq!(id as usize % 3, wi);
+                assert_eq!(id as usize % count, wi);
                 let r = slot / b.k as usize;
                 for j in 0..2 {
                     out[r * 2 + j] += weight * (b.hidden[r * 2 + j] + id as f32 * 10.);
@@ -875,21 +888,28 @@ fn fused_wire_preserves_weights_compacts_rows_and_sums_partials() {
                 .unwrap();
         }));
     }
-    let ep = EpClient::new(clients.clone(), rt.handle().clone(), 2, 6, 2).with_fused(true);
-    let rows = vec![
-        vec![(1, 0.5), (3, -0.25), (6, 0.75)],
-        vec![],
-        vec![(2, 0.125), (7, 0.25)],
-    ];
-    let xs = [1., 2., 3., 4., 5., 6.];
+    let ep = EpClient::new(clients.clone(), rt.handle().clone(), 2, count * 2, 2).with_fused(true);
+    let rows: Vec<_> = (0..count)
+        .map(|wi| {
+            vec![
+                (wi, 0.5),
+                (wi + count, -0.25),
+                (count * 2, 0.75),
+                (count * 2 + 1, 0.125),
+            ]
+        })
+        .chain([vec![]])
+        .collect();
+    let xs: Vec<f32> = (1..=rows.len() * 2).map(|x| x as f32).collect();
     let out = ep.dispatch(1, &xs, &rows).unwrap();
+    let xs_ref = &xs;
     let expected: Vec<f32> = rows
         .iter()
         .enumerate()
         .flat_map(|(r, ids)| {
             (0..2).map(move |j| {
                 ids.iter()
-                    .map(|&(id, w)| w * (xs[r * 2 + j] + id as f32 * 10.))
+                    .map(|&(id, w)| w * (xs_ref[r * 2 + j] + id as f32 * 10.))
                     .sum::<f32>()
             })
         })

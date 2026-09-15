@@ -683,46 +683,65 @@ impl ExpertBank {
         }
         let inter = self.inter;
         let ov = self.ov.as_ref().filter(|ov| ov.has_layer(b.layer));
-        let computed: Result<Vec<ExpertSlotOutputs>, String> = occurrences
-            .par_iter()
-            .map(|(&id, slots)| {
-                let e = &table[&id];
-                let mut cpu_ready = false;
-                let mut buf = None;
-                slots
-                    .iter()
-                    .map(|&slot| {
-                        let x = &b.hidden[(slot / k) * h..(slot / k + 1) * h];
-                        let gpu = ov
-                            .and_then(|ov| ov.expert(b.layer, id as u32, self.n_routed as u32, x));
-                        let y = match gpu {
-                            Some(y) => y,
-                            None if self.require_gpu => {
-                                return Err(format!(
-                                    "{tag}: GPU expert {id} failed; CPU fallback forbidden"
-                                ))
-                            }
-                            None => {
-                                self.cpu_calls.fetch_add(1, Ordering::Relaxed);
-                                if !cpu_ready {
+        let streamed_cpu = super::env_flag("CASCADIA_INKLING_EP_STREAM_CPU");
+        let compute = |(&id, slots): (&usize, &Vec<usize>)| {
+            let e = &table[&id];
+            let mut cpu_ready = false;
+            let mut buf = None;
+            slots
+                .iter()
+                .map(|&slot| {
+                    let x = &b.hidden[(slot / k) * h..(slot / k + 1) * h];
+                    let gpu =
+                        ov.and_then(|ov| ov.expert(b.layer, id as u32, self.n_routed as u32, x));
+                    let y = match gpu {
+                        Some(y) => y,
+                        None if self.require_gpu => {
+                            return Err(format!(
+                                "{tag}: GPU expert {id} failed; CPU fallback forbidden"
+                            ))
+                        }
+                        None => {
+                            self.cpu_calls.fetch_add(1, Ordering::Relaxed);
+                            if !cpu_ready {
+                                if streamed_cpu {
+                                    buf = e.as_mmap().map(|m| m.read_bytes()).transpose().map_err(
+                                        |e| format!("{tag}: expert {id} streamed read failed: {e}"),
+                                    )?;
+                                } else {
                                     e.prefetch();
                                     buf = e
                                         .as_mmap()
                                         .filter(|m| !seq_reads() && !m.mostly_resident())
                                         .and_then(|m| m.read_bytes().ok());
-                                    cpu_ready = true;
                                 }
-                                match (buf.as_ref(), e.as_mmap()) {
-                                    (Some(buf), Some(m)) => m.swiglu_from(buf, x),
-                                    _ => e.forward(x, h, inter),
-                                }
+                                cpu_ready = true;
                             }
-                        };
-                        Ok((slot, y))
-                    })
-                    .collect()
-            })
-            .collect();
+                            match (buf.as_ref(), e.as_mmap()) {
+                                (Some(buf), Some(m)) => m.swiglu_from(buf, x),
+                                _ => e.forward(x, h, inter),
+                            }
+                        }
+                    };
+                    Ok((slot, y))
+                })
+                .collect()
+        };
+        let computed: Result<Vec<ExpertSlotOutputs>, String> = if streamed_cpu {
+            // Nested Rayon GEMVs may suspend outer tasks while their read
+            // buffers remain live. Fixed cohorts cap retained buffers at eight
+            // experts, even when a long prefill selects hundreds of experts.
+            let entries: Vec<_> = occurrences.iter().collect();
+            let mut outputs = Vec::with_capacity(entries.len());
+            for cohort in entries.chunks(8) {
+                let part: Result<Vec<_>, String> =
+                    cohort.par_iter().copied().map(compute).collect();
+                outputs.extend(part?);
+            }
+            Ok(outputs)
+        } else {
+            occurrences.par_iter().map(compute).collect()
+        };
         let mut out = vec![0.0f32; rows * k * h];
         for (slot, y) in computed?.into_iter().flatten() {
             out[slot * h..(slot + 1) * h].copy_from_slice(&y);

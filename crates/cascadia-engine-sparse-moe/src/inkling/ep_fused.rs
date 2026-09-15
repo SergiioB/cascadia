@@ -123,6 +123,7 @@ pub struct FusedExpertBank {
     budget: u64,
     max_k: usize,
     max_rows: usize,
+    stream: bool,
     state: Mutex<State>,
 }
 
@@ -139,6 +140,7 @@ impl FusedExpertBank {
             return Err("fused EP requires a concrete GPU device".into());
         }
         let mut layers = HashMap::new();
+        let stream = super::env_flag("CASCADIA_INKLING_EP_FUSED_STREAM");
         for (li, owned) in ownership
             .iter()
             .enumerate()
@@ -153,8 +155,11 @@ impl FusedExpertBank {
             let bytes = std::fs::metadata(root.join("openvino_model.bin"))
                 .map_err(|e| e.to_string())?
                 .len();
+            if stream && meta.k != 1 {
+                return Err("streaming fused EP requires compact K=1 graphs".into());
+            }
             if bytes != meta.ir_bytes
-                || bytes > budget
+                || admission_bytes(&meta, stream) > budget
                 || !root.join("openvino_model.xml").is_file()
             {
                 return Err(format!("fused layer {li}: missing IR, size mismatch, or exceeds IR cache budget {budget}"));
@@ -177,6 +182,7 @@ impl FusedExpertBank {
             budget,
             max_k: model.top_k + model.n_shared_experts,
             max_rows,
+            stream,
             state: Mutex::new(State::default()),
         })
     }
@@ -206,7 +212,23 @@ impl FusedExpertBank {
             .map(|(s, _)| s)
             .collect();
         let mut out = vec![0.; body.rows as usize * h];
-        for chunk in slots.chunks(self.max_rows) {
+        let chunks = if self.stream {
+            let mut grouped = std::collections::BTreeMap::<i32, Vec<usize>>::new();
+            for &slot in &slots {
+                grouped.entry(body.ids[slot]).or_default().push(slot);
+            }
+            grouped
+                .values()
+                .flat_map(|group| group.chunks(self.max_rows).map(<[usize]>::to_vec))
+                .collect::<Vec<_>>()
+        } else {
+            slots.chunks(self.max_rows).map(<[usize]>::to_vec).collect()
+        };
+        // Streaming batches contain one unique expert, so repeated prompt rows
+        // reuse its one resident slot. Retain outputs to reduce in ORIGINAL
+        // routing order, preserving f32 addition order despite grouped I/O.
+        let mut delayed = Vec::<(usize, Vec<f32>)>::new();
+        for chunk in &chunks {
             let n = chunk.len() as u32;
             let mut expanded = ExpertDispatchBody {
                 layer: body.layer,
@@ -229,7 +251,7 @@ impl FusedExpertBank {
             // Keep every chunk of a large frame at the same GPU shape. The
             // fixed shape also bounds scratch space and avoids unnecessary
             // shape transitions between a full chunk and its tail.
-            if slots.len() > self.max_rows && chunk.len() < self.max_rows {
+            if !self.stream && slots.len() > self.max_rows && chunk.len() < self.max_rows {
                 let last_row = expanded.hidden[expanded.hidden.len() - h..].to_vec();
                 let last_id = *expanded.ids.last().unwrap();
                 for _ in chunk.len()..self.max_rows {
@@ -243,10 +265,21 @@ impl FusedExpertBank {
             }
             let values = self.serve_one(&expanded, &expanded_weights)?;
             for (&slot, value) in chunk.iter().zip(values.chunks_exact(h)) {
+                if self.stream {
+                    delayed.push((slot, value.to_vec()));
+                    continue;
+                }
                 let r = slot / body.k as usize;
                 for (o, &v) in out[r * h..(r + 1) * h].iter_mut().zip(value) {
                     *o += v;
                 }
+            }
+        }
+        delayed.sort_unstable_by_key(|(slot, _)| *slot);
+        for (slot, value) in delayed {
+            let r = slot / body.k as usize;
+            for (o, v) in out[r * h..(r + 1) * h].iter_mut().zip(value) {
+                *o += v;
             }
         }
         if out.iter().any(|x| !x.is_finite()) {
@@ -268,7 +301,8 @@ impl FusedExpertBank {
         state.clock += 1;
         let clock = state.clock;
         if !state.cache.contains_key(&body.layer) {
-            while state.cache.values().map(|c| c.bytes).sum::<u64>() + meta.ir_bytes > self.budget {
+            let bytes = admission_bytes(meta, self.stream);
+            while state.cache.values().map(|c| c.bytes).sum::<u64>() + bytes > self.budget {
                 let oldest = *state.cache.iter().min_by_key(|(_, c)| c.used).unwrap().0;
                 state.cache.remove(&oldest);
                 state.evictions += 1;
@@ -280,7 +314,7 @@ impl FusedExpertBank {
                 meta.k,
                 meta.expert_ids.len(),
                 None,
-                None,
+                self.stream.then(|| stream_offload(meta).to_string()),
             )
             .requiring_fusion();
             state.cache.insert(
@@ -288,7 +322,7 @@ impl FusedExpertBank {
                 Cached {
                     runtime,
                     used: clock,
-                    bytes: meta.ir_bytes,
+                    bytes,
                 },
             );
         }
@@ -317,12 +351,32 @@ impl FusedExpertBank {
         let s = self.state.lock().unwrap();
         serde_json::json!({"device":self.device,"gpu_name":self.gpu_name,"fused_required":true,
             "calls":s.calls,"rows":s.rows,"selected_expert_rows":s.selected_expert_rows,"errors":s.errors,"evictions":s.evictions,
-            "cached_layers":s.cache.len(),"cached_ir_bytes":s.cache.values().map(|c|c.bytes).sum::<u64>(),
+            "cached_layers":s.cache.len(),"cached_ir_bytes":s.cache.keys().map(|l|self.layers[l].ir_bytes).sum::<u64>(),
+            "cached_admission_bytes":s.cache.values().map(|c|c.bytes).sum::<u64>(),
+            "streaming":self.stream,"admission_is_runtime_estimate":self.stream,
             "ir_cache_budget_bytes":self.budget,"expanded_row_chunk":self.max_rows,"fusion_profiles":s.profiles,
             "graph_k":self.layers.iter().map(|(l,m)|(l.to_string(),m.k)).collect::<HashMap<_,_>>(),
             "cached_runtime_call_ns":s.cache.values().map(|c|c.runtime.stats().call_ns).sum::<u64>(),
+            "cached_runtime_compiles":s.cache.values().map(|c|c.runtime.stats().compiles).sum::<u64>(),
             "cached_runtime_compile_ns":s.cache.values().map(|c|c.runtime.stats().compile_ns).sum::<u64>()})
     }
+}
+
+/// Keep at least one expert slot even for the small asymmetric alpha shard.
+fn stream_offload(meta: &FusedShardManifest) -> usize {
+    100usize
+        .saturating_sub(100usize.div_ceil(meta.padded_experts))
+        .clamp(1, 99)
+}
+
+fn admission_bytes(meta: &FusedShardManifest, stream: bool) -> u64 {
+    if !stream {
+        return meta.ir_bytes;
+    }
+    let slots = (meta.padded_experts * (100 - stream_offload(meta)) / 100).max(1) as u64;
+    // Admission estimate only: two copies of slot weights plus graph/request
+    // overhead. The external guard remains responsible for measured memory.
+    2 * meta.ir_bytes.div_ceil(meta.padded_experts as u64) * slots + (8 << 20)
 }
 
 #[cfg(test)]

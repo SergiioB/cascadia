@@ -40,6 +40,7 @@ use super::conv::{ConvState, ShortConv};
 use super::relpos::RelPos;
 use super::{rmsnorm_f32, DEFAULT_REWIND};
 use crate::dsv4::math::{dot, linear_bf16_w};
+use crate::dsv4::st::MappedBf16;
 
 /// Shape + behaviour of one attention layer.
 #[derive(Clone, Debug)]
@@ -149,6 +150,7 @@ pub struct AttentionLayer {
     dims: AttnDims,
     scale: f32,
     w: AttnWeights,
+    mapped_projections: Option<[MappedBf16; 5]>,
     k_sconv: ShortConv,
     v_sconv: ShortConv,
     relpos: RelPos,
@@ -205,6 +207,17 @@ impl AttentionLayer {
         v_sconv: ShortConv,
         relpos: RelPos,
     ) -> Self {
+        Self::from_parts_with_mapped(dims, w, k_sconv, v_sconv, relpos, None)
+    }
+
+    pub(crate) fn from_parts_with_mapped(
+        dims: AttnDims,
+        w: AttnWeights,
+        k_sconv: ShortConv,
+        v_sconv: ShortConv,
+        relpos: RelPos,
+        mapped_projections: Option<[MappedBf16; 5]>,
+    ) -> Self {
         let (hd, hq, hkv, d, dr) = (
             dims.hidden,
             dims.n_heads,
@@ -218,11 +231,20 @@ impl AttentionLayer {
             0,
             "attn: n_heads must be a multiple of n_kv_heads"
         );
-        assert_eq!(w.wq.len(), hq * d * hd, "attn: wq shape");
-        assert_eq!(w.wk.len(), hkv * d * hd, "attn: wk shape");
-        assert_eq!(w.wv.len(), hkv * d * hd, "attn: wv shape");
-        assert_eq!(w.wr.len(), hq * dr * hd, "attn: wr shape");
-        assert_eq!(w.wo.len(), hd * hq * d, "attn: wo shape");
+        let owned = [&w.wq, &w.wk, &w.wv, &w.wr, &w.wo];
+        let expected = [
+            hq * d * hd,
+            hkv * d * hd,
+            hkv * d * hd,
+            hq * dr * hd,
+            hd * hq * d,
+        ];
+        for (i, size) in expected.into_iter().enumerate() {
+            let weights = mapped_projections
+                .as_ref()
+                .map_or(owned[i].as_slice(), |m| m[i].as_slice());
+            assert_eq!(weights.len(), size, "attn: projection {i} shape");
+        }
         assert_eq!(w.q_norm.len(), d, "attn: q_norm len != head_dim");
         assert_eq!(w.k_norm.len(), d, "attn: k_norm len != head_dim");
         assert_eq!(k_sconv.c(), hkv * d, "attn: k_sconv channels != Hkv·D");
@@ -243,6 +265,7 @@ impl AttentionLayer {
             scale: 1.0 / d as f32,
             dims,
             w,
+            mapped_projections,
             k_sconv,
             v_sconv,
             relpos,
@@ -436,7 +459,11 @@ impl AttentionLayer {
             "release_rust_projections without an OpenVINO attention backend"
         );
         let w = &mut self.w;
-        let bytes = 2 * (w.wq.len() + w.wk.len() + w.wv.len() + w.wr.len() + w.wo.len());
+        let bytes = 2 * (w.wq.len() + w.wk.len() + w.wv.len() + w.wr.len() + w.wo.len())
+            + self
+                .mapped_projections
+                .take()
+                .map_or(0, |m| m.iter().map(|p| p.as_slice().len() * 2).sum());
         for t in [&mut w.wq, &mut w.wk, &mut w.wv, &mut w.wr, &mut w.wo] {
             *t = Vec::new();
         }
@@ -444,7 +471,14 @@ impl AttentionLayer {
     }
 
     fn rust_projections_released(&self) -> bool {
-        self.w.wq.is_empty() && self.dims.hidden > 0
+        self.mapped_projections.is_none() && self.w.wq.is_empty() && self.dims.hidden > 0
+    }
+
+    fn projection(&self, index: usize) -> &[u16] {
+        self.mapped_projections.as_ref().map_or_else(
+            || [&self.w.wq, &self.w.wk, &self.w.wv, &self.w.wr, &self.w.wo][index].as_slice(),
+            |m| m[index].as_slice(),
+        )
     }
 
     fn project_rows(&self, hs: &[f32], t: usize) -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
@@ -497,11 +531,16 @@ impl AttentionLayer {
         for (row, c) in ctx.chunks_exact(hq * d).enumerate() {
             linear_bf16_w(
                 c,
-                &self.w.wo,
+                self.projection(4),
                 hd,
                 hq * d,
                 &mut out[row * hd..(row + 1) * hd],
             );
+        }
+        if let Some(maps) = &self.mapped_projections {
+            for map in maps {
+                map.trim_working_set();
+            }
         }
         out
     }
@@ -515,13 +554,13 @@ impl AttentionLayer {
             self.dims.d_rel,
         );
         let mut q = vec![0.0f32; hq * d];
-        linear_bf16_w(h, &self.w.wq, hq * d, hd, &mut q);
+        linear_bf16_w(h, self.projection(0), hq * d, hd, &mut q);
         let mut kr = vec![0.0f32; hkv * d];
-        linear_bf16_w(h, &self.w.wk, hkv * d, hd, &mut kr);
+        linear_bf16_w(h, self.projection(1), hkv * d, hd, &mut kr);
         let mut vr = vec![0.0f32; hkv * d];
-        linear_bf16_w(h, &self.w.wv, hkv * d, hd, &mut vr);
+        linear_bf16_w(h, self.projection(2), hkv * d, hd, &mut vr);
         let mut r = vec![0.0f32; hq * dr];
-        linear_bf16_w(h, &self.w.wr, hq * dr, hd, &mut r);
+        linear_bf16_w(h, self.projection(3), hq * dr, hd, &mut r);
         (q, kr, vr, r)
     }
 

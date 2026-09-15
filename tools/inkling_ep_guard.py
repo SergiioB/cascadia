@@ -39,8 +39,8 @@ def run(root, job):
     if not re.fullmatch(r"[a-zA-Z0-9_-]+", label):
         raise ValueError("invalid job label")
     seconds = job.get("seconds", 180)
-    if not 1 <= seconds <= 600:
-        raise ValueError("job duration must be 1..600 seconds")
+    if not 1 <= seconds <= 3600:
+        raise ValueError("job duration must be 1..3600 seconds")
     cores = job.get("cores", [0, 1])
     if not cores or len(cores) > max(1, psutil.cpu_count() // 2):
         raise ValueError("benchmark may use at most half the logical CPUs")
@@ -55,6 +55,8 @@ def run(root, job):
     reason = None
     peak_rss = 0
     minimum_available = psutil.virtual_memory().available
+    paused_at, quiet_after = None, 0
+    pause_count, paused_seconds = 0, 0.0
     status_path = root / (label + ".status.json")
     if status_path.exists():
         raise FileExistsError(status_path)
@@ -81,7 +83,7 @@ def run(root, job):
         proc = psutil.Process(child.pid)
         try:
             proc.cpu_affinity(cores)
-            status_path.write_text(json.dumps(dict(state="running", pid=child.pid, exe=str(exe), job=job)))
+            status_path.write_text(json.dumps(dict(state="running", pid=child.pid, create_time=proc.create_time(), exe=str(exe), job=job)))
             while child.poll() is None:
                 available = psutil.virtual_memory().available
                 minimum_available = min(minimum_available, available)
@@ -99,11 +101,24 @@ def run(root, job):
                 elif rss > job.get("max_rss_gib", 10) * 2**30:
                     reason = "benchmark RSS exceeded cap"
                 elif service_busy():
-                    reason = "existing inference service became busy"
+                    if job.get("pause_for_service", False):
+                        if paused_at is None:
+                            proc.suspend()
+                            paused_at = time.monotonic()
+                            pause_count += 1
+                        quiet_after = time.monotonic() + 2
+                    else:
+                        reason = "existing inference service became busy"
                 if reason:
                     break
+                if paused_at is not None and time.monotonic() >= quiet_after:
+                    proc.resume()
+                    paused_seconds += time.monotonic() - paused_at
+                    paused_at = None
                 time.sleep(0.5)
         finally:
+            if paused_at is not None:
+                paused_seconds += time.monotonic() - paused_at
             if child.poll() is None:
                 child.terminate()
             try:
@@ -115,6 +130,7 @@ def run(root, job):
     result = dict(state="finished", returncode=child.returncode, stop_reason=reason,
                   elapsed_seconds=time.monotonic()-started, peak_rss_gib=peak_rss/2**30,
                   minimum_available_gib=minimum_available/2**30, protected_before=before,
+                  service_pause_count=pause_count, service_pause_seconds=paused_seconds,
                   protected_after=after, protected_processes_unchanged=before == after,
                   job=job)
     status_path.write_text(json.dumps(result, indent=2)+"\n")
