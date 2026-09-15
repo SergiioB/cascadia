@@ -60,6 +60,46 @@ static SELECTIONS: AtomicU64 = AtomicU64::new(0);
 static OVL_INTER: AtomicU64 = AtomicU64::new(0);
 static OVL_UNION: AtomicU64 = AtomicU64::new(0);
 
+// --- hot/cold split counters (gated by `enabled()`) ---------------------------
+/// Routed slots the hot/cold decode path (`CASCADIA_GLM5_HOTCOLD`) classified
+/// as resident-and-computed-from-mmap (hot) vs read-off-thread (cold). The cold
+/// share is the fraction of expert work whose NVMe read was overlapped with
+/// compute; 0/0 when the path is disabled.
+static HC_HOT: AtomicU64 = AtomicU64::new(0);
+static HC_COLD: AtomicU64 = AtomicU64::new(0);
+/// Cold slots whose background read failed and fell back to the mmap kernel.
+/// A subset of `HC_COLD`: the fallback is bit-identical, so this is the ONLY
+/// signal that an overlap the operator asked for is silently not happening.
+static HC_COLD_FAIL: AtomicU64 = AtomicU64::new(0);
+
+/// Record one token-layer's hot/cold routed-slot split (no-op when disabled).
+#[inline]
+pub fn note_hotcold(hot: usize, cold: usize) {
+    if enabled() {
+        HC_HOT.fetch_add(hot as u64, Ordering::Relaxed);
+        HC_COLD.fetch_add(cold as u64, Ordering::Relaxed);
+    }
+}
+
+/// Record cold reads that failed and fell back to the mmap kernel this
+/// token-layer (no-op when disabled).
+#[inline]
+pub fn note_hotcold_fail(n: usize) {
+    if enabled() {
+        HC_COLD_FAIL.fetch_add(n as u64, Ordering::Relaxed);
+    }
+}
+
+/// Current hot/cold counters `(hot, cold, cold_failed)`. Reads the raw atomics
+/// regardless of `enabled()` — for tests and inspection.
+pub fn hotcold_counts() -> (u64, u64, u64) {
+    (
+        HC_HOT.load(Ordering::Relaxed),
+        HC_COLD.load(Ordering::Relaxed),
+        HC_COLD_FAIL.load(Ordering::Relaxed),
+    )
+}
+
 // --- LOOKAHEAD recall counters (measurement spike; gated by `enabled()`) ----------
 /// Routed selections this rank made that a next-layer LOOKAHEAD prediction had
 /// already named (the hits), over all selections whose layer WAS predicted (the
@@ -236,6 +276,22 @@ pub fn dump(tag: &str) {
         100.0 * inter as f64 / union as f64,
         toks,
     );
+    // Hot/cold split (only meaningful under CASCADIA_GLM5_HOTCOLD; silent otherwise).
+    let hh = HC_HOT.load(Ordering::Relaxed);
+    let hc = HC_COLD.load(Ordering::Relaxed);
+    let hf = HC_COLD_FAIL.load(Ordering::Relaxed);
+    if hh + hc > 0 {
+        let fail = if hf > 0 {
+            format!("  fail={hf} (read errors → mmap fallback, un-overlapped)")
+        } else {
+            String::new()
+        };
+        eprintln!(
+            "  hotcold  cold={:.1}%  ({hc}/{} routed slots read off-thread){fail}",
+            100.0 * hc as f64 / (hh + hc) as f64,
+            hh + hc,
+        );
+    }
     // Lookahead recall (only meaningful under CASCADIA_GLM5_LOOKAHEAD; n/a otherwise).
     let ph = LOOKAHEAD_HIT.load(Ordering::Relaxed);
     let pt = LOOKAHEAD_TOTAL.load(Ordering::Relaxed);

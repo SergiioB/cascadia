@@ -54,6 +54,78 @@ fn r1_read() -> bool {
     *E.get_or_init(|| crate::glm::env_flag("CASCADIA_GLM5_R1READ"))
 }
 
+/// Hot/cold split mode for the overlapped decode path (`CASCADIA_GLM5_HOTCOLD`).
+#[derive(Clone, Copy, PartialEq, Debug)]
+enum HotCold {
+    /// Residency-probe each routed expert; only mostly-non-resident ones take
+    /// the background-read path. The production setting (`=1`).
+    Probe,
+    /// Treat every mmap routed expert as cold, forcing the background-read +
+    /// overlap machinery on every slot (`=cold`) — deterministic coverage for
+    /// tests and an upper bound for read-path benchmarks.
+    ForceCold,
+}
+
+/// Parse `CASCADIA_GLM5_HOTCOLD`. Off-values follow [`crate::glm::env_flag`]
+/// (unset/empty/`0`/`false`/`no`/`off`); `cold` forces the read path; anything
+/// else enables residency-probed splitting.
+fn parse_hotcold(v: Option<&str>) -> Option<HotCold> {
+    let v = v.map(str::trim).unwrap_or("");
+    if v.is_empty()
+        || v == "0"
+        || v.eq_ignore_ascii_case("false")
+        || v.eq_ignore_ascii_case("no")
+        || v.eq_ignore_ascii_case("off")
+    {
+        None
+    } else if v.eq_ignore_ascii_case("cold") {
+        Some(HotCold::ForceCold)
+    } else {
+        Some(HotCold::Probe)
+    }
+}
+
+/// Hot/cold overlapped decode: split each token's routed experts into HOT
+/// (resident) and COLD (mostly non-resident). HOT experts compute straight
+/// from their resident mmap pages while COLD experts' bins are read
+/// concurrently on background I/O threads, so the cold READS overlap the hot +
+/// shared compute (exposed ≈ `max(hot+shared compute, cold reads)`); the cold
+/// experts' own GEMVs then run in the drain, so the total is that max plus the
+/// cold compute — the win is hiding the reads, not the cold compute.
+/// (Probe mode does the residency split; ForceCold treats every mmap expert as
+/// cold — see [`HotCold`].) Opt-in via `CASCADIA_GLM5_HOTCOLD`; supersedes
+/// `CASCADIA_GLM5_R1READ` when both are set (R1 reads every routed bin up-front
+/// and serializes reads before compute; this path skips resident bins entirely
+/// and overlaps).
+///
+/// The split-and-overlap design follows FreeToken (Yang et al.,
+/// arXiv:2608.16157), which divides expert cache-misses between the transfer
+/// and host-compute paths and runs both branches concurrently; on Cascadia's
+/// UMA fleet the two bandwidth pools are page-cache-resident compute vs NVMe
+/// reads. Read once.
+fn hot_cold() -> Option<HotCold> {
+    use std::sync::OnceLock;
+    static E: OnceLock<Option<HotCold>> = OnceLock::new();
+    *E.get_or_init(|| parse_hotcold(std::env::var("CASCADIA_GLM5_HOTCOLD").ok().as_deref()))
+}
+
+/// Warn ONCE per process that hot/cold cold reads are falling back to the mmap
+/// kernel. Output stays bit-identical, so without this a systematically
+/// failing overlap (bad model store, I/O errors, thread exhaustion) is
+/// invisible — the operator asked for the overlap and silently isn't getting
+/// it. Once is enough: this fires in the decode hot path, per token-layer.
+fn warn_hotcold_fallback(n: usize, err: Option<&str>) {
+    use std::sync::Once;
+    static W: Once = Once::new();
+    W.call_once(|| {
+        eprintln!(
+            "[glm5] hotcold: {n} cold read(s) fell back to the mmap kernel ({}); \
+             output is correct but those experts are not overlapped",
+            err.unwrap_or("reader failure"),
+        );
+    });
+}
+
 impl AnyExpert {
     /// One expert's SwiGLU FFN for token `x`. `inter` is this expert's
     /// intermediate width (routed = `moe_inter`, shared = `moe_inter·n_shared`).
@@ -253,6 +325,36 @@ impl MoeLayer {
         }
     }
 
+    /// In Probe mode the residency probe (`mincore` / `QueryWorkingSetEx`) may be
+    /// unavailable — an unsupported target, or a failing syscall — in which case
+    /// `resident_pages_sampled` returns `(0, 0)`, `expert_cold` reports every
+    /// expert resident, and the whole hot/cold split silently becomes a no-op
+    /// (all-hot, no overlap). Warn once so the operator who opted into the
+    /// overlap knows it is not happening. ForceCold does not probe, so skip it.
+    fn warn_if_probe_unavailable(&self, mode: HotCold) {
+        use std::sync::Once;
+        static W: Once = Once::new();
+        if mode != HotCold::Probe {
+            return;
+        }
+        W.call_once(|| {
+            // Probe any mmap routed expert; `probed == 0` means the OS query is
+            // dead. No mmap experts -> nothing to probe, not a failure.
+            let probe_dead = self
+                .w
+                .experts
+                .iter()
+                .find_map(AnyExpert::as_mmap)
+                .is_some_and(|m| m.resident_pages_sampled(8).1 == 0);
+            if probe_dead {
+                eprintln!(
+                    "[glm5] hotcold: residency probe unavailable on this platform; \
+                     running all-hot (no read overlap)"
+                );
+            }
+        });
+    }
+
     /// This layer's routed-expert bin table for the LOOKAHEAD worker (paths + sizes;
     /// `None` per expert on the non-mmap path).
     pub fn expert_bins(&self) -> super::lookahead::LayerBins {
@@ -319,6 +421,9 @@ impl MoeLayer {
         // routed experts in gate order, then the shared expert.
         let t_exp = std::time::Instant::now();
         let mut out = vec![0.0f32; self.hidden];
+        // Set only by the hot/cold path, which computes the shared expert
+        // during the overlap window; every other path computes it below.
+        let mut shared_pre: Option<Vec<f32>> = None;
         if let Some(ov) = &self.ov {
             // OpenVINO backend (opt-in): each routed expert runs its compiled OV
             // IR on the configured device (iGPU / NPU / CPU). `routed` returns the
@@ -331,6 +436,136 @@ impl MoeLayer {
                     .unwrap_or_else(|| {
                         self.w.experts[e as usize].forward(x, self.hidden, self.moe_inter)
                     });
+                for (o, &yi) in out.iter_mut().zip(&y) {
+                    *o += wj * yi;
+                }
+            }
+        } else if let Some(mode) = hot_cold() {
+            // Hot/cold overlapped reads (FreeToken-style, arXiv:2608.16157):
+            // classify each routed expert hot/cold (Probe residency-probes,
+            // ForceCold marks every mmap expert cold), read the COLD bins on
+            // background I/O threads (whole-bin sequential into an owned buffer
+            // we compute from directly — same read as R1; warming the page
+            // cache is only a side effect), and compute the HOT experts + the
+            // shared expert from resident pages meanwhile. Expert outputs
+            // land in per-slot buffers and are accumulated in gate order
+            // below, so the result is bit-identical to every other path.
+            let k = gate.idx.len();
+            let mut ys: Vec<Option<Vec<f32>>> = Vec::with_capacity(k);
+            ys.resize_with(k, || None);
+            let is_cold: Vec<bool> = gate
+                .idx
+                .iter()
+                .map(|&e| match mode {
+                    // Non-mmap experts are RAM-resident; never "cold".
+                    HotCold::ForceCold => self.w.experts[e as usize].as_mmap().is_some(),
+                    HotCold::Probe => self.expert_cold(e),
+                })
+                .collect();
+            let ncold = is_cold.iter().filter(|&&c| c).count();
+            prof::note_hotcold(k - ncold, ncold);
+            self.warn_if_probe_unavailable(mode);
+            if ncold == 0 {
+                // Everything resident: plain mmap compute — no threads, no
+                // buffer copies. The zero-overhead steady state.
+                for (slot, &e) in gate.idx.iter().enumerate() {
+                    ys[slot] =
+                        Some(self.w.experts[e as usize].forward(x, self.hidden, self.moe_inter));
+                }
+            } else {
+                // Cold reads that fail fall back to mmap (bit-identical), so a
+                // systematically failing overlap is otherwise invisible behind
+                // correct output — count the fallbacks and keep the first error.
+                let mut cold_fail = 0usize;
+                let mut cold_err: Option<String> = None;
+                std::thread::scope(|s| {
+                    // Launch the cold reads first so NVMe is busy for the
+                    // whole hot-compute window. One thread per cold bin: the
+                    // reads are I/O-bound, so they must NOT ride the rayon
+                    // pool the hot GEMVs are saturating.
+                    let mut readers = Vec::with_capacity(ncold);
+                    for (slot, &e) in gate.idx.iter().enumerate() {
+                        if !is_cold[slot] {
+                            continue;
+                        }
+                        let ex = &self.w.experts[e as usize];
+                        // A cold classification always implies an mmap expert;
+                        // the `None` arm is defensive, computing hot rather than
+                        // panicking if that ever stops holding.
+                        match ex.as_mmap() {
+                            Some(m) => {
+                                match std::thread::Builder::new()
+                                    .spawn_scoped(s, move || m.read_bytes())
+                                {
+                                    Ok(h) => readers.push((slot, h)),
+                                    // The OS refused a thread (fd/thread
+                                    // exhaustion — the resource-pressured
+                                    // regime this path targets). Read inline
+                                    // (still off the GEMV, just not overlapped)
+                                    // rather than let the spawn panic take down
+                                    // the whole decode.
+                                    Err(_) => {
+                                        ys[slot] = Some(match m.read_bytes() {
+                                            Ok(b) => m.swiglu_from(&b, x),
+                                            Err(e) => {
+                                                cold_fail += 1;
+                                                cold_err.get_or_insert_with(|| e.to_string());
+                                                ex.forward(x, self.hidden, self.moe_inter)
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                            None => ys[slot] = Some(ex.forward(x, self.hidden, self.moe_inter)),
+                        }
+                    }
+                    for (slot, &e) in gate.idx.iter().enumerate() {
+                        if !is_cold[slot] {
+                            ys[slot] = Some(self.w.experts[e as usize].forward(
+                                x,
+                                self.hidden,
+                                self.moe_inter,
+                            ));
+                        }
+                    }
+                    // The shared expert fires every token and is the
+                    // always-active pin candidate — extra hot compute to hide
+                    // the reads behind.
+                    shared_pre = Some(self.w.shared.forward(x, self.hidden, self.shared_inter));
+                    // Drain the reads; a failed read or a panicked reader
+                    // thread falls back to the mmap kernel for that expert
+                    // (same value, just faults) and is counted so the fallback
+                    // is not silent.
+                    for (slot, h) in readers {
+                        let ex = &self.w.experts[gate.idx[slot] as usize];
+                        let buf = match h.join() {
+                            Ok(Ok(b)) => Some(b),
+                            Ok(Err(e)) => {
+                                cold_fail += 1;
+                                cold_err.get_or_insert_with(|| e.to_string());
+                                None
+                            }
+                            Err(_) => {
+                                cold_fail += 1;
+                                cold_err.get_or_insert_with(|| "reader thread panicked".into());
+                                None
+                            }
+                        };
+                        ys[slot] = Some(match (buf, ex.as_mmap()) {
+                            (Some(b), Some(m)) => m.swiglu_from(&b, x),
+                            _ => ex.forward(x, self.hidden, self.moe_inter),
+                        });
+                    }
+                });
+                if cold_fail > 0 {
+                    prof::note_hotcold_fail(cold_fail);
+                    warn_hotcold_fallback(cold_fail, cold_err.as_deref());
+                }
+            }
+            // Accumulate in gate order — the exact op order of forward_token's
+            // other branches, so hot/cold stays bit-identical.
+            for (slot, &wj) in gate.weight.iter().enumerate() {
+                let y = ys[slot].take().expect("every routed slot computed");
                 for (o, &yi) in out.iter_mut().zip(&y) {
                     *o += wj * yi;
                 }
@@ -368,11 +603,15 @@ impl MoeLayer {
                 }
             }
         }
-        let s = match &self.ov {
-            Some(ov) => ov
-                .shared(self.layer_idx as usize, x)
-                .unwrap_or_else(|| self.w.shared.forward(x, self.hidden, self.shared_inter)),
-            None => self.w.shared.forward(x, self.hidden, self.shared_inter),
+        let s = match shared_pre {
+            // Hot/cold path: already computed during the read-overlap window.
+            Some(s) => s,
+            None => match &self.ov {
+                Some(ov) => ov
+                    .shared(self.layer_idx as usize, x)
+                    .unwrap_or_else(|| self.w.shared.forward(x, self.hidden, self.shared_inter)),
+                None => self.w.shared.forward(x, self.hidden, self.shared_inter),
+            },
         };
         for (o, &si) in out.iter_mut().zip(&s) {
             *o += si;
@@ -525,5 +764,32 @@ mod tests {
         // which is all-zero here, so it selects the two lowest ids (tie-break).
         let pred2 = layer.predict_topk(&[0.0, 1.0, 0.0, 0.0]);
         assert_eq!(pred2, vec![0, 1]);
+    }
+
+    /// `CASCADIA_GLM5_HOTCOLD` parsing: off-values match `env_flag`'s off set,
+    /// `cold` forces the read path, anything else probes.
+    #[test]
+    fn hotcold_env_parse() {
+        for off in [
+            None,
+            Some(""),
+            Some("  "),
+            Some("0"),
+            Some("false"),
+            Some("no"),
+            Some("OFF"),
+        ] {
+            assert_eq!(parse_hotcold(off), None, "{off:?} must disable");
+        }
+        for cold in ["cold", "COLD", " cold "] {
+            assert_eq!(parse_hotcold(Some(cold)), Some(HotCold::ForceCold));
+        }
+        for on in ["1", "true", "probe", "yes"] {
+            assert_eq!(
+                parse_hotcold(Some(on)),
+                Some(HotCold::Probe),
+                "{on:?} must probe"
+            );
+        }
     }
 }

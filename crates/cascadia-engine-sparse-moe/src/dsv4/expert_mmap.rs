@@ -198,8 +198,26 @@ impl MmapExpert {
     /// bandwidth — instead of faulting mmap pages in mid-GEMV. The returned bytes
     /// are byte-identical to `self.mmap`, so [`Self::swiglu_from`] is bit-exact
     /// vs the mmap path.
+    ///
+    /// If the file has shrunk since [`Self::open`] validated its length (e.g. the
+    /// bin was replaced/truncated under a running node), `std::fs::read` still
+    /// returns `Ok` with a short buffer — which would slice out of bounds inside
+    /// [`Self::swiglu_from`]. Re-check the length here and return `Err` on a short
+    /// read so callers route through their mmap fallback instead of panicking.
     pub fn read_bytes(&self) -> std::io::Result<Vec<u8>> {
-        std::fs::read(&self.path)
+        let buf = std::fs::read(&self.path)?;
+        let want = 2 * section_bytes(self.inter, self.dim) + section_bytes(self.dim, self.inter);
+        if buf.len() < want {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                format!(
+                    "{}: expert bin shrank to {} bytes (need {want})",
+                    self.path.display(),
+                    buf.len()
+                ),
+            ));
+        }
+        Ok(buf)
     }
 
     /// On-disk size of this expert's int4 bin, i.e. the bytes streamed for it at
@@ -670,5 +688,65 @@ mod tests {
         let got = dequant_row_dot(&packed, &scales, &x, in_dim) as f64;
         let rel = (got - refv).abs() / refv.abs().max(1e-6);
         assert!(rel < 1e-4, "fused={got} ref={refv} rel={rel}");
+    }
+
+    use super::MmapExpert;
+    use std::path::PathBuf;
+
+    /// A routed expert from the committed GLM-5.2 fixture (hidden = inter = 32).
+    fn fixture_expert() -> MmapExpert {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/glm5_export/experts/layer_01/expert_000.bin");
+        MmapExpert::open(&path, 32, 32).expect("open fixture expert")
+    }
+
+    /// The hot/cold correctness guarantee reduces to this: computing a cold
+    /// expert from its whole-bin READ buffer (`swiglu_from` over `read_bytes`)
+    /// must be BIT-for-bit identical to the mmap kernel (`swiglu_mmap`) the hot
+    /// and fallback paths use. The end-to-end parity tests only check argmax
+    /// tokens; this pins the actual bitwise equality the claim rests on, and by
+    /// extension the read-failure fallback (which IS `swiglu_mmap`).
+    #[test]
+    fn swiglu_from_read_bytes_is_bit_identical_to_mmap_kernel() {
+        use crate::glm::ffn::swiglu_mmap;
+        let m = fixture_expert();
+        let x: Vec<f32> = (0..32).map(|i| ((i as f32) * 0.13).sin() * 0.5).collect();
+        let via_mmap = swiglu_mmap(&m, &x);
+        let via_read = m.swiglu_from(&m.read_bytes().expect("full bin reads"), &x);
+        let bits = |v: &[f32]| v.iter().map(|f| f.to_bits()).collect::<Vec<_>>();
+        assert_eq!(
+            bits(&via_mmap),
+            bits(&via_read),
+            "cold-read swiglu_from diverged from the mmap kernel bit-for-bit"
+        );
+    }
+
+    /// `open` validated the bin length, but a file that shrank AFTER open (a bin
+    /// re-synced/truncated under a running node) would otherwise return a short
+    /// buffer that slices out of bounds downstream. `read_bytes` must reject it
+    /// with `Err` so the hot/cold + R1 paths fall back to mmap instead of
+    /// panicking.
+    #[test]
+    fn read_bytes_rejects_a_bin_that_shrank_after_open() {
+        let src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/glm5_export/experts/layer_01/expert_000.bin");
+        let tmp = std::env::temp_dir().join(format!("glm5_short_{}.bin", std::process::id()));
+        std::fs::copy(&src, &tmp).unwrap();
+        let m = MmapExpert::open(&tmp, 32, 32).expect("open full bin");
+        assert!(
+            m.read_bytes().is_ok(),
+            "full bin reads OK before truncation"
+        );
+        // Shrink the backing file under the already-mmap'd expert. Only
+        // read_bytes (fs::read) touches it afterwards, so no mmap SIGBUS.
+        std::fs::OpenOptions::new()
+            .write(true)
+            .open(&tmp)
+            .unwrap()
+            .set_len(16)
+            .unwrap();
+        let err = m.read_bytes().expect_err("short bin must error");
+        assert_eq!(err.kind(), std::io::ErrorKind::UnexpectedEof);
+        std::fs::remove_file(&tmp).ok();
     }
 }
