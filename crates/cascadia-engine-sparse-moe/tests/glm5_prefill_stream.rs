@@ -23,9 +23,8 @@ fn prefill_stream_matches_mmap_reference() {
     // Force mmap experts (so the warm path is actually exercised) + stream-all.
     std::env::set_var("CASCADIA_GLM5_EXPERTS", "mmap");
     std::env::set_var("CASCADIA_GLM5_PREFILL_STREAM", "all");
-    let got = GlmRunner::load_staged(&dir, 32, 0, 1, 0, 0, Default::default())
-        .unwrap()
-        .generate_argmax(&[1, 2, 3, 4], 4);
+    let mut runner = GlmRunner::load_staged(&dir, 32, 0, 1, 0, 0, Default::default()).unwrap();
+    let got = runner.generate_argmax(&[1, 2, 3, 4], 4);
     std::env::remove_var("CASCADIA_GLM5_EXPERTS");
     std::env::remove_var("CASCADIA_GLM5_PREFILL_STREAM");
     // Same reference as glm5_expert_mmap's mmap path → streaming is inert on
@@ -34,5 +33,15 @@ fn prefill_stream_matches_mmap_reference() {
         got,
         vec![4u32, 10, 3, 15],
         "prefill layer streaming diverged from the mmap reference"
+    );
+    // Liveness: output-parity alone holds even if streaming did nothing, so
+    // also assert the machinery ran. Under `=all` every routed expert of each
+    // next layer is enqueued, so the count is a deterministic, non-zero,
+    // main-thread signal (unlike the worker's async warmed counter, which the
+    // stale-job drop makes timing-dependent). Catches a silent regression to a
+    // no-op enqueue or a broken `All` gate.
+    assert!(
+        runner.stream_enqueued() > 0,
+        "prefill streaming enqueued no warms — the streaming path is a no-op"
     );
 }

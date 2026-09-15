@@ -333,6 +333,13 @@ pub struct GlmRunner {
     /// layer's experts, so the whole (cold) set is warmed. Best-effort and
     /// output-identical. `All` skips the residency gate (tests / bench lever).
     prefill_stream: Option<PrefillStream>,
+    /// Running count of routed-expert warms enqueued by prefill streaming.
+    /// Diagnostic + test hook: a non-zero value proves streaming actually
+    /// engaged (enqueued work) rather than standing down or no-op'ing; stays 0
+    /// when the feature is off, on a non-mmap rank, or gated below the row
+    /// threshold. Distinct from the worker's warmed/dropped counters, which are
+    /// async and best-effort.
+    stream_enqueued: u64,
     /// Per-rank KV-prefix cache of this rank's layer slice, keyed by a prefix key
     /// rank 0 assigns. Disabled (cap 0) unless `CASCADIA_GLM5_PREFIX_CACHE` is set.
     prefix_cache: SliceKvCache,
@@ -630,6 +637,7 @@ impl GlmRunner {
             lookahead,
             lookahead_decode: lookahead_on,
             prefill_stream,
+            stream_enqueued: 0,
             prefix_cache: SliceKvCache::new(
                 opts.prefix_cache_depth
                     .map(|d| d as usize)
@@ -749,19 +757,24 @@ impl GlmRunner {
     /// `Gated` (the probe costs microseconds; re-reading a hot bin costs
     /// milliseconds of NVMe bandwidth). Shared experts are excluded like the
     /// decode lookahead: they are pinned whenever pinning is on.
+    /// Returns the number of experts enqueued (0 for a dense layer or when
+    /// every expert is resident under `Gated`).
     fn stream_enqueue_layer(
         lk: &super::lookahead::Lookahead,
         layers: &[GlmLayer],
         li: usize,
         mode: PrefillStream,
-    ) {
+    ) -> u64 {
+        let mut n = 0;
         if let Some(m) = layers[li].moe() {
             for e in 0..m.n_experts as u32 {
                 if mode == PrefillStream::All || m.expert_cold(e) {
                     lk.enqueue(li, e);
+                    n += 1;
                 }
             }
         }
+        n
     }
 
     /// Persist the learned-pin routing histogram to `<dir>/.coli_usage` so the
@@ -769,6 +782,13 @@ impl GlmRunner {
     /// Each node writes its own file (it only records its own layers); best-effort.
     pub fn save_usage(&self) -> std::io::Result<()> {
         self.usage.lock().unwrap().save(&self.usage_path)
+    }
+
+    /// Total routed-expert warms enqueued by prefill streaming so far. A
+    /// non-zero value proves the streaming path actually engaged rather than
+    /// standing down or no-op'ing (test/diagnostic hook).
+    pub fn stream_enqueued(&self) -> u64 {
+        self.stream_enqueued
     }
 }
 
@@ -933,19 +953,21 @@ impl StagedRunner for GlmRunner {
         // streaming stands down below the row threshold. `All` stays
         // unconditional: it is the explicit test/bench lever.
         let stream = prefill_stream_gate(self.prefill_stream, rows);
+        let mut enq: u64 = 0;
         if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
             lk.set_cur_layer(0);
-            Self::stream_enqueue_layer(lk, &self.layers, 0, mode);
+            enq += Self::stream_enqueue_layer(lk, &self.layers, 0, mode);
         }
         for i in 0..n {
             if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
                 lk.set_cur_layer(i);
                 if i + 1 < n {
-                    Self::stream_enqueue_layer(lk, &self.layers, i + 1, mode);
+                    enq += Self::stream_enqueue_layer(lk, &self.layers, i + 1, mode);
                 }
             }
             x = self.layers[i].forward_prefill(&x, rows, &mut carries);
         }
+        self.stream_enqueued += enq;
         self.pos += rows;
         x
     }
