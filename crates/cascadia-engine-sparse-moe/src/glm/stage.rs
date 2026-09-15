@@ -732,9 +732,6 @@ impl GlmRunner {
         residency::pin_expert_count(residency::mem_available(), resident, kv, eb)
     }
 
-    /// Persist the learned-pin routing histogram to `<dir>/.coli_usage` so the
-    /// next run mlocks a better initial set ("faster the more you use it").
-    /// Each node writes its own file (it only records its own layers); best-effort.
     /// Enqueue local layer `li`'s routed experts for the lookahead worker to
     /// warm — the whole set under `All`, only the not-yet-resident ones under
     /// `Gated` (the probe costs microseconds; re-reading a hot bin costs
@@ -755,6 +752,9 @@ impl GlmRunner {
         }
     }
 
+    /// Persist the learned-pin routing histogram to `<dir>/.coli_usage` so the
+    /// next run mlocks a better initial set ("faster the more you use it").
+    /// Each node writes its own file (it only records its own layers); best-effort.
     pub fn save_usage(&self) -> std::io::Result<()> {
         self.usage.lock().unwrap().save(&self.usage_path)
     }
