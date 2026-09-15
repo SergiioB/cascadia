@@ -1,19 +1,23 @@
 """Negative controls for archived full-model correctness evidence."""
 import copy
+import contextlib
 import gzip
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import struct
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 TOOLS=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(TOOLS))
 from inkling_ep_trace_slice import slice_case
 from inkling_ep_topology_report import tensor_evidence
+import inkling_ep_topology_report as topology_report
 
 
 class TraceTests(unittest.TestCase):
@@ -65,6 +69,39 @@ class TraceTests(unittest.TestCase):
         for field,value in [('different_bits',1),('relative_rms',float('nan')),('max_abs',.01)]:
             bad=copy.deepcopy(report);bad['tensor_errors'][0][field]=value
             with self.assertRaises(AssertionError):tensor_evidence(bad,cases,16)
+
+    def audit_args(self, output):
+        return ['inkling_ep_topology_report', '--artifacts', str(TOOLS.parent/'docs/perf/inkling-ep-full'),
+                '--baseline', 'full-gpu-ordered3-v13', '--candidate',
+                *['full-gpu-ordered12-v14-'+case for case in ['water_cycle','binary_search','short_story']],
+                '--out', str(output)]
+
+    def test_changed_payload_hash_cannot_publish_a_pass_from_unchanged_native_reports(self):
+        original_read=topology_report.read
+        def corrupted_read(path):
+            value=original_read(path)
+            if path.name == 'full-gpu-ordered12-v14-binary_search.json.gz':
+                # Leave every successful native verdict and per-tensor metric
+                # intact, but report different retained payload bytes.
+                digest=value['sha256.json']['tensors.f32']
+                value['sha256.json']['tensors.f32']=('0' if digest[0]!='0' else '1')+digest[1:]
+            return value
+        with tempfile.TemporaryDirectory() as td:
+            output=Path(td)/'must-not-pass.json'
+            with patch.object(sys,'argv',self.audit_args(output)), patch.object(topology_report,'read',corrupted_read):
+                with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(AssertionError):
+                    topology_report.main()
+            self.assertFalse(output.exists())
+
+    def test_omitting_a_prompt_cannot_publish_a_full_corpus_pass(self):
+        with tempfile.TemporaryDirectory() as td:
+            output=Path(td)/'must-not-pass.json'
+            argv=self.audit_args(output)
+            argv.remove('full-gpu-ordered12-v14-short_story')
+            with patch.object(sys,'argv',argv):
+                with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(AssertionError):
+                    topology_report.main()
+            self.assertFalse(output.exists())
 
 
 if __name__=='__main__':unittest.main()

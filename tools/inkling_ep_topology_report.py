@@ -106,6 +106,8 @@ def main():
     cases = read(a.artifacts/'full-cases.json')
     tokens = base['tokens_per_case']
     assert tokens >= 8 and bt['cases'] == cases
+    matched_floats = sum(t['rows']*t['width'] for t in bt['tensors'])
+    assert bt['payload_bytes'] == matched_floats*4
     expected_rows = sum(len(c['prompt_ids'])+tokens-1 for c in cases)*64*8
     assert sum(b['fused']['selected_expert_rows'] for b in bb.values()) == expected_rows
     baseline_files = read(a.artifacts/(a.baseline+'.json.gz'))
@@ -132,8 +134,9 @@ def main():
             compact_replies += backend['wire_f16_replies']
             wire_bytes += backend['wire_tensor_bytes']
             wire_equivalent += backend['wire_f32_equivalent_bytes']
+        candidate_files = read(a.artifacts/(label+'.json.gz'))
         if subset != cases:
-            proof = read(a.artifacts/(label+'.json.gz'))['reference-slice-provenance.json']
+            proof = candidate_files['reference-slice-provenance.json']
             assert len(subset) == 1 and proof['case'] == subset[0]['name']
             assert proof['source_sha256'] == baseline_files['sha256.json']
             offset, ranges = 0, []
@@ -143,6 +146,9 @@ def main():
                 offset += size
             assert proof['selected_byte_ranges'] == ranges
             assert proof['tensor_values_recomputed'] is False
+            assert candidate_files['sha256.json']['tensors.f32'] == proof['output_sha256']['tensors.f32']
+        else:
+            assert candidate_files['sha256.json']['tensors.f32'] == baseline_files['sha256.json']['tensors.f32']
         text.update(zip([c['name'] for c in subset],candidate['generated_text']))
         counts.append(dict(label=label,candidate_workers=len(cb),generated_tokens=tokens*len(subset),**numerical))
     assert seen == {c['name'] for c in cases} and total_expert_rows == expected_rows
@@ -150,7 +156,8 @@ def main():
                   physical_hosts=3,baseline_workers=len(bb),candidate_workers=sorted({c['candidate_workers'] for c in counts}),
                   twelve_physical_hosts_tested=False,cpu_gpu_numerical_parity_established=False,
                   generated_tokens=tokens*len(cases),selected_expert_rows_per_run=expected_rows,
-                  matched_tensors=sum(c['matched_tensors'] for c in counts),different_float_bits=0,
+                  matched_tensors=sum(c['matched_tensors'] for c in counts),matched_float_values=matched_floats,
+                  identical_payload_sha256=True,different_float_bits=0,
                   maximum_relative_rms=0.,wire_tensor_bytes=wire_bytes,wire_f32_equivalent_bytes=wire_equivalent,
                   lossless_compact_replies=compact_replies,wire_scale_header_bytes=compact_replies,baseline=a.baseline,candidates=counts,generated_text=text)
     with a.out.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
