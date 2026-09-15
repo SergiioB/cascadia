@@ -993,6 +993,48 @@ fn ov_backend_falls_back_bit_identically_without_openvino() {
     let _ = std::fs::remove_dir_all(&tmp);
 }
 
+#[test]
+fn releasing_rust_attention_weights_keeps_them_when_the_backend_cannot_warm() {
+    // Without OpenVINO the attention IR cannot compile, so the release must
+    // refuse (Some(0)) and the Rust projections stay bit-identical.
+    use cascadia_engine_sparse_moe::inkling::ov_attn::OvAttn;
+    use std::sync::Arc;
+
+    let tmp = std::env::temp_dir().join(format!("inkling_ov_attn_drop_{}", std::process::id()));
+    let dir = tmp.join("attn_ov");
+    for sub in ["qkvr", "o"] {
+        let d = dir.join("layer_00").join(sub);
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join("openvino_model.xml"), b"<net/>").unwrap();
+    }
+    let mut plain = random_model(7);
+    let mut with_ov = random_model(7);
+    let ov = Arc::new(OvAttn::new(dir, "GPU".into()));
+    assert!(ov.has_layer(0));
+    with_ov.attach_ov_attn(Arc::clone(&ov));
+    let released = with_ov.release_rust_attention_weights();
+    assert_eq!(
+        released[0],
+        Some(0),
+        "no OpenVINO: layer 0 must keep its Rust tables"
+    );
+    assert!(
+        released[1..].iter().all(|r| r.is_none()),
+        "layers without an IR have no backend"
+    );
+    for &t in &[3u32, 11, 5] {
+        let a = plain.forward_token(t);
+        let b = with_ov.forward_token(t);
+        assert_eq!(
+            bits(&a),
+            bits(&b),
+            "token {t}: kept Rust projections must stay bit-identical"
+        );
+    }
+    assert!(ov.stats().fallbacks > 0, "the backend was never asked");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
 /// The fused-MoE backend's wiring on a build without OpenVINO: the layer
 /// declines every call, the model falls back to its other paths bit-identically,
 /// the unusable layers are recorded, and `from_env` stays `None` without the

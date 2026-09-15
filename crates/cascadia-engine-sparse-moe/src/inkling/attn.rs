@@ -425,11 +425,38 @@ impl AttentionLayer {
 
     /// `q`, `k`, `v`, `r` for `t` rows (`hs` = `[t, H]`): one backend call
     /// when attached (and it answers), else `t` Rust projections.
+    /// Free the five bf16 projection tables once an OpenVINO backend serves
+    /// them (`CASCADIA_INKLING_OV_ATTN_DROP_RUST=1`): 264 MB per layer that
+    /// would otherwise sit next to the device copy in unified memory. Returns
+    /// the bytes released. After this a refused backend call is fatal (there
+    /// is nothing left to fall back to), which the projection paths report.
+    pub fn release_rust_projections(&mut self) -> usize {
+        assert!(
+            self.ov.is_some(),
+            "release_rust_projections without an OpenVINO attention backend"
+        );
+        let w = &mut self.w;
+        let bytes = 2 * (w.wq.len() + w.wk.len() + w.wv.len() + w.wr.len() + w.wo.len());
+        for t in [&mut w.wq, &mut w.wk, &mut w.wv, &mut w.wr, &mut w.wo] {
+            *t = Vec::new();
+        }
+        bytes
+    }
+
+    fn rust_projections_released(&self) -> bool {
+        self.w.wq.is_empty() && self.dims.hidden > 0
+    }
+
     fn project_rows(&self, hs: &[f32], t: usize) -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
         if let Some((lid, ov)) = &self.ov {
             if let Some([q, k, v, r]) = ov.qkvr(*lid, hs, t) {
                 return (q, k, v, r);
             }
+            assert!(
+                !self.rust_projections_released(),
+                "inkling layer {lid}: the OpenVINO attention backend refused a call after \
+                 the Rust projections were released (CASCADIA_INKLING_OV_ATTN_DROP_RUST=1)"
+            );
         }
         let (hd, hq, hkv, d, dr) = (
             self.dims.hidden,
@@ -459,6 +486,11 @@ impl AttentionLayer {
             if let Some(y) = ov.o(*lid, ctx, t) {
                 return y;
             }
+            assert!(
+                !self.rust_projections_released(),
+                "inkling layer {lid}: the OpenVINO attention backend refused a call after \
+                 the Rust projections were released (CASCADIA_INKLING_OV_ATTN_DROP_RUST=1)"
+            );
         }
         let (hd, hq, d) = (self.dims.hidden, self.dims.n_heads, self.dims.head_dim);
         let mut out = vec![0.0f32; t * hd];
