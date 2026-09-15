@@ -299,9 +299,9 @@ no reset, no prefix frames, no KV.
 
 ```bash
 # workers first (each holds ~1/W of the 490 GB of routed experts, mmap'd)
-cascadia worker --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 0 --ep-worker-count 3 --listen :9200
-cascadia worker --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 1 --ep-worker-count 3 --listen :9201
-cascadia worker --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 2 --ep-worker-count 3 --listen :9202
+cascadia worker --rank 0 --total 1 --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 0 --ep-worker-count 3 --listen :9200
+cascadia worker --rank 0 --total 1 --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 1 --ep-worker-count 3 --listen :9201
+cascadia worker --rank 0 --total 1 --engine sparse-moe --model /data/inkling-int4 --ep-worker-index 2 --ep-worker-count 3 --listen :9202
 # then the driver
 cascadia run /data/inkling-int4 --engine sparse-moe --ep-workers hostA:9200,hostB:9201,hostC:9202 --api :8000
 ```
