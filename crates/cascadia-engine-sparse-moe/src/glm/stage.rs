@@ -281,6 +281,18 @@ fn parse_prefill_stream(v: Option<&str>) -> Option<PrefillStream> {
     }
 }
 
+/// Resolve the effective prefill-stream mode for a batch of `rows` rows.
+/// `Gated` stands down below [`PREFILL_STREAM_MIN_ROWS`] (a narrow batch's
+/// routed union is a small fraction of the next layer, so whole-layer warming
+/// would over-read cold bins the prefill never touches); `All` ignores the
+/// threshold (the deterministic test/bench lever); `None` stays off.
+fn prefill_stream_gate(mode: Option<PrefillStream>, rows: usize) -> Option<PrefillStream> {
+    match mode {
+        Some(PrefillStream::Gated) if rows < PREFILL_STREAM_MIN_ROWS => None,
+        m => m,
+    }
+}
+
 pub struct GlmRunner {
     embed: Option<WideTable>,            // [vocab, hidden] on rank 0
     layers: Vec<GlmLayer>,               // this rank's slice
@@ -920,10 +932,7 @@ impl StagedRunner for GlmRunner {
         // warmed vs a few-hundred-bin union on a 16-row prompt — hence Gated
         // streaming stands down below the row threshold. `All` stays
         // unconditional: it is the explicit test/bench lever.
-        let stream = match self.prefill_stream {
-            Some(PrefillStream::Gated) if rows < PREFILL_STREAM_MIN_ROWS => None,
-            m => m,
-        };
+        let stream = prefill_stream_gate(self.prefill_stream, rows);
         if let (Some(mode), Some(lk)) = (stream, self.lookahead.as_ref()) {
             lk.set_cur_layer(0);
             Self::stream_enqueue_layer(lk, &self.layers, 0, mode);
@@ -953,7 +962,7 @@ impl StagedRunner for GlmRunner {
 #[cfg(test)]
 mod tests {
     use super::WideTable;
-    use super::{parse_prefill_stream, PrefillStream};
+    use super::{parse_prefill_stream, prefill_stream_gate, PrefillStream, PREFILL_STREAM_MIN_ROWS};
 
     /// `CASCADIA_GLM5_PREFILL_STREAM` parsing: off-values match `env_flag`'s
     /// off set, `all` skips the residency gate, anything else gates.
@@ -977,6 +986,43 @@ mod tests {
                 parse_prefill_stream(Some(on)),
                 Some(PrefillStream::Gated),
                 "{on:?} must gate"
+            );
+        }
+    }
+
+    /// The row-threshold gate: `Gated` stands down below
+    /// `PREFILL_STREAM_MIN_ROWS`, engages at/above it; `All` ignores the
+    /// threshold; `None` stays off — regardless of row count.
+    #[test]
+    fn prefill_stream_gate_row_threshold() {
+        let min = PREFILL_STREAM_MIN_ROWS;
+        // Gated stands down strictly below the threshold, engages at the
+        // boundary and above (guards the `<` vs `<=` and the constant).
+        for rows in [0, 1, min - 1] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::Gated), rows),
+                None,
+                "Gated must stand down at {rows} rows (< {min})"
+            );
+        }
+        for rows in [min, min + 1, 4096] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::Gated), rows),
+                Some(PrefillStream::Gated),
+                "Gated must engage at {rows} rows (>= {min})"
+            );
+        }
+        // All is unconditional; None stays off — at every row count.
+        for rows in [0, 1, min - 1, min, 4096] {
+            assert_eq!(
+                prefill_stream_gate(Some(PrefillStream::All), rows),
+                Some(PrefillStream::All),
+                "All must ignore the threshold at {rows} rows"
+            );
+            assert_eq!(
+                prefill_stream_gate(None, rows),
+                None,
+                "None must stay off at {rows} rows"
             );
         }
     }
