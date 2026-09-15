@@ -69,11 +69,13 @@ def recipe(ir, out):
 
 class Guard:
     """Check between bounded chunks; yield to CI/services and retain reserves."""
-    def __init__(self, root, rate, reserve):
+    def __init__(self, root, rate, reserve, pause_for_service=False):
         import psutil
         self.psutil, self.root, self.rate, self.reserve = psutil, root, rate*2**20, reserve*2**30
         self.start, self.written = time.monotonic(), 0
         self.last_check = None
+        self.service_sample_at = time.monotonic() + 0.5
+        self.pause_for_service = pause_for_service
         self.watched = []
         for p in psutil.process_iter(["name", "create_time"]):
             if (p.info["name"] or "").lower() in {"ovms.exe", "cascadia-node.exe"}:
@@ -97,9 +99,34 @@ class Guard:
             raise RuntimeError("disk reserve reached")
         if any((p.info["name"] or "").lower() == "runner.worker.exe" for p in psutil.process_iter(["name"])):
             raise RuntimeError("CI active")
+        if now < self.service_sample_at:
+            return
+        self.service_sample_at = now + 0.5
+        busy = False
         for p, created in self.watched:
-            if not p.is_running() or p.create_time() != created or p.cpu_percent() > 20:
-                raise RuntimeError("existing inference service active or changed")
+            if not p.is_running() or p.create_time() != created:
+                raise RuntimeError("existing inference service changed")
+            busy |= p.cpu_percent() > 20
+        if busy and not self.pause_for_service:
+            raise RuntimeError("existing inference service active")
+        if busy:
+            paused, quiet = time.monotonic(), 0
+            while quiet < 2:
+                time.sleep(0.5)
+                if time.monotonic()-paused > 60:
+                    raise RuntimeError("service remained busy for 60 seconds; export paused")
+                if psutil.virtual_memory().available < self.reserve or shutil.disk_usage(self.root).free < 80*2**30:
+                    raise RuntimeError("reserve reached while export paused")
+                if any((p.info['name'] or '').lower() == 'runner.worker.exe' for p in psutil.process_iter(['name'])):
+                    raise RuntimeError("CI active while export paused")
+                values = []
+                for p, created in self.watched:
+                    if not p.is_running() or p.create_time() != created:
+                        raise RuntimeError("existing inference service changed")
+                    values.append(p.cpu_percent())
+                quiet = 0 if any(v > 20 for v in values) else quiet + 0.5
+            self.start += time.monotonic()-paused
+            self.last_check = time.monotonic()
 
     def write(self, f, data, digest):
         self.check()
@@ -135,7 +162,7 @@ def build(args):
     temp = root / f"layer_{args.layer:02}.building"
     if final.exists() or temp.exists():
         raise FileExistsError("output exists; use a fresh destination")
-    guard = Guard(root, args.rate_mib, args.reserve_gib) if args.guarded else None
+    guard = Guard(root, args.rate_mib, args.reserve_gib, getattr(args, 'pause_for_service', False)) if args.guarded else None
     temp.mkdir()
     edir = args.export / "experts" / f"layer_{args.layer:02}"
     paths = {i: edir / (f"expert_{i:03}.bin" if i < model["num_experts"] else f"expert_shared{i-model['num_experts']}.bin") for i in ids}

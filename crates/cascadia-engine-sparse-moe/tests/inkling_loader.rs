@@ -68,6 +68,46 @@ fn loader_greedy_matches_hf_reference() {
 }
 
 #[test]
+fn mapped_attention_preserves_full_decoder_logits_and_reset() {
+    // Isolate process-wide backend flags from the other integration tests.
+    if std::env::var_os("INKLING_MAPPED_TEST_CHILD").is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "mapped_attention_preserves_full_decoder_logits_and_reset",
+                "--nocapture",
+            ])
+            .env("INKLING_MAPPED_TEST_CHILD", "1")
+            .status()
+            .unwrap();
+        assert!(status.success());
+        return;
+    }
+    std::env::remove_var("CASCADIA_INKLING_MMAP_SHELLS");
+    std::env::remove_var("CASCADIA_INKLING_MMAP_HEAD");
+    let mut owned = load_model_with(&export_dir(), 64, ExpertsMode::Mmap).unwrap();
+    std::env::set_var("CASCADIA_INKLING_MMAP_SHELLS", "1");
+    std::env::set_var("CASCADIA_INKLING_MMAP_HEAD", "1");
+    let mut mapped = load_model_with(&export_dir(), 64, ExpertsMode::Mmap).unwrap();
+    let r = reference().expect("checked-in full fixture reference");
+    for prompt in [&r.prompt[..], &r.prompt[..2], &r.prompt[..]] {
+        owned.reset();
+        mapped.reset();
+        let mut reference = owned.prefill(prompt);
+        let mut actual = mapped.prefill(prompt);
+        for _ in 0..8 {
+            assert_eq!(
+                actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+                reference.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+            );
+            let token = argmax(&reference) as u32;
+            reference = owned.forward_token(token);
+            actual = mapped.forward_token(token);
+        }
+    }
+}
+
+#[test]
 fn owned_packed_shared_expert_matches_mapping_without_file_read_dispatch() {
     use cascadia_engine_sparse_moe::dsv4::expert_mmap::MmapExpert;
     use cascadia_engine_sparse_moe::glm::moe::AnyExpert;

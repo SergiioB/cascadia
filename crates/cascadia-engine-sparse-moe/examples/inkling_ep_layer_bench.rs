@@ -1,6 +1,7 @@
 //! Real expert-weight phase benchmark, NOT full-model inference.
 //! --export DIR --frames JSON --out JSON [--reference-out BIN | --reference BIN]
 //! [--workers IP:PORT,... --placement JSON] [--samples N]
+//! [--local-index N --placement JSON] probes one local fleet shard directly.
 //! Frames contain {layer, ids, seed, weights?, extra_rows?}; deterministic
 //! synthetic inputs isolate expert execution and transport costs. Optional
 //! weights and extra rows exercise routing numerics and batched requests.
@@ -51,6 +52,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--placement",
             "--samples",
             "--warm-passes",
+            "--local-index",
         ]
         .contains(&k.as_str())
         {
@@ -121,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     // The local oracle's packed budget is explicit and bounded to 10 GiB.
     // It is a phase probe; loading more than that should fail instead of OOM.
-    let local_plan = EpPlacement {
+    let mut local_plan = EpPlacement {
         version: 1,
         hidden_size: m.hidden_size,
         moe_intermediate: m.moe_intermediate,
@@ -145,11 +147,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .collect(),
     };
+    let local_index = flags
+        .get("--local-index")
+        .map(|s| s.parse::<u32>())
+        .transpose()?
+        .unwrap_or(0);
+    if flags.contains_key("--local-index") {
+        if remote.is_some() {
+            return Err("local-index cannot be combined with remote workers".into());
+        }
+        let path = flags
+            .get("--placement")
+            .ok_or("local-index requires an explicit placement")?;
+        local_plan = serde_json::from_slice(&std::fs::read(path)?)?;
+        local_plan.validate(&m, local_plan.workers.len())?;
+    }
     let bank = if remote.is_none() {
         Some(load_expert_bank_with_placement(
             &dir,
-            0,
-            1,
+            local_index,
+            local_plan.workers.len().try_into()?,
             ExpertsMode::Mmap,
             Some(&local_plan),
         )?)
@@ -222,7 +239,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let routing: Vec<Vec<(usize, f32)>> = f
             .rows()
             .map(|row| {
-                if row.ids.len() != m.top_k + m.n_shared_experts
+                let valid_count = if flags.contains_key("--local-index") {
+                    (1..=m.top_k + m.n_shared_experts).contains(&row.ids.len())
+                } else {
+                    row.ids.len() == m.top_k + m.n_shared_experts
+                };
+                if !valid_count
                     || row
                         .ids
                         .iter()
@@ -244,7 +266,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return c.dispatch(f.layer as u32, x, &routing);
         }
         let rows = routing.len();
-        let k = m.top_k + m.n_shared_experts;
+        let k = routing[0].len();
+        if routing.iter().any(|row| row.len() != k) {
+            return Err("local frame rows need the same expert count".into());
+        }
         let weights: Vec<f32> = routing.iter().flatten().map(|&(_, w)| w).collect();
         let body = ExpertDispatchBody {
             layer: f.layer as u32,

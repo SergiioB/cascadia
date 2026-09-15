@@ -1,0 +1,12 @@
+{
+  "base_commit": "dce74385ae964599b8611b8d3c1eb3339b8a25fe",
+  "native_label": "full-v6",
+  "executable_sha256": {
+    "bin-full/inkling_ep_worker.exe": "23533640cc582b8abd34f333e45cd7ed231a1ec07f5da94008823b1e088f4174",
+    "bin-full/inkling_ep_layer_bench.exe": "288c0a421ef74f7b92824c19bfbfe8916d05dbbf7c4157086f8cb48cbd792733",
+    "bin-full/inkling_ep_validate.exe": "ea5b7a2b1b412a6e0cdc8a4e1dc32faf6c31a3686d13f6354a1511303b7de6b6",
+    "bin-full/inkling_decode_bench.exe": "d34b1c46b3dca75402d2066d9c11acf43dc3f6ddf5c2bf75a8b4ff71a52212f2"
+  },
+  "source_snapshot_sha256": "94c5a4d310e17b9566468916701dacd562a62cb120be31e7d87a1abd797a3971",
+  "note": "The native snapshot is applied on top of the base commit. Validator-only unit tests added later do not execute in these native release binaries."
+}
