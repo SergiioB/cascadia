@@ -598,8 +598,11 @@ impl GlmRunner {
             .unwrap_or_else(|| crate::glm::env_flag("CASCADIA_GLM5_LOOKAHEAD"));
         // Prefill layer streaming shares the same worker; mmap ranks only
         // (eager/bf16 experts have nothing to warm).
-        let prefill_stream_requested =
-            parse_prefill_stream(std::env::var("CASCADIA_GLM5_PREFILL_STREAM").ok().as_deref());
+        let prefill_stream_requested = parse_prefill_stream(
+            std::env::var("CASCADIA_GLM5_PREFILL_STREAM")
+                .ok()
+                .as_deref(),
+        );
         let prefill_stream = if mode == ExpertsMode::Mmap {
             prefill_stream_requested
         } else {
@@ -1056,7 +1059,9 @@ impl StagedRunner for GlmRunner {
 #[cfg(test)]
 mod tests {
     use super::WideTable;
-    use super::{parse_prefill_stream, prefill_stream_gate, PrefillStream, PREFILL_STREAM_MIN_ROWS};
+    use super::{
+        parse_prefill_stream, prefill_stream_gate, PrefillStream, PREFILL_STREAM_MIN_ROWS,
+    };
 
     /// `CASCADIA_GLM5_PREFILL_STREAM` parsing: off-values match `env_flag`'s
     /// off set, `all` skips the residency gate, anything else gates.
