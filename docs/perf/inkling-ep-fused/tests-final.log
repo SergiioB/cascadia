@@ -1,0 +1,97 @@
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: `cascadia-int4-gemm` (lib) generated 2 warnings (run `cargo fix --lib -p cascadia-int4-gemm` to apply 1 suggestion)
+warning: `cascadia-ov-genai-shim` (lib) generated 4 warnings (run `cargo fix --lib -p cascadia-ov-genai-shim` to apply 4 suggestions)
+   Compiling cascadia-engine-sparse-moe v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-engine-sparse-moe)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: variable does not need to be mutable
+   --> crates/cascadia-engine-sparse-moe/src/inkling/ov_attn.rs:150:13
+    |
+150 |         let mut compile = |which: &str| -> Result<Runtime, String> {
+    |             ----^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `selective_uncached` is never used
+   --> crates/cascadia-engine-sparse-moe/src/inkling/expert_cache.rs:127:12
+    |
+ 53 | impl ExpertCache {
+    | ---------------- method in this implementation
+...
+127 |     pub fn selective_uncached(
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `cascadia-engine-sparse-moe` (lib) generated 3 warnings (run `cargo fix --lib -p cascadia-engine-sparse-moe` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.88s
+     Running tests/inkling_ep.rs (target/debug/deps/inkling_ep-6b23c2404d661e65)
+
+running 12 tests
+test replicas_avoid_fixed_owner_collisions_and_account_for_worker_cost ... ok
+test placement_checks_capacity_coverage_dimensions_and_costs ... ok
+test expert_frames_round_trip_over_loopback_with_padding_ok_and_error ... ok
+test invalid_fused_header_still_drains_the_weights_tensor ... ok
+test dispatch_compacts_empty_rows_and_preserves_duplicate_slot_order ... ok
+test fused_wire_preserves_weights_compacts_rows_and_sums_partials ... ok
+test unsupported_fused_request_is_drained_without_cpu_fallback ... ok
+test a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_message ... ok
+test placement_homes_every_expert_on_exactly_one_worker_and_banks_hold_exactly_those ... ok
+test driver_with_two_workers_over_loopback_matches_single_process_bit_for_bit ... ok
+test replicated_shared_experts_and_layer_placement_preserve_full_model_bits ... ok
+test driver_with_two_workers_matches_single_process_on_mmap_experts ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.86s

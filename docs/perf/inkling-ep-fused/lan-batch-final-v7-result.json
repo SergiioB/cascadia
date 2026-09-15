@@ -1,0 +1,124 @@
+{
+  "frames": 6,
+  "full_model_inference": false,
+  "fused_MoE_sharding": true,
+  "hidden": 6144,
+  "intermediate": 3072,
+  "limitation": "Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s.",
+  "local_backend": null,
+  "model_layers_in_export": 3,
+  "reference_comparison": {
+    "bit_exact": false,
+    "limit": 0.005,
+    "max_abs": 0.016357421875,
+    "relative_rms": 0.00036738324805153004
+  },
+  "reference_verified": true,
+  "rows_per_frame": [
+    1,
+    2,
+    3,
+    8,
+    16,
+    33
+  ],
+  "samples": 3,
+  "scope": "real_expert_phase_with_synthetic_inputs",
+  "self_consistency_verified": true,
+  "timings": [
+    {
+      "frame": 0,
+      "milliseconds": 4.7268,
+      "sample": 0
+    },
+    {
+      "frame": 1,
+      "milliseconds": 6.5552,
+      "sample": 0
+    },
+    {
+      "frame": 2,
+      "milliseconds": 6.7905,
+      "sample": 0
+    },
+    {
+      "frame": 3,
+      "milliseconds": 11.3726,
+      "sample": 0
+    },
+    {
+      "frame": 4,
+      "milliseconds": 22.6081,
+      "sample": 0
+    },
+    {
+      "frame": 5,
+      "milliseconds": 44.6928,
+      "sample": 0
+    },
+    {
+      "frame": 0,
+      "milliseconds": 4.7653,
+      "sample": 1
+    },
+    {
+      "frame": 1,
+      "milliseconds": 6.3766,
+      "sample": 1
+    },
+    {
+      "frame": 2,
+      "milliseconds": 6.5745,
+      "sample": 1
+    },
+    {
+      "frame": 3,
+      "milliseconds": 11.6325,
+      "sample": 1
+    },
+    {
+      "frame": 4,
+      "milliseconds": 23.1205,
+      "sample": 1
+    },
+    {
+      "frame": 5,
+      "milliseconds": 45.188399999999994,
+      "sample": 1
+    },
+    {
+      "frame": 0,
+      "milliseconds": 4.7656,
+      "sample": 2
+    },
+    {
+      "frame": 1,
+      "milliseconds": 6.3396,
+      "sample": 2
+    },
+    {
+      "frame": 2,
+      "milliseconds": 6.7038,
+      "sample": 2
+    },
+    {
+      "frame": 3,
+      "milliseconds": 11.4863,
+      "sample": 2
+    },
+    {
+      "frame": 4,
+      "milliseconds": 22.5141,
+      "sample": 2
+    },
+    {
+      "frame": 5,
+      "milliseconds": 45.3386,
+      "sample": 2
+    }
+  ],
+  "warm_passes": 2,
+  "wire_probes": [],
+  "workers": 3,
+  "workers_arg": "192.168.0.101:29474,192.168.0.103:29474,192.168.0.188:29474"
+}

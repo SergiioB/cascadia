@@ -1,0 +1,144 @@
+{
+  "label": "split-batch-fused-v4",
+  "returncode": 0,
+  "log": "Non default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\nNon default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\nNon default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\ncompleted 2 expert phase measurements\n",
+  "status": {
+    "state": "finished",
+    "returncode": 0,
+    "stop_reason": null,
+    "elapsed_seconds": 8.030999999959022,
+    "peak_rss_gib": 17.004199981689453,
+    "minimum_available_gib": 40.94578552246094,
+    "protected_before": [
+      {
+        "pid": 6728,
+        "name": "ovms.exe",
+        "create_time": 1788965719.653577
+      },
+      {
+        "pid": 8356,
+        "name": "cascadia-node.exe",
+        "create_time": 1788965719.132614
+      }
+    ],
+    "protected_after": [
+      {
+        "pid": 6728,
+        "name": "ovms.exe",
+        "create_time": 1788965719.653577
+      },
+      {
+        "pid": 8356,
+        "name": "cascadia-node.exe",
+        "create_time": 1788965719.132614
+      }
+    ],
+    "protected_processes_unchanged": true,
+    "job": {
+      "label": "split-batch-fused-v4",
+      "argv": [
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\bin-fused\\inkling_ep_layer_bench.exe",
+        "--export",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\fused-oracle-model",
+        "--frames",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-fused-batch-frames.json",
+        "--samples",
+        "2",
+        "--warm-passes",
+        "2",
+        "--out",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-batch-fused-v4.json",
+        "--reference-out",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-batch-fused-v4.bin",
+        "--reference",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-batch-cpu-v4.bin",
+        "--reference-rel-rms",
+        "0.005"
+      ],
+      "env": {
+        "CASCADIA_INKLING_EP_FUSED": "1",
+        "CASCADIA_INKLING_EP_FUSED_DIR": "C:\\Users\\devcloud\\inkling-ep-20260915\\fused-oracle",
+        "CASCADIA_INKLING_EP_FUSED_CACHE_MB": "10000",
+        "CASCADIA_INKLING_EP_REQUIRE_GPU": "1",
+        "OV_GPU_MOE_BATCHED_GEMV_THRESHOLD": "0"
+      },
+      "cores": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "seconds": 300,
+      "min_available_gib": 12,
+      "max_rss_gib": 24
+    }
+  },
+  "result": {
+    "frames": 1,
+    "full_model_inference": false,
+    "fused_MoE_sharding": true,
+    "hidden": 6144,
+    "intermediate": 3072,
+    "limitation": "Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s.",
+    "local_backend": {
+      "cpu_calls": 0,
+      "device": null,
+      "fused": {
+        "cached_ir_bytes": 8422097100,
+        "cached_layers": 1,
+        "cached_runtime_call_ns": 362862600,
+        "cached_runtime_compile_ns": 6692937200,
+        "calls": 4,
+        "device": "GPU",
+        "errors": 0,
+        "evictions": 0,
+        "fused_required": true,
+        "fusion_profiles": {
+          "2": "Convert_1601\tConvert\treorder_data__f32\t83\t11\nConvert_1602\tConvert\treorder_data__f32\t5\t3\nReduceSum_92_Reshape/MOECompressed\tMOECompressed\tocl::moe::moe_3gemm_swiglu_opt___f16\t236\t3\nReshape_95\tReshape\tundef\t0\t0\nReshape_95.0\tConvert\tundef\t0\t0\nResult_96\tResult\treorder_data__f32\t36\t3\nrouting_weights\tParameter\twait_for_events__f32\t0\t1\ntopk_indices\tParameter\twait_for_events__i32\t0\t4\nx\tParameter\twait_for_events__f32\t0\t7\n"
+        },
+        "gpu_name": "Intel(R) Arc(TM) B390 GPU (iGPU)",
+        "graph_k": {
+          "2": 8
+        },
+        "ir_cache_budget_bytes": 10485760000,
+        "rows": 516
+      },
+      "gpu_name": null,
+      "gpu_required": true,
+      "ov_cache_hits": 0,
+      "ov_cache_misses": 0,
+      "ov_fallbacks": 0,
+      "ov_successful_calls": 0
+    },
+    "model_layers_in_export": 3,
+    "reference_comparison": {
+      "bit_exact": false,
+      "limit": 0.005,
+      "max_abs": 0.0787506103515625,
+      "relative_rms": 0.0028394781126077928
+    },
+    "reference_verified": true,
+    "rows_per_frame": [
+      129
+    ],
+    "samples": 2,
+    "scope": "real_expert_phase_with_synthetic_inputs",
+    "self_consistency_verified": true,
+    "timings": [
+      {
+        "frame": 0,
+        "milliseconds": 67.0845,
+        "sample": 0
+      },
+      {
+        "frame": 0,
+        "milliseconds": 65.7509,
+        "sample": 1
+      }
+    ],
+    "warm_passes": 2,
+    "wire_probes": [],
+    "workers": 0,
+    "workers_arg": null
+  }
+}

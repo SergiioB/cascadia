@@ -1,5 +1,9 @@
 # Inkling expert routing on three iGPUs
 
+For the subsequent fused GPU implementation and measured comparison, see
+[INKLING_FUSED_EXPERT_SHARDING.md](INKLING_FUSED_EXPERT_SHARDING.md).
+The results and limitations below describe the earlier per-expert implementation.
+
 2026-09-15, branch `feat/inkling-expert-routing`. This follows the
 [CPU LAN qualification](INKLING_NUC_EXPERT_PARALLEL.md). The earlier 2.10×
 CPU result did not establish GPU support or GPU performance.

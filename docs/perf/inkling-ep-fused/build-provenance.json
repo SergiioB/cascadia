@@ -1,0 +1,33 @@
+{
+  "base_commit": "41853f8df9dbc759ece21f58836ffb206e0fdeef",
+  "native_source_sha256": {
+    "crates/cascadia-engine-sparse-moe/examples/dist_check.rs": "f869d77ee46be6760414b2d99dfe8344077e11ad4dd435e46bb7f87135ba7ee0",
+    "crates/cascadia-engine-sparse-moe/examples/inkling_ep_layer_bench.rs": "8148a1a5de6b8f186712d7341b0e8f94684908f5c77e86b995808bc1cd1885ba",
+    "crates/cascadia-engine-sparse-moe/src/dist.rs": "93ea037ede5aa43a01eb7bd19f1dd7ea086f27dc27ae73cdc8f213170564bcaa",
+    "crates/cascadia-engine-sparse-moe/src/engine.rs": "87a5b0890728caef92230f6f764d123dd143e7810c26c45441849f026dd15257",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ep.rs": "50d0948ee7de82697b8d068d72bbfd11bace60855dbd592a5c49fe63bbcf57d4",
+    "crates/cascadia-engine-sparse-moe/src/inkling/mod.rs": "8ea93f5cf907d3897143adcf381561457bd028dc031608b4313cb5d84b6cef0b",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ov_moe.rs": "eaba07115bac83cc1c1eff93ebf6d0120848669673cab27f3530f82ec7b1d10a",
+    "crates/cascadia-engine-sparse-moe/tests/inkling_ep.rs": "57ccffddb8cac06d6db9e68245b553a6dddbe8e4867b09bd28b80b2f334c4aa3",
+    "tools/inkling_ep_guard.py": "4981b40cfba80832ae361d04be398635433602e108fa9d772cf8f94090c033aa",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ep_fused.rs": "a23b58002ddf3a721e5c775ade915a6706aaf423208000847f750ae703fdc169"
+  },
+  "native_archive_sha256": "a032e17c33476edbc0d05b81207fc20a28c17da177ed7000825775c854fbe626",
+  "binaries_archive_sha256": "147fdf782dbf6ff65596f7383b89aaeaa031c2fe126e0ca586d9aed8bc8152d0",
+  "note": "Decode comparison uses native v4. Source snapshots identify later batch-only changes and final transport validation separately.",
+  "final_native_version": "v7",
+  "final_rust_sources_match": true,
+  "final_rust_sha256": {
+    "crates/cascadia-engine-sparse-moe/examples/dist_check.rs": "f869d77ee46be6760414b2d99dfe8344077e11ad4dd435e46bb7f87135ba7ee0",
+    "crates/cascadia-engine-sparse-moe/examples/inkling_ep_layer_bench.rs": "46a299fcf0196ffbd71b381eb839427425e33e059514cf5ef4a4d8dbe6567265",
+    "crates/cascadia-engine-sparse-moe/src/dist.rs": "077c6176291efb9c433a4cd3aa9fbed79287a85681cb16ea152d148ecfe93502",
+    "crates/cascadia-engine-sparse-moe/src/engine.rs": "87a5b0890728caef92230f6f764d123dd143e7810c26c45441849f026dd15257",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ep.rs": "2a37bae3ae443d1d43fd68089e14ac47cd1cfd171849097aea50ba44d9858de6",
+    "crates/cascadia-engine-sparse-moe/src/inkling/mod.rs": "8ea93f5cf907d3897143adcf381561457bd028dc031608b4313cb5d84b6cef0b",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ov_moe.rs": "eaba07115bac83cc1c1eff93ebf6d0120848669673cab27f3530f82ec7b1d10a",
+    "crates/cascadia-engine-sparse-moe/tests/inkling_ep.rs": "215d8b8c9be36d1397f08df018413f2dae0fd8b0a2bc80609b8a6fa20cf1d898",
+    "crates/cascadia-engine-sparse-moe/src/inkling/ep_fused.rs": "8385fa90b00d1b3d26827c21f97e9f07aadec640fb349c58ff9bd949cfc4d9d7"
+  },
+  "final_native_archive_sha256": "d68b7cb2cf10174162b34eae5af5225bcefa7c475de15b2df184949686dce3c3",
+  "final_binaries_archive_sha256": "40543d61108715dea406c71639c0ce5213e082d9a74b49bc219d4e0b16489196"
+}

@@ -1,0 +1,110 @@
+{
+  "label": "split-batch-cpu-v4",
+  "returncode": 0,
+  "log": "completed 2 expert phase measurements\n",
+  "status": {
+    "state": "finished",
+    "returncode": 0,
+    "stop_reason": null,
+    "elapsed_seconds": 8.030999999959022,
+    "peak_rss_gib": 0.19870376586914062,
+    "minimum_available_gib": 57.82356262207031,
+    "protected_before": [
+      {
+        "pid": 6728,
+        "name": "ovms.exe",
+        "create_time": 1788965719.653577
+      },
+      {
+        "pid": 8356,
+        "name": "cascadia-node.exe",
+        "create_time": 1788965719.132614
+      }
+    ],
+    "protected_after": [
+      {
+        "pid": 6728,
+        "name": "ovms.exe",
+        "create_time": 1788965719.653577
+      },
+      {
+        "pid": 8356,
+        "name": "cascadia-node.exe",
+        "create_time": 1788965719.132614
+      }
+    ],
+    "protected_processes_unchanged": true,
+    "job": {
+      "label": "split-batch-cpu-v4",
+      "argv": [
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\bin-fused\\inkling_ep_layer_bench.exe",
+        "--export",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\fused-oracle-model",
+        "--frames",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-fused-batch-frames.json",
+        "--samples",
+        "2",
+        "--warm-passes",
+        "2",
+        "--out",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-batch-cpu-v4.json",
+        "--reference-out",
+        "C:\\Users\\devcloud\\inkling-ep-20260915\\split-batch-cpu-v4.bin"
+      ],
+      "env": {},
+      "cores": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "seconds": 300,
+      "min_available_gib": 12,
+      "max_rss_gib": 24
+    }
+  },
+  "result": {
+    "frames": 1,
+    "full_model_inference": false,
+    "fused_MoE_sharding": false,
+    "hidden": 6144,
+    "intermediate": 3072,
+    "limitation": "Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s.",
+    "local_backend": {
+      "cpu_calls": 4128,
+      "device": null,
+      "fused": null,
+      "gpu_name": null,
+      "gpu_required": false,
+      "ov_cache_hits": 0,
+      "ov_cache_misses": 0,
+      "ov_fallbacks": 0,
+      "ov_successful_calls": 0
+    },
+    "model_layers_in_export": 3,
+    "reference_comparison": null,
+    "reference_verified": false,
+    "rows_per_frame": [
+      129
+    ],
+    "samples": 2,
+    "scope": "real_expert_phase_with_synthetic_inputs",
+    "self_consistency_verified": true,
+    "timings": [
+      {
+        "frame": 0,
+        "milliseconds": 1919.9122,
+        "sample": 0
+      },
+      {
+        "frame": 0,
+        "milliseconds": 1907.6678,
+        "sample": 1
+      }
+    ],
+    "warm_passes": 2,
+    "wire_probes": [],
+    "workers": 0,
+    "workers_arg": null
+  }
+}

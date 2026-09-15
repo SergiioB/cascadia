@@ -1,5 +1,9 @@
 # Inkling expert routing: implementation and qualification
 
+For the subsequent fused GPU implementation and measured comparison, see
+[INKLING_FUSED_EXPERT_SHARDING.md](INKLING_FUSED_EXPERT_SHARDING.md).
+The results and limitations below describe the earlier per-expert implementation.
+
 Branch: `feat/inkling-expert-routing`, based on the completed iGPU branch at
 `f660b51885204837b6bfe28fb44049767fb8a5d9`. Worktree:
 `/Users/tatef/Workspaces/tahoma-inkling-ep`. Date: 2026-09-15.

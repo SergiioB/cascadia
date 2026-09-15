@@ -1,0 +1,383 @@
+//! Resident fused GPU shards. A bounded IR-byte cache is an admission budget,
+//! not a bound on driver allocations; deployment must also reserve host/GPU RAM.
+
+use super::{loader::InklingManifest, ov_moe::OvMoe};
+use crate::dist::{ExpertDispatchBody, EXPERT_PAD, MAX_BATCH_COUNT};
+use serde::Deserialize;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct FusedShardManifest {
+    pub version: u32,
+    pub layer: u32,
+    pub hidden_size: usize,
+    pub moe_intermediate: usize,
+    pub k: usize,
+    pub expert_ids: Vec<usize>,
+    pub padded_experts: usize,
+    pub ir_bytes: u64,
+}
+
+impl FusedShardManifest {
+    fn validate(
+        &self,
+        model: &InklingManifest,
+        layer: usize,
+        owned: &[usize],
+    ) -> Result<(), String> {
+        if self.version != 1
+            || self.layer as usize != layer
+            || self.hidden_size != model.hidden_size
+            || self.moe_intermediate != model.moe_intermediate
+            || (self.k != 1 && self.k != model.top_k + model.n_shared_experts)
+            || self.expert_ids != owned
+            || self.padded_experts <= owned.len()
+            || owned.is_empty()
+            || self.ir_bytes == 0
+        {
+            return Err(format!(
+                "fused layer {layer}: shard metadata does not match model/ownership"
+            ));
+        }
+        Ok(())
+    }
+
+    /// Keep global weights unchanged. Only unused slots use the dedicated
+    /// dummy expert, so scatter padding cannot overwrite a real expert weight.
+    pub fn map_request(
+        &self,
+        body: &ExpertDispatchBody,
+        weights: &[f32],
+    ) -> Result<(Vec<i32>, Vec<f32>), String> {
+        let (rows, k, h) = (body.rows as usize, body.k as usize, self.hidden_size);
+        if body.layer != self.layer
+            || rows == 0
+            || rows > MAX_BATCH_COUNT as usize
+            || k == 0
+            || k > self.k
+            || body.hidden_shape != [body.rows, h as u32, 1]
+            || body.hidden.len() != rows * h
+            || body.ids_shape != [body.rows, body.k, 1]
+            || body.ids.len() != rows * k
+            || weights.len() != rows * k
+            || weights.iter().any(|w| !w.is_finite())
+            || body.hidden.iter().any(|x| !x.is_finite())
+        {
+            return Err("invalid fused dispatch dimensions or nonfinite values".into());
+        }
+        let dummy = self.expert_ids.len() as i32;
+        let mut ids = vec![dummy; rows * self.k];
+        let mut mapped_weights = vec![0.; rows * self.k];
+        for r in 0..rows {
+            for j in 0..k {
+                let id = body.ids[r * k + j];
+                let weight = weights[r * k + j];
+                if id == EXPERT_PAD {
+                    if weight != 0. {
+                        return Err("padded expert has nonzero weight".into());
+                    }
+                    continue;
+                }
+                if id < 0 || body.ids[r * k..r * k + j].contains(&id) {
+                    return Err("negative or duplicate fused expert id".into());
+                }
+                let local = self
+                    .expert_ids
+                    .binary_search(&(id as usize))
+                    .map_err(|_| format!("fused shard does not own expert {id}"))?;
+                ids[r * self.k + j] = local as i32;
+                mapped_weights[r * self.k + j] = weight;
+            }
+        }
+        Ok((ids, mapped_weights))
+    }
+}
+
+struct Cached {
+    runtime: OvMoe,
+    used: u64,
+    bytes: u64,
+}
+
+#[derive(Default)]
+struct State {
+    cache: HashMap<u32, Cached>,
+    clock: u64,
+    calls: u64,
+    rows: u64,
+    selected_expert_rows: u64,
+    errors: u64,
+    evictions: u64,
+    profiles: HashMap<u32, String>,
+}
+
+pub struct FusedExpertBank {
+    dir: PathBuf,
+    layers: HashMap<u32, FusedShardManifest>,
+    device: String,
+    gpu_name: String,
+    budget: u64,
+    max_k: usize,
+    max_rows: usize,
+    state: Mutex<State>,
+}
+
+impl FusedExpertBank {
+    pub fn load(
+        dir: &Path,
+        model: &InklingManifest,
+        ownership: &[Vec<usize>],
+        budget: u64,
+    ) -> Result<Self, String> {
+        let device =
+            std::env::var("CASCADIA_INKLING_OV_MOE_DEVICE").unwrap_or_else(|_| "GPU".into());
+        if device != "GPU" && !device.starts_with("GPU.") {
+            return Err("fused EP requires a concrete GPU device".into());
+        }
+        let mut layers = HashMap::new();
+        for (li, owned) in ownership
+            .iter()
+            .enumerate()
+            .filter(|(_, ids)| !ids.is_empty())
+        {
+            let root = dir.join(format!("layer_{li:02}"));
+            let meta: FusedShardManifest = serde_json::from_slice(
+                &std::fs::read(root.join("shard.json")).map_err(|e| e.to_string())?,
+            )
+            .map_err(|e| e.to_string())?;
+            meta.validate(model, li, owned)?;
+            let bytes = std::fs::metadata(root.join("openvino_model.bin"))
+                .map_err(|e| e.to_string())?
+                .len();
+            if bytes != meta.ir_bytes
+                || bytes > budget
+                || !root.join("openvino_model.xml").is_file()
+            {
+                return Err(format!("fused layer {li}: missing IR, size mismatch, or exceeds IR cache budget {budget}"));
+            }
+            layers.insert(li as u32, meta);
+        }
+        let max_rows = std::env::var("CASCADIA_INKLING_EP_FUSED_ROWS")
+            .unwrap_or_else(|_| "32".into())
+            .parse::<usize>()
+            .ok()
+            .filter(|n| (1..=MAX_BATCH_COUNT as usize).contains(n))
+            .ok_or("fused expanded-row chunk size must be 1..256")?;
+        let gpu_name =
+            cascadia_ov_genai_shim::device_full_name(&device).map_err(|e| e.to_string())?;
+        Ok(Self {
+            dir: dir.into(),
+            layers,
+            device,
+            gpu_name,
+            budget,
+            max_k: model.top_k + model.n_shared_experts,
+            max_rows,
+            state: Mutex::new(State::default()),
+        })
+    }
+
+    /// K=1 graphs batch actual (token,expert) pairs as GPU rows. This avoids
+    /// computing repeated dummy slots on workers assigned fewer than eight
+    /// experts. The GPU still runs one fused compressed MoE graph per chunk.
+    pub fn serve(&self, body: &ExpertDispatchBody, weights: &[f32]) -> Result<Vec<f32>, String> {
+        let meta = self
+            .layers
+            .get(&body.layer)
+            .ok_or("fused shard has no requested layer")?;
+        if meta.k != 1 {
+            return self.serve_one(body, weights);
+        }
+        let validation = FusedShardManifest {
+            k: self.max_k,
+            ..meta.clone()
+        };
+        validation.map_request(body, weights)?;
+        let h = meta.hidden_size;
+        let slots: Vec<usize> = body
+            .ids
+            .iter()
+            .enumerate()
+            .filter(|&(s, &id)| id != EXPERT_PAD && weights[s] != 0.)
+            .map(|(s, _)| s)
+            .collect();
+        let mut out = vec![0.; body.rows as usize * h];
+        for chunk in slots.chunks(self.max_rows) {
+            let n = chunk.len() as u32;
+            let mut expanded = ExpertDispatchBody {
+                layer: body.layer,
+                rows: n,
+                k: 1,
+                hidden: Vec::with_capacity(chunk.len() * h),
+                hidden_shape: [n, h as u32, 1],
+                ids: Vec::with_capacity(chunk.len()),
+                ids_shape: [n, 1, 1],
+            };
+            let mut expanded_weights = Vec::with_capacity(chunk.len());
+            for &slot in chunk {
+                let r = slot / body.k as usize;
+                expanded
+                    .hidden
+                    .extend_from_slice(&body.hidden[r * h..(r + 1) * h]);
+                expanded.ids.push(body.ids[slot]);
+                expanded_weights.push(weights[slot]);
+            }
+            // Keep every chunk of a large frame at the same GPU shape. The
+            // fixed shape also bounds scratch space and avoids unnecessary
+            // shape transitions between a full chunk and its tail.
+            if slots.len() > self.max_rows && chunk.len() < self.max_rows {
+                let last_row = expanded.hidden[expanded.hidden.len() - h..].to_vec();
+                let last_id = *expanded.ids.last().unwrap();
+                for _ in chunk.len()..self.max_rows {
+                    expanded.hidden.extend_from_slice(&last_row);
+                    expanded.ids.push(last_id);
+                    expanded_weights.push(0.);
+                }
+                expanded.rows = self.max_rows as u32;
+                expanded.hidden_shape[0] = self.max_rows as u32;
+                expanded.ids_shape[0] = self.max_rows as u32;
+            }
+            let values = self.serve_one(&expanded, &expanded_weights)?;
+            for (&slot, value) in chunk.iter().zip(values.chunks_exact(h)) {
+                let r = slot / body.k as usize;
+                for (o, &v) in out[r * h..(r + 1) * h].iter_mut().zip(value) {
+                    *o += v;
+                }
+            }
+        }
+        if out.iter().any(|x| !x.is_finite()) {
+            return Err("nonfinite fused partial sum".into());
+        }
+        self.state.lock().unwrap().selected_expert_rows += slots.len() as u64;
+        Ok(out)
+    }
+
+    fn serve_one(&self, body: &ExpertDispatchBody, weights: &[f32]) -> Result<Vec<f32>, String> {
+        let meta = self
+            .layers
+            .get(&body.layer)
+            .ok_or("fused shard has no requested layer")?;
+        let (ids, weights) = meta.map_request(body, weights)?;
+        // Serialize admission and inference so evicted models cannot remain
+        // live in concurrent callers outside the accounting lock.
+        let mut state = self.state.lock().unwrap();
+        state.clock += 1;
+        let clock = state.clock;
+        if !state.cache.contains_key(&body.layer) {
+            while state.cache.values().map(|c| c.bytes).sum::<u64>() + meta.ir_bytes > self.budget {
+                let oldest = *state.cache.iter().min_by_key(|(_, c)| c.used).unwrap().0;
+                state.cache.remove(&oldest);
+                state.evictions += 1;
+            }
+            let runtime = OvMoe::new(
+                self.dir.clone(),
+                self.device.clone(),
+                meta.hidden_size,
+                meta.k,
+                meta.expert_ids.len(),
+                None,
+                None,
+            )
+            .requiring_fusion();
+            state.cache.insert(
+                body.layer,
+                Cached {
+                    runtime,
+                    used: clock,
+                    bytes: meta.ir_bytes,
+                },
+            );
+        }
+        let entry = state.cache.get_mut(&body.layer).unwrap();
+        entry.used = clock;
+        let result =
+            entry
+                .runtime
+                .forward(body.layer, &body.hidden, body.rows as usize, &ids, &weights);
+        let profiles = entry.runtime.fusion_profiles();
+        state.profiles.extend(profiles);
+        match result {
+            Some(values) if values.iter().all(|x| x.is_finite()) => {
+                state.calls += 1;
+                state.rows += body.rows as u64;
+                Ok(values)
+            }
+            _ => {
+                state.errors += 1;
+                Err("required fused GPU execution failed; all fallback forbidden".into())
+            }
+        }
+    }
+
+    pub fn stats(&self) -> serde_json::Value {
+        let s = self.state.lock().unwrap();
+        serde_json::json!({"device":self.device,"gpu_name":self.gpu_name,"fused_required":true,
+            "calls":s.calls,"rows":s.rows,"selected_expert_rows":s.selected_expert_rows,"errors":s.errors,"evictions":s.evictions,
+            "cached_layers":s.cache.len(),"cached_ir_bytes":s.cache.values().map(|c|c.bytes).sum::<u64>(),
+            "ir_cache_budget_bytes":self.budget,"expanded_row_chunk":self.max_rows,"fusion_profiles":s.profiles,
+            "graph_k":self.layers.iter().map(|(l,m)|(l.to_string(),m.k)).collect::<HashMap<_,_>>(),
+            "cached_runtime_call_ns":s.cache.values().map(|c|c.runtime.stats().call_ns).sum::<u64>(),
+            "cached_runtime_compile_ns":s.cache.values().map(|c|c.runtime.stats().compile_ns).sum::<u64>()})
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture() -> (FusedShardManifest, ExpertDispatchBody, Vec<f32>) {
+        let meta = FusedShardManifest {
+            version: 1,
+            layer: 2,
+            hidden_size: 2,
+            moe_intermediate: 2,
+            k: 4,
+            expert_ids: vec![0, 3, 8],
+            padded_experts: 4,
+            ir_bytes: 100,
+        };
+        let body = ExpertDispatchBody {
+            layer: 2,
+            rows: 2,
+            k: 2,
+            hidden: vec![1., 2., 3., 4.],
+            hidden_shape: [2, 2, 1],
+            ids: vec![8, 0, 3, EXPERT_PAD],
+            ids_shape: [2, 2, 1],
+        };
+        (meta, body, vec![0.75, -0.125, 0.2, 0.])
+    }
+
+    #[test]
+    fn padding_never_aliases_real_ids_and_weights_are_not_renormalized() {
+        let (meta, body, weights) = fixture();
+        let (ids, mapped) = meta.map_request(&body, &weights).unwrap();
+        assert_eq!(ids, vec![2, 0, 3, 3, 1, 3, 3, 3]);
+        assert_eq!(mapped, vec![0.75, -0.125, 0., 0., 0.2, 0., 0., 0.]);
+    }
+
+    #[test]
+    fn malformed_or_unowned_routes_are_rejected_before_gpu_execution() {
+        let (meta, body, weights) = fixture();
+        let mut bad = body.clone();
+        bad.ids[0] = 7;
+        assert!(meta.map_request(&bad, &weights).is_err());
+        bad.ids[0] = 0;
+        assert!(meta.map_request(&bad, &weights).is_err());
+        let mut w = weights.clone();
+        w[3] = 0.1;
+        assert!(meta.map_request(&body, &w).is_err());
+        w[3] = f32::NAN;
+        assert!(meta.map_request(&body, &w).is_err());
+        bad = body.clone();
+        bad.k = u32::MAX;
+        assert!(meta.map_request(&bad, &weights).is_err());
+        bad = body.clone();
+        bad.hidden_shape = [1, 4, 1];
+        assert!(meta.map_request(&bad, &weights).is_err());
+    }
+}

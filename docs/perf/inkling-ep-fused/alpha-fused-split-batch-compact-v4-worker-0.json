@@ -1,0 +1,71 @@
+{
+  "guard_stdout": "{\"state\": \"finished\", \"returncode\": 0, \"stop_reason\": null, \"elapsed_seconds\": 6.5310000000026776, \"peak_rss_gib\": 4.947669982910156, \"minimum_available_gib\": 17.807037353515625, \"protected_before\": [{\"pid\": 6756, \"name\": \"ovms.exe\", \"create_time\": 1789443072.9351397}, {\"pid\": 7084, \"name\": \"cascadia-node.exe\", \"create_time\": 1789443069.9987726}], \"protected_after\": [{\"pid\": 6756, \"name\": \"ovms.exe\", \"create_time\": 1789443072.9351397}, {\"pid\": 7084, \"name\": \"cascadia-node.exe\", \"create_time\": 1789443069.9987726}], \"protected_processes_unchanged\": true, \"job\": {\"label\": \"fused-split-batch-compact-v4-worker-0\", \"argv\": [\"C:/Users/tatef/inkling-ep-lan-20260915/bin-fused/inkling_ep_worker.exe\", \"--export\", \"C:/Users/tatef/inkling-ep-lan-20260915/layer\", \"--index\", \"0\", \"--count\", \"3\", \"--listen\", \"192.168.0.101:29474\", \"--placement\", \"C:/Users/tatef/inkling-ep-lan-20260915/layer-placement.json\"], \"env\": {\"CASCADIA_INKLING_EP_FUSED\": \"1\", \"CASCADIA_INKLING_EP_FUSED_DIR\": \"C:/Users/tatef/inkling-ep-lan-20260915/fused-compact\", \"CASCADIA_INKLING_EP_FUSED_CACHE_MB\": \"3500\", \"CASCADIA_INKLING_EP_REQUIRE_GPU\": \"1\", \"OV_GPU_MOE_BATCHED_GEMV_THRESHOLD\": \"0\"}, \"cores\": [0, 1, 2, 3], \"seconds\": 300, \"min_available_gib\": 12, \"max_rss_gib\": 8}}\n",
+  "guard_stderr": "",
+  "returncode": 0,
+  "log": "bank_loaded index=0 count=3 experts=88\nbackend_start={\"cpu_calls\":0,\"device\":null,\"fused\":{\"cached_ir_bytes\":0,\"cached_layers\":0,\"cached_runtime_call_ns\":0,\"cached_runtime_compile_ns\":0,\"calls\":0,\"device\":\"GPU\",\"errors\":0,\"evictions\":0,\"fused_required\":true,\"fusion_profiles\":{},\"gpu_name\":\"Intel(R) Graphics (iGPU)\",\"graph_k\":{\"2\":1},\"ir_cache_budget_bytes\":3670016000,\"rows\":0},\"gpu_name\":null,\"gpu_required\":true,\"ov_cache_hits\":0,\"ov_cache_misses\":0,\"ov_fallbacks\":0,\"ov_successful_calls\":0}\nlistening=192.168.0.101:29474\nNon default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\nNon default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\nNon default env value for GPU_MOE_BATCHED_GEMV_THRESHOLD = 0\nframes_served=5\nbackend_final={\"cpu_calls\":0,\"device\":null,\"fused\":{\"cached_ir_bytes\":2860941516,\"cached_layers\":1,\"cached_runtime_call_ns\":1548821900,\"cached_runtime_compile_ns\":2394855600,\"calls\":10,\"device\":\"GPU\",\"errors\":0,\"evictions\":0,\"fused_required\":true,\"fusion_profiles\":{\"2\":\"Convert_1601\\tConvert\\treorder_data__f32\\t131\\t12\\nConvert_1602\\tConvert\\treorder_data__f32\\t4\\t7\\nReduceSum_92_Reshape/MOECompressed\\tMOECompressed\\tocl::moe::moe_3gemm_swiglu_opt___f16\\t58\\t3\\nReshape_95\\tReshape\\tundef\\t0\\t0\\nReshape_95.0\\tConvert\\tundef\\t0\\t0\\nResult_96\\tResult\\treorder_data__f32\\t66\\t3\\nrouting_weights\\tParameter\\twait_for_events__f32\\t0\\t3\\ntopk_indices\\tParameter\\twait_for_events__i32\\t0\\t1\\nx\\tParameter\\twait_for_events__f32\\t0\\t6\\n\"},\"gpu_name\":\"Intel(R) Graphics (iGPU)\",\"graph_k\":{\"2\":1},\"ir_cache_budget_bytes\":3670016000,\"rows\":2055},\"gpu_name\":null,\"gpu_required\":true,\"ov_cache_hits\":0,\"ov_cache_misses\":0,\"ov_fallbacks\":0,\"ov_successful_calls\":0}\n",
+  "status": {
+    "state": "finished",
+    "returncode": 0,
+    "stop_reason": null,
+    "elapsed_seconds": 6.5310000000026776,
+    "peak_rss_gib": 4.947669982910156,
+    "minimum_available_gib": 17.807037353515625,
+    "protected_before": [
+      {
+        "pid": 6756,
+        "name": "ovms.exe",
+        "create_time": 1789443072.9351397
+      },
+      {
+        "pid": 7084,
+        "name": "cascadia-node.exe",
+        "create_time": 1789443069.9987726
+      }
+    ],
+    "protected_after": [
+      {
+        "pid": 6756,
+        "name": "ovms.exe",
+        "create_time": 1789443072.9351397
+      },
+      {
+        "pid": 7084,
+        "name": "cascadia-node.exe",
+        "create_time": 1789443069.9987726
+      }
+    ],
+    "protected_processes_unchanged": true,
+    "job": {
+      "label": "fused-split-batch-compact-v4-worker-0",
+      "argv": [
+        "C:/Users/tatef/inkling-ep-lan-20260915/bin-fused/inkling_ep_worker.exe",
+        "--export",
+        "C:/Users/tatef/inkling-ep-lan-20260915/layer",
+        "--index",
+        "0",
+        "--count",
+        "3",
+        "--listen",
+        "192.168.0.101:29474",
+        "--placement",
+        "C:/Users/tatef/inkling-ep-lan-20260915/layer-placement.json"
+      ],
+      "env": {
+        "CASCADIA_INKLING_EP_FUSED": "1",
+        "CASCADIA_INKLING_EP_FUSED_DIR": "C:/Users/tatef/inkling-ep-lan-20260915/fused-compact",
+        "CASCADIA_INKLING_EP_FUSED_CACHE_MB": "3500",
+        "CASCADIA_INKLING_EP_REQUIRE_GPU": "1",
+        "OV_GPU_MOE_BATCHED_GEMV_THRESHOLD": "0"
+      },
+      "cores": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "seconds": 300,
+      "min_available_gib": 12,
+      "max_rss_gib": 8
+    }
+  }
+}

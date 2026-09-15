@@ -3460,7 +3460,7 @@ impl SparseMoEEngine {
             }
             // H.1a: CAPTURE carrying the head's turn tenant; the stash entry is tagged so `export`
             // confines it to that tenant. Relay preserves the v2 form downstream.
-            FrameKind::ExpertDispatch | FrameKind::ExpertResult => Err(format!(
+            FrameKind::ExpertDispatch | FrameKind::FusedExpertDispatch | FrameKind::ExpertResult => Err(format!(
                 "pipeline stage received expert-parallel frame {kind:?} (that is an expert worker's frame)"
             )),
             #[cfg(feature = "kv_coord")]

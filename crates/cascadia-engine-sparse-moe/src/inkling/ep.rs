@@ -16,7 +16,8 @@
 //! OpenVINO GPU workers preserve routing and accumulation order, but their
 //! kernel numerics differ from CPU; compare them to a matching GPU reference.
 //! `CASCADIA_INKLING_EP_REQUIRE_GPU=1` rejects missing GPU support/IRs and
-//! forbids CPU fallback. Full-layer fused GPU MoE graphs are not sharded here.
+//! forbids CPU fallback. `CASCADIA_INKLING_EP_FUSED=1` uses weighted partial
+//! sums and strict fused GPU shards; see [`super::ep_fused`].
 //!
 //! Default placement is deterministic and manifest-free: [`expert_home`]`(id, W) =
 //! id % W`, with ids `0..n_routed` for routed experts and `n_routed + s` for
@@ -105,6 +106,7 @@ pub struct EpClient {
     n_routed: usize,
     n_shared: usize,
     placement: Option<Arc<EpPlacement>>,
+    fused: bool,
 }
 
 /// One worker's share of a frame: the ids it serves per row, padded to `k`.
@@ -113,6 +115,7 @@ struct WorkerPlan {
     k: usize,
     ids: Vec<i32>,
     hidden_rows: Vec<f32>,
+    weights: Vec<f32>,
 }
 
 impl EpClient {
@@ -136,6 +139,7 @@ impl EpClient {
             n_routed,
             n_shared,
             placement: None,
+            fused: super::env_flag("CASCADIA_INKLING_EP_FUSED"),
         }
     }
 
@@ -155,6 +159,12 @@ impl EpClient {
         }
         self.placement = Some(placement);
         Ok(self)
+    }
+
+    /// Weighted partial-sum protocol; every selected worker must support fused GPU shards.
+    pub fn with_fused(mut self, fused: bool) -> Self {
+        self.fused = fused;
+        self
     }
 
     pub fn n_workers(&self) -> usize {
@@ -177,8 +187,10 @@ impl EpClient {
     /// `per_row[t]` lists `(expert id, weight)` in GATE ORDER — the routed
     /// selection first, then the shared experts as `n_routed + s` with their
     /// gammas. Returns `[T, hidden]`: per row `Σ w · E(h)` accumulated in
-    /// exactly that order from a zero row (the op sequence of
-    /// `MoeLayer::forward`, so the bytes match it). `Err` names the worker
+    /// exactly that order from a zero row in raw mode (the op sequence of
+    /// `MoeLayer::forward`, so the bytes match it). Fused mode sums weighted
+    /// worker partials; its FP16/reduction numerics require tolerance checks.
+    /// `Err` names the worker
     /// index and the layer on any worker / transport failure; every involved
     /// worker has been awaited by then, so no reply is left unread on any
     /// connection. Rows are chunked so a frame never exceeds
@@ -202,6 +214,19 @@ impl EpClient {
         let n_ids = self.n_routed + self.n_shared;
         let mut k_max = 0usize;
         for (r, list) in per_row.iter().enumerate() {
+            if list.iter().any(|&(_, w)| !w.is_finite()) {
+                return Err(format!(
+                    "layer {layer}: nonfinite routing weight in row {r}"
+                ));
+            }
+            if self.fused
+                && list
+                    .iter()
+                    .enumerate()
+                    .any(|(i, (id, _))| list[..i].iter().any(|(prev, _)| prev == id))
+            {
+                return Err(format!("layer {layer}: duplicate expert in fused row {r}"));
+            }
             k_max = k_max.max(list.len());
             if let Some(&(id, _)) = list.iter().find(|&&(id, _)| id >= n_ids) {
                 return Err(format!(
@@ -250,10 +275,10 @@ impl EpClient {
                 .collect(),
         };
         // Per worker, per row: the ids it serves, in gate order.
-        let mut slots: Vec<Vec<Vec<i32>>> = vec![vec![Vec::new(); n]; w];
+        let mut slots: Vec<Vec<Vec<(i32, f32)>>> = vec![vec![Vec::new(); n]; w];
         for (r, list) in per_row.iter().enumerate() {
-            for &(id, _) in list {
-                slots[homes[id]][r].push(id as i32);
+            for &(id, weight) in list {
+                slots[homes[id]][r].push((id as i32, weight));
             }
         }
         // Map original row -> compact row on each worker. Empty rows never
@@ -269,6 +294,7 @@ impl EpClient {
                 }
                 let active = rows_ids.iter().filter(|s| !s.is_empty()).count();
                 let mut ids = vec![EXPERT_PAD; active * k];
+                let mut weights = vec![0.0; active * k];
                 let mut hidden_rows = Vec::with_capacity(active * h);
                 let mut compact = 0;
                 for (r, s) in rows_ids.iter().enumerate() {
@@ -276,7 +302,10 @@ impl EpClient {
                         continue;
                     }
                     row_map[wi][r] = compact;
-                    ids[compact * k..compact * k + s.len()].copy_from_slice(s);
+                    for (j, &(id, weight)) in s.iter().enumerate() {
+                        ids[compact * k + j] = id;
+                        weights[compact * k + j] = weight;
+                    }
                     hidden_rows.extend_from_slice(&rows[r * h..(r + 1) * h]);
                     compact += 1;
                 }
@@ -285,6 +314,7 @@ impl EpClient {
                     k,
                     ids,
                     hidden_rows,
+                    weights,
                 })
             })
             .collect();
@@ -306,6 +336,7 @@ impl EpClient {
                             h as u32,
                             &p.hidden_rows,
                             ids,
+                            self.fused.then_some(p.weights.as_slice()),
                         )
                         .await
                     }
@@ -322,6 +353,26 @@ impl EpClient {
         }
         if !errs.is_empty() {
             return Err(errs.join("; "));
+        }
+        if self.fused {
+            // Deterministic worker-order reduction. Weights have already been
+            // applied on the worker, without per-shard renormalization.
+            out.fill(0.0);
+            for (wi, result) in data.iter().enumerate() {
+                let Some((_, values)) = result else { continue };
+                for (r, &compact) in row_map[wi].iter().enumerate() {
+                    if compact == usize::MAX {
+                        continue;
+                    }
+                    for (o, &v) in out[r * h..(r + 1) * h]
+                        .iter_mut()
+                        .zip(&values[compact * h..(compact + 1) * h])
+                    {
+                        *o += v;
+                    }
+                }
+            }
+            return Ok(());
         }
         // Accumulate exactly like MoeLayer::forward: a zero row, then
         // `out += w · E(h)` per (id, w) in gate order. A worker's slots for a
@@ -371,11 +422,26 @@ impl EpClient {
         hidden: u32,
         hidden_rows: &[f32],
         ids: &[i32],
+        weights: Option<&[f32]>,
     ) -> Result<Vec<f32>, String> {
         let tag = format!("expert worker {wi}, layer {layer}");
-        send_expert_dispatch(cli, layer, rows, k, hidden, hidden_rows, ids)
+        let sent = if let Some(weights) = weights {
+            crate::dist::send_fused_expert_dispatch(
+                cli,
+                layer,
+                rows,
+                k,
+                hidden,
+                hidden_rows,
+                ids,
+                weights,
+            )
             .await
-            .map_err(|e| format!("{tag}: send dispatch: {e}"))?;
+        } else {
+            send_expert_dispatch(cli, layer, rows, k, hidden, hidden_rows, ids).await
+        };
+        sent.map_err(|e| format!("{tag}: send dispatch: {e}"))?;
+        let k = if weights.is_some() { 1 } else { k };
         let deadline = reply_deadline(rows);
         let reply = tokio::time::timeout(deadline, async {
             match recv_kind_client(cli).await {
@@ -429,6 +495,7 @@ pub struct ExpertBank {
     index: u32,
     count: u32,
     ov: Option<OvExperts>,
+    fused: Option<super::ep_fused::FusedExpertBank>,
     require_gpu: bool,
     gpu_name: Option<String>,
     cpu_calls: AtomicU64,
@@ -440,6 +507,10 @@ impl ExpertBank {
     /// Qualification mode: require a concrete GPU device and every owned IR.
     /// Missing support or any failed GPU call must fail instead of using CPU.
     pub fn require_gpu(mut self) -> Result<Self, String> {
+        if self.fused.is_some() {
+            self.require_gpu = true;
+            return Ok(self);
+        }
         let ov = self
             .ov
             .as_ref()
@@ -470,7 +541,8 @@ impl ExpertBank {
             "device":self.ov.as_ref().map(OvExperts::device),
             "cpu_calls":self.cpu_calls.load(Ordering::Relaxed),
             "ov_successful_calls":stats.hits+stats.misses,"ov_cache_hits":stats.hits,
-            "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks})
+            "ov_cache_misses":stats.misses,"ov_fallbacks":stats.fallbacks,
+            "fused":self.fused.as_ref().map(|f| f.stats())})
     }
 
     /// This worker's index of `count()`.
@@ -537,7 +609,21 @@ impl ExpertBank {
     /// per-expert OpenVINO calls run first and have their own numerics.
     /// Returns `[rows · k · hidden]` with zeros in pad slots. `Err` is the
     /// status-1 reply text, naming this worker and the layer.
+    pub fn serve_fused(&self, b: &ExpertDispatchBody, weights: &[f32]) -> Result<Vec<f32>, String> {
+        self.fused
+            .as_ref()
+            .ok_or("worker does not support fused GPU dispatch")?
+            .serve(b, weights)
+    }
+
+    pub fn is_fused(&self) -> bool {
+        self.fused.is_some()
+    }
+
     pub fn serve(&self, b: &ExpertDispatchBody) -> Result<Vec<f32>, String> {
+        if self.is_fused() {
+            return Err("fused worker requires weighted dispatch protocol".into());
+        }
         let tag = format!(
             "expert worker {}/{}: layer {}",
             self.index, self.count, b.layer
@@ -718,6 +804,37 @@ pub fn load_expert_bank_with_placement(
         layers.push(set.into_iter().collect());
         moe.push(true);
     }
+    let fused = if super::env_flag("CASCADIA_INKLING_EP_FUSED") {
+        if own {
+            return Err(LoadError::Manifest(
+                "fused EP must not retain owned CPU weights".into(),
+            ));
+        }
+        let fused_dir = std::env::var_os("CASCADIA_INKLING_EP_FUSED_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| dir.join("moe_ep").join(format!("worker_{index:02}")));
+        let budget = std::env::var("CASCADIA_INKLING_EP_FUSED_CACHE_MB")
+            .unwrap_or_else(|_| "4096".into())
+            .parse::<u64>()
+            .ok()
+            .and_then(|n| n.checked_mul(1 << 20))
+            .filter(|&n| n > 0)
+            .ok_or_else(|| LoadError::Manifest("invalid fused IR cache budget".into()))?;
+        let ownership: Vec<Vec<usize>> = layers
+            .iter()
+            .map(|l: &HashMap<usize, AnyExpert>| {
+                let mut ids: Vec<usize> = l.keys().copied().collect();
+                ids.sort_unstable();
+                ids
+            })
+            .collect();
+        Some(
+            super::ep_fused::FusedExpertBank::load(&fused_dir, &m, &ownership, budget)
+                .map_err(LoadError::Manifest)?,
+        )
+    } else {
+        None
+    };
     let bank = ExpertBank {
         layers,
         moe,
@@ -727,7 +844,12 @@ pub fn load_expert_bank_with_placement(
         n_shared: m.n_shared_experts,
         index,
         count,
-        ov: OvExperts::from_env(dir, m.hidden_size),
+        ov: if fused.is_none() {
+            OvExperts::from_env(dir, m.hidden_size)
+        } else {
+            None
+        },
+        fused,
         require_gpu: false,
         gpu_name: None,
         cpu_calls: AtomicU64::new(0),
@@ -862,6 +984,35 @@ impl ExpertWorkerEngine {
             return Ok(());
         };
         match kind {
+            FrameKind::FusedExpertDispatch => {
+                let (body, weights, shape) = self
+                    .block_on(crate::dist::recv_fused_expert_dispatch_body_server(&server))
+                    .map_err(|e| format!("recv fused body: {e}"))?;
+                let served = if shape != [body.rows, body.k, 1] {
+                    Err("invalid fused routing weights shape".into())
+                } else {
+                    self.bank.serve_fused(&body, &weights)
+                };
+                match served {
+                    Ok(out) => {
+                        self.block_on(send_expert_result_ok(
+                            &server,
+                            body.rows,
+                            1,
+                            self.bank.hidden as u32,
+                            &out,
+                        ))
+                        .map_err(|e| format!("send fused result: {e}"))?;
+                        self.frames += 1;
+                    }
+                    Err(msg) => {
+                        warn!(layer = body.layer, "{msg}");
+                        self.block_on(send_expert_result_err(&server, &msg))
+                            .map_err(|e| e.to_string())?;
+                    }
+                }
+                Ok(())
+            }
             FrameKind::ExpertDispatch => {
                 let body = self
                     .block_on(recv_expert_dispatch_body_server(&server))
@@ -914,7 +1065,7 @@ impl ExpertWorkerEngine {
         kind: FrameKind,
     ) -> Result<(), String> {
         let msg = format!(
-            "expert worker {}/{} is stateless and serves ExpertDispatch only; got {kind:?}",
+            "expert worker {}/{} is stateless and serves expert dispatch frames only; got {kind:?}",
             self.bank.index, self.bank.count
         );
         warn!("{msg}");
@@ -925,7 +1076,7 @@ impl ExpertWorkerEngine {
 
 impl Engine for ExpertWorkerEngine {
     fn warmup(&mut self) {
-        // Nothing to compile; the bank is already open. Log what we serve.
+        // Banks are open; fused layers compile lazily on their first dispatch.
         info!(
             index = self.bank.index,
             count = self.bank.count,
