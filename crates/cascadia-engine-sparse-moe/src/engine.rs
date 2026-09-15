@@ -6314,8 +6314,35 @@ impl<R: StagedRunner> Engine for PipelineEngine<R> {
                     .encode("Hello", false)
                     .map(|e| e.get_ids().to_vec())
                     .unwrap_or_else(|_| vec![1]);
-                let _ = self.runner.generate_argmax(&ids, 1);
-                info!(arch = self.runner.arch_name(), "warmup: generated 1 token");
+                // The forward can panic if an expert-parallel worker is not yet
+                // ready or has died (the dispatch path panics on any transport
+                // error). Warmup is best-effort priming and is called uncaught
+                // from the runner, so catch it here — reset the sequence state
+                // the half-finished forward left behind and stay up, so the
+                // failure surfaces cleanly on the first real task
+                // (step_single_stage) instead of crashing the driver process.
+                let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    self.runner.generate_argmax(&ids, 1)
+                }));
+                match outcome {
+                    Ok(_) => {
+                        info!(arch = self.runner.arch_name(), "warmup: generated 1 token")
+                    }
+                    Err(payload) => {
+                        let msg = payload
+                            .downcast_ref::<String>()
+                            .cloned()
+                            .or_else(|| payload.downcast_ref::<&str>().map(|s| s.to_string()))
+                            .unwrap_or_else(|| "warmup forward panicked".to_string());
+                        warn!(
+                            arch = self.runner.arch_name(),
+                            error = %msg,
+                            "warmup forward failed (expert worker not ready or dropped?); \
+                             continuing — the error will surface on the first task"
+                        );
+                        self.runner.reset();
+                    }
+                }
             }
         }
     }
