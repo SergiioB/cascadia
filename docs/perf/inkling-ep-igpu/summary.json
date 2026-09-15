@@ -1,0 +1,159 @@
+{
+  "scope": "one_resident_MoE_layer_per_expert_OpenVINO_iGPU_routing",
+  "full_model_inference": false,
+  "fused_MoE_sharding": false,
+  "experiments": [
+    {
+      "warm_passes": 1,
+      "local_gpu_ms": {
+        "count": 108,
+        "mean": 4.790438888888889,
+        "median": 4.7672,
+        "p95": 4.9671,
+        "p99": 5.135599999999999,
+        "maximum": 5.7082
+      },
+      "distributed_gpu_ms": {
+        "count": 108,
+        "mean": 11.130667592592593,
+        "median": 3.9979999999999998,
+        "p95": 5.460999999999999,
+        "p99": 383.17040000000003,
+        "maximum": 396.7703
+      },
+      "mean_speedup": 0.43038199182921455,
+      "median_speedup": 1.1923961980990496,
+      "cpu_reference_comparison": {
+        "bit_exact": false,
+        "limit": 0.005,
+        "max_abs": 0.02734375,
+        "relative_rms": 0.002939401776886836
+      },
+      "distributed_matches_local_gpu_bits": true,
+      "worker_counters": [
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 401,
+          "ov_cache_misses": 39,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 440
+        },
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 329,
+          "ov_cache_misses": 31,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 360
+        },
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 320,
+          "ov_cache_misses": 32,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 352
+        }
+      ]
+    },
+    {
+      "warm_passes": 2,
+      "local_gpu_ms": {
+        "count": 108,
+        "mean": 4.808015740740741,
+        "median": 4.7795,
+        "p95": 5.1751000000000005,
+        "p99": 5.2989999999999995,
+        "maximum": 5.4509
+      },
+      "distributed_gpu_ms": {
+        "count": 108,
+        "mean": 3.5952055555555558,
+        "median": 3.4732,
+        "p95": 4.9951,
+        "p99": 5.415299999999999,
+        "maximum": 5.4709
+      },
+      "mean_speedup": 1.3373409854997216,
+      "median_speedup": 1.3761084878498215,
+      "cpu_reference_comparison": {
+        "bit_exact": false,
+        "limit": 0.005,
+        "max_abs": 0.02734375,
+        "relative_rms": 0.002939401776886836
+      },
+      "distributed_matches_local_gpu_bits": true,
+      "worker_counters": [
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 511,
+          "ov_cache_misses": 39,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 550
+        },
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 419,
+          "ov_cache_misses": 31,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 450
+        },
+        {
+          "cpu_calls": 0,
+          "device": "GPU",
+          "gpu_name": "Intel(R) Graphics (iGPU)",
+          "gpu_required": true,
+          "ov_cache_hits": 408,
+          "ov_cache_misses": 32,
+          "ov_fallbacks": 0,
+          "ov_successful_calls": 440
+        }
+      ]
+    }
+  ],
+  "audits": {
+    "alpha": {
+      "ovms_health": {
+        "live": 200,
+        "ready": 200
+      },
+      "task_processes_and_rules_removed": true,
+      "protected_processes_unchanged": true,
+      "free_memory_gib": 22.498218536376953,
+      "free_disk_gib": 182.66804885864258
+    },
+    "beta": {
+      "ovms_health": {
+        "live": 200,
+        "ready": 200
+      },
+      "task_processes_and_rules_removed": true,
+      "protected_processes_unchanged": true,
+      "free_memory_gib": 22.623218536376953,
+      "free_disk_gib": 537.8244361877441
+    },
+    "charlie": {
+      "ovms_health": {
+        "live": 200,
+        "ready": 200
+      },
+      "task_processes_and_rules_removed": true,
+      "protected_processes_unchanged": true,
+      "free_memory_gib": 23.10858154296875,
+      "free_disk_gib": 600.4720993041992
+    }
+  }
+}

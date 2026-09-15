@@ -1,0 +1,680 @@
+{
+  "frames": 36,
+  "full_model_inference": false,
+  "hidden": 6144,
+  "intermediate": 3072,
+  "limitation": "Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s.",
+  "local_backend": null,
+  "model_layers_in_export": 3,
+  "reference_comparison": {
+    "bit_exact": true,
+    "limit": 0.0,
+    "max_abs": 0.0,
+    "relative_rms": 0.0
+  },
+  "reference_verified": true,
+  "samples": 3,
+  "scope": "real_expert_phase_with_synthetic_inputs",
+  "self_consistency_verified": true,
+  "timings": [
+    {
+      "frame": 0,
+      "milliseconds": 4.358899999999999,
+      "sample": 0
+    },
+    {
+      "frame": 1,
+      "milliseconds": 4.9951,
+      "sample": 0
+    },
+    {
+      "frame": 2,
+      "milliseconds": 4.1466,
+      "sample": 0
+    },
+    {
+      "frame": 3,
+      "milliseconds": 4.3267999999999995,
+      "sample": 0
+    },
+    {
+      "frame": 4,
+      "milliseconds": 3.8804999999999996,
+      "sample": 0
+    },
+    {
+      "frame": 5,
+      "milliseconds": 5.1331,
+      "sample": 0
+    },
+    {
+      "frame": 6,
+      "milliseconds": 5.415299999999999,
+      "sample": 0
+    },
+    {
+      "frame": 7,
+      "milliseconds": 3.3262,
+      "sample": 0
+    },
+    {
+      "frame": 8,
+      "milliseconds": 4.7043,
+      "sample": 0
+    },
+    {
+      "frame": 9,
+      "milliseconds": 3.7013,
+      "sample": 0
+    },
+    {
+      "frame": 10,
+      "milliseconds": 3.2388,
+      "sample": 0
+    },
+    {
+      "frame": 11,
+      "milliseconds": 4.3121,
+      "sample": 0
+    },
+    {
+      "frame": 12,
+      "milliseconds": 4.1232,
+      "sample": 0
+    },
+    {
+      "frame": 13,
+      "milliseconds": 5.072100000000001,
+      "sample": 0
+    },
+    {
+      "frame": 14,
+      "milliseconds": 3.7327,
+      "sample": 0
+    },
+    {
+      "frame": 15,
+      "milliseconds": 3.8358,
+      "sample": 0
+    },
+    {
+      "frame": 16,
+      "milliseconds": 3.9004,
+      "sample": 0
+    },
+    {
+      "frame": 17,
+      "milliseconds": 3.4983000000000004,
+      "sample": 0
+    },
+    {
+      "frame": 18,
+      "milliseconds": 3.882,
+      "sample": 0
+    },
+    {
+      "frame": 19,
+      "milliseconds": 5.1148,
+      "sample": 0
+    },
+    {
+      "frame": 20,
+      "milliseconds": 3.3440000000000003,
+      "sample": 0
+    },
+    {
+      "frame": 21,
+      "milliseconds": 4.073,
+      "sample": 0
+    },
+    {
+      "frame": 22,
+      "milliseconds": 3.9731,
+      "sample": 0
+    },
+    {
+      "frame": 23,
+      "milliseconds": 3.8501,
+      "sample": 0
+    },
+    {
+      "frame": 24,
+      "milliseconds": 4.1036,
+      "sample": 0
+    },
+    {
+      "frame": 25,
+      "milliseconds": 3.8453,
+      "sample": 0
+    },
+    {
+      "frame": 26,
+      "milliseconds": 4.1866,
+      "sample": 0
+    },
+    {
+      "frame": 27,
+      "milliseconds": 3.8289,
+      "sample": 0
+    },
+    {
+      "frame": 28,
+      "milliseconds": 5.4709,
+      "sample": 0
+    },
+    {
+      "frame": 29,
+      "milliseconds": 3.718,
+      "sample": 0
+    },
+    {
+      "frame": 30,
+      "milliseconds": 4.393,
+      "sample": 0
+    },
+    {
+      "frame": 31,
+      "milliseconds": 4.1777999999999995,
+      "sample": 0
+    },
+    {
+      "frame": 32,
+      "milliseconds": 3.6633,
+      "sample": 0
+    },
+    {
+      "frame": 33,
+      "milliseconds": 3.3338,
+      "sample": 0
+    },
+    {
+      "frame": 34,
+      "milliseconds": 3.4095000000000004,
+      "sample": 0
+    },
+    {
+      "frame": 35,
+      "milliseconds": 4.4363,
+      "sample": 0
+    },
+    {
+      "frame": 0,
+      "milliseconds": 3.4435,
+      "sample": 1
+    },
+    {
+      "frame": 1,
+      "milliseconds": 3.0676,
+      "sample": 1
+    },
+    {
+      "frame": 2,
+      "milliseconds": 4.1101,
+      "sample": 1
+    },
+    {
+      "frame": 3,
+      "milliseconds": 3.4334000000000002,
+      "sample": 1
+    },
+    {
+      "frame": 4,
+      "milliseconds": 3.2196,
+      "sample": 1
+    },
+    {
+      "frame": 5,
+      "milliseconds": 3.6491000000000002,
+      "sample": 1
+    },
+    {
+      "frame": 6,
+      "milliseconds": 3.6537,
+      "sample": 1
+    },
+    {
+      "frame": 7,
+      "milliseconds": 3.1004,
+      "sample": 1
+    },
+    {
+      "frame": 8,
+      "milliseconds": 3.7376,
+      "sample": 1
+    },
+    {
+      "frame": 9,
+      "milliseconds": 2.9576,
+      "sample": 1
+    },
+    {
+      "frame": 10,
+      "milliseconds": 3.367,
+      "sample": 1
+    },
+    {
+      "frame": 11,
+      "milliseconds": 4.2135,
+      "sample": 1
+    },
+    {
+      "frame": 12,
+      "milliseconds": 3.0585999999999998,
+      "sample": 1
+    },
+    {
+      "frame": 13,
+      "milliseconds": 3.8274,
+      "sample": 1
+    },
+    {
+      "frame": 14,
+      "milliseconds": 3.3613,
+      "sample": 1
+    },
+    {
+      "frame": 15,
+      "milliseconds": 3.2452,
+      "sample": 1
+    },
+    {
+      "frame": 16,
+      "milliseconds": 3.0639,
+      "sample": 1
+    },
+    {
+      "frame": 17,
+      "milliseconds": 3.4212000000000002,
+      "sample": 1
+    },
+    {
+      "frame": 18,
+      "milliseconds": 2.8409,
+      "sample": 1
+    },
+    {
+      "frame": 19,
+      "milliseconds": 3.7147,
+      "sample": 1
+    },
+    {
+      "frame": 20,
+      "milliseconds": 3.6811000000000003,
+      "sample": 1
+    },
+    {
+      "frame": 21,
+      "milliseconds": 3.8435,
+      "sample": 1
+    },
+    {
+      "frame": 22,
+      "milliseconds": 3.1163,
+      "sample": 1
+    },
+    {
+      "frame": 23,
+      "milliseconds": 3.2409000000000003,
+      "sample": 1
+    },
+    {
+      "frame": 24,
+      "milliseconds": 2.7223,
+      "sample": 1
+    },
+    {
+      "frame": 25,
+      "milliseconds": 3.4600999999999997,
+      "sample": 1
+    },
+    {
+      "frame": 26,
+      "milliseconds": 3.2558000000000002,
+      "sample": 1
+    },
+    {
+      "frame": 27,
+      "milliseconds": 3.6484,
+      "sample": 1
+    },
+    {
+      "frame": 28,
+      "milliseconds": 4.3276,
+      "sample": 1
+    },
+    {
+      "frame": 29,
+      "milliseconds": 3.0436,
+      "sample": 1
+    },
+    {
+      "frame": 30,
+      "milliseconds": 3.2832,
+      "sample": 1
+    },
+    {
+      "frame": 31,
+      "milliseconds": 2.7895,
+      "sample": 1
+    },
+    {
+      "frame": 32,
+      "milliseconds": 3.2445999999999997,
+      "sample": 1
+    },
+    {
+      "frame": 33,
+      "milliseconds": 3.5492000000000004,
+      "sample": 1
+    },
+    {
+      "frame": 34,
+      "milliseconds": 3.0762,
+      "sample": 1
+    },
+    {
+      "frame": 35,
+      "milliseconds": 3.5818,
+      "sample": 1
+    },
+    {
+      "frame": 0,
+      "milliseconds": 3.1215,
+      "sample": 2
+    },
+    {
+      "frame": 1,
+      "milliseconds": 3.3994,
+      "sample": 2
+    },
+    {
+      "frame": 2,
+      "milliseconds": 3.4459,
+      "sample": 2
+    },
+    {
+      "frame": 3,
+      "milliseconds": 2.9732,
+      "sample": 2
+    },
+    {
+      "frame": 4,
+      "milliseconds": 3.4167,
+      "sample": 2
+    },
+    {
+      "frame": 5,
+      "milliseconds": 3.1817,
+      "sample": 2
+    },
+    {
+      "frame": 6,
+      "milliseconds": 3.1131,
+      "sample": 2
+    },
+    {
+      "frame": 7,
+      "milliseconds": 3.1136,
+      "sample": 2
+    },
+    {
+      "frame": 8,
+      "milliseconds": 2.8876,
+      "sample": 2
+    },
+    {
+      "frame": 9,
+      "milliseconds": 3.3367,
+      "sample": 2
+    },
+    {
+      "frame": 10,
+      "milliseconds": 3.1275999999999997,
+      "sample": 2
+    },
+    {
+      "frame": 11,
+      "milliseconds": 3.5719,
+      "sample": 2
+    },
+    {
+      "frame": 12,
+      "milliseconds": 3.2342999999999997,
+      "sample": 2
+    },
+    {
+      "frame": 13,
+      "milliseconds": 3.4883,
+      "sample": 2
+    },
+    {
+      "frame": 14,
+      "milliseconds": 3.5488,
+      "sample": 2
+    },
+    {
+      "frame": 15,
+      "milliseconds": 3.6012,
+      "sample": 2
+    },
+    {
+      "frame": 16,
+      "milliseconds": 3.3960000000000004,
+      "sample": 2
+    },
+    {
+      "frame": 17,
+      "milliseconds": 3.3667,
+      "sample": 2
+    },
+    {
+      "frame": 18,
+      "milliseconds": 3.1017,
+      "sample": 2
+    },
+    {
+      "frame": 19,
+      "milliseconds": 3.6603,
+      "sample": 2
+    },
+    {
+      "frame": 20,
+      "milliseconds": 3.0542,
+      "sample": 2
+    },
+    {
+      "frame": 21,
+      "milliseconds": 2.7857,
+      "sample": 2
+    },
+    {
+      "frame": 22,
+      "milliseconds": 2.9386,
+      "sample": 2
+    },
+    {
+      "frame": 23,
+      "milliseconds": 2.8245,
+      "sample": 2
+    },
+    {
+      "frame": 24,
+      "milliseconds": 3.6048,
+      "sample": 2
+    },
+    {
+      "frame": 25,
+      "milliseconds": 3.1084,
+      "sample": 2
+    },
+    {
+      "frame": 26,
+      "milliseconds": 3.5721,
+      "sample": 2
+    },
+    {
+      "frame": 27,
+      "milliseconds": 3.4836,
+      "sample": 2
+    },
+    {
+      "frame": 28,
+      "milliseconds": 3.7464,
+      "sample": 2
+    },
+    {
+      "frame": 29,
+      "milliseconds": 3.4627999999999997,
+      "sample": 2
+    },
+    {
+      "frame": 30,
+      "milliseconds": 2.8925,
+      "sample": 2
+    },
+    {
+      "frame": 31,
+      "milliseconds": 3.2294,
+      "sample": 2
+    },
+    {
+      "frame": 32,
+      "milliseconds": 3.5936000000000003,
+      "sample": 2
+    },
+    {
+      "frame": 33,
+      "milliseconds": 3.0525,
+      "sample": 2
+    },
+    {
+      "frame": 34,
+      "milliseconds": 2.6957999999999998,
+      "sample": 2
+    },
+    {
+      "frame": 35,
+      "milliseconds": 3.2952,
+      "sample": 2
+    }
+  ],
+  "warm_passes": 2,
+  "wire_probes": [
+    {
+      "payload_bytes_each_way": 24576,
+      "round_trip_us": [
+        196.89999999999998,
+        176.79999999999998,
+        143.39999999999998,
+        149.6,
+        144.20000000000002,
+        128.5,
+        141.9,
+        132.6,
+        142.2,
+        127.1,
+        127.4,
+        124.9,
+        122.6,
+        126.8,
+        132.0,
+        140.6,
+        127.79999999999998,
+        119.8,
+        126.89999999999999,
+        125.49999999999999,
+        130.2,
+        132.9,
+        124.9,
+        119.9,
+        128.1,
+        131.1,
+        124.8,
+        125.89999999999999,
+        123.7,
+        125.8,
+        123.10000000000001,
+        133.8
+      ],
+      "worker": 0
+    },
+    {
+      "payload_bytes_each_way": 24576,
+      "round_trip_us": [
+        833.1999999999999,
+        776.0,
+        649.1999999999999,
+        643.5,
+        564.3,
+        599.9,
+        586.9,
+        535.3,
+        572.1,
+        588.7,
+        566.4,
+        580.0999999999999,
+        522.0999999999999,
+        419.90000000000003,
+        376.9,
+        387.59999999999997,
+        365.9,
+        393.2,
+        424.2,
+        372.5,
+        371.1,
+        349.5,
+        352.5,
+        427.0,
+        406.0,
+        373.3,
+        377.8,
+        438.1,
+        386.1,
+        375.2,
+        426.40000000000003,
+        555.1
+      ],
+      "worker": 1
+    },
+    {
+      "payload_bytes_each_way": 24576,
+      "round_trip_us": [
+        768.8000000000001,
+        744.3000000000001,
+        631.0,
+        583.3000000000001,
+        652.9,
+        598.6999999999999,
+        480.9,
+        532.2,
+        416.2,
+        513.9,
+        570.6,
+        588.1,
+        412.8,
+        441.90000000000003,
+        469.59999999999997,
+        381.09999999999997,
+        375.40000000000003,
+        353.79999999999995,
+        349.5,
+        424.3,
+        382.5,
+        376.5,
+        366.1,
+        449.79999999999995,
+        423.0,
+        480.7,
+        438.0,
+        372.3,
+        425.8,
+        444.8,
+        395.0,
+        395.3
+      ],
+      "worker": 2
+    }
+  ],
+  "workers": 3,
+  "workers_arg": "192.168.0.101:29473,192.168.0.103:29473,192.168.0.188:29473"
+}

@@ -273,6 +273,11 @@ impl OvExperts {
         self.dir.join(format!("layer_{lid:02}")).is_dir()
     }
 
+    pub fn has_expert(&self, lid: u32, eid: u32, num_experts: u32) -> bool {
+        let xml = self.xml(lid, eid, num_experts);
+        xml.is_file() && xml.with_extension("bin").is_file()
+    }
+
     fn xml(&self, lid: u32, eid: u32, num_experts: u32) -> PathBuf {
         let name = if eid == DENSE {
             "dense".to_string()

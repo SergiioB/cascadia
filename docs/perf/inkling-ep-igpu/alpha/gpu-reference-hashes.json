@@ -1,0 +1,10 @@
+{
+  "gpu-reference-warm2.bin": {
+    "bytes": 884736,
+    "sha256": "e38ea277fed9793226ec9085fea1e0141bf21ebcd7da604a4711edadec23efe3"
+  },
+  "gpu-reference.bin": {
+    "bytes": 884736,
+    "sha256": "e38ea277fed9793226ec9085fea1e0141bf21ebcd7da604a4711edadec23efe3"
+  }
+}

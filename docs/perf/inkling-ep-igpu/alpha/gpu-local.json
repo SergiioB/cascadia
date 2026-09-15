@@ -1,0 +1,573 @@
+{
+  "frames": 36,
+  "full_model_inference": false,
+  "hidden": 6144,
+  "intermediate": 3072,
+  "limitation": "Only selected experts plus dispatch/gather; no attention, prefill, head or token generation. Not tok/s.",
+  "local_backend": {
+    "cpu_calls": 0,
+    "device": "GPU",
+    "gpu_name": "Intel(R) Graphics (iGPU)",
+    "gpu_required": true,
+    "ov_cache_hits": 1054,
+    "ov_cache_misses": 98,
+    "ov_fallbacks": 0,
+    "ov_successful_calls": 1152
+  },
+  "model_layers_in_export": 3,
+  "reference_comparison": {
+    "bit_exact": false,
+    "limit": 0.005,
+    "max_abs": 0.02734375,
+    "relative_rms": 0.002939401776886836
+  },
+  "reference_verified": true,
+  "samples": 3,
+  "scope": "real_expert_phase_with_synthetic_inputs",
+  "self_consistency_verified": true,
+  "timings": [
+    {
+      "frame": 0,
+      "milliseconds": 5.7082,
+      "sample": 0
+    },
+    {
+      "frame": 1,
+      "milliseconds": 4.8642,
+      "sample": 0
+    },
+    {
+      "frame": 2,
+      "milliseconds": 4.8347,
+      "sample": 0
+    },
+    {
+      "frame": 3,
+      "milliseconds": 4.7181999999999995,
+      "sample": 0
+    },
+    {
+      "frame": 4,
+      "milliseconds": 4.715999999999999,
+      "sample": 0
+    },
+    {
+      "frame": 5,
+      "milliseconds": 4.8965,
+      "sample": 0
+    },
+    {
+      "frame": 6,
+      "milliseconds": 4.915,
+      "sample": 0
+    },
+    {
+      "frame": 7,
+      "milliseconds": 4.7551,
+      "sample": 0
+    },
+    {
+      "frame": 8,
+      "milliseconds": 4.8305,
+      "sample": 0
+    },
+    {
+      "frame": 9,
+      "milliseconds": 4.9605,
+      "sample": 0
+    },
+    {
+      "frame": 10,
+      "milliseconds": 4.9035,
+      "sample": 0
+    },
+    {
+      "frame": 11,
+      "milliseconds": 4.8433,
+      "sample": 0
+    },
+    {
+      "frame": 12,
+      "milliseconds": 4.9811,
+      "sample": 0
+    },
+    {
+      "frame": 13,
+      "milliseconds": 4.9104,
+      "sample": 0
+    },
+    {
+      "frame": 14,
+      "milliseconds": 4.8448,
+      "sample": 0
+    },
+    {
+      "frame": 15,
+      "milliseconds": 4.9671,
+      "sample": 0
+    },
+    {
+      "frame": 16,
+      "milliseconds": 5.135599999999999,
+      "sample": 0
+    },
+    {
+      "frame": 17,
+      "milliseconds": 4.8588,
+      "sample": 0
+    },
+    {
+      "frame": 18,
+      "milliseconds": 4.9772,
+      "sample": 0
+    },
+    {
+      "frame": 19,
+      "milliseconds": 4.8446,
+      "sample": 0
+    },
+    {
+      "frame": 20,
+      "milliseconds": 4.8722,
+      "sample": 0
+    },
+    {
+      "frame": 21,
+      "milliseconds": 4.8499,
+      "sample": 0
+    },
+    {
+      "frame": 22,
+      "milliseconds": 4.7566,
+      "sample": 0
+    },
+    {
+      "frame": 23,
+      "milliseconds": 4.8016,
+      "sample": 0
+    },
+    {
+      "frame": 24,
+      "milliseconds": 4.8176,
+      "sample": 0
+    },
+    {
+      "frame": 25,
+      "milliseconds": 4.8706000000000005,
+      "sample": 0
+    },
+    {
+      "frame": 26,
+      "milliseconds": 4.8084,
+      "sample": 0
+    },
+    {
+      "frame": 27,
+      "milliseconds": 4.6232,
+      "sample": 0
+    },
+    {
+      "frame": 28,
+      "milliseconds": 4.7497,
+      "sample": 0
+    },
+    {
+      "frame": 29,
+      "milliseconds": 4.6299,
+      "sample": 0
+    },
+    {
+      "frame": 30,
+      "milliseconds": 4.6641,
+      "sample": 0
+    },
+    {
+      "frame": 31,
+      "milliseconds": 4.6642,
+      "sample": 0
+    },
+    {
+      "frame": 32,
+      "milliseconds": 4.6531,
+      "sample": 0
+    },
+    {
+      "frame": 33,
+      "milliseconds": 4.678599999999999,
+      "sample": 0
+    },
+    {
+      "frame": 34,
+      "milliseconds": 4.9064,
+      "sample": 0
+    },
+    {
+      "frame": 35,
+      "milliseconds": 4.9332,
+      "sample": 0
+    },
+    {
+      "frame": 0,
+      "milliseconds": 4.665,
+      "sample": 1
+    },
+    {
+      "frame": 1,
+      "milliseconds": 4.6109,
+      "sample": 1
+    },
+    {
+      "frame": 2,
+      "milliseconds": 4.667400000000001,
+      "sample": 1
+    },
+    {
+      "frame": 3,
+      "milliseconds": 4.671200000000001,
+      "sample": 1
+    },
+    {
+      "frame": 4,
+      "milliseconds": 4.7024,
+      "sample": 1
+    },
+    {
+      "frame": 5,
+      "milliseconds": 4.670299999999999,
+      "sample": 1
+    },
+    {
+      "frame": 6,
+      "milliseconds": 4.7322,
+      "sample": 1
+    },
+    {
+      "frame": 7,
+      "milliseconds": 4.6502,
+      "sample": 1
+    },
+    {
+      "frame": 8,
+      "milliseconds": 4.823799999999999,
+      "sample": 1
+    },
+    {
+      "frame": 9,
+      "milliseconds": 4.7118,
+      "sample": 1
+    },
+    {
+      "frame": 10,
+      "milliseconds": 4.8197,
+      "sample": 1
+    },
+    {
+      "frame": 11,
+      "milliseconds": 4.7691,
+      "sample": 1
+    },
+    {
+      "frame": 12,
+      "milliseconds": 4.9027,
+      "sample": 1
+    },
+    {
+      "frame": 13,
+      "milliseconds": 4.7447,
+      "sample": 1
+    },
+    {
+      "frame": 14,
+      "milliseconds": 4.8871,
+      "sample": 1
+    },
+    {
+      "frame": 15,
+      "milliseconds": 4.6895,
+      "sample": 1
+    },
+    {
+      "frame": 16,
+      "milliseconds": 4.8335,
+      "sample": 1
+    },
+    {
+      "frame": 17,
+      "milliseconds": 4.8967,
+      "sample": 1
+    },
+    {
+      "frame": 18,
+      "milliseconds": 4.9081,
+      "sample": 1
+    },
+    {
+      "frame": 19,
+      "milliseconds": 4.7336,
+      "sample": 1
+    },
+    {
+      "frame": 20,
+      "milliseconds": 4.7653,
+      "sample": 1
+    },
+    {
+      "frame": 21,
+      "milliseconds": 4.7019,
+      "sample": 1
+    },
+    {
+      "frame": 22,
+      "milliseconds": 4.6496,
+      "sample": 1
+    },
+    {
+      "frame": 23,
+      "milliseconds": 4.6541999999999994,
+      "sample": 1
+    },
+    {
+      "frame": 24,
+      "milliseconds": 4.6545,
+      "sample": 1
+    },
+    {
+      "frame": 25,
+      "milliseconds": 4.742999999999999,
+      "sample": 1
+    },
+    {
+      "frame": 26,
+      "milliseconds": 4.8097,
+      "sample": 1
+    },
+    {
+      "frame": 27,
+      "milliseconds": 4.8625,
+      "sample": 1
+    },
+    {
+      "frame": 28,
+      "milliseconds": 4.9146,
+      "sample": 1
+    },
+    {
+      "frame": 29,
+      "milliseconds": 4.773000000000001,
+      "sample": 1
+    },
+    {
+      "frame": 30,
+      "milliseconds": 4.7009,
+      "sample": 1
+    },
+    {
+      "frame": 31,
+      "milliseconds": 4.8205,
+      "sample": 1
+    },
+    {
+      "frame": 32,
+      "milliseconds": 4.7168,
+      "sample": 1
+    },
+    {
+      "frame": 33,
+      "milliseconds": 4.7749999999999995,
+      "sample": 1
+    },
+    {
+      "frame": 34,
+      "milliseconds": 4.8802,
+      "sample": 1
+    },
+    {
+      "frame": 35,
+      "milliseconds": 4.9447,
+      "sample": 1
+    },
+    {
+      "frame": 0,
+      "milliseconds": 4.7883,
+      "sample": 2
+    },
+    {
+      "frame": 1,
+      "milliseconds": 4.6902,
+      "sample": 2
+    },
+    {
+      "frame": 2,
+      "milliseconds": 4.6507,
+      "sample": 2
+    },
+    {
+      "frame": 3,
+      "milliseconds": 4.831300000000001,
+      "sample": 2
+    },
+    {
+      "frame": 4,
+      "milliseconds": 4.6486,
+      "sample": 2
+    },
+    {
+      "frame": 5,
+      "milliseconds": 4.7827,
+      "sample": 2
+    },
+    {
+      "frame": 6,
+      "milliseconds": 5.048900000000001,
+      "sample": 2
+    },
+    {
+      "frame": 7,
+      "milliseconds": 4.7064,
+      "sample": 2
+    },
+    {
+      "frame": 8,
+      "milliseconds": 4.7277,
+      "sample": 2
+    },
+    {
+      "frame": 9,
+      "milliseconds": 4.6841,
+      "sample": 2
+    },
+    {
+      "frame": 10,
+      "milliseconds": 4.6688,
+      "sample": 2
+    },
+    {
+      "frame": 11,
+      "milliseconds": 4.6838,
+      "sample": 2
+    },
+    {
+      "frame": 12,
+      "milliseconds": 4.6149,
+      "sample": 2
+    },
+    {
+      "frame": 13,
+      "milliseconds": 4.666799999999999,
+      "sample": 2
+    },
+    {
+      "frame": 14,
+      "milliseconds": 4.7391000000000005,
+      "sample": 2
+    },
+    {
+      "frame": 15,
+      "milliseconds": 4.8525,
+      "sample": 2
+    },
+    {
+      "frame": 16,
+      "milliseconds": 4.7014,
+      "sample": 2
+    },
+    {
+      "frame": 17,
+      "milliseconds": 4.7448999999999995,
+      "sample": 2
+    },
+    {
+      "frame": 18,
+      "milliseconds": 4.7753,
+      "sample": 2
+    },
+    {
+      "frame": 19,
+      "milliseconds": 4.7592,
+      "sample": 2
+    },
+    {
+      "frame": 20,
+      "milliseconds": 4.9346,
+      "sample": 2
+    },
+    {
+      "frame": 21,
+      "milliseconds": 4.723599999999999,
+      "sample": 2
+    },
+    {
+      "frame": 22,
+      "milliseconds": 4.924300000000001,
+      "sample": 2
+    },
+    {
+      "frame": 23,
+      "milliseconds": 4.8195,
+      "sample": 2
+    },
+    {
+      "frame": 24,
+      "milliseconds": 4.6606,
+      "sample": 2
+    },
+    {
+      "frame": 25,
+      "milliseconds": 4.729299999999999,
+      "sample": 2
+    },
+    {
+      "frame": 26,
+      "milliseconds": 4.6431,
+      "sample": 2
+    },
+    {
+      "frame": 27,
+      "milliseconds": 4.7738,
+      "sample": 2
+    },
+    {
+      "frame": 28,
+      "milliseconds": 4.7174000000000005,
+      "sample": 2
+    },
+    {
+      "frame": 29,
+      "milliseconds": 4.7545,
+      "sample": 2
+    },
+    {
+      "frame": 30,
+      "milliseconds": 4.6738,
+      "sample": 2
+    },
+    {
+      "frame": 31,
+      "milliseconds": 4.7035,
+      "sample": 2
+    },
+    {
+      "frame": 32,
+      "milliseconds": 4.9223,
+      "sample": 2
+    },
+    {
+      "frame": 33,
+      "milliseconds": 4.838699999999999,
+      "sample": 2
+    },
+    {
+      "frame": 34,
+      "milliseconds": 4.6613,
+      "sample": 2
+    },
+    {
+      "frame": 35,
+      "milliseconds": 4.920599999999999,
+      "sample": 2
+    }
+  ],
+  "wire_probes": [],
+  "workers": 0,
+  "workers_arg": null
+}

@@ -1,0 +1,44 @@
+{
+  "unix_time": 1789484221.7716732,
+  "protected": [
+    {
+      "pid": 7852,
+      "create_time": 1789443148.6079037,
+      "name": "RunnerService.exe"
+    },
+    {
+      "pid": 7924,
+      "create_time": 1789443148.7476103,
+      "name": "Runner.Listener.exe"
+    },
+    {
+      "pid": 7960,
+      "create_time": 1789443063.1990523,
+      "name": "cascadia-node.exe"
+    },
+    {
+      "pid": 8172,
+      "create_time": 1789443063.5933473,
+      "name": "ovms.exe"
+    }
+  ],
+  "ovms_health": {
+    "live": 200,
+    "ready": 200
+  },
+  "own_processes": [],
+  "task_firewall_rule_removed": true,
+  "own_listening_ports": [],
+  "free_memory_gib": 23.11719512939453,
+  "free_disk_gib": 600.4722175598145,
+  "binaries": {
+    "inkling_ep_layer_bench.exe": {
+      "bytes": 1417728,
+      "sha256": "be1d5b85bb500dc36cea6280d54cb09d1a92562185037580ecb784f86be54293"
+    },
+    "inkling_ep_worker.exe": {
+      "bytes": 1261568,
+      "sha256": "26ecb24647037b1eb53cfad8322494c64560bf6b7322f942ac11875b2c6bdf31"
+    }
+  }
+}

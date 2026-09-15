@@ -9,6 +9,10 @@ experts 2.097× faster on average than the four-CPU local baseline. This is a
 resident, single-MoE-layer measurement, not full-model tokens/s.** The complete
 tiny-model LAN test also matched every generated token and the logits hash.
 
+The subsequent [iGPU routing qualification](INKLING_IGPU_EXPERT_ROUTING.md)
+uses OpenVINO-enabled workers and verifies zero CPU fallback. GPU results are
+recorded separately from the CPU measurements below.
+
 ## Machines and coexistence with existing work
 
 All three currently identify as Intel Core Ultra X7 358H (Panther Lake), with
