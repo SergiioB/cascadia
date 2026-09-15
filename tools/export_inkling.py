@@ -276,6 +276,27 @@ def load_and_validate_config(src, strict: bool = False) -> dict:
              f"dense intermediate {dense_inter} not divisible by {_INT4_GROUP}")
     _require(num_layers >= 1 and d_rel >= 1 and rel_extent >= 1 and window >= 1 and kernel >= 1, "bad dims")
 
+    # Load-bearing numeric fields the Rust loader treats as REQUIRED
+    # (route_scale, log_scaling_alpha, logits_mup_width_multiplier) plus the
+    # router shape (n_shared_experts): silently defaulting these emits a
+    # plausible-but-wrong manifest (a wrong route_scale zeroes/scales every
+    # expert contribution, a wrong mup divisor shifts the logits). Warn on
+    # absence like the contract flags, and fail under --strict.
+    LOADBEARING_DEFAULTS = {
+        "route_scale": 8.0,
+        "log_scaling_alpha": 0.1,
+        "logits_mup_width_multiplier": 24.0,
+        "n_shared_experts": 2,
+    }
+    num_assumed = [k for k in LOADBEARING_DEFAULTS if k not in tc]
+    # log_scaling_alpha is only consumed when log scaling is active (n_floor set).
+    if n_floor is None and "log_scaling_alpha" in num_assumed:
+        num_assumed.remove("log_scaling_alpha")
+    if num_assumed:
+        _require(not strict, f"--strict: load-bearing config keys absent from text_config: {num_assumed}")
+        log("[validate] WARNING: load-bearing keys absent, assuming defaults: "
+            + ", ".join(f"{k}={LOADBEARING_DEFAULTS[k]!r}" for k in num_assumed))
+
     return {
         "arch": "inkling",
         "num_layers": num_layers,
