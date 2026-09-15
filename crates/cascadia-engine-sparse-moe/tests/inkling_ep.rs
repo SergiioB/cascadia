@@ -569,3 +569,96 @@ fn a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_mess
         assert!(t.join().unwrap() >= 2);
     }
 }
+
+/// With TWO real workers, a dispatch that one worker cannot serve must still
+/// drain the OTHER worker's reply (the driver awaits every reply with
+/// `join_all`, not `try_join_all`), so the surviving connection stays frame
+/// aligned and the NEXT dispatch over the same connections returns correct
+/// data. If the failed worker's reply were left unread, the next layer's
+/// dispatch would read a stale reply and return a silently wrong answer.
+#[test]
+fn two_workers_one_fails_a_dispatch_but_the_survivor_stays_frame_aligned() {
+    let dir = export_dir();
+    let Ok(m) = read_manifest(&dir) else {
+        eprintln!("inkling_export/manifest.json missing; skipping");
+        return;
+    };
+    let rt = runtime();
+    let hs = m.hidden_size;
+    let li = (0..m.num_layers)
+        .find(|li| !m.dense_layers.contains(li))
+        .expect("a MoE layer");
+
+    // EpClient derives W=2 from its two clients, so expert_home(id, 2) = id % 2.
+    // Worker 0 is an honest shard 0 of 2 (owns every even id). Worker 1 is
+    // loaded as shard 1 of *4* (owns id % 4 == 1), so an odd id with id % 4 == 3
+    // homes to it under W=2 yet it does NOT own it — worker 1 fails a dispatch
+    // that worker 0 serves.
+    let w0 = load_expert_bank(&dir, 0, 2, ExpertsMode::Eager).unwrap();
+    let w1 = load_expert_bank(&dir, 1, 4, ExpertsMode::Eager).unwrap();
+    let owned0 = w0.owned_ids(li);
+    let owned1 = w1.owned_ids(li);
+    let (clients, threads) = spawn_workers(&rt, vec![w0, w1]);
+    let ep = EpClient::new(
+        clients.clone(),
+        rt.handle().clone(),
+        hs,
+        m.num_experts,
+        m.n_shared_experts,
+    );
+    assert_eq!(ep.n_workers(), 2);
+
+    let x: Vec<f32> = (0..hs).map(|i| ((i * 5 % 11) as f32 - 5.0) * 0.1).collect();
+    let even = *owned0.iter().find(|&&id| id % 2 == 0).expect("an even id");
+    let bad = (0..m.num_experts)
+        .find(|id| id % 4 == 3)
+        .expect("an odd id worker-1-of-4 does not own");
+    assert!(!owned1.contains(&bad));
+
+    // Worker 0 succeeds, worker 1 fails: the dispatch is an Err naming worker 1.
+    let err = ep
+        .dispatch(li as u32, &x, &[vec![(even, 0.5), (bad, 0.25)]])
+        .expect_err("worker 1 cannot serve the id");
+    assert!(
+        err.contains("expert worker 1") && err.contains(&format!("does not own expert {bad}")),
+        "error must name worker 1 and carry its message: {err}"
+    );
+
+    // The survivor stayed frame aligned: a subsequent fully-owned dispatch to
+    // BOTH workers is bit-identical to the local accumulation. If worker 0's
+    // earlier reply had been left in the socket this would read it as the new
+    // result and mismatch.
+    let odd = *owned1
+        .iter()
+        .find(|&&id| id % 2 == 1)
+        .expect("an odd id worker 1 owns");
+    let per_row: Vec<(usize, f32)> = vec![(even, 0.5), (odd, 0.25)];
+    let got = ep
+        .dispatch(li as u32, &x, std::slice::from_ref(&per_row))
+        .expect("both workers serve the second dispatch");
+    let b0 = load_expert_bank(&dir, 0, 2, ExpertsMode::Eager).unwrap();
+    let b1 = load_expert_bank(&dir, 1, 4, ExpertsMode::Eager).unwrap();
+    let mut want = vec![0.0f32; hs];
+    for &(id, w) in &per_row {
+        let bank = if id % 2 == 0 { &b0 } else { &b1 };
+        let y = bank
+            .expert(li, id)
+            .unwrap()
+            .forward(&x, hs, m.moe_intermediate);
+        for (o, &yi) in want.iter_mut().zip(&y) {
+            *o += w * yi;
+        }
+    }
+    assert_eq!(
+        got, want,
+        "post-failure dispatch must be bit-identical to local accumulation"
+    );
+    assert!(want.iter().any(|&v| v != 0.0));
+
+    drop(ep);
+    close_all(&rt, &clients);
+    for (wi, t) in threads.into_iter().enumerate() {
+        let frames = t.join().expect("worker thread");
+        assert!(frames > 0, "worker {wi} served no frames");
+    }
+}
