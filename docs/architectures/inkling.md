@@ -507,6 +507,28 @@ int4 the device's f16 GEMV and GEMM paths also stopped being bit-identical,
 so decode and prefill differed by 3e-4 relative at layer 2 (the dump's
 `dec-vs-pre` column); with int8 they agree to the bit again.
 
+### OpenVINO head backend, and releasing the Rust copies
+
+`tools/inkling_attn_ov.py --head --weights int8` writes the unembed table
+(`[201024, 6144]`, 2.46 GB of bf16 that every token reads on the last
+rank, ~31 ms on this CPU) as one compressed-FC IR under `head_ov/`;
+`CASCADIA_INKLING_OV_HEAD=1` (`_OV_HEAD_DEVICE`, default `GPU`) runs it
+through `inkling/ov_head.rs`. The RMSNorm, the mup divide and the slice to
+`unpadded_vocab_size` stay in Rust. On tate-07 the int8 head validates at
+2.1e-4 relative to the quantised grid with the same argmax, and a 1-row
+call takes 11.3 ms on the B390.
+
+`CASCADIA_INKLING_OV_ATTN_DROP_RUST=1` compiles each layer's attention IR
+at load and frees the five bf16 projection tables (264 MB per layer,
+16.4 GB for the model) that would otherwise sit next to the int8 device
+copy in unified memory. A layer whose IR fails to compile keeps its
+tables; after a release a refused backend call is fatal and says so. On a
+64 GB box that RAM is what the expert cache lives on
+(`CASCADIA_INKLING_EXPERT_CACHE_MIB`, now allowed up to 1024 per layer),
+which is the point. `CASCADIA_INKLING_OV_MOE_LAYERS=2,3,4` restricts the
+fused-MoE backend to a subset of the layers that have IRs (the Windows
+rank budget below).
+
 ### Expert-parallel dispatch (star topology)
 
 Beside the layer pipeline, the family can run as a **driver + expert
@@ -563,7 +585,13 @@ runs answer byte-identically — `Paris`, `42`, the Pacific sentence — with
 int8 attention projections and the fused MoE on the iGPU. Wall times there
 are the paged CPU layers' (5–22 minutes per prompt), so this is the
 correctness gate for the device paths inside the real serving loop, not a
-speed measurement.
+speed measurement. In fact that run was *paging*: six fused MoE layers are
+50 GB of unified memory on top of the ~40 GB the whole-model process needs,
+which is what those wall times were. On a single 64 GB box the fused
+layers must stay off and the iGPU carries the attention projections and
+the head only; `docs/perf/INKLING_SINGLE_BOX_BENCH.md` has the whole-model
+single-stream measurements (CPU control, ours on the iGPU, OpenVINO's own
+MoE offload) under the autolab's campaign-129 protocol.
 
 **Rank budget.** The limit on a 64 GB Windows box is not RAM but the
 iGPU's shared-memory budget, which Windows sets to half the RAM: OpenVINO
