@@ -211,7 +211,7 @@ The thinking-on row is the special-token framing translated by the API
 the same PR) produced coherent reasoning openings at 12 tokens per 256–299 s;
 with the overlapped expert reads the warmup fell from 28 s to 13 s and a
 cold 25-token prefill from 176 s to 107–155 s depending on page-cache state. Decode is 8–25 s/token depending on how many of a
-token's ~48 experts × 64 layers are already in the page cache: the routed
+token's ~8 experts × 64 layers are already in the page cache: the routed
 experts (490 GB) page from a SATA SSD into 172 GB of RAM, so this box is a
 correctness platform, not a throughput one (next section).
 
@@ -255,7 +255,7 @@ Per generated token the engine touches ~41B active parameters: ~21.7B routed
 expert weights (int4, ~11 GB of reads), ~7.2B shared-expert weights, ~8.7B
 attention weights and the dense/embed/unembed tables (bf16, ~36 GB resident).
 With the 490 GB of routed experts paged from the miner's SATA SSD into 172 GB
-of RAM, measured decode is 8–25 s/token (0.05–0.12 tok/s) and a cold 25-token
+of RAM, measured decode is 8–25 s/token (0.05–0.13 tok/s) and a cold 25-token
 prefill takes ~3 minutes — the SSD, not the shell, is the clock there.
 
 **RAM-resident, measured (2019 Mac Pro, Xeon W-3275M 28c/56t, 1.5 TB, macOS

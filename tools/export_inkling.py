@@ -590,7 +590,7 @@ class DictSource:
 class ShardSource:
     """Streamed reads over a local HF checkpoint via `model.safetensors.index.json`. Never loads a
     shard: `get` reads one tensor, `get_row` one expert's slice (`safe_open(...).get_slice(name)[e]`,
-    a [2I, H] read out of a 9.7 GB w13). One safe_open handle per (thread, shard). A shard is
+    a [2I, H] read out of a ~19 GB bf16 w13). One safe_open handle per (thread, shard). A shard is
     "present" when the exact file the index names exists in the model dir (hf's `.incomplete`
     downloads live under .cache and never match)."""
 

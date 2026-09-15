@@ -156,7 +156,7 @@ def hf_state_to_checkpoint(sd: dict[str, torch.Tensor]) -> dict[str, torch.Tenso
         p = f"model.llm.layers.{li}."
         if suf in _LAYER_HF_TO_CKPT:
             out[p + _LAYER_HF_TO_CKPT[suf]] = v
-        elif suf == "mlp.experts.gate_up_proj":  # [E, 2I, H], HF chunk(2, dim=-1): first I = gate
+        elif suf == "mlp.experts.gate_up_proj":  # weight [E, 2I, H]; split dim=1 (the 2I output axis): first I = gate, second I = up (HF chunks the [.., 2I] activation at dim=-1)
             inter = v.shape[1] // 2
             out[p + "mlp.experts.w13_weight"] = interleave(v[:, :inter], v[:, inter:], dim=1)
         elif suf in ("mlp.shared_experts.gate_proj", "mlp.shared_experts.up_proj",
