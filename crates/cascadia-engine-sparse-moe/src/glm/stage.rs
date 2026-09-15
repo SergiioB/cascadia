@@ -610,9 +610,18 @@ impl GlmRunner {
                 .iter()
                 .map(|l| l.moe().map(|ml| ml.expert_bins()))
                 .collect();
+            // Log the resolved prefill-stream mode, not just on/off: `all` and
+            // `gated` behave differently (gated is residency- and row-gated), so
+            // an `all` A/B lever silently downgraded to `gated` by a typo
+            // (parse_prefill_stream falls unknown values through to Gated) must
+            // be visible here.
+            let prefill_stream_label = match prefill_stream {
+                Some(PrefillStream::All) => "all",
+                Some(PrefillStream::Gated) => "gated",
+                None => "off",
+            };
             eprintln!(
-                "[glm5] rank {rank}: lookahead prefetch thread started (decode={lookahead_on} prefill_stream={})",
-                prefill_stream.is_some()
+                "[glm5] rank {rank}: lookahead prefetch thread started (decode={lookahead_on} prefill_stream={prefill_stream_label})"
             );
             Some(super::lookahead::Lookahead::new(table))
         } else {
