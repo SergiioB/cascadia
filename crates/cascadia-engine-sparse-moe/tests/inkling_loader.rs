@@ -30,7 +30,9 @@ fn export_dir() -> PathBuf {
 struct Reference {
     prompt: Vec<u32>,
     greedy: Vec<u32>,
-    first_argmax: Option<u32>,
+    /// HF `logits.argmax(-1)` at every prompt position (teacher-forced), one
+    /// per `prompt` token — an array, not a scalar.
+    first_argmax: Option<Vec<u32>>,
 }
 
 fn reference() -> Option<Reference> {
@@ -50,7 +52,9 @@ fn reference() -> Option<Reference> {
     Some(Reference {
         prompt: ids("prompt_ids"),
         greedy: ids("greedy_ids"),
-        first_argmax: v["first_logits_argmax"].as_u64().map(|x| x as u32),
+        first_argmax: v["first_logits_argmax"]
+            .as_array()
+            .map(|a| a.iter().map(|x| x.as_u64().unwrap() as u32).collect()),
     })
 }
 
@@ -58,9 +62,18 @@ fn reference() -> Option<Reference> {
 fn loader_greedy_matches_hf_reference() {
     let Some(r) = reference() else { return };
     let mut model = load_model(&export_dir(), 64).expect("load inkling export");
-    if let Some(want) = r.first_argmax {
-        let logits = model.prefill(&r.prompt);
-        assert_eq!(argmax(&logits) as u32, want, "first-token argmax");
+    if let Some(want) = &r.first_argmax {
+        // Teacher-forced per-position argmax: feed each prompt token and take
+        // the argmax of the logits it produces. Matches HF `logits.argmax(-1)`
+        // over the whole prompt (decode == prefill bit-for-bit here), so this
+        // pins every prompt position, not just the last.
+        model.reset();
+        let got: Vec<u32> = r
+            .prompt
+            .iter()
+            .map(|&t| argmax(&model.forward_token(t)) as u32)
+            .collect();
+        assert_eq!(&got, want, "per-position prefill argmax vs HF reference");
         model.reset();
     }
     let got = model.greedy(&r.prompt, r.greedy.len());
