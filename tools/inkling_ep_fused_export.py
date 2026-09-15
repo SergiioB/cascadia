@@ -8,6 +8,7 @@ shard manifest. Original packed nibbles are unchanged. No checkpoint export.
 import argparse
 import array
 import base64
+import collections
 import hashlib
 import json
 import os
@@ -16,7 +17,43 @@ import shutil
 import struct
 import sys
 import time
+import functools
 import xml.etree.ElementTree as ET
+
+
+@functools.lru_cache(maxsize=8)
+def scale_table(exponent):
+    if not 1 <= exponent <= 8:
+        raise ValueError('up scale exponent must be 1..8')
+    factor = 2**exponent
+    table, errors, norms = [], [], []
+    for bits in range(65536):
+        value = struct.unpack('<e', struct.pack('<H', bits))[0]
+        scaled = struct.pack('<e', value/factor)
+        restored = struct.unpack('<e', scaled)[0]*factor
+        table.append(struct.unpack('<H', scaled)[0])
+        errors.append((value-restored)**2)
+        norms.append(value**2)
+    return table, errors, norms
+
+
+def scale_fp16(raw, exponent):
+    """Attenuate up scales; return bytes and measured squared rounding error."""
+    table, errors, norms = scale_table(exponent)
+    values = array.array('H', raw)
+    if sys.byteorder != 'little':
+        values.byteswap()
+    counts = collections.Counter(values)
+    if any((v & 0x7fff) >= 0x7c00 for v in counts):
+        raise ValueError('nonfinite source scale')
+    result = array.array('H', map(table.__getitem__, values))
+    if sys.byteorder != 'little':
+        result.byteswap()
+    error = sum(errors[v]*n for v,n in counts.items())
+    norm = sum(norms[v]*n for v,n in counts.items())
+    if error > max(norm, 1e-30)*1e-8:
+        raise ValueError('up scaling exceeds 0.01% relative weight RMS')
+    return result.tobytes(), error, norm
 
 
 def recipe(ir, out):
@@ -172,6 +209,10 @@ def build(args):
     if any(p.stat().st_size != expert_bytes for p in paths.values()):
         raise ValueError("packed expert byte count mismatch")
     source_hashes = {i: hashlib.sha256() for i in ids}
+    exponent = getattr(args, 'up_scale_exponent', 0)
+    if not 0 <= exponent <= 8:
+        raise ValueError('up scale exponent must be 0..8')
+    scale_error, scale_norm = 0., 0.
     # BF16 -> FP16 lookup avoids a numpy/OpenVINO dependency on workers.
     lut = []
     for value in range(65536):
@@ -230,6 +271,10 @@ def build(args):
                             raw = b"".join(lut[v] for v in values)
                             if any((v & 0x7fff) >= 0x7c00 for v in array.array("H", raw)):
                                 raise ValueError("scale became nonfinite in FP16")
+                            if exponent and spec['matrix'] == 1:
+                                raw, error, norm = scale_fp16(raw, exponent)
+                                scale_error += error
+                                scale_norm += norm
                         write(raw)
                 offsets[key] = (offset, out.tell()-offset)
             offset, size = offsets[key]
@@ -239,11 +284,14 @@ def build(args):
     sources = {str(i): digest.hexdigest() for i, digest in source_hashes.items()}
     xml = ET.tostring(tree, encoding="utf-8", xml_declaration=True)
     (temp / "openvino_model.xml").write_bytes(xml)
-    meta = dict(version=1, layer=args.layer, hidden_size=h, moe_intermediate=inter,
+    meta = dict(version=2 if exponent else 1, layer=args.layer, hidden_size=h, moe_intermediate=inter,
                 k=k, expert_ids=ids, padded_experts=padded, ir_bytes=(temp / "openvino_model.bin").stat().st_size,
                 bin_sha256=blob_hash.hexdigest(), xml_sha256=hashlib.sha256(xml).hexdigest(),
                 source_sha256=sources, template_xml_sha256=rec["template_xml_sha256"],
                 placement_sha256=hashlib.sha256(args.placement.read_bytes()).hexdigest())
+    if exponent:
+        meta.update(up_scale_exponent=exponent,
+                    up_scale_relative_rms=(scale_error/max(scale_norm, 1e-30))**0.5)
     (temp / "shard.json").write_text(json.dumps(meta, indent=2)+"\n")
     if guard:
         guard.check()
@@ -297,6 +345,8 @@ def main():
     b.add_argument("--guarded", action="store_true")
     b.add_argument("--rate-mib", type=float, default=48)
     b.add_argument("--reserve-gib", type=float, default=12)
+    b.add_argument('--up-scale-exponent', type=int, default=0,
+                   help='attenuate up weights by 2^-n and require version-2 worker compensation; 4 avoids observed FP16 overflow')
     args = p.parse_args()
     if args.command == "recipe":
         recipe(args.ir_layer, args.out)

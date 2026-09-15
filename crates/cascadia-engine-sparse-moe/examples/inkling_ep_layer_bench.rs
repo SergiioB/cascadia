@@ -19,6 +19,8 @@ struct FrameRow {
     ids: Vec<usize>,
     seed: u32,
     #[serde(default)]
+    hidden: Option<Vec<f32>>,
+    #[serde(default)]
     weights: Option<Vec<f32>>,
 }
 
@@ -70,6 +72,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let frames: Vec<Frame> = serde_json::from_slice(&std::fs::read(&flags["--frames"])?)?;
     if frames.is_empty() {
         return Err("empty frames".into());
+    }
+    if frames.iter().flat_map(Frame::rows).any(|row| {
+        row.hidden
+            .as_ref()
+            .is_some_and(|x| x.len() != m.hidden_size || x.iter().any(|v| !v.is_finite()))
+    }) {
+        return Err("invalid explicit hidden row".into());
     }
     let samples = flags
         .get("--samples")
@@ -220,11 +229,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|f| {
             f.rows()
                 .flat_map(|row| {
+                    if let Some(hidden) = &row.hidden {
+                        return hidden.clone();
+                    }
                     let mut seed = row.seed;
-                    (0..m.hidden_size).map(move |_| {
-                        seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
-                        ((seed >> 8) as f32 / 16777216.0 - 0.5) * 0.25
-                    })
+                    (0..m.hidden_size)
+                        .map(move |_| {
+                            seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+                            ((seed >> 8) as f32 / 16777216.0 - 0.5) * 0.25
+                        })
+                        .collect::<Vec<_>>()
                 })
                 .collect()
         })
@@ -386,7 +400,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for c in &connections {
         rt.block_on(async { c.lock().await.close().await });
     }
-    let result = serde_json::json!({"scope":"real_expert_phase_with_synthetic_inputs","full_model_inference":false,
+    let scope = if frames
+        .iter()
+        .flat_map(Frame::rows)
+        .any(|r| r.hidden.is_some())
+    {
+        "real_expert_phase_with_explicit_inputs"
+    } else {
+        "real_expert_phase_with_synthetic_inputs"
+    };
+    let result = serde_json::json!({"scope":scope,"full_model_inference":false,
         "hidden":m.hidden_size,"intermediate":m.moe_intermediate,"model_layers_in_export":m.num_layers,
         "frames":frames.len(),"rows_per_frame":frames.iter().map(|f|f.rows().count()).collect::<Vec<_>>(),"samples":samples,"warm_passes":warm_passes,"workers":connections.len(),"reference_verified":flags.contains_key("--reference"),
         "fused_MoE_sharding":fused,"self_consistency_verified":true,"workers_arg":flags.get("--workers"),"timings":timings,"wire_probes":wire_probes,

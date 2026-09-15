@@ -319,7 +319,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 writeln!(
                     progress,
                     "{}",
-                    serde_json::json!({"case":case.name,"step":step,"layer":li,"elapsed_seconds":start.elapsed().as_secs_f64()})
+                    serde_json::json!({"case":case.name,"step":step,"layer":li,"elapsed_seconds":start.elapsed().as_secs_f64(),
+                        "relative_rms":trace.errors.last().map(|e|e.relative_rms),
+                        "different_bits":trace.errors.last().map(|e|e.different_bits),
+                        "tensor_passed":trace.errors.last().map(|e|e.passed)})
                 )?;
                 progress.flush()?;
             }
