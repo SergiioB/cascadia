@@ -1,0 +1,49 @@
+Traceback (most recent call last):
+  File "C:\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Python311\Lib\http\client.py", line 1303, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Python311\Lib\http\client.py", line 1349, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Python311\Lib\http\client.py", line 1298, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Python311\Lib\http\client.py", line 1058, in _send_output
+    self.send(msg)
+  File "C:\Python311\Lib\http\client.py", line 996, in send
+    self.connect()
+  File "C:\Python311\Lib\http\client.py", line 962, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\socket.py", line 851, in create_connection
+    raise exceptions[0]
+  File "C:\Python311\Lib\socket.py", line 836, in create_connection
+    sock.connect(sa)
+TimeoutError: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\tatef\inkling-ep-lan-20260915\inkling_ep_stage_layer.py", line 70, in <module>
+    main()
+  File "C:\Users\tatef\inkling-ep-lan-20260915\inkling_ep_stage_layer.py", line 30, in main
+    with urllib.request.urlopen(a.source + "/index.json", timeout=30) as r:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 1377, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond>
+{"files": 87, "transferred_bytes": 2770993152, "elapsed_seconds": 55.062000000005355, "source": "http://192.168.0.235:29483", "scope": "one MoE layer of real 975B weights"}

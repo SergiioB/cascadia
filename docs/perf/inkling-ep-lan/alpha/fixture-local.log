@@ -1,0 +1,4 @@
+
+thread 'main' (4524) panicked at crates\cascadia-engine-sparse-moe\examples\inkling_decode_bench.rs:277:5:
+expected the complete large Inkling architecture
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

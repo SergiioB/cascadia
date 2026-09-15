@@ -1,0 +1,857 @@
+    Checking futures-executor v0.3.32
+    Checking ppv-lite86 v0.2.21
+    Checking onig_sys v69.9.3
+    Checking cascadia-metrics v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-metrics)
+    Checking cascadia-types v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-types)
+   Compiling cascadia-ov-genai-shim v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-ov-genai-shim)
+    Checking spm_precompiled v0.1.4
+    Checking compact_str v0.9.0
+    Checking ahash v0.8.12
+    Checking half v2.7.1
+    Checking dary_heap v0.3.9
+    Checking onig v6.5.3
+    Checking futures v0.3.32
+    Checking cascadia-transport v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-transport)
+    Checking getrandom v0.4.2
+    Checking num_cpus v1.17.0
+    Checking rand_chacha v0.9.0
+    Checking fastrand v2.4.1
+    Checking cascadia-int4-gemm v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-int4-gemm)
+    Checking rand v0.9.4
+    Checking tempfile v3.27.0
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:1364:13
+     |
+1364 |         for τ in [0.05f32, 0.10, 0.20, 0.50, 0.95] {
+     |             ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: unused import: `crate::kernel_bf16::bf16_gemv_auto`
+  --> crates/cascadia-int4-gemm/src/shell_int4.rs:16:5
+   |
+16 | use crate::kernel_bf16::bf16_gemv_auto;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+    Checking cascadia-engine v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-engine)
+    Checking tokenizers v0.21.4
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1451:30
+     |
+1451 |     pub fn input_name(&self, idx: usize) -> Result<String> {
+     |                              ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1457:31
+     |
+1457 |     pub fn output_name(&self, idx: usize) -> Result<String> {
+     |                               ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1468:33
+     |
+1468 |     pub fn input_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                 ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: unused variable: `idx`
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1477:34
+     |
+1477 |     pub fn output_aliases(&self, idx: usize) -> Result<Vec<String>> {
+     |                                  ^^^ help: if this is intentional, prefix it with an underscore: `_idx`
+
+warning: doc list item without indentation
+   --> crates/cascadia-ov-genai-shim/src/lib.rs:506:9
+    |
+506 |     /// `prompt_lookup` enables prompt-lookup decoding (OV GenAI >= 2026.2
+    |         ^
+    |
+    = help: if this is supposed to be its own paragraph, add a blank line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+    = note: `#[warn(clippy::doc_lazy_continuation)]` on by default
+help: indent this line
+    |
+506 |     ///   `prompt_lookup` enables prompt-lookup decoding (OV GenAI >= 2026.2
+    |         ++
+
+warning: doc list item without indentation
+   --> crates/cascadia-ov-genai-shim/src/lib.rs:507:9
+    |
+507 |     /// supports it on VLM pipelines).
+    |         ^
+    |
+    = help: if this is supposed to be its own paragraph, add a blank line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+    |
+507 |     ///   supports it on VLM pipelines).
+    |         ++
+
+warning: unneeded `return` statement
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1387:13
+     |
+1387 |             return Err(Error::Stub);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_return
+     = note: `#[warn(clippy::needless_return)]` on by default
+help: remove `return`
+     |
+1387 -             return Err(Error::Stub);
+1387 +             Err(Error::Stub)
+     |
+
+warning: unneeded `return` statement
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1516:13
+     |
+1516 |             return Err(Error::Stub);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_return
+help: remove `return`
+     |
+1516 -             return Err(Error::Stub);
+1516 +             Err(Error::Stub)
+     |
+
+warning: unneeded `return` statement
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1555:13
+     |
+1555 |             return Err(Error::Stub);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_return
+help: remove `return`
+     |
+1555 -             return Err(Error::Stub);
+1555 +             Err(Error::Stub)
+     |
+
+warning: unneeded `return` statement
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1591:13
+     |
+1591 |             return Err(Error::Stub);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_return
+help: remove `return`
+     |
+1591 -             return Err(Error::Stub);
+1591 +             Err(Error::Stub)
+     |
+
+warning: unneeded `return` statement
+    --> crates/cascadia-ov-genai-shim/src/lib.rs:1612:13
+     |
+1612 |             return Err(Error::Stub);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_return
+help: remove `return`
+     |
+1612 -             return Err(Error::Stub);
+1612 +             Err(Error::Stub)
+     |
+
+warning: `cascadia-ov-genai-shim` (lib) generated 11 warnings (run `cargo clippy --fix --lib -p cascadia-ov-genai-shim -- ` to apply 9 suggestions)
+warning: unsafe function's docs are missing a `# Safety` section
+  --> crates/cascadia-int4-gemm/src/c_ffi.rs:35:1
+   |
+35 | / pub unsafe extern "C" fn cascadia_int4_open_source(
+36 | |     model_dir: *const c_char,
+37 | |     out_handle: *mut *mut CascadiaInt4Source,
+38 | | ) -> c_int {
+   | |__________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+   = note: `#[warn(clippy::missing_safety_doc)]` on by default
+
+warning: unsafe function's docs are missing a `# Safety` section
+  --> crates/cascadia-int4-gemm/src/c_ffi.rs:58:1
+   |
+58 | pub unsafe extern "C" fn cascadia_int4_destroy_source(handle: *mut CascadiaInt4Source) {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+  --> crates/cascadia-int4-gemm/src/c_ffi.rs:73:1
+   |
+73 | / pub unsafe extern "C" fn cascadia_int4_prewarm(
+74 | |     handle: *mut CascadiaInt4Source,
+75 | |     layer: u32,
+76 | |     expert: u32,
+77 | | ) -> c_int {
+   | |__________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:134:1
+    |
+134 | / pub unsafe extern "C" fn cascadia_int4_open_shell(
+135 | |     handle: *mut CascadiaInt4Source,
+136 | |     layer: u32,
+137 | |     out: *mut *mut CascadiaShell,
+138 | | ) -> c_int {
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:154:1
+    |
+154 | pub unsafe extern "C" fn cascadia_int4_destroy_shell(h: *mut CascadiaShell) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:180:1
+    |
+180 | / pub unsafe extern "C" fn cascadia_int4_open_shell_int4(
+181 | |     handle: *mut CascadiaInt4Source,
+182 | |     layer: u32,
+183 | |     out: *mut *mut CascadiaShellInt4,
+184 | | ) -> c_int {
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:201:1
+    |
+201 | pub unsafe extern "C" fn cascadia_int4_destroy_shell_int4(h: *mut CascadiaShellInt4) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:215:1
+    |
+215 | / pub unsafe extern "C" fn cascadia_int4_shell_forward_int4(
+216 | |     shell: *mut CascadiaShellInt4,
+217 | |     x_f32: *const f32,
+218 | |     past_k: *const f32,
+...   |
+227 | |     out_present_v: *mut f32,
+228 | | ) -> c_int {
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:261:1
+    |
+261 | / pub unsafe extern "C" fn cascadia_int4_shell_forward(
+262 | |     shell: *mut CascadiaShell,
+263 | |     x_f32: *const f32,
+264 | |     past_k: *const f32,
+...   |
+273 | |     out_present_v: *mut f32,
+274 | | ) -> c_int {
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: unsafe function's docs are missing a `# Safety` section
+   --> crates/cascadia-int4-gemm/src/c_ffi.rs:308:1
+    |
+308 | / pub unsafe extern "C" fn cascadia_int4_expert_forward(
+309 | |     handle: *mut CascadiaInt4Source,
+310 | |     layer: u32,
+311 | |     expert: u32,
+312 | |     x_f32: *const f32,
+313 | |     out_f32: *mut f32,
+314 | | ) -> c_int {
+    | |__________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#missing_safety_doc
+
+warning: the loop variable `i` is used to index `group_packed`
+   --> crates/cascadia-int4-gemm/src/ffn_axpy.rs:367:22
+    |
+367 |             for i in 0..(GROUP_SIZE / 2) {
+    |                      ^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_range_loop
+    = note: `#[warn(clippy::needless_range_loop)]` on by default
+help: consider using an iterator and enumerate()
+    |
+367 -             for i in 0..(GROUP_SIZE / 2) {
+367 +             for (i, <item>) in group_packed.iter().enumerate().take((GROUP_SIZE / 2)) {
+    |
+
+warning: the loop variable `i` is used to index `group_packed`
+   --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:218:22
+    |
+218 |             for i in 0..(GROUP_SIZE / 2) {
+    |                      ^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_range_loop
+help: consider using an iterator and enumerate()
+    |
+218 -             for i in 0..(GROUP_SIZE / 2) {
+218 +             for (i, <item>) in group_packed.iter().enumerate().take((GROUP_SIZE / 2)) {
+    |
+
+warning: this function has too many arguments (11/7)
+   --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:373:1
+    |
+373 | / pub fn ffn_forward_sparse_f32(
+374 | |     x_f32: &[f32],
+375 | |     hidden: usize,
+376 | |     intermediate: usize,
+...   |
+384 | |     threshold: f32,
+385 | | ) -> f32 {
+    | |________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: this function has too many arguments (12/7)
+   --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:569:1
+    |
+569 | / pub fn ffn_forward_sparse_axpy_f32(
+570 | |     scratch: &mut crate::ffn_axpy::FfnScratch,
+571 | |     x_f32: &[f32],
+572 | |     hidden: usize,
+...   |
+581 | |     threshold: f32,
+582 | | ) -> f32 {
+    | |________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (9/7)
+   --> crates/cascadia-int4-gemm/src/ffn_sparsity.rs:756:1
+    |
+756 | / pub fn expert_forward_sparse(
+757 | |     x_bf16: &[bf16],
+758 | |     gate_packed: &[u8],
+759 | |     gate_scale: &[u8],
+...   |
+765 | |     threshold: f32,
+766 | | ) -> f32 {
+    | |________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: the loop variable `i` is used to index `group_packed`
+  --> crates/cascadia-int4-gemm/src/kernel.rs:57:22
+   |
+57 |             for i in 0..(GROUP_SIZE / 2) {
+   |                      ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_range_loop
+help: consider using an iterator and enumerate()
+   |
+57 -             for i in 0..(GROUP_SIZE / 2) {
+57 +             for (i, <item>) in group_packed.iter().enumerate().take((GROUP_SIZE / 2)) {
+   |
+
+warning: this function has too many arguments (8/7)
+  --> crates/cascadia-int4-gemm/src/kernel.rs:75:1
+   |
+75 | / pub fn expert_forward(
+76 | |     x_bf16: &[bf16],
+77 | |     gate_packed: &[u8],
+78 | |     gate_scale: &[u8],
+...  |
+83 | |     out_bf16: &mut [bf16],
+84 | | ) {
+   | |_^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: `cascadia-int4-gemm` (lib) generated 19 warnings (run `cargo clippy --fix --lib -p cascadia-int4-gemm -- ` to apply 1 suggestion)
+    Checking cascadia-runner v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-runner)
+warning: doc list item without indentation
+ --> crates/cascadia-runner/src/lib.rs:6:5
+  |
+6 | //! 2a. (first stage)  [`Runner::generate`] — submit task and stream chunks.
+  |     ^
+  |
+  = help: if this is supposed to be its own paragraph, add a blank line
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+  = note: `#[warn(clippy::doc_lazy_continuation)]` on by default
+help: indent this line
+  |
+6 | //!    2a. (first stage)  [`Runner::generate`] — submit task and stream chunks.
+  |     +++
+
+warning: doc list item without indentation
+ --> crates/cascadia-runner/src/lib.rs:7:5
+  |
+7 | //! 2b. (other stages) [`Runner::run_relay_loop`] — drive engine forever.
+  |     ^
+  |
+  = help: if this is supposed to be its own paragraph, add a blank line
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+  |
+7 | //!    2b. (other stages) [`Runner::run_relay_loop`] — drive engine forever.
+  |     +++
+
+warning: this boolean expression can be simplified
+    --> crates/cascadia-runner/src/lib.rs:1059:32
+     |
+1059 | ...                   if !buf.back().is_some_and(|c| c.error.is_some()) {
+     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `buf.back().is_none_or(|c| c.error.is_none())`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#nonminimal_bool
+     = note: `#[warn(clippy::nonminimal_bool)]` on by default
+
+warning: `cascadia-runner` (lib) generated 3 warnings (run `cargo clippy --fix --lib -p cascadia-runner -- ` to apply 1 suggestion)
+    Checking cascadia-engine-sparse-moe v0.2.3 (/Users/tatef/Workspaces/tahoma-inkling-ep/crates/cascadia-engine-sparse-moe)
+warning: the usage of Script Group `Greek` in this crate consists solely of mixed script confusables
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1039:30
+     |
+1039 |                         Some(τ) => cascadia_int4_gemm::SparsityMode::PerChannel(τ),
+     |                              ^
+     |
+     = note: the usage includes 'τ' (U+03C4)
+     = note: please recheck to make sure their usages are indeed what you want
+     = note: `#[warn(mixed_script_confusables)]` on by default
+
+warning: digits of hex, binary or octal literal not in groups of equal size
+   --> crates/cascadia-engine-sparse-moe/src/dist.rs:165:17
+    |
+165 |     CaptureV2 = 0x53_4D_4532, // "SME\x32" — head→down: CAPTURE(epoch, tenant, tokens)
+    |                 ^^^^^^^^^^^^ help: consider: `0x534D_4532`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unusual_byte_groupings
+    = note: `#[warn(clippy::unusual_byte_groupings)]` on by default
+
+warning: variable does not need to be mutable
+   --> crates/cascadia-engine-sparse-moe/src/inkling/ov_attn.rs:150:13
+    |
+150 |         let mut compile = |which: &str| -> Result<Runtime, String> {
+    |             ----^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `selective_uncached` is never used
+   --> crates/cascadia-engine-sparse-moe/src/inkling/expert_cache.rs:127:12
+    |
+ 53 | impl ExpertCache {
+    | ---------------- method in this implementation
+...
+127 |     pub fn selective_uncached(
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: this function has too many arguments (8/7)
+  --> crates/cascadia-engine-sparse-moe/src/dsv4/attn.rs:20:1
+   |
+20 | / pub fn sparse_attn_pos(
+21 | |     q: &[f32],
+22 | |     kv: &[f32],
+23 | |     sink: &[f32],
+...  |
+28 | |     out: &mut [f32],
+29 | | ) {
+   | |_^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+   = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: manual checked division
+  --> crates/cascadia-engine-sparse-moe/src/dsv4/attn_layer.rs:82:35
+   |
+82 |         let cache_rows = win + if ratio > 0 { max_seq / ratio } else { 0 };
+   |                                   ^^^^^^^^^   --------------- division performed here
+   |                                   |
+   |                                   check performed here
+   |
+   = help: consider using `checked_div`
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_checked_ops
+   = note: `#[warn(clippy::manual_checked_ops)]` on by default
+
+warning: manual checked division
+   --> crates/cascadia-engine-sparse-moe/src/dsv4/attn_layer.rs:225:12
+    |
+225 |         if self.ratio > 0 {
+    |            ^^^^^^^^^^^^^^ check performed here
+...
+231 |                     *ci = self.compress_idxs_static((t + 1) / self.ratio, offset);
+    |                                                     -------------------- division performed here
+    |
+    = help: consider using `checked_div`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_checked_ops
+
+warning: manual checked division
+   --> crates/cascadia-engine-sparse-moe/src/dsv4/attn_layer.rs:283:12
+    |
+283 |         if self.ratio > 0 {
+    |            ^^^^^^^^^^^^^^ check performed here
+...
+291 |                 idxs.extend(self.compress_idxs_static((pos + 1) / self.ratio, offset));
+    |                                                       ---------------------- division performed here
+...
+297 |                 let cslot = win + pos / self.ratio;
+    |                                   ---------------- ... and here
+    |
+    = help: consider using `checked_div`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_checked_ops
+
+warning: the loop variable `c` is used to index `score`
+   --> crates/cascadia-engine-sparse-moe/src/dsv4/compress.rs:196:18
+    |
+196 |         for c in 0..cd {
+    |                  ^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_range_loop
+    = note: `#[warn(clippy::needless_range_loop)]` on by default
+help: consider using an iterator and enumerate()
+    |
+196 -         for c in 0..cd {
+196 +         for (c, <item>) in score.iter_mut().enumerate().take(cd) {
+    |
+
+warning: manual implementation of `.is_multiple_of()`
+   --> crates/cascadia-engine-sparse-moe/src/dsv4/compress.rs:199:31
+    |
+199 |         let should_compress = (pos + 1) % ratio == 0;
+    |                               ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(pos + 1).is_multiple_of(ratio)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_is_multiple_of
+    = note: `#[warn(clippy::manual_is_multiple_of)]` on by default
+
+warning: consider using `sort_by_key`
+   --> crates/cascadia-engine-sparse-moe/src/dsv4/ov_expert.rs:188:9
+    |
+188 |         hot.sort_by(|a, b| b.1.cmp(&a.1));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_sort_by
+    = note: `#[warn(clippy::unnecessary_sort_by)]` on by default
+help: try
+    |
+188 -         hot.sort_by(|a, b| b.1.cmp(&a.1));
+188 +         hot.sort_by_key(|b| std::cmp::Reverse(b.1));
+    |
+
+warning: this let-binding has unit value
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:1714:13
+     |
+1714 | /             let _ = self.block_on(async move {
+1715 | |                 srv.lock().await.close().await;
+1716 | |             });
+     | |_______________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#let_unit_value
+     = note: `#[warn(clippy::let_unit_value)]` on by default
+help: omit the `let` binding
+     |
+1714 -             let _ = self.block_on(async move {
+1714 +             self.block_on(async move {
+     |
+
+warning: this let-binding has unit value
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:1719:13
+     |
+1719 | /             let _ = self.block_on(async move {
+1720 | |                 cli.lock().await.close().await;
+1721 | |             });
+     | |_______________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#let_unit_value
+help: omit the `let` binding
+     |
+1719 -             let _ = self.block_on(async move {
+1719 +             self.block_on(async move {
+     |
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:3746:5
+     |
+3746 | /// In-flight OvMoe (MiniMax-M2) multi-stage generation, streamed one token
+     |     ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+     = note: `#[warn(clippy::doc_lazy_continuation)]` on by default
+help: indent this line
+     |
+3746 | ///   In-flight OvMoe (MiniMax-M2) multi-stage generation, streamed one token
+     |     ++
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:3747:5
+     |
+3747 | /// per `step()`. Mirrors `SparseActive`, but `forward_one_token_first` here
+     |     ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+     |
+3747 | ///   per `step()`. Mirrors `SparseActive`, but `forward_one_token_first` here
+     |     ++
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:3748:5
+     |
+3748 | /// takes `(token, pos)` rather than a `history` slice, so we track `pos`
+     |     ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+     |
+3748 | ///   takes `(token, pos)` rather than a `history` slice, so we track `pos`
+     |     ++
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:3749:5
+     |
+3749 | /// directly instead of replaying history.
+     |     ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+     |
+3749 | ///   directly instead of replaying history.
+     |     ++
+
+warning: this `map_or` can be simplified
+    --> crates/cascadia-engine-sparse-moe/src/engine.rs:5348:63
+     |
+5348 |             if k < prompt.len() && prompt[..k] == toks[..] && best.map_or(true, |(_, b)| k > b) {
+     |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_map_or
+     = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use `is_none_or` instead
+     |
+5348 -             if k < prompt.len() && prompt[..k] == toks[..] && best.map_or(true, |(_, b)| k > b) {
+5348 +             if k < prompt.len() && prompt[..k] == toks[..] && best.is_none_or(|(_, b)| k > b) {
+     |
+
+warning: manual implementation of `.is_multiple_of()`
+  --> crates/cascadia-engine-sparse-moe/src/glm/indexer.rs:83:35
+   |
+83 |         assert!(rope_dim <= hd && rope_dim % 2 == 0);
+   |                                   ^^^^^^^^^^^^^^^^^ help: replace with: `rope_dim.is_multiple_of(2)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_is_multiple_of
+
+warning: this `map_or` can be simplified
+  --> crates/cascadia-engine-sparse-moe/src/glm/kv_cache.rs:39:64
+   |
+39 |             if k <= prompt.len() && prompt[..k] == toks[..] && best.map_or(true, |(b, _)| k > b) {
+   |                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_map_or
+help: use `is_none_or` instead
+   |
+39 -             if k <= prompt.len() && prompt[..k] == toks[..] && best.map_or(true, |(b, _)| k > b) {
+39 +             if k <= prompt.len() && prompt[..k] == toks[..] && best.is_none_or(|(b, _)| k > b) {
+   |
+
+warning: manual implementation of `.is_multiple_of()`
+   --> crates/cascadia-engine-sparse-moe/src/glm/loader.rs:111:8
+    |
+111 |     if in_dim % G != 0 {
+    |        ^^^^^^^^^^^^^^^ help: replace with: `!in_dim.is_multiple_of(G)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_is_multiple_of
+
+warning: manual implementation of `.is_multiple_of()`
+   --> crates/cascadia-engine-sparse-moe/src/glm/loader.rs:166:8
+    |
+166 |     if in_dim % G != 0 {
+    |        ^^^^^^^^^^^^^^^ help: replace with: `!in_dim.is_multiple_of(G)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#manual_is_multiple_of
+
+warning: this function has too many arguments (8/7)
+   --> crates/cascadia-engine-sparse-moe/src/glm/loader.rs:492:1
+    |
+492 | / pub fn load_stage(
+493 | |     dir: &Path,
+494 | |     max_seq: usize,
+495 | |     lo: usize,
+...   |
+500 | |     bf16_kv: bool,
+501 | | ) -> Result<GlmStage, LoadError> {
+    | |________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: this function has too many arguments (8/7)
+  --> crates/cascadia-engine-sparse-moe/src/glm/mtp.rs:36:5
+   |
+36 | /     pub fn new(
+37 | |         hidden: usize,
+38 | |         vocab: usize,
+39 | |         eps: f32,
+...  |
+44 | |         block: GlmLayer,
+45 | |     ) -> Self {
+   | |_____________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: consider using `sort_by_key`
+   --> crates/cascadia-engine-sparse-moe/src/glm/ov_expert.rs:448:9
+    |
+448 |         hot.sort_by(|a, b| b.1.cmp(&a.1));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_sort_by
+help: try
+    |
+448 -         hot.sort_by(|a, b| b.1.cmp(&a.1));
+448 +         hot.sort_by_key(|b| std::cmp::Reverse(b.1));
+    |
+
+warning: the loop variable `j` is used to index `fulls`
+   --> crates/cascadia-engine-sparse-moe/src/glm/stage.rs:102:18
+    |
+102 |         for j in (used + 1)..=max_j {
+    |                  ^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#needless_range_loop
+help: consider using an iterator and enumerate()
+    |
+102 -         for j in (used + 1)..=max_j {
+102 +         for (j, <item>) in fulls.iter().enumerate().take(max_j + 1).skip((used + 1)) {
+    |
+
+warning: this function has too many arguments (8/7)
+   --> crates/cascadia-engine-sparse-moe/src/glm/stage.rs:615:5
+    |
+615 | /     fn pin_budget(
+616 | |         m: &super::loader::GlmManifest,
+617 | |         lo: usize,
+618 | |         hi: usize,
+...   |
+623 | |         bf16_kv: bool,
+624 | |     ) -> usize {
+    | |______________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#too_many_arguments
+
+warning: large size difference between variants
+  --> crates/cascadia-engine-sparse-moe/src/inkling/model.rs:29:1
+   |
+29 | / pub enum LayerMlp {
+30 | |     Dense(DenseMlp),
+   | |     --------------- the second-largest variant contains at least 112 bytes
+31 | |     Moe(MoeLayer),
+   | |     ------------- the largest variant contains at least 408 bytes
+32 | | }
+   | |_^ the entire enum is at least 408 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#large_enum_variant
+   = note: `#[warn(clippy::large_enum_variant)]` on by default
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+31 -     Moe(MoeLayer),
+31 +     Moe(Box<MoeLayer>),
+   |
+
+warning: called `unwrap` on `reused` after checking its variant with `is_some`
+   --> crates/cascadia-engine-sparse-moe/src/inkling/moe.rs:567:22
+    |
+557 |         let ys: Vec<Vec<f32>> = if pipeline_reads() && par_experts() && reused.is_some() {
+    |                                                                         ---------------- the check is happening here
+...
+567 |                 .zip(reused.as_mut().unwrap().buffers.par_iter_mut())
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try using `match`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_unwrap
+    = note: `#[warn(clippy::unnecessary_unwrap)]` on by default
+
+warning: called `unwrap` on `reused` after checking its variant with `is_some`
+   --> crates/cascadia-engine-sparse-moe/src/inkling/moe.rs:600:50
+    |
+557 |         let ys: Vec<Vec<f32>> = if pipeline_reads() && par_experts() && reused.is_some() {
+    |                                                                         ---------------- the check is happening here
+...
+600 |                             .retain(expert, &mut reused.as_mut().unwrap().buffers[index]);
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: try using `match`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_unwrap
+
+warning: very complex type used. Consider factoring parts into `type` definitions
+   --> crates/cascadia-engine-sparse-moe/src/runner.rs:173:25
+    |
+173 |     manifest_layer_xml: Box<dyn Fn(&PathBuf, u32, u32) -> PathBuf + Send>,
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#type_complexity
+    = note: `#[warn(clippy::type_complexity)]` on by default
+
+warning: very complex type used. Consider factoring parts into `type` definitions
+   --> crates/cascadia-engine-sparse-moe/src/runner.rs:184:25
+    |
+184 |     manifest_layer_bin: Box<dyn Fn(&PathBuf, u32, u32) -> PathBuf + Send>,
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#type_complexity
+
+warning: doc list item without indentation
+   --> crates/cascadia-engine-sparse-moe/src/runner.rs:482:9
+    |
+482 |     /// [`crate::runner::Runner::transposed_down_store`].
+    |         ^
+    |
+    = help: if this is supposed to be its own paragraph, add a blank line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+    |
+482 |     ///   [`crate::runner::Runner::transposed_down_store`].
+    |         ++
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1259:9
+     |
+1259 |     /// disk, then mmaps it. Subsequent dispatches are pure mmap
+     |         ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+     |
+1259 |     ///   disk, then mmaps it. Subsequent dispatches are pure mmap
+     |         ++
+
+warning: doc list item without indentation
+    --> crates/cascadia-engine-sparse-moe/src/runner.rs:1260:9
+     |
+1260 |     /// reads with zero in-line build cost.
+     |         ^
+     |
+     = help: if this is supposed to be its own paragraph, add a blank line
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#doc_lazy_continuation
+help: indent this line
+     |
+1260 |     ///   reads with zero in-line build cost.
+     |         ++
+
+warning: casting to the same type is unnecessary (`u64` -> `u64`)
+   --> crates/cascadia-engine-sparse-moe/src/sampling.rs:216:45
+    |
+216 |         .map(|d| d.subsec_nanos() as u64 | ((d.as_secs() as u64) << 32))
+    |                                             ^^^^^^^^^^^^^^^^^^^^ help: try: `d.as_secs()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.96.0/index.html#unnecessary_cast
+    = note: `#[warn(clippy::unnecessary_cast)]` on by default
+
+warning: `cascadia-engine-sparse-moe` (lib) generated 36 warnings (run `cargo clippy --fix --lib -p cascadia-engine-sparse-moe -- ` to apply 10 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.26s

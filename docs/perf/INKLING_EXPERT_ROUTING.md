@@ -15,8 +15,10 @@ share its bandwidth and do not provide that scaling.
 **No new full-model tokens/s record is claimed here.** The implementation is
 qualified with complete tiny-model inference on macOS and Windows/tate-07,
 and the production routing algorithm was replayed on recorded 975B routes.
-Actual multi-machine decode throughput remains to be measured after selecting
-the additional hosts and measuring their direct connections.
+The subsequent [three-NUC LAN qualification](INKLING_NUC_EXPERT_PARALLEL.md)
+passed complete tiny-model generation and measured a 2.10× mean speedup for one
+resident real-weight MoE layer, including dispatch/gather. Actual full-model
+multi-machine decode throughput remains unmeasured.
 
 ## Starting measurements
 
