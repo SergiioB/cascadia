@@ -425,7 +425,8 @@ attention-projection backend below rather than a device copy of bf16.
 (`q`, `k`, `v`, `r`, `o`; ~264 MB bf16) to int4 on the experts' grid
 (~66 MB) and writes two IRs per layer (`attn_ov/layer_NN/{qkvr,o}`);
 `inkling/ov_attn.rs` runs them (`CASCADIA_INKLING_OV_ATTN=1`,
-`_OV_ATTN_DEVICE`, `_OV_ATTN_DIR` for a variant such as `attn_ov_int8`)
+`_OV_ATTN_DEVICE`, `_OV_ATTN_DIR` to point at an alternate-precision dir —
+the tool writes int8 into `attn_ov` by default, int4 into `attn_ov_int4`)
 with outputs rounded to bf16 like the Rust kernel. The head norms, position
 bias, softmax, KV cache and convolutions stay in Rust; prefill projects all
 rows in one call and applies the output projection once per batch. Device

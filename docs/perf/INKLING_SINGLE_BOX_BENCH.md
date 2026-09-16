@@ -3,14 +3,15 @@
 Three whole-model, single-stream decode measurements of Inkling (975B MoE,
 66 layers, 549 GB int4 export) on **tate-07** (Core Ultra X7 358H, 16 CPUs,
 64 GB, Arc B390 iGPU, one Samsung PM9C1 Gen4 NVMe, Windows 11, OpenVINO
-2026.3.1), all with the **campaign-129 protocol** from
-`tools/inkling_autolab/INKLING_129_REPRODUCTION.md`:
+2026.3.1), all with the **campaign-129 protocol** from the archived
+[reproduction record](https://github.com/labscommunity/cascadia/blob/fdcc043370ebc0dc56da414e94edf5b037f8b778/tools/inkling_autolab/INKLING_129_REPRODUCTION.md)
+(the `inkling_autolab` tree is not part of this repo — see the pinned link):
 
 * `inkling_decode_bench --export <model> --cases large-cases.baseline-reference.json --tokens 64 --samples 3 --layer-profile …`
 * three prompts (`water_cycle`, `binary_search`, `short_story`) × three
   repetitions, 64 generated tokens each, 63 timed decode steps per sample;
-* process pinned: PriorityClass High, affinity 65535 (`tools/inkling_autolab`
-  Windows E-core rule);
+* process pinned: PriorityClass High, affinity 65535 (the archived autolab's
+  Windows E-core rule, per the reproduction record linked above);
 * env = the promoted PTL read profile (`ptl-profile.ps1` +
   `SECOND_PREDICT_RANK=2`); the expert cache is 256 MiB per MoE layer
   (16 GiB) unless stated;
