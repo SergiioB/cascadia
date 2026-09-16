@@ -719,6 +719,12 @@ impl Model {
     /// `[unpadded_vocab]` at this position and advances the caches.
     /// Route every layer's experts / dense MLP through an OpenVINO backend
     /// (layer index = position; the model holds all layers).
+    ///
+    /// Precondition: this `Model` holds the full, 0-based layer set, so a
+    /// layer's vec position IS its absolute index in the IR-file namespace.
+    /// A partial stage must instead attach through the loader's per-layer
+    /// global index (`lo + i`, gated by `has_layer`) — never this by-position
+    /// helper, or a layer's hidden state would run through another layer's IR.
     pub fn attach_ov(&mut self, ov: Arc<super::ov_expert::OvExperts>) {
         for (i, l) in self.layers.iter_mut().enumerate() {
             l.attach_ov(i as u32, Arc::clone(&ov));
@@ -767,6 +773,7 @@ impl Model {
 
     /// Route every MoE layer through a fused-MoE backend (layer index =
     /// position) — layers whose IR the backend lacks keep their path.
+    /// Same full-0-based-model precondition as [`Self::attach_ov`].
     pub fn attach_ov_moe(&mut self, ov: Arc<super::ov_moe::OvMoe>) {
         for (i, l) in self.layers.iter_mut().enumerate() {
             if ov.has_layer(i as u32) {
@@ -777,6 +784,7 @@ impl Model {
 
     /// Route every layer's attention projections that have IRs through an
     /// OpenVINO backend (layer index = position).
+    /// Same full-0-based-model precondition as [`Self::attach_ov`].
     pub fn attach_ov_attn(&mut self, ov: Arc<super::ov_attn::OvAttn>) {
         for (i, l) in self.layers.iter_mut().enumerate() {
             if ov.has_layer(i as u32) {
