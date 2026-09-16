@@ -239,7 +239,7 @@ impl FusedExpertBank {
             .parse::<usize>()
             .ok()
             .filter(|n| (1..=MAX_BATCH_COUNT as usize).contains(n))
-            .ok_or("fused expanded-row chunk size must be 1..256")?;
+            .ok_or("fused expanded-row chunk size must be 1..=256")?;
         let gpu_name =
             cascadia_ov_genai_shim::device_full_name(&device).map_err(|e| e.to_string())?;
         Ok(Self {
