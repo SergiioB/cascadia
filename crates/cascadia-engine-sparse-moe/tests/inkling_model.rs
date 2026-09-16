@@ -1080,3 +1080,50 @@ fn ov_moe_backend_falls_back_bit_identically_without_openvino() {
     assert!(OvMoe::from_env(&tmp, c.hidden, c.top_k + 2, c.n_routed + 2).is_none());
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+/// The OpenVINO head backend's wiring on a build without OpenVINO (or with an
+/// unusable `head_ov/` IR): the unembed GEMV falls back to the Rust head, the
+/// model's logits are bit-identical to a plain model, the fallback is counted,
+/// and `from_env` stays `None` without the opt-in. (The device path itself is
+/// validated on hardware — see docs/architectures/inkling.md.)
+#[test]
+fn ov_head_backend_falls_back_bit_identically_without_openvino() {
+    use cascadia_engine_sparse_moe::inkling::ov_head::OvHead;
+    use std::sync::Arc;
+
+    let tmp = std::env::temp_dir().join(format!("inkling_ov_head_test_{}", std::process::id()));
+    let dir = tmp.join("head_ov");
+    std::fs::create_dir_all(&dir).unwrap();
+    // A stub IR so the (stub) compile is attempted and refused.
+    std::fs::write(dir.join("openvino_model.xml"), b"<net/>").unwrap();
+
+    let mut plain = random_model(7);
+    let mut with_ov = random_model(7);
+    let unpadded = with_ov.unpadded_vocab();
+    let ov = Arc::new(OvHead::new(
+        dir.join("openvino_model.xml"),
+        "CPU".into(),
+        unpadded,
+    ));
+    with_ov.attach_ov_head(Arc::clone(&ov));
+    assert_eq!(ov.stats().fallbacks, 0);
+
+    for &t in &[3u32, 11, 5] {
+        assert_eq!(
+            bits(&plain.forward_token(t)),
+            bits(&with_ov.forward_token(t)),
+            "token {t}: OV-head model must equal the plain model when the head falls back"
+        );
+    }
+    let st = ov.stats();
+    assert!(
+        st.fallbacks > 0 && st.calls == 0,
+        "stub: every head call must fall back, got {st:?}"
+    );
+
+    assert!(
+        OvHead::from_env(&tmp, unpadded).is_none(),
+        "the backend is opt-in: CASCADIA_INKLING_OV_HEAD unset -> None"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
