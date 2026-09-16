@@ -166,7 +166,14 @@ impl EpClient {
         Ok(self)
     }
 
-    /// Weighted partial-sum protocol; every selected worker must support fused GPU shards.
+    /// Opt into the weighted partial-sum fused protocol, whose cross-worker sum
+    /// runs on the driver in worker order (placement-dependent f32 order, hence
+    /// off by default). It is NOT negotiated over the wire: every selected
+    /// worker must itself run with fused GPU shards. A driver-on / worker-off
+    /// mismatch is not silent — that worker rejects the fused frame and the
+    /// dispatch fails naming it. Production derives this flag from the
+    /// environment in `EpClient::new`; this setter is for tests and direct
+    /// callers.
     pub fn with_fused(mut self, fused: bool) -> Self {
         self.fused = fused;
         self
