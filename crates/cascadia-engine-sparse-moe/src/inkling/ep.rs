@@ -617,15 +617,12 @@ impl ExpertBank {
         self.layers.iter().map(HashMap::len).sum()
     }
 
-    /// Serve one dispatch: validate it, prefetch every requested expert, then
-    /// `E_id(h_row)` for every non-pad `(row, slot)` — rayon over the slots,
-    /// each with the exact per-expert kernel the local `MoeLayer` uses
-    /// (`AnyExpert::forward`, or the overlapped whole-bin read +
-    /// `MmapExpert::swiglu_from` for a one-row decode frame, mirroring
-    /// `MoeLayer::forward`; both CPU paths match the mmap kernel). Optional
-    /// per-expert OpenVINO calls run first and have their own numerics.
-    /// Returns `[rows · k · hidden]` with zeros in pad slots. `Err` is the
-    /// status-1 reply text, naming this worker and the layer.
+    /// Serve one fused GPU dispatch: delegate to this worker's fused shard bank,
+    /// which runs the compressed expert GEMMs on the GPU and returns one
+    /// weighted partial per row (`[rows · hidden]`, k=1) already summed over the
+    /// worker's owned experts in the request's gate order. `Err` (naming this
+    /// worker) if the bank is not fused; the plain [`Self::serve`] path serves a
+    /// non-fused dispatch.
     pub fn serve_fused(&self, b: &ExpertDispatchBody, weights: &[f32]) -> Result<Vec<f32>, String> {
         self.fused
             .as_ref()
@@ -637,6 +634,20 @@ impl ExpertBank {
         self.fused.is_some()
     }
 
+    /// Serve one dispatch: validate it, prefetch every requested expert, then
+    /// `E_id(h_row)` for every non-pad `(row, slot)` — rayon over the slots,
+    /// each with the exact per-expert kernel the local `MoeLayer` uses
+    /// (`AnyExpert::forward`, or the overlapped whole-bin read +
+    /// `MmapExpert::swiglu_from` for a paged-out expert, mirroring
+    /// `MoeLayer::forward`; both CPU paths match the mmap kernel). Optional
+    /// per-expert OpenVINO calls run first and have their own numerics.
+    /// Returns `[rows · k · hidden]` with zeros in pad slots. `Err` is the
+    /// status-1 reply text, naming this worker and the layer.
+    ///
+    /// A fused bank has no per-expert CPU/OpenVINO path here: it early-returns
+    /// its raw K=1 expert outputs via `FusedExpertBank::serve_raw`, leaving the
+    /// driver to apply routing weights ([`Self::serve_fused`] is the
+    /// weight-applied fused reply).
     pub fn serve(&self, b: &ExpertDispatchBody) -> Result<Vec<f32>, String> {
         if let Some(fused) = &self.fused {
             return fused.serve_raw(b);
