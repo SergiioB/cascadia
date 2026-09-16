@@ -586,6 +586,94 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 && prediction_reads.dispatch_failures == 0
         )
     );
+    // The decode number above is attributable to the accelerator only if every
+    // attached OpenVINO backend actually ran on-device: it logged calls and
+    // never fell back to the Rust kernel. Backends are shared across layers
+    // (one Arc with process-wide counters), so the first attached layer of each
+    // stage carries the totals. Mirror inkling_layer_dump's "NOT a clean device
+    // measurement" guard. A pure-CPU run attaches none and skips the check.
+    let mut ov_backends = serde_json::Map::new();
+    let mut ov_fell_back: Vec<&str> = Vec::new();
+    if let Some(ov) = model.layers().iter().find_map(|l| l.ov()) {
+        let st = ov.stats();
+        let calls = st.hits + st.misses;
+        let failed_keys: usize = ov.failed_keys().values().map(|v| v.len()).sum();
+        let effective = calls > 0 && st.fallbacks == 0;
+        println!("ov_experts_calls={calls}");
+        println!("ov_experts_fallbacks={}", st.fallbacks);
+        println!("ov_experts_failed_keys={failed_keys}");
+        println!("ov_experts_effective={}", u8::from(effective));
+        ov_backends.insert(
+            "experts".into(),
+            serde_json::json!({"calls": calls, "fallbacks": st.fallbacks,
+                "failed_keys": failed_keys, "effective": effective}),
+        );
+        if st.fallbacks > 0 {
+            ov_fell_back.push("experts");
+        }
+    }
+    if let Some(ov) = model.layers().iter().find_map(|l| l.ov_moe()) {
+        let st = ov.stats();
+        let failed_layers = ov.failed_layers().len();
+        let effective = st.calls > 0 && st.fallbacks == 0;
+        println!("ov_moe_calls={}", st.calls);
+        println!("ov_moe_fallbacks={}", st.fallbacks);
+        println!("ov_moe_failed_layers={failed_layers}");
+        println!("ov_moe_effective={}", u8::from(effective));
+        ov_backends.insert(
+            "moe".into(),
+            serde_json::json!({"calls": st.calls, "fallbacks": st.fallbacks,
+                "failed_layers": failed_layers, "effective": effective}),
+        );
+        if st.fallbacks > 0 {
+            ov_fell_back.push("moe");
+        }
+    }
+    if let Some(ov) = model.layers().iter().find_map(|l| l.ov_attn()) {
+        let st = ov.stats();
+        let failed_layers = ov.failed_layers().len();
+        let effective = st.calls > 0 && st.fallbacks == 0;
+        println!("ov_attn_calls={}", st.calls);
+        println!("ov_attn_fallbacks={}", st.fallbacks);
+        println!("ov_attn_failed_layers={failed_layers}");
+        println!("ov_attn_effective={}", u8::from(effective));
+        ov_backends.insert(
+            "attn".into(),
+            serde_json::json!({"calls": st.calls, "fallbacks": st.fallbacks,
+                "failed_layers": failed_layers, "effective": effective}),
+        );
+        if st.fallbacks > 0 {
+            ov_fell_back.push("attn");
+        }
+    }
+    if let Some(ov) = model.ov_head() {
+        let st = ov.stats();
+        let effective = st.calls > 0 && st.fallbacks == 0;
+        println!("ov_head_calls={}", st.calls);
+        println!("ov_head_fallbacks={}", st.fallbacks);
+        println!("ov_head_effective={}", u8::from(effective));
+        ov_backends.insert(
+            "head".into(),
+            serde_json::json!({"calls": st.calls, "fallbacks": st.fallbacks,
+                "effective": effective}),
+        );
+        if st.fallbacks > 0 {
+            ov_fell_back.push("head");
+        }
+    }
+    let ov_backends_attached = !ov_backends.is_empty();
+    println!("ov_backends_attached={}", u8::from(ov_backends_attached));
+    // A correctness-verified run must never publish a number the device did not
+    // produce: with any OV backend attached, every one has to have stayed on
+    // device. Pure-CPU runs (no backend attached) skip the assertion.
+    if correctness_verified && ov_backends_attached {
+        assert!(
+            ov_fell_back.is_empty(),
+            "correctness-verified run but OV backend(s) fell back to the Rust \
+             kernel: {ov_fell_back:?}; the decode number is not a clean device \
+             measurement"
+        );
+    }
     if let Some(out) = out {
         std::fs::write(
             out,
@@ -613,6 +701,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "prefill_read_experts":prefill_read_experts,
                 "prefill_uncached_read_bytes":prefill_uncached_read_bytes,
                 "prefill_uncached_read_fallbacks":prefill_uncached_read_fallbacks,
+                "ov_backends":ov_backends,
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;
