@@ -11,7 +11,8 @@
 //! cache and convolutions stay in [`super::attn`].
 //!
 //! Outputs are rounded to bf16 like the Rust `linear_bf16_w`, so what differs
-//! from the CPU path is the weights' quantisation (int4) and the device's f16
+//! from the CPU path is the weights' quantisation (int8 by default, optionally
+//! int4 — see `tools/inkling_attn_ov.py --weights`) and the device's f16
 //! accumulation. Enabled by `CASCADIA_INKLING_OV_ATTN=1`;
 //! `CASCADIA_INKLING_OV_ATTN_DEVICE` (default `GPU`). Layers without IRs and
 //! calls the device refuses keep the Rust kernel (reported once per layer).

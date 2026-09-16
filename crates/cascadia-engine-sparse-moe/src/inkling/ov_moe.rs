@@ -150,19 +150,16 @@ impl OvMoe {
             std::env::var("CASCADIA_INKLING_OV_MOE_DEVICE").unwrap_or_else(|_| "GPU".into());
         let cache_dir = std::env::var("CASCADIA_INKLING_OV_MOE_CACHE_DIR").ok();
         // OpenVINO 2026.3.1's GPU plugin fails to compile a fused MoE layer
-        // read from an IR file unless the offload path handles its constants
-        // ("Node which is about to be added in between two other nodes should
-        // not have any existing dependencies ... postponed_decompression"):
-        // every saved IR compiles with OFFLOAD_RATIO >= 1 and none without.
-        // So the default is 1: ~99% of the experts resident, the remainder in
-        // the plugin's LRU slots (streamed on first touch, then resident).
-        // Default: no offload. The shim materialises the IR's constants in
-        // memory before compiling (see CASCADIA_MATERIALIZE_CONSTANTS in
-        // shim.cpp), which is the graph form the plugin builds its fused op
-        // from without the offload path: 3.4 ms per padded decode row and
-        // 30 ms per 23-row prefill at Inkling's shape, against 5.5 / 55 ms
-        // through offload. Set CASCADIA_INKLING_OV_MOE_OFFLOAD=N (1..99) for
-        // the plugin's on-disk experts.
+        // read straight from an IR file ("Node which is about to be added in
+        // between two other nodes should not have any existing dependencies
+        // ... postponed_decompression"). The shim works around this by
+        // materialising the IR's constants in memory before compiling (see
+        // CASCADIA_MATERIALIZE_CONSTANTS in shim.cpp), which is the graph form
+        // the plugin builds its fused op from without any offload path.
+        // Default: no offload — 3.4 ms per padded decode row and 30 ms per
+        // 23-row prefill at Inkling's shape, against 5.5 / 55 ms through the
+        // plugin's on-disk offload path. Set CASCADIA_INKLING_OV_MOE_OFFLOAD=N
+        // (1..99) to stream that fraction of experts from disk instead.
         let offload = std::env::var("CASCADIA_INKLING_OV_MOE_OFFLOAD")
             .ok()
             .map(|v| v.trim().to_string())
