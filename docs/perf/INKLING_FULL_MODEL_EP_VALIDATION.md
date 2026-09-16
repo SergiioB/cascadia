@@ -1,532 +1,179 @@
-# Full Inkling correctness qualification for expert parallel deployment
+# Full Inkling expert-parallel validation
 
-2026-09-15, branch `feat/inkling-expert-routing`.
+2026-09-15 measurements, implementation on `feat/inkling-expert-routing`.
+See [expert routing](INKLING_EXPERT_ROUTING.md) for architecture and deployment.
 
-This extends [fused expert sharding](INKLING_FUSED_EXPERT_SHARDING.md) from
-individual MoE measurements to the complete 66-layer decoder. The CPU qualification compares every layer residual, every output logit, and
-greedy token IDs against a saved single-machine CPU reference. The GPU topology
-qualification compares a GPU recording with the same GPU arithmetic distributed
-over more worker processes and an optional lossless wire format. These are separate contracts. The validator accepts
-any worker count; the LAN operator targets three authorized NUCs, with either
-one or four isolated worker processes per NUC.
+## Results and scope
 
-The complete three-NUC CPU run, `full-cpu-v7`, **passed all 48 token choices
-and all 3,216 tensors bit for bit**. All 66 layers execute; every expert is
-available across the workers. Its instrumented decode rate is 0.1101 tok/s
-(9.0827 seconds/token), including tensor capture/comparison and restricted
-CPU resources. This is not a new throughput record. Driver peak RSS was
-3.749 GiB; each worker stayed below 0.194 GiB. Charlie performed 480.53 GB
-of direct expert reads with zero read fallbacks. Protected services remained
-unchanged. The complete reports are in `full-cpu-v7.json.gz`.
-
-The full GPU topology qualification **passed all 24 token choices and all
-1,608 tensors bit for bit** between three GPU expert workers and twelve GPU
-expert workers on the same three physical NUCs. This covers 51,028,848 float
-values, every layer residual and every output logit, across three prompts with
-eight generated positions each. The twelve-worker run also enables lossless
-FP16 expert replies; the candidate payload SHA256 equals the corresponding
-reference slice for every prompt. The independently checked result is
-[gpu-topology-v14-summary.json](inkling-ep-full/gpu-topology-v14-summary.json).
-
-All 64 MoE layers use fused iGPU experts, with zero CPU expert calls or fused
-errors. Attention, the two dense layers, embedding, output head and driver
-remain on CPU. Every expert is available from the complete export; weights
-stream from SSD. Twelve physical machines have **not** yet been tested.
-
-This GPU routing pass is separate from CPU/GPU precision equivalence. The
-three-worker GPU baseline matches all 24 choices from the independent FP16 CPU
-reference, and 22 of 24 from the original BF16 CPU reference. The two different
-choices are in the water-cycle continuation. Full CPU/GPU numerical parity
-has not been established, and the earlier failed comparisons remain failures.
-
-Native v13 returns individual compact GPU expert outputs to the driver, which
-applies each original routing weight and adds in original gate order. Earlier
-worker partial sums changed FP32 addition order with placement; subsequent
-layers and router choices can amplify those differences. Native v14 preserves
-the v13 GPU arithmetic and adds the lossless reply encoding. Both topologies
-used a 2,400 MiB aggregate IR admission budget per physical host.
-
-## Completed GPU topology evidence
-
-The baseline is `full-gpu-ordered3-v13`. Its free generation is recorded once;
-each v14 candidate follows an exact, checksummed single-prompt slice of that
-recording and must independently choose the same greedy token at every step.
-
-| Twelve-worker candidate | Generated choices | Exact tensors | Different float bits | Guarded elapsed seconds |
-|---|---:|---:|---:|---:|
-| `full-gpu-ordered12-v14-water_cycle` | 8 / 8 | 536 / 536 | 0 | 741.311 |
-| `full-gpu-ordered12-v14-binary_search` | 8 / 8 | 536 / 536 | 0 | 755.997 |
-| `full-gpu-ordered12-v14-short_story` | 8 / 8 | 536 / 536 | 0 | 750.737 |
-
-Both complete corpora execute 58,368 selected expert rows. The candidate's
-10,972 replies carry 1,168,207,872 tensor bytes, versus 2,336,415,744 bytes for
-the same tensors in FP32, plus one scale byte per compact reply. No reply
-needed the FP32 fallback. These counters include batched prefill and wire
-padding; they are not a decode-only network measurement.
-
-These are instrumented correctness runs with restricted CPU resources, SSD
-streaming, tensor capture/comparison and repeated graph compilation under a
-small cache. Their elapsed times are not a throughput benchmark or evidence
-of reaching 25 tok/s. Candidate driver peak RSS stayed below 3.676 GiB and
-available memory stayed above 16.98 GiB. The final audit found all protected
-service process identities unchanged, live/ready endpoints returning 200,
-at least 89.84 GiB disk free on every NUC, and no remaining task workers,
-listeners or firewall rule. Tate's separate reference/build jobs also exited
-with its protected services unchanged.
-
-## Model and placement
-
-The source is `miner:/mnt/external_ssd/inkling/out`, the complete large Inkling
-export: 548,985,140,942 unique bytes. It has 66 layers, 64 MoE layers, hidden
-size 6,144, intermediate size 3,072, 256 routed experts and two shared experts
-per MoE layer, and six selected routed experts per token. Layers 0 and 1 are
-dense. The manifest declares a vocabulary capacity of 201,024; the exported
-head emits 200,058 logits, all of which are captured in each comparison.
-
-"Full model" means all decoder layers, attention, convolution/relative-position
-state, routers, dense MLPs, embedding and output head execute. Each token uses
-its normal selected experts; a sparse MoE does not activate every parameter
-for every token. All experts remain available to the router. This is distinct
-from the earlier single-layer tests using synthetic hidden vectors.
-
-The full shards use a capacity-aware, uneven placement, with shared experts
-replicated and assigned exactly once for each request:
-
-| Host | Owned expert files | Packed expert GiB | Role |
+| Comparison | Generated choices | Captured tensors | Result |
 |---|---:|---:|---|
-| alpha | 1,465 | 43.456 | Expert worker |
-| beta | 7,326 | 217.312 | Expert worker |
-| charlie | 7,977 | 236.622 | Expert worker and decoder driver |
+| Three-NUC CPU EP vs original single-machine CPU reference | 48 | 3,216 | Bit exact |
+| Three iGPU workers vs twelve workers on the same three NUCs | 24 | 1,608 | Bit exact: 51,028,848 float values |
 
-All three are 31.55 GiB Panther Lake machines. Their aggregate RAM cannot
-hold the model resident. Packed weights are retained for the independent CPU
-comparison; fused GPU blobs require additional disk space. K=1 and K=8 IRs
-hardlink the same weight blob. Alpha finishes staging with about 90.6 GiB
-free, above the enforced 80 GiB floor. Nothing in the existing service model
-directories is deleted or replaced.
+The GPU comparison has zero different float bits, zero relative RMS, and
+matching whole-payload SHA256 for every prompt. All 64 MoE layers use fused GPU
+experts, with zero CPU expert calls or fused errors. Attention, the two dense
+layers, embedding and output head remain on CPU. All experts are available from
+the complete export; each token uses its normal sparse selection.
 
-Deployment root on each NUC: `C:/Users/tatef/inkling-ep-lan-20260915`.
-`full/` holds packed files and the complete manifest; `full-fused-compact/`
-holds the 64 K=1 GPU graphs. These are separate from earlier layer fixtures.
+The model has 66 layers, hidden size 6,144, intermediate size 3,072, 256 routed
+and two shared experts per MoE layer, and six selected routed experts per token.
+The complete export contains 16,588 unique files and 548,985,140,942 bytes.
+All 200,058 exported head logits are captured, as are all layer residuals and
+prefill rows. The manifest's vocabulary capacity is 201,024.
 
-The exact placement reproduces with the saved worker capacities:
+The GPU baseline is `full-gpu-ordered3-v13`; the twelve-worker candidates are
+`full-gpu-ordered12-v14-{water_cycle,binary_search,short_story}`. Each candidate
+uses an exact slice of the free-running baseline and independently chooses the
+same eight greedy tokens. Both complete corpora execute 58,368 selected expert
+rows. The candidate's 10,972 lossless replies carry 1,168,207,872 tensor bytes
+versus 2,336,415,744 FP32-equivalent bytes, plus one scale byte per reply. No
+FP32 reply fallback occurred. These counters include prefill and wire padding.
 
-```sh
-python3 tools/inkling_ep_plan.py \
-  --manifest docs/perf/inkling-ep-full/manifest.json \
-  --workers docs/perf/inkling-ep-full/workers.json --out /tmp/inkling-plan-NEW
-```
+There are important limits:
 
-The output includes each worker's packed copy list. Add embedding, head, all
-shells, dense bins and tokenizer files to the driver's copy list. Staging's
-`--files` argument takes a JSON array of relative filenames; convert the
-planner's newline-separated list before using that operator. For this streaming
-deployment the expert budgets represent disk capacity, with GPU blobs reserved
-separately. They are not resident memory budgets. The saved cost coefficients
-are illustrative and must be calibrated before optimizing placement.
+- These are twelve **logical workers on three physical NUCs**, not twelve tested
+  physical hosts. Additional processes share each machine's memory bandwidth.
+- The GPU baseline matches 24/24 choices from an independent FP16 CPU reference
+  and 22/24 from the original BF16 CPU reference. The two differences are in
+  the water-cycle continuation. Full CPU/GPU numerical parity is unresolved;
+  topology equality does not make that separate contract pass.
+- The short deterministic corpus does not certify broad model quality,
+  long-context behavior, concurrency or fault tolerance.
+- These are instrumented, resource-limited SSD-streaming runs, not throughput
+  records or evidence of reaching 25 tok/s. Candidate elapsed times are
+  741.311, 755.997 and 750.737 seconds. The CPU comparison measured 0.1101 tok/s
+  with tracing and restricted resources, separate from the original single-box
+  [1.1161344306 tok/s CPU record](https://github.com/labscommunity/cascadia/blob/fdcc043370ebc0dc56da414e94edf5b037f8b778/tools/inkling_autolab/INKLING_129_REPRODUCTION.md).
 
-## Reference and correctness contract
+## Evidence archive and independent recheck
 
-`inkling_ep_validate` rejects a reduced architecture unless explicitly passed
-`--allow-fixture`. It resets sequence state between the three saved prompts
-(water cycle, binary search, story opening), executes batched prefill and then
-16 greedy decoding positions for each, and saves:
+Generated logs, placements, native source ZIPs, captured regression inputs,
+failed/interrupted runs and full report bundles are preserved on
+[`archive/inkling-ep-validation-20260915`](https://github.com/labscommunity/cascadia/tree/archive/inkling-ep-validation-20260915/docs/perf),
+pinned at `9c59e4498d2a65048bbb4289c43df100960e490d`. They are excluded from the
+implementation PR. Normal unit tests generate their own inputs and require
+neither this archive nor access to the NUCs.
 
-- `trace.json`: exact manifest, prompt IDs, generated IDs, tensor identities,
-  dimensions, order, payload length and checksum.
-- `tensors.f32`: little-endian f32 values for every layer residual, including
-  every prompt row, and the complete vocabulary logits at each generation step.
-- `report.json`: token/text output, per-tensor numerical differences, relevant
-  environment, full-model marker and explicit correctness verdict.
-- `progress.jsonl`: per-layer progress for diagnosing an interrupted run.
+Key evidence under the archive's `docs/perf/inkling-ep-full/`:
 
-The 16-token reference contains **3,216 tensors and 262,249,344 payload bytes**.
-Comparison follows the reference token trajectory so differences remain
-locatable after the first mismatch. A pass also requires identical greedy
-choices at every tested position: by induction, free generation would follow
-that same trajectory. A failed token comparison is never relabeled a pass
-merely because the generated text looks plausible. Generation uses a fixed
-number of positions and does not stop at EOS; the report states this.
+- [GPU topology result](https://github.com/labscommunity/cascadia/blob/9c59e4498d2a65048bbb4289c43df100960e490d/docs/perf/inkling-ep-full/gpu-topology-v14-summary.json),
+  `gpu-baseline-v13-summary.json`, and `cpu-v7-summary.json`.
+- `full-gpu-ordered3-v13.json.gz`, the three v14 candidate bundles, and
+  `full-cpu-v7.json.gz`: native reports, exact JSON bytes, trace metadata,
+  payload hashes, backend profiles, guarded-job results and provenance.
+- `final-audit.json` and `tate-v14-final-audit.json`: unchanged protected service
+  identities, healthy live/ready endpoints and no remaining task processes,
+  listeners or firewall rule.
+- `run-builds.json` and `build-v13/v14-provenance.json`: executable/source hashes.
+  The v13 source snapshot applies atop `4d3dc7ce`; v14 applies atop `43e16f84`.
+- `manifest.json`, `placement.json`, `workers.json`, `full-cases.json` and all
+  source/reference SHA256 manifests needed to reproduce the deployment.
 
-The default tolerance is zero and requires identical f32 bits. GPU comparisons
-use a separately declared relative RMS limit; both numerical and greedy checks
-must pass. A reference-recording run has `correctness_verified=false` because
-it has no comparison input. That does not indicate a failed recording.
-
-The full reference was recorded on tate-07 using original CPU attention/head
-arithmetic and bounded existing expert reads, four CPU cores, a 32 MiB cache
-per MoE layer and the original local export. Its first 16 IDs for every prompt
-exactly match the earlier campaign-033 CPU baseline. Example continuations:
-
-```text
-1. The sun heats bodies of water like oceans, lakes, and rivers
-**Binary search** is an efficient algorithm for finding a specific value (the
-The bottle arrived with the tide, wedged between barnacled rocks at
-```
-
-These short deterministic continuations test implementation parity, not broad
-language-model accuracy, long-context quality or universal generation identity.
-
-## Memory changes and independent checks
-
-`CASCADIA_INKLING_MMAP_SHELLS=1` and `CASCADIA_INKLING_MMAP_HEAD=1` map the
-original BF16 projections instead of retaining owned copies. Arithmetic and
-weight bits are unchanged. On Windows, immutable tensor pages are released
-from the process working set after use through `VirtualUnlock`; the mapping
-remains valid. Microsoft's [VirtualUnlock documentation](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualunlock)
-describes this behavior for pages that were not locked.
-
-The independent full-model mapped check captured 804 tensors (three prompts,
-four positions) and matched the original CPU reference **bit for bit**.
-Peak RSS fell from 25.24 GiB for the recording to 9.37 GiB for the mapped run,
-including its local expert execution. The distributed driver omits those
-local MoE banks. `CASCADIA_INKLING_EP_STREAM_CPU=1` uses bounded bulk reads;
-cohorts of eight prevent nested Rayon tasks retaining hundreds of read buffers
-during prefill. Read errors fail the request.
-
-`CASCADIA_INKLING_EP_FUSED_STREAM=1` keeps each compiled K=1 GPU graph while
-OpenVINO streams expert weights into a small resident slot. Rows are grouped
-by expert to reuse that slot, then returned in their original dispatch slots.
-The driver performs the final weighted sum in original routing order. The
-cache admission estimate is not a hard GPU allocation bound; the external
-memory guard remains authoritative. CPU fallback is forbidden.
-
-Alpha's 64-layer cache probe compiled 64 graphs, evicted none, peaked at
-2.572 GiB RSS and retained more than 19.84 GiB available memory. It recorded
-128 fused GPU calls, zero CPU calls/errors/fallbacks, and 0.003104 relative RMS
-against CPU expert outputs (limit 0.005). This is a selected-expert synthetic
-phase check, **not a full-model token-generation result**.
-
-A second probe alternates eight-row prefill-shaped requests and decode across
-all 64 graphs, varying expert IDs and nonuniform/zero/negative weights. Its
-3,786 GPU calls pass at 0.003061 relative RMS with zero fallback/errors and
-2.568 GiB peak RSS. The timed phase takes 80.16 seconds on streamed GPU versus
-22.93 seconds on bounded CPU reads. These synthetic phases expose the cost of
-streaming and shape transitions; they do not predict full-model throughput.
-
-## FP16 overflow regression and version-2 shards
-
-The first full GPU prefill fails at layer 8, shared expert 256, on alpha.
-The exact 30-row request has finite hidden vectors and routing weights, but
-two unweighted down-projection values are outside FP16's finite range (about
-−94,909 at the extreme). Routing later reduces them to values within range.
-The GPU returns two nonfinite outputs; the same request succeeds on CPU.
-An FP32 inference hint fails compilation in this OpenVINO fused path, and
-the worker refuses fallback.
-
-Version-2 shards divide the up-projection scales by 16. In the current compact
-worker the GPU receives unit routing weights, and host FP32 arithmetic restores
-the factor of 16 before the driver applies the original routing weights. Since the up branch and down
-projection are linear, this preserves the real-arithmetic expert function
-while reducing the intermediate dynamic range. The gate/Swish calculation
-and packed nibbles remain unchanged. FP16 rounding still applies: export
-rejects a scale conversion exceeding 0.01% relative weight RMS, and the failed full
-CPU/GPU comparisons retain their original 0.5% limit and exact greedy criterion.
-The separate GPU topology comparison defaults to exact bit equality.
-
-The captured request passes on the fused GPU after this change with relative
-RMS **0.00252557**, no nonfinite outputs and zero CPU fallback. The unscaled
-replay fails reproducibly. These artifacts include the exact input frames,
-CPU output, source expert checksum and kernel profile, so another agent can
-replay the failure without running the entire decoder.
-
-Fresh exports can use `inkling_ep_fused_export.py build
---up-scale-exponent 4`. For the existing isolated deployment, stop its workers
-and run on each host:
-
-```powershell
-C:/cascadia/fleet/venv/Scripts/python.exe inkling_ep_rebalance.py `
-  --root C:/Users/tatef/inkling-ep-lan-20260915 --exponent 4 --seconds 2400
-```
-
-The updater backs up only the scale range, marks both hardlinked graphs
-unusable during mutation, checksums the changed blob, and atomically publishes
-version-2 metadata. Interrupted layers restore from their journal before retry.
-The original packed model bins remain unchanged. Old workers reject version 2;
-all workers must use the new binary before these shards are loaded. Tests
-verify rollback after an injected write-stage failure and byte identity between
-a fresh scaled export and an updated shard.
-
-## Lossless expert replies and the network budget
-
-FP32 raw decode replies carry `64 × 8 × 6144 × 4 = 12,582,912` bytes per
-token (12 MiB), before transport headers. A 2.5 Gb/s driver link therefore has
-an ideal receive ceiling of 24.835 tok/s for those replies alone. This is an
-arithmetic link bound, not measured model throughput.
-
-Native v14 adds optional `CASCADIA_INKLING_EP_FUSED_F16_WIRE=1` on compact GPU
-workers. Each reply carries FP16 values and the IR's power-of-two scale, cutting
-the tensor payload to 6 MiB per decoded token. Before sending, every value must
-round-trip to the original FP32 bits, including signed zero; otherwise the
-worker sends the original FP32 frame. No additional quantization error is
-allowed. The driver restores those exact bits before the original gate-order
-sum. `ExpertResult` status 2 carries one exponent byte and an F16 tensor; older
-clients reject it, so all peers must be upgraded before enabling it.
-
-The native loopback test covers all 63,488 finite FP16 bit patterns multiplied
-by 16, as well as arbitrary FP32 fallback and malformed-frame rejection. The
-completed full-model candidates use this format against the original v13
-FP32 recording.
-The operator's `--lossless-wire` gate requires observed compact replies on
-every worker, no FP32 replies for this dataset, and exactly half the equivalent
-FP32 tensor bytes. This does not imply the disk-streaming correctness runs
-will approach the link limit.
-
-## Second overflow and independent FP16 reference
-
-The version-2 IR alone did not fix every range failure. At layer 40, expert 15
-on beta produced finite unweighted outputs (maximum about 1,873), but routing
-weights around 92–105 produced a weighted value around 173,194, outside FP16.
-The current K=1 path moves only scaling/routing multiplication to host FP32;
-all three compressed GEMMs and Swish still execute in the fused GPU kernel.
-Exact v11 replays pass at relative RMS 0.002618 (layer 8) and 0.001814
-(layer 40), against the original BF16 CPU expert outputs, with zero fallback.
-K>1 partial-sum compatibility normalizes weights by a common power of two and
-restores that factor in FP32; compact ordered replies require K=1.
-
-`CASCADIA_INKLING_EP_CPU_F16_REFERENCE=1` is a diagnostic CPU path, requiring
-streamed packed experts. It independently decodes the original bins and applies
-the GPU graph's FP16 boundaries and scale conversion. It does **not** replace
-the original BF16 CPU control. The two captured experts compare to GPU at
-0.00002643 relative RMS, but tiny CPU/GPU differences still amplify in the full
-model. The first complete 66-layer prefill differs by as much as 0.05010
-relative RMS in a residual; the first token is identical. The independent
-16-token recording also diverges from the original CPU's water-cycle continuation
-at position 6. These are precision diagnostics, not successful full equivalence
-claims. Exact inputs, reports, and build snapshots are retained alongside the
-failed full runs.
-
-In particular, `full-gpu-v11` reached 45 completed token positions, all matching
-the original CPU choices, before Charlie crossed the 12 GiB memory reserve.
-Its retained progress contains 3,036 layer comparisons, of which 1,815 exceed
-the original 0.5% relative RMS tolerance; the maximum relative RMS is 0.139104.
-It has no completed full trace/report and remains an **interrupted, failed
-qualification**. That run used the earlier reduction path; these errors are
-not a measurement of the v13/v14 topology comparison. Both captured FP16
-overflow replays now pass, but that alone does not establish full numerical
-parity. See `full-gpu-v11-progress.jsonl.gz` for the preserved progress evidence.
-
-Saved traces can be compared without another model execution:
+Extract just the evidence into a temporary directory and audit it with the
+current tools; this starts no model jobs and contacts no NUC:
 
 ```sh
-inkling_ep_validate --candidate CANDIDATE_DIR --reference REFERENCE_DIR \
-  --out NEW_COMPARISON.json --max-relative-rms 0
-```
-
-Both payload checksums, dimensions, tensor ordering and token choices are
-checked. A teacher-forced candidate additionally requires
-`--candidate-trajectory ORIGINAL_REFERENCE_DIR`, and its actual greedy choices
-must agree with that trajectory before saved states can be used for comparison.
-Missing or corrupt payloads and misaligned trajectories fail closed.
-
-## Run the full three-NUC comparison
-
-Build with `tools/inkling_ep_build_gpu_windows.bat`. Put the same executables
-and private runtime DLLs in each isolated `bin-full/` directory. The complete
-CPU reference and its SHA256 manifest live on charlie. The exact cases and
-placement are in [inkling-ep-full](inkling-ep-full/).
-
-```sh
-python3 tools/inkling_ep_full_run.py \
-  --label full-cpu-NEW --mode cpu \
-  --placement docs/perf/inkling-ep-full/placement.json \
-  --reference full-reference16-v4 --tokens 16 \
-  --out /tmp/full-cpu-NEW
-
-# Record a free-running GPU baseline (recording is not a correctness verdict).
-python3 tools/inkling_ep_full_run.py \
-  --label full-gpu-base-NEW --mode fused-stream --record \
-  --placement docs/perf/inkling-ep-full/placement.json \
-  --reference full-reference16-v4 --tokens 8 --cache-mb-per-host 2400 \
-  --out /tmp/full-gpu-base-NEW
-
-# Repartition the same files into 12 isolated processes on the three NUCs.
-python3 tools/inkling_ep_full_run.py \
-  --label full-gpu-12-NEW --mode fused-stream --workers-per-host 4 --lossless-wire \
-  --placement docs/perf/inkling-ep-full/placement.json \
-  --reference full-gpu-base-NEW --tokens 8 --max-relative-rms 0 \
-  --cache-mb-per-host 2400 --seconds 3400 --out /tmp/full-gpu-12-NEW
-```
-
-For slower hosts, split a completed recording into one-prompt references with
-`inkling_ep_trace_slice.py --source BASE --hashes BASE-sha256.json --case NAME
---out NEW_REFERENCE`. This checks the full source payload SHA256, copies the
-selected tensor bytes exactly, and records their source offsets. Pass the
-matching one-case JSON with `--cases` and run each eight-token candidate under
-its own bounded lease. The split report is clearly marked as a recording slice;
-its elapsed time still belongs to the parent recording.
-The completed v14 campaign used this per-prompt form with `--seconds 3400`,
-`--workers-per-host 4`, `--lossless-wire`, and `--max-relative-rms 0`.
-References and case JSON files are resolved under the isolated root on charlie;
-the trace slicer must run where the original `tensors.f32` is available.
-
-`inkling_ep_full_collect.py --run RUN_DIR --out NEW_BUNDLE.json.gz` retrieves
-native trace metadata and hashes the retained payload. After final service
-cleanup, `inkling_ep_topology_report.py --artifacts ARTIFACT_DIR --baseline BASE
---candidate RUN1 RUN2 RUN3 --out NEW_RESULT.json` independently audits every
-tensor identity, exact float bits, greedy IDs, expert-row coverage, backend
-profiles, process identities and provenance. It requires all three prompts,
-each with at least eight token positions. It reports physical and logical
-worker counts separately and makes no CPU/GPU precision-equivalence claim.
-The following command rechecks the committed evidence without starting model
-jobs or accessing the NUCs. Use a new output filename:
-
-```sh
+git fetch origin archive/inkling-ep-validation-20260915
+INKLING_REVIEW=$(mktemp -d)
+git archive 9c59e4498d2a65048bbb4289c43df100960e490d \
+  docs/perf/inkling-ep-full | tar -x -C "$INKLING_REVIEW"
+INKLING_EVIDENCE="$INKLING_REVIEW/docs/perf/inkling-ep-full"
 python3 tools/inkling_ep_topology_report.py \
-  --artifacts docs/perf/inkling-ep-full \
-  --baseline full-gpu-ordered3-v13 \
+  --artifacts "$INKLING_EVIDENCE" --baseline full-gpu-ordered3-v13 \
   --candidate full-gpu-ordered12-v14-water_cycle \
     full-gpu-ordered12-v14-binary_search full-gpu-ordered12-v14-short_story \
-  --out /tmp/inkling-gpu-topology-NEW.json
+  --out "$INKLING_REVIEW/topology-result.json"
 ```
 
-Use fresh labels: jobs, logs and output directories do not overwrite earlier
-evidence. The operator checks completed staging, placement/manifest agreement,
-executable and DLL hashes, packed-file identities against verified journals,
-fused source/ownership/XML metadata, and the reference's full SHA256 hashes.
-Blob hashes are recorded while constructing the IR; preflight checks blob
-size rather than rereading hundreds of gigabytes for each run.
+The auditor checks all tensor identities, numerical metrics, greedy IDs,
+payload SHA256 equality, slice provenance, build identity, expert-row counts,
+GPU coverage and service/resource evidence. Large `tensors.f32` files remain
+in the isolated remote trace directories under their archived hashes. The
+separate `inkling_ep_full_report.py` checks CPU/GPU equivalence to the original
+CPU reference and deliberately fails on the retained GPU failures.
 
-Private ports 29475–29478 (only 29475 for three workers) admit only charlie
-and only the task worker executable.
-In CPU mode, workers use cores 0–3 and charlie's driver uses cores 4–5.
-In GPU mode, charlie gives cores 0–3 to its decoder and cores 4–5 to the GPU
-worker; alpha/beta retain cores 0–3. With four workers per NUC, each worker
-gets one core: 0–3 on alpha/beta and 4–7 on charlie. The per-host cache budget
-is divided among its workers, and each worker has a 3 GiB RSS cap. Jobs run below normal
-priority, keep at least 12 GiB available, and have bounded lifetimes. Existing
-inference activity pauses only this task's child; a CI job or memory limit
-stops it. Cleanup checks the executable and process creation time before
-terminating any remaining task worker and removes only the task firewall rule.
+## Reproduce inference
 
-The completion gate requires every guarded job to exit successfully, preserved
-service process identities, full-model numerical/token parity, and final
-backend evidence. GPU mode additionally requires fused GPU profiles within each worker’s owned
-layers, collective coverage of every MoE layer, nonzero ordered expert replies
-on every worker, and zero CPU fallbacks/errors. A short prompt need not route
-an expert to every worker at every layer; an unvisited view is not GPU fallback.
-A recording completion only verifies that the recording and backend checks
-finished; its native report retains `correctness_verified=false`.
-
-## Extending to 12 machines
-
-`tools/inkling_ep_topology.py` creates twelve logical worker views of the three
-existing physical shards. Each view contains only small ownership metadata and
-hardlinks to its parent's XML/bin. The parent global-to-local expert indices
-are preserved; native validation rejects any requested expert outside the
-view's assignment. The sum of child packed capacities cannot exceed the parent
-budget. This adds negligible disk usage and exercises twelve sockets/processes,
-but **does not constitute a twelve-physical-machine performance or compatibility
-test**. The actual twelve machines must pass the same full-model comparison.
-
-Create a placement for the actual 12 hosts and their available capacity; do
-not reuse the three-host placement. Stage and checksum every owned expert,
-build each host's fused graphs from those same packed files, and verify the
-same executable/runtime versions. The driver then uses all 12 ordered worker
-endpoints and that placement with the same `inkling_ep_validate` command.
-Its reference format and comparison are independent of worker count.
-Use version-2 scaled shards for the fused path and retain each shard's source,
-derived blob and scale metadata in the deployment inventory.
-
-Run CPU EP against the original CPU reference with tolerance zero, then fused
-GPU EP against the saved GPU reference with tolerance zero. Keep the original
-CPU/GPU precision comparison separate; the GPU topology pass does not make
-that currently failing contract pass. Every new topology must retain exact
-greedy choices and all layer/logit comparisons, plus proof that every MoE
-layer ran on GPU with no expert fallback. The native validator supports any
-worker count, but the current LAN launcher and archive auditor are specific
-to alpha/beta/charlie; extend their inventory and service guards for the actual
-12 hosts before using them there. Retain per-layer differences and worker
-fusion profiles, rather than accepting just an exit code or aggregate throughput.
-Re-run with longer prompts, representative production cases and free generation
-before serving real traffic. Passing this bounded corpus does not establish
-fault tolerance, concurrent serving or parity for untested contexts.
-
-Local tests cover a complete tiny decoder over 12 real TCP workers, exact
-logits and greedy output, reset, replicated shared experts, and a 293-row
-prefill crossing the transport frame limit. Separate 3/12-worker fused-wire
-tests cover weighted partial sums, negative weights and empty rows. These
-tests validate routing behavior; **12 physical machines have not been tested**.
-
-The separate-process CLI smoke test also passed with 12 workers using bounded
-CPU reads: two complete tiny-model generations match the local oracle's IDs
-and logits hash `5122e042f9b1fb30` on macOS. The driver has no MoE weights and
-each worker has only its assigned bins. This exercises actual worker startup,
-placement arguments and clean shutdown as well as dispatch.
+The native `inkling_ep_validate` accepts any worker count, rejects reduced
+architectures unless `--allow-fixture` is explicit, resets state per prompt,
+and records every residual and full logits vector in `tensors.f32` plus trace
+metadata, progress and a report. With a reference it follows that trajectory
+and requires matching independently selected greedy IDs. Tolerance zero means
+bit equality; a free-running reference recording has
+`correctness_verified=false` because there is no comparison input. Generation
+uses a fixed token count, not EOS termination.
 
 ```sh
-cargo test -p cascadia-engine-sparse-moe --test inkling_ep --test inkling_loader
-cargo test -p cascadia-engine-sparse-moe --example inkling_ep_validate
-python3 -m unittest discover -s tools/tests -p test_inkling_ep_full.py
-python3 -m unittest discover -s tools/tests -p test_inkling_ep_fused_export.py
-python3 -m unittest discover -s tools/tests -p test_inkling_ep_trace.py
-cargo build -p cascadia-engine-sparse-moe \
-  --example inkling_ep_worker --example inkling_decode_bench
-python3 tools/inkling_ep_smoke.py --bin-dir target/debug/examples \
-  --workers 12 --stream-cpu-workers --out /tmp/inkling-smoke-12-NEW
+# All endpoints must be in placement order; select CPU or GPU workers first.
+inkling_ep_validate --export /models/inkling-driver --cases cases.json \
+  --ep-workers "$EP_ENDPOINTS" --ep-placement placement.json \
+  --reference /references/gpu-baseline --tokens 8 --max-relative-rms 0 \
+  --out /results/gpu-candidate-NEW
+
+# Recompare existing captures without model execution.
+inkling_ep_validate --candidate /results/gpu-candidate-NEW \
+  --candidate-trajectory /references/gpu-baseline \
+  --reference /references/gpu-baseline --max-relative-rms 0 \
+  --out /results/comparison-NEW.json
 ```
 
-The tiny export must exist at the fixture path; older integration tests skip
-when it is missing. Validator negative tests reject changed values, tensor
-order/count errors, nonfinite values and reference checksum corruption. Operator
-tests reject missing GPU coverage, fallback, output mismatch and missing service
-preservation evidence. Archive tests also reject a changed payload SHA256 even
-when every native verdict still says pass, and refuse a full-corpus result
-when one of the three prompts is omitted.
+For a new free-running reference omit `--reference`. A saved teacher-forced
+candidate requires its original `--candidate-trajectory` so that divergent
+states cannot masquerade as free generation. Corrupt payloads, nonfinite values,
+wrong tensor shapes/order/counts and differing greedy choices fail the checks.
 
-## Artifacts and reconstruction
+`inkling_ep_trace_slice.py --source BASE --hashes BASE-sha256.json --case NAME
+--out NEW_REFERENCE` copies exact single-prompt tensor byte ranges and binds
+them to the source SHA256; it never recomputes values. Run it where the original
+payload lives. This allows bounded per-prompt jobs without weakening the corpus
+requirement. Use fresh labels and output paths to preserve previous evidence.
 
-[inkling-ep-full](inkling-ep-full/) contains the exact placement/cases, model
-manifest, CPU reference reports and SHA256 manifests, full mapped comparison,
-cache probe reports, and the native source snapshot atop `dce74385`.
-`build-v7-provenance.json` identifies the successful distributed CPU binary;
-`build-v10-provenance.json` identifies the GPU overflow correction. Both source
-snapshots apply atop `060feeb2`; `run-builds.json` maps full runs to their builds.
-The v13 ordered baseline uses `build-v13-provenance.json` and its native source
-snapshot atop `4d3dc7ced71da2bc9f28b2f67e187722ba2dfbad`. The v14 lossless-wire
-candidates use `build-v14-provenance.json` and its snapshot atop
-`43e16f841396aecf8d418bbb86f4fe972b6e80f4`. The provenance records the snapshot
-SHA256 and all four executable hashes; every run's preflight checks those
-binaries and the private runtime DLLs across the participating workers.
-Large f32 payloads stay in the isolated remote reference directories and the
-session's `/private/tmp/inkling-ep-full/` directory rather than in Git.
-`build-provenance.json` identifies native binaries and the snapshot checksum.
+## Three-NUC operator and twelve-host deployment
 
-The full model files can be resumed with `inkling_ep_full_stage.py`; it verifies
-each transferred file against the source SHA256 and records its size, mtime and
-hash. `inkling_ep_full_fused.py` waits for verified layer inputs and checks the
-exporter's source hashes against that journal. Both default to 48 MiB/s and
-allow up to 96 MiB/s, with the same service/memory/disk guards. The temporary
-source is restricted to the three NUC addresses and has a bounded lease.
-The temporary miner HTTP source and its three task firewall rules have now
-been removed; all unrelated firewall rules were preserved. Staging is complete
-on all NUCs, and the union of their verified packed files covers all
-16,588 source files with matching replicated checksums.
+The current `inkling_ep_full_run.py` launcher targets alpha, beta and charlie,
+under `C:/Users/tatef/inkling-ep-lan-20260915`. It is specific to that inventory;
+do not use it unchanged on other hosts. The saved uneven placement assigns
+43.456, 217.312 and 236.622 GiB of packed experts to these machines, with shared
+replicas and all driver files on charlie. Their aggregate RAM cannot hold the
+model; derived GPU blobs require additional disk space.
 
-After each full run, archive the controller's JSON files together under its
-label with `inkling_ep_full_collect.py`. The GPU topology checker above checks
-the completed v13/v14 comparison. The older, separate
-`inkling_ep_full_report.py` reads compressed archives and checks
-all 3,216 tensor identities, every greedy ID, numerical limits, backend proof,
-run-specific binary hashes and final service/resource audits independently of
-the driver's verdict flags. It deliberately fails if either full CPU or GPU
-qualification against the original CPU reference is missing or fails. This
-**original CPU/GPU contract is currently not satisfied**; the command below
-must not be used to describe the successful GPU-to-GPU routing result.
+With that deployment already staged, the archived placement can be reused:
 
 ```sh
-python3 tools/inkling_ep_full_audit.py \
-  --out docs/perf/inkling-ep-full/final-audit.json
-python3 tools/inkling_ep_full_report.py \
-  --artifacts docs/perf/inkling-ep-full --out /tmp/full-qualification-summary.json
+python3 tools/inkling_ep_full_run.py --label gpu-base-NEW \
+  --mode fused-stream --record --reference full-reference16-v4 --tokens 8 \
+  --placement "$INKLING_EVIDENCE/placement.json" --cache-mb-per-host 2400 \
+  --out /tmp/gpu-base-NEW
+python3 tools/inkling_ep_full_run.py --label gpu-12-NEW \
+  --mode fused-stream --workers-per-host 4 --lossless-wire \
+  --reference gpu-base-NEW --tokens 8 --max-relative-rms 0 \
+  --placement "$INKLING_EVIDENCE/placement.json" --cache-mb-per-host 2400 \
+  --seconds 3400 --out /tmp/gpu-12-NEW
 ```
 
-To replay the layer-8 regression, decompress `overflow-replay-frames.json.gz`
-and `overflow-cpu-reference.f32.gz`, then stage them in alpha's isolated root.
-Use `inkling_ep_layer_bench` with `--local-index 0`, the full placement, those
-`--frames`, the CPU `--reference`, `--reference-rel-rms 0.005`, and a fresh
-`--out` path. Run it through the same process guard, with
-`CASCADIA_INKLING_EP_FUSED=1`, `CASCADIA_INKLING_EP_FUSED_STREAM=1`,
-`CASCADIA_INKLING_EP_REQUIRE_GPU=1` and the full compact IR directory. Original
-routing weights are in the frames; version-2 workers apply compensation.
-The saved reference is a selected-expert CPU phase, not a full-model trace.
+The completed campaign used one-prompt reference slices and matching `--cases`
+files, each with its own 3,400-second lease. Reference/case names resolve under
+the isolated root on charlie. `inkling_ep_full_collect.py` archives a completed
+run; `inkling_ep_full_audit.py` checks final service/resource state.
+
+Preflight verifies completed staging, source-file identities, manifest/placement
+agreement, executable/runtime hashes, fused ownership metadata and reference
+checksums. The launcher uses below-normal priority, limited CPU affinity, a
+12 GiB available-memory reserve, 3 GiB worker RSS caps and an 80 GiB free-disk
+floor. Service activity pauses only task processes; CI activity or a memory
+limit stops them. Private ports 29475–29478 admit only charlie and the task
+executable. Cleanup verifies process identities and removes only task rules.
+The final GPU candidates kept driver RSS below 3.676 GiB and available memory
+above 16.98 GiB; all protected services remained unchanged.
+
+`inkling_ep_topology.py` divides each of the three physical shards into four
+read-only worker views, hardlinking weights and preserving parent IR indices.
+It tests twelve sockets and ownership sets without creating extra weight copies.
+For twelve physical hosts, create a new capacity-checked placement, stage and
+checksum every assigned expert, build version-2 scaled GPU shards, and deploy
+matching binaries/runtime. Extend the launcher's and auditor's inventories and
+service guards. Then compare CPU EP against the original CPU reference and GPU
+EP against the saved GPU reference, both at zero tolerance, retaining full
+layer/logit evidence and zero GPU fallback. Add representative longer prompts
+and serving tests before accepting production traffic.

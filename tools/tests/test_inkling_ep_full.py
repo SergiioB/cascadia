@@ -94,6 +94,18 @@ class GuardTests(unittest.TestCase):
 
 
 class OperatorTests(unittest.TestCase):
+    def placement_fixture(self):
+        # All four child slots receive experts on each physical parent;
+        # shared experts exercise replication without a production placement.
+        layer = [[eid % 3] for eid in range(12)] + [[0, 1, 2], [0, 1, 2]]
+        expert_bytes = 3*64*32*9//16
+        return dict(version=1, hidden_size=64, moe_intermediate=32,
+                    num_experts=12, n_shared_experts=2, expert_bytes=expert_bytes,
+                    layers=[[], layer, layer],
+                    workers=[dict(name=h, expert_capacity_bytes=16*expert_bytes,
+                                  read_us=1, compute_us=1, dispatch_us=1)
+                             for h in ['alpha', 'beta', 'charlie']])
+
     def test_requested_direct_reads_require_bytes_and_zero_fallbacks(self):
         sys.path.insert(0,str(TOOLS))
         try:
@@ -130,7 +142,7 @@ class OperatorTests(unittest.TestCase):
         sys.path.insert(0,str(TOOLS))
         try: topology=load('full_topology','inkling_ep_topology.py')
         finally: sys.path.pop(0)
-        parent=json.loads((TOOLS.parent/'docs/perf/inkling-ep-full/placement.json').read_text())
+        parent=self.placement_fixture()
         plan=topology.split_plan(parent,4)
         self.assertEqual(len(plan['workers']),12)
         for before,after in zip(parent['layers'],plan['layers']):
@@ -149,9 +161,11 @@ class OperatorTests(unittest.TestCase):
         scripts=[]
         def capture(host,script,timeout):
             ast.parse(script,feature_version=(3,11));scripts.append(script);return '{}'
-        path=TOOLS.parent/'docs/perf/inkling-ep-full/placement.json'
-        with patch.object(topology,'remote',capture):
-            topology.prepare_views(path,4,{h:{} for h in ['alpha','beta','charlie']})
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'placement.json'
+            path.write_text(json.dumps(self.placement_fixture()))
+            with patch.object(topology,'remote',capture):
+                topology.prepare_views(path,4,{h:{} for h in ['alpha','beta','charlie']})
         self.assertEqual(len(scripts),3)
         self.assertTrue(all('logical placement bytes differ' in script for script in scripts))
 

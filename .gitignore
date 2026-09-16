@@ -13,6 +13,10 @@ __pycache__/
 tmp/
 experiments/
 
+# Generated Inkling EP evidence lives on archive/inkling-ep-validation-20260915.
+# Keep new run output in experiments/ rather than adding it to feature PRs.
+/docs/perf/inkling-ep*/
+
 # Editors
 .idea/
 .vscode/
