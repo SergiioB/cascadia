@@ -743,7 +743,22 @@ impl ExpertBank {
                             ))
                         }
                         None => {
-                            self.cpu_calls.fetch_add(1, Ordering::Relaxed);
+                            // A configured GPU expert that returns no output is
+                            // a silent-numerics hazard: without REQUIRE_GPU we
+                            // recompute it on CPU, which differs from the device
+                            // bit-for-bit. Surface the first such fallback (once
+                            // per bank) on both a subscriber-less bench
+                            // (eprintln) and production logs (warn); the running
+                            // total lives in backend_stats().cpu_calls.
+                            if self.cpu_calls.fetch_add(1, Ordering::Relaxed) == 0 && ov.is_some() {
+                                let note = format!(
+                                    "{tag}: GPU expert {id} produced no output; \
+                                     recomputing on CPU (device numerics differ). \
+                                     Set CASCADIA_INKLING_EP_REQUIRE_GPU=1 to fail instead."
+                                );
+                                warn!("{note}");
+                                eprintln!("{note}");
+                            }
                             if !cpu_ready {
                                 if streamed_cpu {
                                     if let Some(m) = e.as_mmap() {
