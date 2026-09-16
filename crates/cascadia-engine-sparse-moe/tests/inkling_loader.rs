@@ -81,6 +81,113 @@ fn loader_greedy_matches_hf_reference() {
 }
 
 #[test]
+fn owned_packed_shared_expert_matches_mapping_without_file_read_dispatch() {
+    use cascadia_engine_sparse_moe::dsv4::expert_mmap::MmapExpert;
+    use cascadia_engine_sparse_moe::glm::moe::AnyExpert;
+    let path = export_dir().join("experts/layer_01/expert_shared0.bin");
+    let mapped = AnyExpert::Mmap(MmapExpert::open(&path, 64, 32).unwrap());
+    let owned = AnyExpert::Mmap(MmapExpert::open(&path, 64, 32).unwrap())
+        .into_owned_int4()
+        .unwrap();
+    assert!(owned.as_mmap().is_none());
+    assert_eq!(owned.int4_bytes(), 0);
+    assert_eq!(
+        owned.owned_int4_bytes(),
+        std::fs::metadata(path).unwrap().len() as usize
+    );
+    for offset in [0.0, 0.25, -0.5] {
+        let x: Vec<f32> = (0..64)
+            .map(|i| (i as f32 - 7.0) * 0.03125 + offset)
+            .collect();
+        let expected = mapped.forward(&x, 64, 32);
+        let actual = owned.forward(&x, 64, 32);
+        assert_eq!(
+            actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+            expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+        );
+    }
+}
+
+#[test]
+fn mapped_embedding_rows_and_head_math_match_owned_bits() {
+    use cascadia_engine_sparse_moe::inkling::model::WideTable;
+
+    let path = export_dir().join("embed.safetensors");
+    let owned_st = StFile::open(&path).unwrap();
+    let (shape, bits) = owned_st.bf16_bits("embed.weight").unwrap();
+    let mapped_st = StFile::open_mmap(&path).unwrap();
+    let mapped = WideTable::MappedBf16(mapped_st.mapped_bf16("embed.weight").unwrap().unwrap());
+    let owned = WideTable::Bf16(bits);
+    drop(mapped_st);
+    assert_eq!(mapped.len(), owned.len());
+    for row in 0..shape[0] {
+        assert_eq!(mapped.row(row, shape[1]), owned.row(row, shape[1]));
+    }
+    let x: Vec<f32> = (0..shape[1]).map(|i| (i as f32 - 7.0) * 0.03125).collect();
+    let mut expected = vec![0.0; shape[0]];
+    let mut actual = expected.clone();
+    owned.matvec_f32(&x, shape[1], &mut expected);
+    mapped.matvec_f32(&x, shape[1], &mut actual);
+    assert_eq!(
+        actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+        expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn routing_observer_preserves_prefill_and_decode_logits() {
+    use std::sync::{Arc, Mutex};
+
+    let r = reference().expect("routing observer test requires the checked-in tiny fixture");
+    let mut plain = load_model(&export_dir(), 64).unwrap();
+    let mut traced = load_model(&export_dir(), 64).unwrap();
+    let mut captured = Vec::new();
+    for layer in traced.layers_mut() {
+        if let Some(moe) = layer.moe_mut() {
+            let routes = Arc::new(Mutex::new(Vec::new()));
+            let target = Arc::clone(&routes);
+            moe.set_route_observer(Some(Arc::new(move |gate| {
+                target.lock().unwrap().push(gate.idx.clone());
+            })));
+            captured.push((moe.top_k, moe.n_routed, routes));
+        }
+    }
+    let bits = |values: Vec<f32>| values.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&r.prompt)),
+        bits(traced.prefill(&r.prompt))
+    );
+    for &token in r.greedy.iter().take(4) {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(traced.forward_token(token))
+        );
+    }
+    for (top_k, n_routed, routes) in &captured {
+        let routes = routes.lock().unwrap();
+        assert_eq!(routes.len(), r.prompt.len() + r.greedy.len().min(4));
+        assert!(routes
+            .iter()
+            .all(|row| row.len() == *top_k && row.iter().all(|e| *e < *n_routed)));
+    }
+    for layer in traced.layers_mut() {
+        if let Some(moe) = layer.moe_mut() {
+            moe.set_route_observer(None);
+        }
+    }
+    assert_eq!(
+        bits(plain.forward_token(r.greedy[0])),
+        bits(traced.forward_token(r.greedy[0]))
+    );
+    for (_, _, routes) in captured {
+        assert_eq!(
+            routes.lock().unwrap().len(),
+            r.prompt.len() + r.greedy.len().min(4)
+        );
+    }
+}
+
+#[test]
 fn staged_runner_single_rank_matches_model() {
     let Some(r) = reference() else { return };
     let mut runner =

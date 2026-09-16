@@ -75,6 +75,14 @@ pub(crate) fn pin_experts() -> bool {
     *E.get_or_init(|| super::env_flag("CASCADIA_INKLING_PIN_EXPERTS"))
 }
 
+/// Keep only shared experts as owned packed int4 bytes. Default off; this is
+/// separate from physical page locking and does not alter routed-expert I/O.
+fn own_shared() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| super::env_flag("CASCADIA_INKLING_OWN_SHARED"))
+}
+
 /// [`pin_experts`] for one just-opened expert; returns the bytes wired.
 fn maybe_pin(x: &AnyExpert, what: &str) -> usize {
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -147,6 +155,11 @@ pub fn load_moe_experts(
                 inter,
                 mode,
             )?;
+            let x = if own_shared() {
+                x.into_owned_int4()?
+            } else {
+                x
+            };
             wired += maybe_pin(&x, &format!("layer {li} shared expert {s}"));
             out.push((id, x));
         }
@@ -477,6 +490,15 @@ fn wide_table(
     vocab: usize,
     hidden: usize,
 ) -> Result<WideTable, LoadError> {
+    if st.info(name)?.shape != [vocab, hidden] {
+        return Err(LoadError::Manifest(format!(
+            "{name}: shape {:?} != [{vocab}, {hidden}]",
+            st.info(name)?.shape
+        )));
+    }
+    if let Some(view) = st.mapped_bf16(name)? {
+        return Ok(WideTable::MappedBf16(view));
+    }
     let (shape, v) = st.bf16_bits(name)?;
     if v.len() != vocab * hidden {
         return Err(LoadError::Manifest(format!(
@@ -504,7 +526,15 @@ pub fn load_stage(
     let m = read_manifest(dir)?;
     let (vocab, hidden) = (m.vocab_size, m.hidden_size);
     let embed = if first {
-        let e = StFile::open(&dir.join("embed.safetensors"))?;
+        let path = dir.join("embed.safetensors");
+        // Optional sparse embedding lookup: retain file-backed rows instead
+        // of copying the whole 2.47 GB table into private memory. Keep the head
+        // resident because every decode step reads all of its rows.
+        let e = if super::env_flag("CASCADIA_INKLING_MMAP_EMBED") {
+            StFile::open_mmap(&path)?
+        } else {
+            StFile::open(&path)?
+        };
         Some((
             wide_table(&e, "embed.weight", vocab, hidden)?,
             e.f32("embed_norm.weight")?.1,

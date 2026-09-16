@@ -40,9 +40,16 @@ pub enum AnyExpert {
         wu: Vec<f32>,
         wd: Vec<f32>,
     },
-    /// mmap'd int4 bin, rows dequantized on the fly — the only mode that fits
-    /// the real model (eager f32 experts would be hundreds of GB per rank).
+    /// File-backed int4 bin, rows dequantized on the fly. The complete routed
+    /// table need not be resident (eager f32 uses much more memory).
     Mmap(MmapExpert),
+    /// An owned copy of the packed int4 bytes. The mapping supplies the same
+    /// validated kernel layout but is not read or prefetched during compute.
+    /// Private pages can still be paged out by the OS; this is not page locking.
+    OwnedInt4 {
+        layout: MmapExpert,
+        bytes: Vec<u8>,
+    },
 }
 
 /// Light-R1 read path: explicit concurrent whole-expert reads instead of
@@ -134,11 +141,37 @@ impl AnyExpert {
             AnyExpert::Bf16(e) => swiglu(x, &e.wg, &e.wu, &e.wd, hidden, inter),
             AnyExpert::EagerF32 { wg, wu, wd } => swiglu_f32w(x, wg, wu, wd, hidden, inter),
             AnyExpert::Mmap(m) => swiglu_mmap(m, x),
+            AnyExpert::OwnedInt4 { layout, bytes } => layout.swiglu_from(bytes, x),
         }
     }
 }
 
 impl AnyExpert {
+    /// Copy packed bytes once, avoiding repeated expert-file reads. Other
+    /// storage variants already own their weights and pass through unchanged.
+    pub fn into_owned_int4(self) -> std::io::Result<Self> {
+        match self {
+            Self::Mmap(layout) => {
+                let bytes = layout.read_bytes()?;
+                if bytes.len() != layout.bin_len() {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "expert size changed while loading owned bytes",
+                    ));
+                }
+                Ok(Self::OwnedInt4 { layout, bytes })
+            }
+            other => Ok(other),
+        }
+    }
+
+    pub fn owned_int4_bytes(&self) -> usize {
+        match self {
+            Self::OwnedInt4 { bytes, .. } => bytes.len(),
+            _ => 0,
+        }
+    }
+
     /// The mmap'd int4 expert, if this is the `Mmap` variant (for pinning).
     pub fn as_mmap(&self) -> Option<&MmapExpert> {
         match self {
