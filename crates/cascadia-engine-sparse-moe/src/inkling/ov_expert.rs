@@ -352,7 +352,9 @@ impl OvExperts {
                     // Device-side output read failed: fall back for this call,
                     // counted and on stderr so the bench sees it (the bench
                     // examples run without a tracing subscriber).
-                    eprintln!("[inkling] OV expert layer {lid} expert {eid} call failed: output {e}");
+                    eprintln!(
+                        "[inkling] OV expert layer {lid} expert {eid} call failed: output {e}"
+                    );
                     self.fallbacks.fetch_add(1, Ordering::Relaxed);
                     return None;
                 }
