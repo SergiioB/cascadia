@@ -175,7 +175,13 @@ impl ReadBuffer {
             Ok(ReadMode::Uncached) => {
                 bytes.fetch_add(expected as u64, Ordering::Relaxed);
             }
-            Ok(ReadMode::Fallback) | Err(_) if enabled => {
+            // A genuine read error always falls back to mmap compute; count it
+            // regardless of the Windows-only uncached path being enabled, so a
+            // corrupt/truncated/EIO expert bin is never a silent slow path.
+            Err(_) => {
+                fallbacks.fetch_add(1, Ordering::Relaxed);
+            }
+            Ok(ReadMode::Fallback) if enabled => {
                 fallbacks.fetch_add(1, Ordering::Relaxed);
             }
             _ => {}

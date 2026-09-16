@@ -453,10 +453,17 @@ impl MoeLayer {
                         // read even if OS sampling reports a resident mapping.
                         // This gives admission valid bytes and a measurable I/O
                         // cost; shared owned experts never enter the cache.
-                        if (hits.is_some() || !mapped.mostly_resident())
-                            && bytes.read(mapped.bin_path(), mapped.bin_len()).is_ok()
-                        {
-                            return (mapped.swiglu_from(bytes.as_slice(), x), true);
+                        if hits.is_some() || !mapped.mostly_resident() {
+                            match bytes.read(mapped.bin_path(), mapped.bin_len()) {
+                                Ok(()) => {
+                                    return (mapped.swiglu_from(bytes.as_slice(), x), true)
+                                }
+                                Err(err) => tracing::warn!(
+                                    slot = index,
+                                    bin = %mapped.bin_path().display(),
+                                    "inkling decode expert read failed; using mmap compute fallback: {err}"
+                                ),
+                            }
                         }
                     }
                     (expert.forward(x, self.hidden, self.inter), false)
@@ -480,11 +487,23 @@ impl MoeLayer {
             let ready: Vec<bool> = if let Some(reused) = &mut reused {
                 use rayon::prelude::*;
                 sel.par_iter()
+                    .enumerate()
                     .zip(reused.buffers.par_iter_mut())
-                    .map(|(e, bytes)| {
-                        e.as_mmap()
-                            .filter(|m| !m.mostly_resident())
-                            .is_some_and(|m| bytes.read(m.bin_path(), m.bin_len()).is_ok())
+                    .map(|((slot, e), bytes)| {
+                        let Some(m) = e.as_mmap().filter(|m| !m.mostly_resident()) else {
+                            return false;
+                        };
+                        match bytes.read(m.bin_path(), m.bin_len()) {
+                            Ok(()) => true,
+                            Err(err) => {
+                                tracing::warn!(
+                                    slot,
+                                    bin = %m.bin_path().display(),
+                                    "inkling decode expert read failed; using mmap compute fallback: {err}"
+                                );
+                                false
+                            }
+                        }
                     })
                     .collect()
             } else {
@@ -610,9 +629,19 @@ impl MoeLayer {
             let mut lease = (streamed && mapped.is_some())
                 .then(|| super::read_buffers::ReadBuffers::acquire(1));
             let ready = match (mapped, lease.as_mut()) {
-                (Some(mapped), Some(lease)) => lease.buffers[0]
-                    .read_prefill(mapped.bin_path(), mapped.bin_len())
-                    .is_ok(),
+                (Some(mapped), Some(lease)) => {
+                    match lease.buffers[0].read_prefill(mapped.bin_path(), mapped.bin_len()) {
+                        Ok(()) => true,
+                        Err(err) => {
+                            tracing::warn!(
+                                expert = e,
+                                bin = %mapped.bin_path().display(),
+                                "inkling prefill expert read failed; using mmap compute fallback: {err}"
+                            );
+                            false
+                        }
+                    }
+                }
                 _ => false,
             };
             let mut ys = Vec::with_capacity(slots.len() * hidden);
