@@ -16,7 +16,7 @@ use cascadia_engine::Engine;
 use cascadia_engine_sparse_moe::dist::{
     recv_expert_dispatch_body_server, recv_expert_result_body_client, recv_kind_client,
     recv_kind_server, send_expert_dispatch, send_expert_result_err, send_expert_result_ok,
-    FrameKind, EXPERT_PAD, MAX_BATCH_COUNT,
+    send_restore_prefix, FrameKind, EXPERT_PAD, MAX_BATCH_COUNT,
 };
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
 use cascadia_engine_sparse_moe::inkling::ep::{
@@ -934,6 +934,72 @@ fn three_workers_one_fails_and_both_survivors_stay_frame_aligned() {
     for (wi, t) in threads.into_iter().enumerate() {
         let frames = t.join().expect("worker thread");
         assert!(frames > 0, "worker {wi} served no frames");
+    }
+}
+
+/// A worker that receives a non-dispatch frame drains its fixed body, replies
+/// ExpertResult{status 1}, and keeps serving. Once the reply is read the
+/// connection stays frame aligned, so the next real dispatch succeeds. If the
+/// one-way body were not drained (or the reject reply left unread), the stream
+/// would desync and the next dispatch would read a stale frame.
+#[test]
+fn worker_drains_and_rejects_a_foreign_frame_then_keeps_serving() {
+    let dir = export_dir();
+    let m = read_manifest(&dir).expect("checked-in inkling_export manifest");
+    let rt = runtime();
+    let hs = m.hidden_size;
+    let li = (0..m.num_layers)
+        .find(|li| !m.dense_layers.contains(li))
+        .expect("a MoE layer");
+    // Shard 0 of 1 owns every id, so any routed expert dispatches locally.
+    let bank = load_expert_bank(&dir, 0, 1, ExpertsMode::Eager).unwrap();
+    let id = bank.owned_ids(li)[0];
+    let (clients, threads) = spawn_workers(&rt, vec![bank]);
+    let client = clients[0].clone();
+
+    // RestorePrefix is a one-way frame foreign to a stateless expert worker.
+    rt.block_on(async {
+        send_restore_prefix(&client, 0xABCD_u64).await.unwrap();
+        // The worker drained the key body and replied a status-1 rejection.
+        assert_eq!(
+            recv_kind_client(&client).await.unwrap(),
+            Some(FrameKind::ExpertResult)
+        );
+        let rejected = recv_expert_result_body_client(&client)
+            .await
+            .unwrap()
+            .expect_err("a foreign frame must be rejected");
+        assert!(
+            rejected.contains("serves expert dispatch frames only"),
+            "unexpected rejection message: {rejected}"
+        );
+    });
+
+    // The connection stayed aligned: a real dispatch over the SAME client works
+    // and equals the local expert accumulation.
+    let ep = EpClient::new(
+        clients.clone(),
+        rt.handle().clone(),
+        hs,
+        m.num_experts,
+        m.n_shared_experts,
+    );
+    let x: Vec<f32> = (0..hs).map(|i| ((i % 7) as f32 - 3.0) * 0.1).collect();
+    let got = ep
+        .dispatch(li as u32, &x, &[vec![(id, 0.5)]])
+        .expect("dispatch after a rejected foreign frame");
+    let y = load_expert_bank(&dir, 0, 1, ExpertsMode::Eager)
+        .unwrap()
+        .expert(li, id)
+        .unwrap()
+        .forward(&x, hs, m.moe_intermediate);
+    let want: Vec<f32> = y.iter().map(|&yi| 0.5 * yi).collect();
+    assert_eq!(got, want);
+
+    drop(ep);
+    close_all(&rt, &clients);
+    for t in threads {
+        assert!(t.join().unwrap() >= 1);
     }
 }
 
