@@ -1,7 +1,0 @@
-{"version": 1, "layer": 2, "hidden_size": 96, "moe_intermediate": 64, "k": 8, "expert_ids": [0, 3, 8], "padded_experts": 4, "ir_bytes": 42624, "bin_sha256": "7a59b2fef4614d554812e5f2c51c937a4797c3c2b85a25634ff5dec408aba14f", "xml_sha256": "423fe720b29f97bbba15bb026faf7af0051ab6354cd52c9bb8ea2e82b6041040", "source_sha256": {"0": "14b7e9782f816c48cad782557def2694999317e473dfb728af0f04d22193cac9", "3": "6e96efa1724cffcfc1b810f3b28ad04e2e8b302f728ad9e7443f8029526033f3", "8": "133bbea8de2b9ad5525fcd38a65b89daa44e6dc1fb045293d7172188a962eb2c"}, "template_xml_sha256": "d226bbc910ed19f97e40339c00bdaa48b0f768e3a35a0636c837df855db0d937", "placement_sha256": "22e0670d9bb0e9d9e2d80d811dabd2fd64707671e669cc4f8f2d3d69d3d16052"}
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.016s
-
-OK
-{"out": "/var/folders/xj/dg3rr64n6yq1_1gvvs1xh3bc0000gn/T/tmpqo6_udjc/compact", "k": 1, "shared_ir_bytes": 42624}

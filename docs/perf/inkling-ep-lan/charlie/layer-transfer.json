@@ -1,8 +1,0 @@
-{
-  "files": 87,
-  "transferred_bytes": 2770993152,
-  "elapsed_seconds": 55.14100000000326,
-  "source": "http://192.168.0.235:29483",
-  "scope": "one MoE layer of real 975B weights",
-  "source_index_file": "../source-index.json"
-}

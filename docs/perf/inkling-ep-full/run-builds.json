@@ -1,9 +1,0 @@
-{
-  "full-cpu-v7": "build-v7-provenance.json",
-  "full-gpu-v10": "build-v10-provenance.json",
-  "full-gpu-v11": "build-v11-provenance.json",
-  "full-gpu-ordered3-v13": "build-v13-provenance.json",
-  "full-gpu-ordered12-v14-water_cycle": "build-v14-provenance.json",
-  "full-gpu-ordered12-v14-binary_search": "build-v14-provenance.json",
-  "full-gpu-ordered12-v14-short_story": "build-v14-provenance.json"
-}

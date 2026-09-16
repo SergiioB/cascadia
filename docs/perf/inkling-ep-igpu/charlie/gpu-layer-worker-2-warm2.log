@@ -1,5 +1,0 @@
-bank_loaded index=2 count=3 experts=87
-backend_start={"cpu_calls":0,"device":"GPU","gpu_name":"Intel(R) Graphics (iGPU)","gpu_required":true,"ov_cache_hits":0,"ov_cache_misses":0,"ov_fallbacks":0,"ov_successful_calls":0}
-listening=192.168.0.188:29473
-frames_served=214
-backend_final={"cpu_calls":0,"device":"GPU","gpu_name":"Intel(R) Graphics (iGPU)","gpu_required":true,"ov_cache_hits":408,"ov_cache_misses":32,"ov_fallbacks":0,"ov_successful_calls":440}
