@@ -226,6 +226,23 @@ impl OvAttn {
                 match r.output(i) {
                     Ok((_, _, bytes)) => {
                         let mut v = bf16_vec(&bytes);
+                        // The IR emits [1, prow, dim]; a stale export or the
+                        // wrong CASCADIA_INKLING_OV_ATTN_DIR variant infers
+                        // cleanly but returns a length that is not a clean
+                        // [prow, dim], which the truncation below would silently
+                        // mis-shape into attend(). Latch the layer like the
+                        // expert/MoE backends do on a length mismatch.
+                        if v.is_empty() || v.len() % prow != 0 {
+                            self.mark_failed(
+                                lid,
+                                &format!(
+                                    "qkvr output {i} len {} not a multiple of prow {prow}",
+                                    v.len()
+                                ),
+                            );
+                            self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                            return None;
+                        }
                         if prow != rows {
                             v.truncate(v.len() / prow * rows);
                         }
@@ -281,6 +298,20 @@ impl OvAttn {
             match r.output(0) {
                 Ok((_, _, bytes)) => {
                     let mut v = bf16_vec(&bytes);
+                    // The IR emits [1, prow, dim]; a stale export or the wrong
+                    // CASCADIA_INKLING_OV_ATTN_DIR variant infers cleanly but
+                    // returns a length that is not a clean [prow, dim], which
+                    // the truncation below would silently mis-shape into
+                    // attend(). Latch the layer like the expert/MoE backends do
+                    // on a length mismatch.
+                    if v.is_empty() || v.len() % prow != 0 {
+                        self.mark_failed(
+                            lid,
+                            &format!("o output len {} not a multiple of prow {prow}", v.len()),
+                        );
+                        self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                        return None;
+                    }
                     if prow != rows {
                         v.truncate(v.len() / prow * rows);
                     }
