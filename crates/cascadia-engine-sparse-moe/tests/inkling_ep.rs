@@ -240,10 +240,7 @@ async fn expert_frames_round_trip_over_loopback_with_padding_ok_and_error() {
 #[test]
 fn placement_homes_every_expert_on_exactly_one_worker_and_banks_hold_exactly_those() {
     let dir = export_dir();
-    let Ok(m) = read_manifest(&dir) else {
-        eprintln!("inkling_export/manifest.json missing; skipping");
-        return;
-    };
+    let m = read_manifest(&dir).expect("checked-in inkling_export manifest");
     let n_ids = m.num_experts + m.n_shared_experts;
     for w in 1..=4u32 {
         // Every id (routed + shared) lands on exactly one of the W workers.
@@ -490,9 +487,7 @@ fn dispatch_compacts_empty_rows_and_preserves_duplicate_slot_order() {
 }
 
 fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: bool, w: u32) {
-    let Some((prompt, want)) = reference() else {
-        return;
-    };
+    let (prompt, want) = reference().expect("checked-in inkling_export reference");
     let dir = export_dir();
     let m = read_manifest(&dir).unwrap();
     let rt = runtime();
@@ -670,10 +665,7 @@ fn driver_vs_single_process_placed(mode: &str, experts: ExpertsMode, placed: boo
 #[test]
 fn a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_message() {
     let dir = export_dir();
-    let Ok(m) = read_manifest(&dir) else {
-        eprintln!("inkling_export/manifest.json missing; skipping");
-        return;
-    };
+    let m = read_manifest(&dir).expect("checked-in inkling_export manifest");
     let rt = runtime();
     // The one worker holds shard 0 of 2 (even ids only) — but the client is
     // told it is the only worker, so odd ids are routed to it too.
@@ -764,10 +756,7 @@ fn a_worker_asked_for_an_expert_it_does_not_own_fails_the_dispatch_with_its_mess
 #[test]
 fn two_workers_one_fails_a_dispatch_but_the_survivor_stays_frame_aligned() {
     let dir = export_dir();
-    let Ok(m) = read_manifest(&dir) else {
-        eprintln!("inkling_export/manifest.json missing; skipping");
-        return;
-    };
+    let m = read_manifest(&dir).expect("checked-in inkling_export manifest");
     let rt = runtime();
     let hs = m.hidden_size;
     let li = (0..m.num_layers)
