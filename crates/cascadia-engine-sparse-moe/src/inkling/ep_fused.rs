@@ -633,6 +633,64 @@ mod tests {
         assert!(meta.validate(&model, 2, &[0, 7]).is_err());
     }
 
+    /// The tiny committed manifest, dimensioned to match `fixture()`'s shard.
+    fn fixture_model() -> InklingManifest {
+        let mut model: InklingManifest = serde_json::from_str(include_str!(
+            "../../tests/fixtures/inkling_export/manifest.json"
+        ))
+        .unwrap();
+        model.hidden_size = 2;
+        model.moe_intermediate = 2;
+        model.num_experts = 7;
+        model.n_shared_experts = 2;
+        model.top_k = 2;
+        model
+    }
+
+    #[test]
+    fn validate_rejects_each_malformed_shard_field() {
+        let model = fixture_model();
+        let owned = vec![0usize, 3, 8];
+        let (base, _, _) = fixture();
+        // Baseline shard is accepted; k == 1 is the other accepted arity.
+        assert!(base.validate(&model, 2, &owned).is_ok());
+        let mut m = base.clone();
+        m.k = 1;
+        assert!(m.validate(&model, 2, &owned).is_ok());
+
+        // Each of these perturbs exactly one guard and must be rejected.
+        let reject = |mutate: &dyn Fn(&mut FusedShardManifest), owned: &[usize]| {
+            let mut m = base.clone();
+            mutate(&mut m);
+            assert!(
+                m.validate(&model, 2, owned).is_err(),
+                "expected rejection but validate accepted the shard"
+            );
+        };
+        reject(&|m| m.version = 2, &owned); // v2 needs exponent 1..=8, has 0
+        reject(&|m| m.up_scale_exponent = 1, &owned); // v1 needs exponent 0
+        reject(
+            &|m| {
+                m.version = 2;
+                m.up_scale_exponent = 9;
+            },
+            &owned,
+        );
+        reject(&|m| m.layer = 3, &owned); // wrong layer
+        reject(&|m| m.hidden_size = 3, &owned); // hidden mismatch
+        reject(&|m| m.moe_intermediate = 3, &owned); // intermediate mismatch
+        reject(&|m| m.k = 3, &owned); // neither 1 nor top_k + n_shared
+        reject(&|m| m.expert_ids = vec![3, 0, 8], &owned); // expert_ids unsorted
+        reject(&|m| m.expert_ids = vec![0, 3, 9], &[0, 3, 9]); // id >= num_experts + n_shared
+        reject(&|m| m.padded_experts = 3, &owned); // must exceed expert_ids.len()
+        reject(&|m| m.ir_bytes = 0, &owned); // zero-length IR
+
+        // Ownership-shaped rejections (base shard, varied `owned`).
+        assert!(base.validate(&model, 2, &[8, 3, 0]).is_err()); // owned unsorted
+        assert!(base.validate(&model, 2, &[0, 3]).is_err()); // owned != expert_ids
+        assert!(base.validate(&model, 2, &[]).is_err()); // owned empty
+    }
+
     #[test]
     fn malformed_or_unowned_routes_are_rejected_before_gpu_execution() {
         let (meta, body, weights) = fixture();
