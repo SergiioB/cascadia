@@ -227,6 +227,7 @@ impl ExpertCache {
         let mut state = self.0.lock().unwrap_or_else(|e| e.into_inner());
         if bytes.as_slice().is_empty()
             || size > state.stats.capacity_bytes
+            || expert >= state.frequency.len()
             || state.frequency[expert] == 0
             || state.entries.iter().any(|e| e.expert == expert)
         {
@@ -297,6 +298,23 @@ mod tests {
         cache.retain(0, &mut ReadBuffer::default());
         cache.retain(0, &mut bytes(17, 64));
         assert_eq!(cache.stats().retained_bytes, 0);
+    }
+
+    #[test]
+    fn retain_declines_out_of_range_expert_ids_without_panicking() {
+        let cache = ExpertCache::new(2, 32);
+        drop(cache.lookup(&[0, 1]));
+        // An id at or beyond n_routed (a router/n_routed divergence, or a
+        // future gate emitting shared-expert ids) must be declined like the
+        // prediction siblings skip it, never used to index frequency/last.
+        cache.retain(2, &mut bytes(17, 32));
+        cache.retain(9, &mut bytes(93, 32));
+        assert_eq!(cache.stats().retained_bytes, 0);
+        assert_eq!(cache.stats().admissions, 0);
+        // A valid id still admits, proving the guard did not close the path.
+        cache.retain(0, &mut bytes(61, 32));
+        assert_eq!(cache.stats().retained_bytes, 32);
+        assert_eq!(cache.stats().admissions, 1);
     }
 
     #[test]
