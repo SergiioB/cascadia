@@ -1,5 +1,8 @@
-//! Optional model-owned packed routed-weight cache. Admission uses past routing
-//! frequency only. Entries are immutable while leased; no lock covers I/O or GEMV.
+//! Optional model-owned packed routed-weight cache. Admission is driven mainly
+//! by past routing frequency, with recency (last-seen request) breaking
+//! frequency ties on eviction and an opt-in recency-admission mode
+//! (`CASCADIA_INKLING_CACHE_RECENT_TIES`) that admits on a frequency tie.
+//! Entries are immutable while leased; no lock covers I/O or GEMV.
 use std::sync::{Arc, Mutex};
 
 use super::read_buffers::ReadBuffer;
