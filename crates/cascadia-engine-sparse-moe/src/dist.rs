@@ -1648,11 +1648,12 @@ pub async fn send_expert_result_ok(
     Ok(())
 }
 
-/// Losslessly encode an expert reply as FP16 * 2^exponent (status 2),
-/// falling back to the original F32 frame if any value cannot round-trip.
-/// Every f32 bit, including signed zero, is checked BEFORE anything is sent.
-/// Older clients reject status 2; enable only after upgrading all peers.
-/// Returns true when the compact frame was sent.
+/// Losslessly encode an expert reply as FP16 * 2^exponent (status 2), falling
+/// back to the original F32 frame for any finite value f16 cannot represent
+/// exactly (checked bit for bit, signed zero included, BEFORE anything is
+/// sent). A nonfinite value, wrong length, or exponent > 8 is a hard error,
+/// not a fallback. Older clients reject status 2; enable only after upgrading
+/// all peers. Returns true when the compact frame was sent.
 pub async fn send_expert_result_lossless(
     srv: &Mutex<ActivationServer>,
     rows: u32,
