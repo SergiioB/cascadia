@@ -346,7 +346,17 @@ impl OvExperts {
                 self.fallbacks.fetch_add(1, Ordering::Relaxed);
                 return None;
             }
-            let (_, _, bytes) = rt.output(0).ok()?;
+            let bytes = match rt.output(0) {
+                Ok((_, _, bytes)) => bytes,
+                Err(e) => {
+                    // Device-side output read failed: fall back for this call,
+                    // counted and on stderr so the bench sees it (the bench
+                    // examples run without a tracing subscriber).
+                    eprintln!("[inkling] OV expert layer {lid} expert {eid} call failed: output {e}");
+                    self.fallbacks.fetch_add(1, Ordering::Relaxed);
+                    return None;
+                }
+            };
             bytes
                 .chunks_exact(4)
                 .map(|c| to_bf16(f32::from_le_bytes([c[0], c[1], c[2], c[3]])))
@@ -404,6 +414,11 @@ impl OvExperts {
                 "inkling OV expert offload disabled: resource exhaustion ({why}); \
                  all experts now on the Rust int4 kernel"
             );
+            eprintln!(
+                "[inkling] OV expert offload disabled on {}: resource exhaustion ({why}); \
+                 all experts now on the Rust int4 kernel",
+                self.device
+            );
             self.cache.lock().expect("OV expert cache lock").clear();
         }
     }
@@ -414,6 +429,10 @@ impl OvExperts {
                 layer = key.0,
                 expert = key.1,
                 "inkling OV expert IR unusable ({why}); Rust int4 kernel for this expert"
+            );
+            eprintln!(
+                "[inkling] OV expert layer {} expert {} unusable: {why}",
+                key.0, key.1
             );
         }
     }
