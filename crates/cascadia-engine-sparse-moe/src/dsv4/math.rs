@@ -421,6 +421,12 @@ pub fn linear_bf16_w(x: &[f32], w: &[u16], out_dim: usize, in_dim: usize, y: &mu
     assert_eq!(x.len(), in_dim);
     assert_eq!(w.len(), out_dim * in_dim);
     assert_eq!(y.len(), out_dim);
+    // The optional row tiling below runs `bf16_rows_avx2` on full tiles and
+    // `dot_bf16w` on the remainder, so it stays bit-identical to the untiled
+    // path only while `dot_bf16w` has no AVX-512 variant (it does not today —
+    // only scalar and AVX2). The int4 tiled path excludes AVX-512 hosts for
+    // exactly this reason (see `expert_mmap::gemv_on`); mirror that exclusion
+    // here if a `dot_bf16w_avx512` is ever added.
     #[cfg(target_arch = "x86_64")]
     if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
         use std::sync::OnceLock;
