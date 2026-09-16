@@ -848,6 +848,106 @@ fn two_workers_one_fails_a_dispatch_but_the_survivor_stays_frame_aligned() {
     }
 }
 
+/// Generalizes the frame-alignment invariant to THREE workers with TWO
+/// survivors and one failure in the same dispatch. `join_all` must drain BOTH
+/// surviving replies (workers 0 and 1), not just the first — otherwise the
+/// next dispatch reads a stale reply off whichever survivor was left unread.
+#[test]
+fn three_workers_one_fails_and_both_survivors_stay_frame_aligned() {
+    let dir = export_dir();
+    let m = read_manifest(&dir).expect("checked-in inkling_export manifest");
+    let rt = runtime();
+    let hs = m.hidden_size;
+    let li = (0..m.num_layers)
+        .find(|li| !m.dense_layers.contains(li))
+        .expect("a MoE layer");
+
+    // EpClient derives W=3, so expert_home(id, 3) = id % 3. Workers 0 and 1 are
+    // honest shards 0 and 1 of 3. Worker 2 is loaded as shard 2 of *6* (owns
+    // id % 6 == 2), so an id with id % 3 == 2 and id % 6 == 5 homes to worker 2
+    // under W=3 yet it does NOT own it — worker 2 fails a dispatch that workers
+    // 0 and 1 both serve.
+    let w0 = load_expert_bank(&dir, 0, 3, ExpertsMode::Eager).unwrap();
+    let w1 = load_expert_bank(&dir, 1, 3, ExpertsMode::Eager).unwrap();
+    let w2 = load_expert_bank(&dir, 2, 6, ExpertsMode::Eager).unwrap();
+    let (owned0, owned1, owned2) = (w0.owned_ids(li), w1.owned_ids(li), w2.owned_ids(li));
+    let (clients, threads) = spawn_workers(&rt, vec![w0, w1, w2]);
+    let ep = EpClient::new(
+        clients.clone(),
+        rt.handle().clone(),
+        hs,
+        m.num_experts,
+        m.n_shared_experts,
+    );
+    assert_eq!(ep.n_workers(), 3);
+
+    let x: Vec<f32> = (0..hs).map(|i| ((i * 7 % 13) as f32 - 6.0) * 0.1).collect();
+    let a = *owned0
+        .iter()
+        .find(|&&id| id % 3 == 0)
+        .expect("an id worker 0 owns");
+    let b = *owned1
+        .iter()
+        .find(|&&id| id % 3 == 1)
+        .expect("an id worker 1 owns");
+    let bad = (0..m.num_experts)
+        .find(|id| id % 3 == 2 && id % 6 == 5)
+        .expect("an id homing to worker 2 that shard-2-of-6 does not own");
+    assert!(!owned2.contains(&bad));
+
+    // Workers 0 and 1 succeed, worker 2 fails: the dispatch errors naming worker 2.
+    let err = ep
+        .dispatch(li as u32, &x, &[vec![(a, 0.5), (b, 0.25), (bad, 0.125)]])
+        .expect_err("worker 2 cannot serve the id");
+    assert!(
+        err.contains("expert worker 2") && err.contains(&format!("does not own expert {bad}")),
+        "error must name worker 2 and carry its message: {err}"
+    );
+
+    // Both survivors stayed frame aligned: a fully-owned dispatch across all
+    // three workers is bit-identical to local accumulation. If either worker 0
+    // or worker 1 had left its earlier reply in the socket, this would read it
+    // as the new result and mismatch.
+    let c = *owned2
+        .iter()
+        .find(|&&id| id % 3 == 2)
+        .expect("an id worker 2 owns");
+    let per_row: Vec<(usize, f32)> = vec![(a, 0.5), (b, 0.25), (c, 0.125)];
+    let got = ep
+        .dispatch(li as u32, &x, std::slice::from_ref(&per_row))
+        .expect("all three workers serve the second dispatch");
+    let b0 = load_expert_bank(&dir, 0, 3, ExpertsMode::Eager).unwrap();
+    let b1 = load_expert_bank(&dir, 1, 3, ExpertsMode::Eager).unwrap();
+    let b2 = load_expert_bank(&dir, 2, 6, ExpertsMode::Eager).unwrap();
+    let mut want = vec![0.0f32; hs];
+    for &(id, w) in &per_row {
+        let bank = match id % 3 {
+            0 => &b0,
+            1 => &b1,
+            _ => &b2,
+        };
+        let y = bank
+            .expert(li, id)
+            .unwrap()
+            .forward(&x, hs, m.moe_intermediate);
+        for (o, &yi) in want.iter_mut().zip(&y) {
+            *o += w * yi;
+        }
+    }
+    assert_eq!(
+        got, want,
+        "post-failure dispatch must be bit-identical to local accumulation"
+    );
+    assert!(want.iter().any(|&v| v != 0.0));
+
+    drop(ep);
+    close_all(&rt, &clients);
+    for (wi, t) in threads.into_iter().enumerate() {
+        let frames = t.join().expect("worker thread");
+        assert!(frames > 0, "worker {wi} served no frames");
+    }
+}
+
 #[test]
 fn fused_wire_preserves_weights_compacts_rows_and_sums_partials() {
     fused_wire_case(3);
