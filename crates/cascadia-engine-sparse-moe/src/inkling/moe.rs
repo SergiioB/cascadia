@@ -351,8 +351,16 @@ impl MoeLayer {
     }
 
     /// Compile this layer's fused IR ahead of time; `None` without a backend.
+    /// A fused IR whose `k_total` disagrees with this layer's `top_k + n_shared`
+    /// can never serve it (`forward_ov_moe` would decline every token), so it is
+    /// reported FAILED here rather than warmed "ok" and never actually used.
     pub fn warm_ov_moe(&self) -> Option<bool> {
         let (lid, ov) = self.ov_moe.as_ref()?;
+        let k = self.top_k + self.w.shared.len();
+        if ov.k_total() != k {
+            ov.mark_k_mismatch(*lid, k);
+            return Some(false);
+        }
         Some(ov.warm(*lid))
     }
 
@@ -363,6 +371,9 @@ impl MoeLayer {
         let (lid, ov) = self.ov_moe.as_ref()?;
         let k = self.top_k + self.w.shared.len();
         if ov.k_total() != k {
+            // A K mismatch is a permanent per-layer defect of the IR: count the
+            // bypass and report it once, so it is never a silent fall-through.
+            ov.note_k_mismatch(*lid, k);
             return None;
         }
         let mut ids = Vec::with_capacity(rows * k);

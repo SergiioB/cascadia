@@ -487,6 +487,28 @@ impl OvMoe {
         }
     }
 
+    /// The compiled fused IR for `lid` sums `k_total` experts per row, but the
+    /// layer routes `layer_k` (`top_k + n_shared`): the IR can never serve this
+    /// layer, so latch it unusable — it then shows in [`Self::failed_layers`],
+    /// so `--warm-ov` reports it FAILED — and report it once, like any bad IR.
+    pub fn mark_k_mismatch(&self, lid: u32, layer_k: usize) {
+        self.mark_failed(
+            lid,
+            &format!(
+                "IR k_total {} != layer top_k+n_shared {layer_k}",
+                self.k_total
+            ),
+        );
+    }
+
+    /// A token hit a layer whose fused IR's K disagrees with the layer's
+    /// (see [`Self::mark_k_mismatch`]): count the bypass as a fallback so the
+    /// benchmark read-out cannot understate it, and latch + report it once.
+    pub fn note_k_mismatch(&self, lid: u32, layer_k: usize) {
+        self.fallbacks.fetch_add(1, Ordering::Relaxed);
+        self.mark_k_mismatch(lid, layer_k);
+    }
+
     pub fn failed_layers(&self) -> Vec<u32> {
         let mut v: Vec<u32> = self.failed.lock().unwrap().iter().copied().collect();
         v.sort_unstable();
