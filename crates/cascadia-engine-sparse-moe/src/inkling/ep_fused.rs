@@ -11,6 +11,7 @@ use std::{
 };
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FusedShardManifest {
     pub version: u32,
     pub layer: u32,
