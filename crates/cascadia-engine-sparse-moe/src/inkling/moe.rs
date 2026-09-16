@@ -64,6 +64,47 @@ pub(crate) fn seq_reads() -> bool {
     *E.get_or_init(|| env_flag("CASCADIA_INKLING_SEQ_READS"))
 }
 
+/// Retain a bounded pool of bulk-read destination buffers across layers/tokens.
+/// Default off; direct mapped execution takes precedence over this option.
+fn reuse_read_buffers() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_REUSE_READ_BUFFERS"))
+}
+
+/// Opt-in overlap of each selected expert's read and compute. Requires the
+/// reusable-buffer path and parallel experts; defaults remain unchanged.
+fn pipeline_reads() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_PIPELINE_READS"))
+}
+
+/// Optional bounded bulk reads for each prefill expert's complete row group.
+/// Uses the same kernels and requires the reusable bulk-read configuration.
+fn prefill_reads() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_PREFILL_READS"))
+        && reuse_read_buffers()
+        && !seq_reads()
+}
+
+static PIPELINED_LAYERS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Number of decode layer calls that actually used overlapped reads/compute.
+pub fn pipeline_read_layer_count() -> u64 {
+    PIPELINED_LAYERS.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Skip the serial hint phase before bulk decode reads. Prefill and direct
+/// mapped execution retain their hints. This measured alternative is opt-in.
+fn skip_bulk_prefetch() -> bool {
+    use std::sync::OnceLock;
+    static E: OnceLock<bool> = OnceLock::new();
+    *E.get_or_init(|| env_flag("CASCADIA_INKLING_SKIP_BULK_PREFETCH"))
+}
+
 /// `CASCADIA_INKLING_SERIAL_EXPERTS`: run a token's selected experts one
 /// after another (each GEMV row-parallel on its own) instead of
 /// concurrently. Same values either way; only the schedule differs. Read
@@ -92,6 +133,10 @@ pub struct MoeWeights {
     pub shared: Vec<AnyExpert>,
 }
 
+/// Optional diagnostic callback. Observers receive the completed routing result;
+/// they must not change the floating-point environment or perform blocking I/O.
+pub type RouteObserver = Arc<dyn Fn(&GateOut) + Send + Sync>;
+
 pub struct MoeLayer {
     pub hidden: usize,
     pub n_routed: usize,
@@ -104,9 +149,72 @@ pub struct MoeLayer {
     /// Expert-parallel dispatch: `(absolute layer index, client)`. When set,
     /// every expert evaluation goes to the workers ([`Self::forward_remote`]).
     remote: Option<(u32, Arc<EpClient>)>,
+    route_observer: Option<RouteObserver>,
+    expert_cache: super::expert_cache::ExpertCache,
 }
 
 impl MoeLayer {
+    pub fn expert_cache_stats(&self) -> super::ExpertCacheStats {
+        self.expert_cache.stats()
+    }
+
+    pub(super) fn prediction_reads_enabled(&self) -> bool {
+        use std::sync::OnceLock;
+        static ENABLED: OnceLock<bool> = OnceLock::new();
+        *ENABLED.get_or_init(|| env_flag("CASCADIA_INKLING_PREDICT_READS"))
+            && self.remote.is_none()
+            && self.has_local_experts()
+            && self.expert_cache.stats().capacity_bytes > 0
+    }
+
+    pub(super) fn start_predicted_read(
+        &self,
+        prediction: &GateOut,
+    ) -> Option<super::predicted_read::PendingReadGroup> {
+        if !self.prediction_reads_enabled() {
+            return None;
+        }
+        let selected = if super::predicted_read::second_reads_requested() {
+            self.expert_cache.predicted_uncached(
+                &prediction.idx,
+                super::predicted_read::second_prediction_rank_ceiling(),
+                super::predicted_read::third_reads_requested(),
+            )
+        } else {
+            [
+                self.expert_cache.first_uncached(&prediction.idx),
+                None,
+                None,
+            ]
+        };
+        let first = selected[0].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        let second = selected[1].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start_second(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        let third = selected[2].and_then(|expert| {
+            let mapped = self.w.experts[expert].as_mmap()?;
+            super::predicted_read::start_third(expert, mapped.bin_path(), mapped.bin_len())
+        });
+        super::predicted_read::PendingReadGroup::new(first, second, third)
+    }
+
+    pub(crate) fn reset_expert_cache_history(&self) {
+        use std::sync::OnceLock;
+        static ENABLED: OnceLock<bool> = OnceLock::new();
+        if *ENABLED.get_or_init(|| env_flag("CASCADIA_INKLING_CACHE_RESET_HISTORY")) {
+            self.expert_cache.reset_history();
+        }
+    }
+
+    /// Owned packed shared-expert bytes, excluding routed experts and scratch.
+    pub fn owned_shared_bytes(&self) -> usize {
+        self.w.shared.iter().map(AnyExpert::owned_int4_bytes).sum()
+    }
+
     /// Rows per batch-union block (bounds the per-block expert-output scratch
     /// `ROW_BLOCK · top_k · hidden` f32; correctness is independent of it).
     const ROW_BLOCK: usize = 128;
@@ -145,6 +253,12 @@ impl MoeLayer {
                 w.shared.len()
             );
         }
+        let cache_bytes =
+            if local && pipeline_reads() && reuse_read_buffers() && !seq_reads() && par_experts() {
+                super::expert_cache::ExpertCache::configured_bytes()
+            } else {
+                0
+            };
         Self {
             hidden,
             n_routed,
@@ -154,6 +268,8 @@ impl MoeLayer {
             route_scale,
             w,
             remote: None,
+            route_observer: None,
+            expert_cache: super::expert_cache::ExpertCache::new(n_routed, cache_bytes),
         }
     }
 
@@ -161,6 +277,12 @@ impl MoeLayer {
     /// for a router-only layer built with `ExpertSet::None`.
     pub fn has_local_experts(&self) -> bool {
         !self.w.experts.is_empty()
+    }
+
+    /// Install or remove an opt-in observer for routing diagnostics. Defaults off.
+    /// Direct calls to `route` are observed as well as prefill/decode dispatch.
+    pub fn set_route_observer(&mut self, observer: Option<RouteObserver>) {
+        self.route_observer = observer;
     }
 
     /// Dispatch every expert evaluation of this layer to the expert workers
@@ -240,6 +362,16 @@ impl MoeLayer {
     /// Route one token: router GEMV (f32) + [`inkling_gate`]. No expert
     /// compute — also the prediction hook for prefetch.
     pub fn route(&self, x: &[f32]) -> GateOut {
+        let gate = self.route_unobserved(x);
+        if let Some(observer) = &self.route_observer {
+            observer(&gate);
+        }
+        gate
+    }
+
+    /// Evaluate the router without reporting an actual expert selection or
+    /// touching cache history. Used only by opt-in prediction diagnostics.
+    pub(crate) fn route_unobserved(&self, x: &[f32]) -> GateOut {
         assert_eq!(x.len(), self.hidden, "moe route: x len");
         let n_total = self.n_routed + self.n_shared;
         let mut logits = vec![0.0f32; n_total];
@@ -258,6 +390,14 @@ impl MoeLayer {
     /// `[hidden]`. Routed experts accumulate in gate order, then the shared
     /// experts — the order [`Self::forward_batch`] reproduces per row.
     pub fn forward(&self, x: &[f32]) -> Vec<f32> {
+        self.forward_with_prediction(x, None)
+    }
+
+    pub(super) fn forward_with_prediction(
+        &self,
+        x: &[f32],
+        prediction: Option<super::predicted_read::PendingReadGroup>,
+    ) -> Vec<f32> {
         if self.remote.is_some() {
             return self.forward_remote(x, 1);
         }
@@ -276,15 +416,102 @@ impl MoeLayer {
             .collect();
         let weights = gate.w.iter().chain(gate.gammas.iter());
         // Kick the OS read-ahead for all of them before any compute.
-        for e in &sel {
-            e.prefetch();
+        if seq_reads() || !skip_bulk_prefetch() {
+            for e in &sel {
+                e.prefetch();
+            }
         }
         // Overlapped reads: an mmap'd expert that is paged out is streamed
         // whole, concurrently with the others, into an owned buffer its GEMV
-        // then runs from (bit-identical to the mmap). One already resident
-        // is computed straight off the mapping — the copy would only cost.
-        let bufs: Vec<Option<Vec<u8>>> =
-            if !seq_reads() && sel.iter().any(|e| e.as_mmap().is_some()) {
+        // then runs from (bit-identical to the mmap). On the non-cache path an
+        // already-resident expert is computed straight off the mapping — the
+        // copy would only cost. The explicit-cache branch below deliberately
+        // reads resident experts too, to admit valid bytes (documented there).
+        let bulk_read = !seq_reads() && sel.iter().any(|e| e.as_mmap().is_some());
+        let mut reused = (bulk_read && reuse_read_buffers())
+            .then(|| super::read_buffers::ReadBuffers::acquire(sel.len()));
+        let ys: Vec<Vec<f32>> = if pipeline_reads() && par_experts() && reused.is_some() {
+            use rayon::prelude::*;
+            PIPELINED_LAYERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let hits = self.expert_cache.lookup(&gate.idx);
+            // A buffer stays exclusively borrowed through both the read and
+            // its kernel. Ready experts can compute while other reads finish;
+            // indexed collection still preserves gate accumulation order.
+            let completed: Vec<(Vec<f32>, bool)> = sel
+                .par_iter()
+                .enumerate()
+                .zip(reused.as_mut().unwrap().buffers.par_iter_mut())
+                .map(|((index, expert), bytes)| {
+                    if let Some(mapped) = expert.as_mmap() {
+                        if let Some(Some(hit)) = hits.as_ref().and_then(|h| h.get(index)) {
+                            return (mapped.swiglu_from(hit.as_slice(), x), false);
+                        }
+                        if let (Some(pending), Some(&expert)) = (&prediction, gate.idx.get(index)) {
+                            if pending.take_for(expert, bytes) {
+                                return (mapped.swiglu_from(bytes.as_slice(), x), true);
+                            }
+                        }
+                        // With the explicit cache enabled, misses get a complete
+                        // read even if OS sampling reports a resident mapping.
+                        // This gives admission valid bytes and a measurable I/O
+                        // cost; shared owned experts never enter the cache.
+                        if hits.is_some() || !mapped.mostly_resident() {
+                            match bytes.read(mapped.bin_path(), mapped.bin_len()) {
+                                Ok(()) => {
+                                    return (mapped.swiglu_from(bytes.as_slice(), x), true)
+                                }
+                                Err(err) => tracing::warn!(
+                                    slot = index,
+                                    bin = %mapped.bin_path().display(),
+                                    "inkling decode expert read failed; using mmap compute fallback: {err}"
+                                ),
+                            }
+                        }
+                    }
+                    (expert.forward(x, self.hidden, self.inter), false)
+                })
+                .collect();
+            let caching = hits.is_some();
+            drop(hits);
+            if caching {
+                // Retain in gate order after all compute, independent of the
+                // parallel I/O schedule. Failed reads and hits are never admitted
+                // from a scratch buffer left over from a different expert.
+                for (index, &expert) in gate.idx.iter().enumerate() {
+                    if completed[index].1 {
+                        self.expert_cache
+                            .retain(expert, &mut reused.as_mut().unwrap().buffers[index]);
+                    }
+                }
+            }
+            completed.into_iter().map(|(y, _)| y).collect()
+        } else {
+            let ready: Vec<bool> = if let Some(reused) = &mut reused {
+                use rayon::prelude::*;
+                sel.par_iter()
+                    .enumerate()
+                    .zip(reused.buffers.par_iter_mut())
+                    .map(|((slot, e), bytes)| {
+                        let Some(m) = e.as_mmap().filter(|m| !m.mostly_resident()) else {
+                            return false;
+                        };
+                        match bytes.read(m.bin_path(), m.bin_len()) {
+                            Ok(()) => true,
+                            Err(err) => {
+                                tracing::warn!(
+                                    slot,
+                                    bin = %m.bin_path().display(),
+                                    "inkling decode expert read failed; using mmap compute fallback: {err}"
+                                );
+                                false
+                            }
+                        }
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            let bufs: Vec<Option<Vec<u8>>> = if bulk_read && reused.is_none() {
                 use rayon::prelude::*;
                 sel.par_iter()
                     .map(|e| {
@@ -296,19 +523,27 @@ impl MoeLayer {
             } else {
                 vec![None; sel.len()]
             };
-        // The selected experts' FFNs run concurrently (each GEMV is itself
-        // row-parallel; rayon's work stealing nests them). Every y_j is the
-        // same value the serial loop produced, and the accumulation below
-        // keeps gate order, so the result is bit-identical.
-        let ffn = |(e, buf): (&&AnyExpert, &Option<Vec<u8>>)| match (buf, e.as_mmap()) {
-            (Some(b), Some(m)) => m.swiglu_from(b, x),
-            _ => e.forward(x, self.hidden, self.inter),
-        };
-        let ys: Vec<Vec<f32>> = if par_experts() {
-            use rayon::prelude::*;
-            sel.par_iter().zip(bufs.par_iter()).map(ffn).collect()
-        } else {
-            sel.iter().zip(bufs.iter()).map(ffn).collect()
+            // The selected experts' FFNs run concurrently (each GEMV is itself
+            // row-parallel; rayon's work stealing nests them). Every y_j is the
+            // same value the serial loop produced, and the accumulation below
+            // keeps gate order, so the result is bit-identical.
+            let ffn = |(index, e): (usize, &&AnyExpert)| {
+                let buf = match &reused {
+                    Some(reused) if ready[index] => Some(reused.buffers[index].as_slice()),
+                    Some(_) => None,
+                    None => bufs[index].as_deref(),
+                };
+                match (buf, e.as_mmap()) {
+                    (Some(b), Some(m)) => m.swiglu_from(b, x),
+                    _ => e.forward(x, self.hidden, self.inter),
+                }
+            };
+            if par_experts() {
+                use rayon::prelude::*;
+                sel.par_iter().enumerate().map(ffn).collect()
+            } else {
+                sel.iter().enumerate().map(ffn).collect()
+            }
         };
         let mut out = vec![0.0f32; self.hidden];
         for (y, &wj) in ys.iter().zip(weights) {
@@ -346,6 +581,17 @@ impl MoeLayer {
     }
 
     fn forward_block(&self, xs: &[f32], lo: usize, hi: usize, out: &mut [f32]) {
+        self.forward_block_with_reads(xs, lo, hi, out, prefill_reads());
+    }
+
+    fn forward_block_with_reads(
+        &self,
+        xs: &[f32],
+        lo: usize,
+        hi: usize,
+        out: &mut [f32],
+        streamed: bool,
+    ) {
         let (hidden, k) = (self.hidden, self.top_k);
         let nblk = hi - lo;
 
@@ -368,7 +614,7 @@ impl MoeLayer {
         // 2. Read-ahead for every expert this block touches (routed with
         //    rows, plus the shared pair), so the expert pass overlaps its I/O.
         for (e, slots) in occ.iter().enumerate() {
-            if !slots.is_empty() {
+            if !streamed && !slots.is_empty() {
                 self.w.experts[e].prefetch();
             }
         }
@@ -381,15 +627,61 @@ impl MoeLayer {
         //    mmap'd expert's int4 pages are still faulted in once.
         let mut ey = vec![0.0f32; nblk * k * hidden];
         let visit = |(e, slots): (usize, &Vec<usize>)| {
+            let mapped = self.w.experts[e].as_mmap();
+            let mut lease = (streamed && mapped.is_some())
+                .then(|| super::read_buffers::ReadBuffers::acquire(1));
+            let ready = match (mapped, lease.as_mut()) {
+                (Some(mapped), Some(lease)) => {
+                    match lease.buffers[0].read_prefill(mapped.bin_path(), mapped.bin_len()) {
+                        Ok(()) => true,
+                        Err(err) => {
+                            tracing::warn!(
+                                expert = e,
+                                bin = %mapped.bin_path().display(),
+                                "inkling prefill expert read failed; using mmap compute fallback: {err}"
+                            );
+                            false
+                        }
+                    }
+                }
+                _ => false,
+            };
             let mut ys = Vec::with_capacity(slots.len() * hidden);
             for &s in slots {
                 let br = s / k;
                 let x = &xs[(lo + br) * hidden..(lo + br + 1) * hidden];
-                ys.extend_from_slice(&self.w.experts[e].forward(x, hidden, self.inter));
+                let y = if ready {
+                    mapped
+                        .unwrap()
+                        .swiglu_from(lease.as_ref().unwrap().buffers[0].as_slice(), x)
+                } else {
+                    self.w.experts[e].forward(x, hidden, self.inter)
+                };
+                ys.extend_from_slice(&y);
             }
             (e, ys)
         };
-        let visits: Vec<(usize, Vec<f32>)> = if par_experts() {
+        let visits: Vec<(usize, Vec<f32>)> = if streamed {
+            // Nested Rayon GEMVs can suspend an outer expert task while its
+            // buffer remains live. Fixed cohorts bound that retention to eight
+            // experts, regardless of work-stealing order or prompt routing.
+            let active: Vec<_> = occ
+                .iter()
+                .enumerate()
+                .filter(|(_, slots)| !slots.is_empty())
+                .collect();
+            let mut visits = Vec::with_capacity(active.len());
+            for cohort in active.chunks(8) {
+                let completed: Vec<_> = if par_experts() {
+                    use rayon::prelude::*;
+                    cohort.par_iter().copied().map(visit).collect()
+                } else {
+                    cohort.iter().copied().map(visit).collect()
+                };
+                visits.extend(completed);
+            }
+            visits
+        } else if par_experts() {
             use rayon::prelude::*;
             occ.par_iter()
                 .enumerate()
@@ -469,5 +761,56 @@ impl DenseMlp {
             *v *= self.global_scale;
         }
         y
+    }
+}
+
+#[cfg(test)]
+mod prefill_read_tests {
+    use super::*;
+
+    #[test]
+    fn streamed_prefill_preserves_real_int4_bits_across_multiple_cohorts() {
+        use crate::dsv4::expert_mmap::MmapExpert;
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/inkling_export/experts/layer_01");
+        let mut router_w = vec![0.0; 16 * 64];
+        for expert in 0..16 {
+            router_w[expert * 64 + expert] = 2.0;
+        }
+        let weights = MoeWeights {
+            router_w,
+            router_bias: vec![0.0; 16],
+            global_scale: 1.0,
+            experts: (0..16)
+                .map(|expert| {
+                    AnyExpert::Mmap(
+                        MmapExpert::open(
+                            &directory.join(format!("expert_{:03}.bin", expert % 8)),
+                            64,
+                            32,
+                        )
+                        .unwrap(),
+                    )
+                })
+                .collect(),
+            shared: vec![],
+        };
+        let layer = MoeLayer::new(64, 32, 1, 1.0, weights);
+        let mut xs = vec![0.0; 17 * 64];
+        for row in 0..17 {
+            xs[row * 64 + row % 16] = 4.0;
+            assert_eq!(
+                layer.route(&xs[row * 64..(row + 1) * 64]).idx,
+                vec![row % 16]
+            );
+        }
+        let mut expected = vec![0.0; xs.len()];
+        let mut actual = vec![0.0; xs.len()];
+        layer.forward_block_with_reads(&xs, 0, 17, &mut expected, false);
+        layer.forward_block_with_reads(&xs, 0, 17, &mut actual, true);
+        assert_eq!(
+            actual.iter().map(|x| x.to_bits()).collect::<Vec<_>>(),
+            expected.iter().map(|x| x.to_bits()).collect::<Vec<_>>()
+        );
     }
 }

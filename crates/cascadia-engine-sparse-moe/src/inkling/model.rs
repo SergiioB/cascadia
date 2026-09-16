@@ -15,6 +15,9 @@
 //! layer's KV cache + conv histories. Pipeline-parallel sharding is layered
 //! on at the stage level over [`Layer`]s.
 
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
 use super::attn::{AttentionLayer, AttnKv};
 use super::conv::{ConvState, ShortConv};
 use super::moe::{DenseMlp, MoeLayer};
@@ -28,6 +31,22 @@ pub enum LayerMlp {
     Moe(MoeLayer),
 }
 
+/// Optional diagnostic measurements. Branch durations include norms, residuals
+/// and short convolutions; observer overhead is outside `total`.
+#[derive(Debug, Clone, Copy)]
+pub struct LayerTiming {
+    pub rows: usize,
+    pub prefill: bool,
+    pub attention: Duration,
+    pub mlp: Duration,
+    pub total: Duration,
+}
+
+pub type LayerTimingObserver = Arc<dyn Fn(LayerTiming) + Send + Sync>;
+
+/// Target layer index and its predicted gate, evaluated before its predecessor.
+pub type PreviousLayerRouteObserver = Arc<dyn Fn(usize, &super::gate::GateOut) + Send + Sync>;
+
 pub struct Layer {
     pub hidden: usize,
     pub eps: f32,
@@ -37,6 +56,8 @@ pub struct Layer {
     mlp_norm: Vec<f32>,    // `mlp_norm.weight` [hidden]
     mlp: LayerMlp,
     mlp_sconv: ShortConv, // `mlp_sconv.weight` [hidden, K]
+    timing_observer: Option<LayerTimingObserver>,
+    pre_attention_route_observer: Option<super::moe::RouteObserver>,
 }
 
 /// One layer's complete sequence state (attention KV + k/v convs, plus the
@@ -92,6 +113,46 @@ impl Layer {
             mlp_norm,
             mlp,
             mlp_sconv,
+            timing_observer: None,
+            pre_attention_route_observer: None,
+        }
+    }
+
+    /// Install diagnostics without changing model arithmetic. Defaults off;
+    /// callbacks must not change the floating-point environment or block on I/O.
+    pub fn set_timing_observer(&mut self, observer: Option<LayerTimingObserver>) {
+        self.timing_observer = observer;
+    }
+
+    /// Observe a causal decode-only route prediction from this layer's input,
+    /// before attention. Uses the existing MLP norm/router without modifying
+    /// actual routing, cache history, weights, or sequence state. Defaults off;
+    /// the callback must not block or alter the floating-point environment.
+    pub fn set_pre_attention_route_observer(
+        &mut self,
+        observer: Option<super::moe::RouteObserver>,
+    ) {
+        self.pre_attention_route_observer = observer;
+    }
+
+    fn observe_timing(
+        &self,
+        start: Option<Instant>,
+        mlp_start: Option<Instant>,
+        rows: usize,
+        prefill: bool,
+    ) {
+        if let (Some(observer), Some(start), Some(mlp_start)) =
+            (&self.timing_observer, start, mlp_start)
+        {
+            let end = Instant::now();
+            observer(LayerTiming {
+                rows,
+                prefill,
+                attention: mlp_start.duration_since(start),
+                mlp: end.duration_since(mlp_start),
+                total: end.duration_since(start),
+            });
         }
     }
 
@@ -134,6 +195,9 @@ impl Layer {
         self.attn.reset();
         self.attn_sconv.reset();
         self.mlp_sconv.reset();
+        if let Some(moe) = self.moe() {
+            moe.reset_expert_cache_history();
+        }
     }
 
     /// Roll all sequence state back to `len` positions (spec-decode reject).
@@ -162,24 +226,57 @@ impl Layer {
     /// One token at the next cached position: `x` is the residual-stream hidden
     /// `[hidden]`; returns the updated hidden.
     pub fn forward_token(&mut self, x: &[f32]) -> Vec<f32> {
+        self.forward_token_with_prediction(x, None, false)
+    }
+
+    fn forward_token_with_prediction(
+        &mut self,
+        x: &[f32],
+        supplied: Option<super::predicted_read::PendingReadGroup>,
+        skip_current_prediction: bool,
+    ) -> Vec<f32> {
+        let start = self.timing_observer.as_ref().map(|_| Instant::now());
         assert_eq!(x.len(), self.hidden, "layer forward_token: x len");
+        let pending_read = self
+            .moe()
+            .and_then(|moe| {
+                if self.pre_attention_route_observer.is_none()
+                    && (skip_current_prediction || !moe.prediction_reads_enabled())
+                {
+                    return None;
+                }
+                let mut predicted_input = x.to_vec();
+                rmsnorm_f32(&mut predicted_input, &self.mlp_norm, self.eps);
+                let prediction = moe.route_unobserved(&predicted_input);
+                if let Some(observer) = &self.pre_attention_route_observer {
+                    observer(&prediction);
+                }
+                if skip_current_prediction {
+                    None
+                } else {
+                    moe.start_predicted_read(&prediction)
+                }
+            })
+            .or(supplied);
         // x1 = x + attn_sconv(attention(rmsnorm(x, attn_norm)))
         let mut h = x.to_vec();
         rmsnorm_f32(&mut h, &self.attn_norm, self.eps);
         let a = self.attn.forward_token(&h);
         let a = self.attn_sconv.decode(&a);
         let mut x1: Vec<f32> = x.iter().zip(&a).map(|(&xi, &ai)| xi + ai).collect();
+        let mlp_start = start.map(|_| Instant::now());
         // x2 = x1 + mlp_sconv(mlp(rmsnorm(x1, mlp_norm)))
         let mut h2 = x1.clone();
         rmsnorm_f32(&mut h2, &self.mlp_norm, self.eps);
         let m = match &self.mlp {
-            LayerMlp::Moe(m) => m.forward(&h2),
+            LayerMlp::Moe(m) => m.forward_with_prediction(&h2, pending_read),
             LayerMlp::Dense(d) => d.forward(&h2, self.hidden),
         };
         let m = self.mlp_sconv.decode(&m);
         for (xi, &mi) in x1.iter_mut().zip(&m) {
             *xi += mi;
         }
+        self.observe_timing(start, mlp_start, 1, false);
         x1
     }
 
@@ -188,6 +285,7 @@ impl Layer {
     /// prefills, the MoE as one batch-union (each expert loaded once per
     /// block). Bit-identical to [`Self::forward_token`] per row.
     pub fn forward_prefill(&mut self, xs: &[f32], rows: usize) -> Vec<f32> {
+        let start = self.timing_observer.as_ref().map(|_| Instant::now());
         let hd = self.hidden;
         assert_eq!(xs.len(), rows * hd, "layer forward_prefill: xs len");
         // attention branch
@@ -196,6 +294,7 @@ impl Layer {
         let a = self.attn.forward_prefill(&h, rows);
         let a = self.attn_sconv.prefill(&a, rows);
         let mut x1: Vec<f32> = xs.iter().zip(&a).map(|(&xi, &ai)| xi + ai).collect();
+        let mlp_start = start.map(|_| Instant::now());
         // mlp branch
         let mut h2 = x1.clone();
         rmsnorm_f32(&mut h2, &self.mlp_norm, self.eps);
@@ -213,16 +312,19 @@ impl Layer {
         for (xi, &mi) in x1.iter_mut().zip(&m) {
             *xi += mi;
         }
+        self.observe_timing(start, mlp_start, rows, true);
         x1
     }
 }
 
 /// A `vocab × hidden` edge table (embedding or unembed) held as exact f32 or
 /// bf16 bits (the checkpoint dtype — lossless for bf16 weights and half the
-/// RAM). Only the edge ranks hold one.
+/// RAM), or a read-only mapped BF16 table for sparse embedding lookups.
+/// Only the edge ranks hold one.
 pub enum WideTable {
     F32(Vec<f32>),
     Bf16(Vec<u16>),
+    MappedBf16(crate::dsv4::st::MappedBf16),
 }
 
 impl WideTable {
@@ -230,6 +332,7 @@ impl WideTable {
         match self {
             WideTable::F32(v) => v.len(),
             WideTable::Bf16(v) => v.len(),
+            WideTable::MappedBf16(v) => v.as_slice().len(),
         }
     }
 
@@ -243,6 +346,10 @@ impl WideTable {
         match self {
             WideTable::F32(v) => v[r].to_vec(),
             WideTable::Bf16(v) => v[r]
+                .iter()
+                .map(|&b| f32::from_bits((b as u32) << 16))
+                .collect(),
+            WideTable::MappedBf16(v) => v.as_slice()[r]
                 .iter()
                 .map(|&b| f32::from_bits((b as u32) << 16))
                 .collect(),
@@ -266,6 +373,12 @@ impl WideTable {
             WideTable::Bf16(w) => out.par_iter_mut().enumerate().for_each(|(o, y)| {
                 *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
             }),
+            WideTable::MappedBf16(w) => {
+                let w = w.as_slice();
+                out.par_iter_mut().enumerate().for_each(|(o, y)| {
+                    *y = dot_bf16w(&w[o * hidden..(o + 1) * hidden], x);
+                });
+            }
         }
     }
 }
@@ -343,6 +456,7 @@ pub struct Model {
     embed_norm: Vec<f32>, // [hidden]
     layers: Vec<Layer>,
     head: Head,
+    previous_layer_route_observer: Option<PreviousLayerRouteObserver>,
 }
 
 impl Model {
@@ -378,6 +492,7 @@ impl Model {
             embed_norm,
             layers,
             head: Head::new(norm, unembed, eps, mup, unpadded_vocab),
+            previous_layer_route_observer: None,
         }
     }
 
@@ -397,6 +512,52 @@ impl Model {
 
     pub fn layers_mut(&mut self) -> &mut [Layer] {
         &mut self.layers
+    }
+
+    /// Decode-only diagnostics for predicting layer i from the residual entering
+    /// layer i-1, using i's existing MLP norm/router. Layer 0 has no predecessor
+    /// and is omitted. No expert read or actual route observation is performed.
+    /// Defaults off; callbacks must not block or alter floating-point state.
+    /// Observer overhead is included in model time, outside layer timing spans.
+    pub fn set_previous_layer_route_observer(
+        &mut self,
+        observer: Option<PreviousLayerRouteObserver>,
+    ) {
+        self.previous_layer_route_observer = observer;
+    }
+
+    /// Opt-in whole-model decode scheduling; local pipelined expert caching and
+    /// predicted reads must also be enabled. At most current + next are pending
+    /// in this model. Layer-only/staged execution retains current-layer reads.
+    pub fn early_prediction_reads_enabled(&self) -> bool {
+        super::predicted_read::early_reads_requested()
+            && self
+                .layers
+                .iter()
+                .filter_map(Layer::moe)
+                .any(MoeLayer::prediction_reads_enabled)
+    }
+
+    /// Whether sparse embedding lookups use file-backed BF16 rows.
+    pub fn embedding_is_mapped(&self) -> bool {
+        matches!(self.embed, WideTable::MappedBf16(_))
+    }
+
+    pub fn owned_shared_bytes(&self) -> usize {
+        self.layers
+            .iter()
+            .filter_map(Layer::moe)
+            .map(MoeLayer::owned_shared_bytes)
+            .sum()
+    }
+
+    /// Aggregate actual routed-cache storage and decode hits for this model.
+    pub fn expert_cache_stats(&self) -> super::ExpertCacheStats {
+        let mut total = super::ExpertCacheStats::default();
+        for moe in self.layers.iter().filter_map(Layer::moe) {
+            total.add(moe.expert_cache_stats());
+        }
+        total
     }
 
     /// Cached positions (every layer agrees).
@@ -460,8 +621,34 @@ impl Model {
     /// `[unpadded_vocab]` at this position and advances the caches.
     pub fn forward_token(&mut self, token: u32) -> Vec<f32> {
         let mut x = self.embed_token(token);
-        for l in &mut self.layers {
-            x = l.forward_token(&x);
+        let early = self.early_prediction_reads_enabled();
+        let mut pending_read = None;
+        for index in 0..self.layers.len() {
+            let next_read = self.layers.get(index + 1).and_then(|target| {
+                if let Some(moe) = target.moe() {
+                    if !early && self.previous_layer_route_observer.is_none() {
+                        return None;
+                    }
+                    let mut predicted_input = x.clone();
+                    rmsnorm_f32(&mut predicted_input, &target.mlp_norm, target.eps);
+                    let prediction = moe.route_unobserved(&predicted_input);
+                    if let Some(observer) = &self.previous_layer_route_observer {
+                        observer(index + 1, &prediction);
+                    }
+                    if early {
+                        return moe.start_predicted_read(&prediction);
+                    }
+                }
+                None
+            });
+            // Suppress a second prediction even when the earlier lookup found
+            // no uncached expert. Both current and future leases drain on unwind.
+            x = self.layers[index].forward_token_with_prediction(
+                &x,
+                pending_read.take(),
+                early && index > 0,
+            );
+            pending_read = next_read;
         }
         self.head_logits(&x)
     }

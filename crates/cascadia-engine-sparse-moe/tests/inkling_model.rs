@@ -729,6 +729,50 @@ fn golden_greedy_ids_match_hf_exactly() {
     assert_eq!(got, want, "greedy token mismatch");
 }
 
+#[test]
+fn timing_observers_preserve_prefill_decode_logits_and_can_be_disabled() {
+    use std::sync::{Arc, Mutex};
+    let Some(fx) = fixtures() else { return };
+    let prompt = prompt_ids(&fx);
+    let mut plain = model_from_fixture(&fx, prompt.len() + 16);
+    let mut observed = model_from_fixture(&fx, prompt.len() + 16);
+    let events = Arc::new(Mutex::new(Vec::new()));
+    for (li, layer) in observed.layers_mut().iter_mut().enumerate() {
+        let events = Arc::clone(&events);
+        layer.set_timing_observer(Some(Arc::new(move |timing| {
+            events.lock().unwrap().push((li, timing));
+        })));
+    }
+    let mut logits = plain.prefill(&prompt);
+    let bits = |xs: Vec<f32>| xs.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(bits(logits.clone()), bits(observed.prefill(&prompt)));
+    for _ in 0..4 {
+        let token = cascadia_engine_sparse_moe::inkling::model::argmax(&logits) as u32;
+        logits = plain.forward_token(token);
+        assert_eq!(bits(logits.clone()), bits(observed.forward_token(token)));
+    }
+    let captured = events.lock().unwrap();
+    assert_eq!(captured.len(), observed.layers().len() * 5);
+    for li in 0..observed.layers().len() {
+        let rows: Vec<_> = captured
+            .iter()
+            .filter(|(layer, _)| *layer == li)
+            .map(|(_, t)| t)
+            .collect();
+        assert_eq!(rows.len(), 5);
+        assert!(rows[0].prefill && rows[0].rows == prompt.len());
+        assert!(rows[1..].iter().all(|t| !t.prefill && t.rows == 1));
+        assert!(rows.iter().all(|t| t.attention + t.mlp == t.total));
+    }
+    drop(captured);
+    for layer in observed.layers_mut() {
+        layer.set_timing_observer(None);
+    }
+    let before = events.lock().unwrap().len();
+    observed.forward_token(1);
+    assert_eq!(events.lock().unwrap().len(), before);
+}
+
 /// MoE block golden: `moe_x` `[1, 64]` -> `moe_out` through the first sparse
 /// layer's (layer 1) MoE. Expert linears are bf16 write-back: rel 2e-2.
 #[test]
@@ -740,4 +784,155 @@ fn golden_moe_block_matches_hf() {
     let moe = moe_from_fixture(&fx, 1);
     let got = moe.forward(&x);
     assert_close("moe_out", &got, &want, 2e-2, 2e-2);
+}
+
+#[test]
+fn pre_attention_predictions_preserve_actual_routes_and_logits() {
+    use std::sync::{Arc, Mutex};
+    let mut plain = random_model(103);
+    let mut observed = random_model(103);
+    let expected_routes = Arc::new(Mutex::new(Vec::new()));
+    let actual_routes = Arc::new(Mutex::new(Vec::new()));
+    let order = Arc::new(Mutex::new(Vec::new()));
+    for (model, routes) in [
+        (&mut plain, &expected_routes),
+        (&mut observed, &actual_routes),
+    ] {
+        let routes = Arc::clone(routes);
+        model.layers_mut()[1]
+            .moe_mut()
+            .unwrap()
+            .set_route_observer(Some(Arc::new(move |gate| {
+                routes.lock().unwrap().push(gate.clone());
+            })));
+    }
+    let predictions = Arc::clone(&order);
+    observed.layers_mut()[1].set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+        predictions.lock().unwrap().push(gate.clone());
+    })));
+    let bits = |v: Vec<f32>| v.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&[3, 7, 1])),
+        bits(observed.prefill(&[3, 7, 1]))
+    );
+    assert!(order.lock().unwrap().is_empty(), "prefill must not predict");
+    for token in [4, 9, 2, 7] {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(observed.forward_token(token))
+        );
+    }
+    assert_eq!(order.lock().unwrap().len(), 4);
+    assert_eq!(
+        *expected_routes.lock().unwrap(),
+        *actual_routes.lock().unwrap()
+    );
+    observed.layers_mut()[1].set_pre_attention_route_observer(None);
+    assert_eq!(
+        bits(plain.forward_token(1)),
+        bits(observed.forward_token(1))
+    );
+    assert_eq!(order.lock().unwrap().len(), 4);
+}
+
+#[test]
+fn pre_attention_prediction_depends_on_current_input_not_attention_state() {
+    use std::sync::{Arc, Mutex};
+    let mut first = random_model(104);
+    let mut second = random_model(104);
+    let h = cfg().hidden;
+    first.layers_mut()[1].forward_prefill(&vec![0.125; h * 2], 2);
+    second.layers_mut()[1].forward_prefill(&vec![-0.375; h * 3], 3);
+    let predictions = Arc::new(Mutex::new(Vec::new()));
+    for model in [&mut first, &mut second] {
+        let target = Arc::clone(&predictions);
+        model.layers_mut()[1].set_pre_attention_route_observer(Some(Arc::new(move |gate| {
+            target.lock().unwrap().push(gate.clone());
+        })));
+        model.layers_mut()[1].forward_token(&vec![0.25; h]);
+    }
+    let captured = predictions.lock().unwrap();
+    assert_eq!(captured.len(), 2);
+    assert_eq!(captured[0], captured[1]);
+    assert_eq!(first.layers()[1].len(), 3);
+    assert_eq!(second.layers()[1].len(), 4);
+}
+
+#[test]
+fn previous_layer_predictions_preserve_logits_routes_and_precede_computation() {
+    use std::sync::{Arc, Mutex};
+    let mut plain = random_model(115);
+    let mut observed = random_model(115);
+    let actual = Arc::new(Mutex::new(Vec::new()));
+    let expected = Arc::new(Mutex::new(Vec::new()));
+    for (model, routes) in [(&mut plain, &expected), (&mut observed, &actual)] {
+        let target = Arc::clone(routes);
+        model.layers_mut()[1]
+            .moe_mut()
+            .unwrap()
+            .set_route_observer(Some(Arc::new(move |gate| {
+                target.lock().unwrap().push(gate.clone())
+            })));
+    }
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let predicted = Arc::clone(&events);
+    observed.set_previous_layer_route_observer(Some(Arc::new(move |layer, _| {
+        if layer == 1 {
+            predicted.lock().unwrap().push("prediction");
+        }
+    })));
+    let preceding = Arc::clone(&events);
+    observed.layers_mut()[0].set_timing_observer(Some(Arc::new(move |timing| {
+        if !timing.prefill {
+            preceding.lock().unwrap().push("predecessor_complete");
+        }
+    })));
+    let bits = |v: Vec<f32>| v.into_iter().map(f32::to_bits).collect::<Vec<_>>();
+    assert_eq!(
+        bits(plain.prefill(&[3, 7, 1])),
+        bits(observed.prefill(&[3, 7, 1]))
+    );
+    assert!(events.lock().unwrap().is_empty());
+    for token in [4, 9, 2, 7] {
+        assert_eq!(
+            bits(plain.forward_token(token)),
+            bits(observed.forward_token(token))
+        );
+    }
+    assert_eq!(*actual.lock().unwrap(), *expected.lock().unwrap());
+    assert_eq!(
+        *events.lock().unwrap(),
+        ["prediction", "predecessor_complete"].repeat(4)
+    );
+    observed.set_previous_layer_route_observer(None);
+    assert_eq!(
+        bits(plain.forward_token(1)),
+        bits(observed.forward_token(1))
+    );
+    assert_eq!(events.lock().unwrap().last(), Some(&"predecessor_complete"));
+    assert_eq!(events.lock().unwrap().len(), 9);
+}
+
+#[test]
+fn previous_layer_prediction_cannot_use_predecessor_or_target_sequence_state() {
+    use std::sync::{Arc, Mutex};
+    let mut first = random_model(116);
+    let mut second = random_model(116);
+    first.prefill(&[1, 2]);
+    second.prefill(&[9, 8, 7]);
+    let predictions = Arc::new(Mutex::new(Vec::new()));
+    for model in [&mut first, &mut second] {
+        let target = Arc::clone(&predictions);
+        model.set_previous_layer_route_observer(Some(Arc::new(move |layer, gate| {
+            if layer == 1 {
+                target.lock().unwrap().push(gate.clone());
+            }
+        })));
+        model.forward_token(4);
+    }
+    let captured = predictions.lock().unwrap();
+    assert_eq!(captured.len(), 2);
+    assert_eq!(captured[0], captured[1]);
+    assert_eq!(first.len(), 3);
+    assert_eq!(second.len(), 4);
 }
