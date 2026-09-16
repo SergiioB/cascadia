@@ -769,21 +769,19 @@ impl ExpertBank {
                 })
                 .collect()
         };
-        let computed: Result<Vec<ExpertSlotOutputs>, String> = if streamed_cpu {
-            // Nested Rayon GEMVs may suspend outer tasks while their read
-            // buffers remain live. Fixed cohorts cap retained buffers at eight
-            // experts, even when a long prefill selects hundreds of experts.
-            let entries: Vec<_> = occurrences.iter().collect();
-            let mut outputs = Vec::with_capacity(entries.len());
-            for cohort in entries.chunks(8) {
-                let part: Result<Vec<_>, String> =
-                    cohort.par_iter().copied().map(compute).collect();
-                outputs.extend(part?);
-            }
-            Ok(outputs)
-        } else {
-            occurrences.par_iter().map(compute).collect()
-        };
+        // Nested Rayon GEMVs may suspend outer tasks while their read buffers —
+        // streamed leases, or the whole-bin `read_bytes` buffer taken on a
+        // paged-out expert — remain live. Fixed cohorts cap retained buffers at
+        // eight experts on both the streamed and direct paths, even when a long
+        // prefill selects hundreds of experts. Slot outputs are written by
+        // index below, so cohorting does not change the result.
+        let entries: Vec<_> = occurrences.iter().collect();
+        let mut outputs: Vec<ExpertSlotOutputs> = Vec::with_capacity(entries.len());
+        for cohort in entries.chunks(8) {
+            let part: Result<Vec<_>, String> = cohort.par_iter().copied().map(compute).collect();
+            outputs.extend(part?);
+        }
+        let computed: Result<Vec<ExpertSlotOutputs>, String> = Ok(outputs);
         let mut out = vec![0.0f32; rows * k * h];
         for (slot, y) in computed?.into_iter().flatten() {
             out[slot * h..(slot + 1) * h].copy_from_slice(&y);
