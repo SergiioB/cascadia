@@ -140,10 +140,14 @@ jobs:
       # OV-gated tests (skipped on the ubuntu stub CI because they need the real
       # OpenVINO runtime). Also runs cascadia-ov-genai-shim, which holds the
       # collect_properties int64-coercion tests (ov::Any only, no device needed).
+      # cascadia-engine-sparse-moe is included so the Inkling iGPU backends
+      # (ov_expert / ov_moe / ov_attn / ov_head) and their OV-vs-fallback tests
+      # build and run with the `openvino` feature here — the stub ci.yml only
+      # compiles them (they otherwise execute on no hardware lane).
       - name: Run OpenVINO-feature tests
         env:
           INTEL_OPENVINO_DIR: ${{ vars.INTEL_OPENVINO_DIR }}
-        run: cargo test -p cascadia-engine-openvino -p cascadia-ov-genai-shim --features openvino --no-fail-fast
+        run: cargo test -p cascadia-engine-openvino -p cascadia-ov-genai-shim -p cascadia-engine-sparse-moe --features openvino --no-fail-fast
 
       # Optional end-to-end smoke once a small model is staged on the runners:
       # bring up the cascadia binary against the real engine and hit
