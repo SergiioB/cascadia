@@ -514,8 +514,12 @@ pub struct ExpertBank {
 type ExpertSlotOutputs = Vec<(usize, Vec<f32>)>;
 
 impl ExpertBank {
-    /// Qualification mode: require a concrete GPU device and every owned IR.
-    /// Missing support or any failed GPU call must fail instead of using CPU.
+    /// Qualification mode: fail instead of ever computing an expert on CPU.
+    /// For a non-fused OpenVINO bank this checks up front that the device is a
+    /// concrete GPU and that every owned expert has an IR. A fused bank already
+    /// verified its GPU device and shard IRs in `FusedExpertBank::load`, so here
+    /// it only latches the strict flag — its serve path never falls back to CPU
+    /// regardless.
     pub fn require_gpu(mut self) -> Result<Self, String> {
         if self.fused.is_some() {
             self.require_gpu = true;
