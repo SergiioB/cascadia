@@ -139,6 +139,11 @@ impl EpPlacement {
     /// using an expert together lets a worker read its weights once. Assign
     /// constrained experts first, then the busiest, so replicated shared/hot
     /// experts fill spare bandwidth instead of displacing fixed owners.
+    ///
+    /// Assumes a validated placement (via [`Self::validate`], run by
+    /// [`Self::read`] and `EpClient::with_placement`): owner indices in the
+    /// per-layer table are `< workers.len()`, so the `self.workers[wi]` cost
+    /// lookups below cannot panic.
     pub fn assign(&self, layer: usize, rows: &[Vec<(usize, f32)>]) -> Result<Vec<usize>, String> {
         let table = self
             .layers
