@@ -767,6 +767,12 @@ mod tests {
     /// buffer that slices out of bounds downstream. `read_bytes` must reject it
     /// with `Err` so the hot/cold + R1 paths fall back to mmap instead of
     /// panicking.
+    ///
+    /// Unix-only: Windows refuses to shrink a file that still has a mapped
+    /// section open (OS error 1224), so the `set_len` setup below can't even
+    /// run there — the OS prevents the very scenario this guards against, so
+    /// there is nothing for `read_bytes` to reject.
+    #[cfg(not(windows))]
     #[test]
     fn read_bytes_rejects_a_bin_that_shrank_after_open() {
         let src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
