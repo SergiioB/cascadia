@@ -187,7 +187,7 @@ fn parse_second_rank(raw: Option<&str>) -> usize {
         .unwrap_or(2)
 }
 
-/// Original predicted gate rank, zero based. Default2 retains the qualified
+/// Original predicted gate rank, zero based. Default 2 retains the qualified
 /// top-three policy; the experiment changes selection only, never read bounds.
 pub fn second_prediction_rank_ceiling() -> usize {
     static CEILING: OnceLock<usize> = OnceLock::new();

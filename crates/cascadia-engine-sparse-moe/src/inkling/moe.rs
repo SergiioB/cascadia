@@ -423,8 +423,10 @@ impl MoeLayer {
         }
         // Overlapped reads: an mmap'd expert that is paged out is streamed
         // whole, concurrently with the others, into an owned buffer its GEMV
-        // then runs from (bit-identical to the mmap). One already resident
-        // is computed straight off the mapping — the copy would only cost.
+        // then runs from (bit-identical to the mmap). On the non-cache path an
+        // already-resident expert is computed straight off the mapping — the
+        // copy would only cost. The explicit-cache branch below deliberately
+        // reads resident experts too, to admit valid bytes (documented there).
         let bulk_read = !seq_reads() && sel.iter().any(|e| e.as_mmap().is_some());
         let mut reused = (bulk_read && reuse_read_buffers())
             .then(|| super::read_buffers::ReadBuffers::acquire(sel.len()));

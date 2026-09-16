@@ -181,7 +181,8 @@ impl AnyExpert {
     }
 
     /// On-disk int4 bytes this expert streams at 0% cache hit. Only the `Mmap`
-    /// variant touches the disk; eager/bf16 experts are already resident, so 0.
+    /// variant touches the disk; eager/bf16 and owned-int4 experts are already
+    /// resident, so 0.
     #[inline]
     pub fn int4_bytes(&self) -> usize {
         match self {
