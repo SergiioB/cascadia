@@ -3,7 +3,7 @@
 //! its buffers return to the scratch pool, including on unwind or misprediction.
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread::JoinHandle;
@@ -34,9 +34,23 @@ struct Counters {
     dispatch_failures: AtomicU64,
     useful_bytes: AtomicU64,
     unused_bytes: AtomicU64,
+    // Guards the one-time "reader is dead" warning so a disconnected worker
+    // cannot spam the decode hot loop once per dispatch.
+    dead_logged: AtomicBool,
 }
 
 impl Counters {
+    /// Warn exactly once when this reader transitions to permanently dead, so
+    /// an operator who enabled predicted reads learns the feature turned off.
+    fn log_reader_dead_once(&self, cause: &str) {
+        if !self.dead_logged.swap(true, Ordering::Relaxed) {
+            tracing::warn!(
+                cause,
+                "inkling prediction reader stopped; predicted reads fall back to synchronous"
+            );
+        }
+    }
+
     fn snapshot(&self) -> PredictionReadStats {
         PredictionReadStats {
             scheduled: self.scheduled.load(Ordering::Relaxed),
@@ -125,6 +139,8 @@ impl Reader {
             self.counters
                 .dispatch_failures
                 .fetch_add(1, Ordering::Relaxed);
+            self.counters
+                .log_reader_dead_once("dispatch channel disconnected");
             return None;
         }
         self.counters.scheduled.fetch_add(1, Ordering::Relaxed);
@@ -148,6 +164,22 @@ impl Drop for Reader {
 static READER: OnceLock<Option<Reader>> = OnceLock::new();
 static SECOND_READER: OnceLock<Option<Reader>> = OnceLock::new();
 static THIRD_READER: OnceLock<Option<Reader>> = OnceLock::new();
+
+/// Spawn a reader tier, logging the spawn failure before caching the disabled
+/// state so predicted reads do not silently stay off. Sync fallback is unchanged.
+fn init_reader(tier: &str) -> Option<Reader> {
+    match Reader::new() {
+        Ok(reader) => Some(reader),
+        Err(error) => {
+            tracing::warn!(
+                tier,
+                error = %error,
+                "inkling prediction reader failed to spawn; predicted reads disabled"
+            );
+            None
+        }
+    }
+}
 
 fn parse_second_rank(raw: Option<&str>) -> usize {
     raw.and_then(|value| value.parse::<usize>().ok())
@@ -245,21 +277,21 @@ pub fn prediction_read_statistics() -> PredictionReadStats {
 
 pub(super) fn start(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
     READER
-        .get_or_init(|| Reader::new().ok())
+        .get_or_init(|| init_reader("primary"))
         .as_ref()?
         .start(expert, path, length)
 }
 
 pub(super) fn start_second(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
     SECOND_READER
-        .get_or_init(|| Reader::new().ok())
+        .get_or_init(|| init_reader("second"))
         .as_ref()?
         .start(expert, path, length)
 }
 
 pub(super) fn start_third(expert: usize, path: &Path, length: usize) -> Option<PendingRead> {
     THIRD_READER
-        .get_or_init(|| Reader::new().ok())
+        .get_or_init(|| init_reader("third"))
         .as_ref()?
         .start(expert, path, length)
 }
@@ -312,6 +344,7 @@ impl PendingRead {
                 self.counters
                     .worker_failures
                     .fetch_add(1, Ordering::Relaxed);
+                self.counters.log_reader_dead_once("worker exited");
                 None
             }
         }
