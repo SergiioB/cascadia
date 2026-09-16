@@ -68,11 +68,25 @@ impl FusedShardManifest {
     /// Preserve global routing, compensating only for versioned IR scaling.
     /// Only unused slots use the dedicated
     /// dummy expert, so scatter padding cannot overwrite a real expert weight.
+    ///
+    /// Assumes a validated manifest (as produced through
+    /// [`FusedExpertBank::load`]): `expert_ids` and any `view_expert_ids` are
+    /// sorted so the per-slot `binary_search` lookups below are correct. The
+    /// `debug_assert` re-states that contract for callers that construct a
+    /// manifest directly (e.g. via `Deserialize`) without going through `load`.
     pub fn map_request(
         &self,
         body: &ExpertDispatchBody,
         weights: &[f32],
     ) -> Result<(Vec<i32>, Vec<f32>), String> {
+        debug_assert!(
+            self.expert_ids.windows(2).all(|p| p[0] < p[1])
+                && self
+                    .view_expert_ids
+                    .as_ref()
+                    .is_none_or(|v| v.windows(2).all(|p| p[0] < p[1])),
+            "map_request requires a validated manifest with sorted expert ids"
+        );
         let (rows, k, h) = (body.rows as usize, body.k as usize, self.hidden_size);
         if body.layer != self.layer
             || rows == 0
