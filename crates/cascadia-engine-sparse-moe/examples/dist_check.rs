@@ -123,7 +123,9 @@ async fn run_server(port: u16) -> Result<(), Box<dyn std::error::Error>> {
             FrameKind::Restore | FrameKind::RestoreAck | FrameKind::RestoreCarry => {
                 println!("[server] RESTORE/RESTORE_ACK/RESTORE_CARRY not handled in dist_check — ignoring");
             }
-            FrameKind::ExpertDispatch | FrameKind::ExpertResult => {
+            FrameKind::ExpertDispatch
+            | FrameKind::FusedExpertDispatch
+            | FrameKind::ExpertResult => {
                 println!("[server] expert-parallel frames not handled in dist_check — ignoring");
             }
         }

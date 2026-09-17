@@ -66,6 +66,32 @@ impl MappedBf16 {
         // bit patterns. Export files must not be modified while loaded.
         unsafe { std::slice::from_raw_parts(self.data.as_ptr().add(self.start).cast(), self.len) }
     }
+
+    /// Release this immutable tensor's pages from this process's Windows
+    /// working set after a streaming layer finishes. File contents and virtual
+    /// addresses remain valid; a later access faults the same bytes back in.
+    /// VirtualUnlock explicitly supports unlocked pages (FALSE/NOT_LOCKED is
+    /// expected): https://learn.microsoft.com/windows/win32/api/memoryapi/nf-memoryapi-virtualunlock
+    pub fn trim_working_set(&self) {
+        #[cfg(windows)]
+        {
+            #[link(name = "kernel32")]
+            extern "system" {
+                fn VirtualUnlock(address: *mut std::ffi::c_void, size: usize) -> i32;
+            }
+            if self.len != 0 {
+                // SAFETY: this range is owned by the live immutable mapping.
+                // The OS changes residency only; it neither writes nor unmaps
+                // the tensor. These tensor mappings are never VirtualLock'd.
+                unsafe {
+                    let _ = VirtualUnlock(
+                        self.data.as_ptr().add(self.start) as *mut std::ffi::c_void,
+                        self.len * 2,
+                    );
+                }
+            }
+        }
+    }
 }
 
 /// Safetensors header and owned bytes, or an opt-in read-only mapping.

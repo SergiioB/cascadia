@@ -5,6 +5,7 @@
 //! server. Multi-stage / discovery flags are accepted but enforced
 //! against engine support.
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
@@ -281,13 +282,18 @@ pub struct WorkerArgs {
     /// Expert-parallel worker: serve expert shard N (0-based) of
     /// `--ep-worker-count` for every MoE layer on `--listen`, and nothing
     /// else — no API, no attention. Experts homed on this shard are those with
-    /// `expert_id % count == N`.
+    /// `expert_id % count == N`, unless --ep-placement supplies owners.
     #[arg(long)]
     pub ep_worker_index: Option<u32>,
 
     /// Expert-parallel worker: number of expert shards (= workers).
     #[arg(long)]
     pub ep_worker_count: Option<u32>,
+
+    /// Capacity-checked expert placement JSON, identical on the driver and
+    /// workers. Enables replica selection; omitted uses expert_id % count.
+    #[arg(long)]
+    pub ep_placement: Option<PathBuf>,
 
     /// OpenVINO device target. Forwarded verbatim to ov::Core::compile_model.
     ///
@@ -681,6 +687,10 @@ pub struct RunArgs {
     /// alike). See `cascadia worker --help`.
     #[arg(long, default_value_t = 1.0)]
     pub api_max_body_mb: f64,
+
+    /// Expert placement JSON (requires --ep-workers). See worker --help.
+    #[arg(long)]
+    pub ep_placement: Option<PathBuf>,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -699,6 +709,7 @@ impl WorkerArgs {
     /// The knobs `run` also exposes are parameters, not post-construction
     /// patches: `cmd_run` overwriting them afterwards meant deleting a line
     /// here silently turned `cascadia run --prefix-cache-gb 0` back on.
+    #[allow(clippy::too_many_arguments)]
     fn single_node(
         model: String,
         device: String,
@@ -707,6 +718,7 @@ impl WorkerArgs {
         prefix_cache_gb: Option<f64>,
         api_max_body_mb: f64,
         ep_workers: Vec<String>,
+        ep_placement: Option<PathBuf>,
     ) -> Self {
         WorkerArgs {
             rank: 0,
@@ -725,6 +737,7 @@ impl WorkerArgs {
             ep_workers,
             ep_worker_index: None,
             ep_worker_count: None,
+            ep_placement,
             ov_cache_dir: None,
             ov_kv_precision: None,
             ov_dyn_quant_group: None,
@@ -972,6 +985,7 @@ async fn cmd_run(args: RunArgs) -> Result<()> {
         args.prefix_cache_gb,
         args.api_max_body_mb,
         args.ep_workers,
+        args.ep_placement,
     );
     cmd_worker(worker).await
 }
@@ -1516,6 +1530,7 @@ fn build_builder(args: &WorkerArgs, prefix_cache_bytes: usize) -> Result<Box<dyn
                 (Some(i), Some(n)) => Some((i, n)),
                 _ => None,
             };
+            cfg.ep_placement = args.ep_placement.clone();
             // Issue #38: capture surfaces silu(gate) via the AXPY
             // scratch — if the user asked to capture but didn't ask
             // for AXPY, warn (the capture will silently be empty
@@ -1826,6 +1841,11 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
     if ep_worker.is_some() && !args.ep_workers.is_empty() {
         return Err(anyhow!(
             "a process is either an expert worker or a driver, not both"
+        ));
+    }
+    if args.ep_placement.is_some() && ep_worker.is_none() && args.ep_workers.is_empty() {
+        return Err(anyhow!(
+            "--ep-placement requires an expert-parallel driver or worker"
         ));
     }
     if (ep_worker.is_some() || !args.ep_workers.is_empty()) && args.total != 1 {
@@ -2672,6 +2692,7 @@ mod python_tests {
             None,
             1.0,
             Vec::new(),
+            None,
         );
         a.engine = engine;
         a
@@ -3116,6 +3137,7 @@ mod ov_property_tests {
             None,
             1.0,
             Vec::new(),
+            None,
         )
     }
 
@@ -3560,11 +3582,43 @@ mod tests {
             args.prefix_cache_gb,
             args.api_max_body_mb,
             Vec::new(),
+            args.ep_placement,
         );
         assert_eq!(worker.prefix_cache_gb, Some(0.0));
         assert_eq!(worker.api_max_body_mb, 2.0);
         assert_eq!(worker.rank, 0);
         assert_eq!(worker.total, 1);
+    }
+
+    #[test]
+    fn run_forwards_expert_placement_and_worker_order() {
+        let cli = Cli::try_parse_from([
+            "cascadia",
+            "run",
+            "model",
+            "--engine",
+            "sparse-moe",
+            "--ep-workers",
+            "127.0.0.1:9201,127.0.0.1:9202",
+            "--ep-placement",
+            "placement.json",
+        ])
+        .unwrap();
+        let Command::Run(args) = cli.cmd else {
+            panic!("expected run");
+        };
+        let worker = WorkerArgs::single_node(
+            args.model,
+            args.device,
+            args.engine,
+            args.api,
+            args.prefix_cache_gb,
+            args.api_max_body_mb,
+            args.ep_workers,
+            args.ep_placement,
+        );
+        assert_eq!(worker.ep_placement, Some(PathBuf::from("placement.json")));
+        assert_eq!(worker.ep_workers, ["127.0.0.1:9201", "127.0.0.1:9202"]);
     }
 
     /// The engine renamed from `qwen36-moe` to `qwen35`; the old spelling is

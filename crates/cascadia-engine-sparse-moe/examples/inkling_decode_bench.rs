@@ -5,6 +5,8 @@
 //! instead of aborting (device numerics); such a run is not correctness-verified.
 //! [--route-trace routes.json] captures routed expert IDs without changing logits.
 //! [--layer-profile profile.json] records attention/MLP branch timings per layer.
+//! [--ep-workers host:port,...] sends MoE experts to running workers; optional
+//! [--ep-placement placement.json] selects replicas using calibrated costs.
 //! cases.json: [{"name":"case", "prompt_ids":[...], "greedy_ids":[...]}].
 //! Omit greedy_ids only when recording an initial baseline (not correctness-verified).
 //! The large 975B architecture is required unless --allow-fixture is explicit.
@@ -17,7 +19,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use cascadia_engine_sparse_moe::dsv4::loader::ExpertsMode;
-use cascadia_engine_sparse_moe::inkling::loader::{load_model_with, read_manifest};
+use cascadia_engine_sparse_moe::inkling::ep::EpClient;
+use cascadia_engine_sparse_moe::inkling::ep_placement::EpPlacement;
+use cascadia_engine_sparse_moe::inkling::loader::{load_model_with_remote, read_manifest};
 use cascadia_engine_sparse_moe::inkling::model::{argmax, Model};
 use serde::{Deserialize, Serialize};
 
@@ -182,6 +186,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut allow_fixture = false;
     let mut warm_ov = false;
     let mut tolerate_divergence = false;
+    let mut ep_workers: Vec<String> = Vec::new();
+    let mut ep_placement: Option<PathBuf> = None;
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
         if flag == "--warm-ov" {
@@ -207,6 +213,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--layer-profile" => layer_profile = Some(PathBuf::from(value)),
             "--prediction-trace" => prediction_trace = Some(PathBuf::from(value)),
             "--prediction-lead-layers" => prediction_lead_layers = value.parse()?,
+            "--ep-workers" => ep_workers = value.split(',').map(str::to_owned).collect(),
+            "--ep-placement" => ep_placement = Some(value.into()),
             _ => return Err(format!("unknown argument: {flag}").into()),
         }
     }
@@ -290,7 +298,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .checked_add(tokens)
         .ok_or("sequence length overflow")?;
     let load = Instant::now();
-    let mut model = load_model_with(&export, max_seq, ExpertsMode::Mmap)?;
+    if ep_placement.is_some() && ep_workers.is_empty() {
+        return Err("--ep-placement requires --ep-workers".into());
+    }
+    let placement = ep_placement
+        .as_ref()
+        .map(|path| EpPlacement::read(path, &manifest, ep_workers.len()))
+        .transpose()?;
+    // Keep the runtime alive throughout decode; its I/O driver runs on its
+    // own threads while the model executes synchronously.
+    let ep_runtime = if ep_workers.is_empty() {
+        None
+    } else {
+        Some(
+            tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(2)
+                .enable_all()
+                .build()?,
+        )
+    };
+    let mut ep_connections = Vec::new();
+    let remote = if let Some(rt) = &ep_runtime {
+        for endpoint in &ep_workers {
+            let (host, port) = endpoint
+                .rsplit_once(':')
+                .ok_or("EP endpoint needs host:port")?;
+            let mut client = cascadia_transport::ActivationClient::new(
+                host.trim_matches(['[', ']']),
+                port.parse()?,
+            );
+            rt.block_on(client.connect_with_timeout(std::time::Duration::from_secs(30)))?;
+            ep_connections.push(Arc::new(tokio::sync::Mutex::new(client)));
+        }
+        let mut client = EpClient::new(
+            ep_connections.clone(),
+            rt.handle().clone(),
+            manifest.hidden_size,
+            manifest.num_experts,
+            manifest.n_shared_experts,
+        );
+        if let Some(p) = &placement {
+            client = client.with_placement(Arc::new(p.clone()), &manifest)?;
+        }
+        Some(Arc::new(client))
+    } else {
+        None
+    };
+    let mut model = load_model_with_remote(&export, max_seq, ExpertsMode::Mmap, remote)?;
     if warm_ov {
         // Compile the attached OpenVINO backends before any timed region.
         let t0 = Instant::now();
@@ -458,7 +512,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .fold(f64::INFINITY, f64::min);
     let steps = samples.iter().map(|s| s.decode_steps).min().unwrap();
     let hash = format!("{:016x}", reference_hash.unwrap());
-    let scope = if full_model {
+    let scope = if full_model && !ep_workers.is_empty() {
+        "full_large_model_expert_parallel_decode"
+    } else if full_model {
         "full_large_model_decode"
     } else {
         "fixture_model_decode"
@@ -681,6 +737,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "scope": scope, "export": export, "manifest": {"layers":manifest.num_layers,
                     "hidden":manifest.hidden_size, "experts":manifest.num_experts},
                 "output_hash":hash, "correctness_verified":correctness_verified,
+                "ep_workers":ep_workers, "ep_placement":placement,
+                "local_expert_counters_cover_remote_workers":false,
                 "embedding_mapped":embedding_mapped,
                 "owned_shared_bytes":owned_shared_bytes,
                 "uncached_read_bytes":uncached_read_bytes,
@@ -705,6 +763,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "slowest_case_decode_tokens_per_s":rate, "samples":samples
             }))?,
         )?;
+    }
+    // Explicit close lets standalone expert workers finish and publish their
+    // own diagnostics. Local counters above do not include remote I/O/cache.
+    if let Some(rt) = &ep_runtime {
+        for c in &ep_connections {
+            rt.block_on(async { c.lock().await.close().await });
+        }
     }
     if let Some(path) = route_trace {
         let file = std::fs::OpenOptions::new()
