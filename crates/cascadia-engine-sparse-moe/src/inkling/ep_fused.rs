@@ -10,8 +10,13 @@ use std::{
     sync::Mutex,
 };
 
+// NB: NOT `deny_unknown_fields`. The shard.json written by
+// tools/inkling_ep_fused_export.py carries provenance keys the runtime does not
+// model (bin_sha256, xml_sha256, source_sha256, template_xml_sha256,
+// placement_sha256, up_scale_relative_rms, unscaled_bin_sha256); the loader must
+// ignore them, not reject the shard. The provenance is verified out-of-band by
+// the preflight/report tools, not by this struct.
 #[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct FusedShardManifest {
     pub version: u32,
     pub layer: u32,
