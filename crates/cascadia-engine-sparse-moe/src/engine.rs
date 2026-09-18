@@ -32,12 +32,13 @@ use tracing::{info, warn};
 use crate::dist::{
     forward_reset, recv_forward_batch_body_server, recv_forward_body_server, recv_key_body_server,
     recv_kind_client, recv_kind_server, recv_stream_close_body_server,
-    recv_stream_decode_body_server, recv_stream_open_body_server, recv_stream_tokens_reply,
-    recv_token_batch_body_client, recv_token_body_client, send_cache_prefix, send_forward,
-    send_forward_batch, send_forward_batch_prefill, send_forward_batch_prefill_nosample,
-    send_forward_nosample, send_forward_prefill, send_reset, send_restore_prefix,
-    send_stream_close, send_stream_decode, send_stream_open, send_stream_tokens_upstream,
-    send_token_batch_upstream, send_token_upstream, FrameKind, StageTransport,
+    recv_stream_decode_body_server, recv_stream_open_body_server, recv_stream_tokens_body_client,
+    recv_stream_tokens_reply, recv_token_batch_body_client, recv_token_body_client,
+    send_cache_prefix, send_forward, send_forward_batch, send_forward_batch_prefill,
+    send_forward_batch_prefill_nosample, send_forward_nosample, send_forward_prefill, send_reset,
+    send_restore_prefix, send_stream_close, send_stream_decode, send_stream_open,
+    send_stream_tokens_upstream, send_token_batch_upstream, send_token_upstream, FrameKind,
+    StageTransport,
 };
 #[cfg(feature = "kv_coord")]
 use crate::dist::{
@@ -6689,6 +6690,56 @@ impl<R: StagedRunner> PipelineEngine<R> {
             return Vec::new();
         };
         let downstream = self.transport.downstream.clone();
+        // Multi-stream mid rank: frames from upstream and replies from
+        // downstream are independent events — serve whichever is ready, so a
+        // frame for the next group is not stuck behind this group's reply.
+        if self.stream_cap > 0 && !self.is_last() {
+            if let Some(down) = downstream.clone() {
+                enum Ready {
+                    Up,
+                    Down,
+                }
+                let ready = self.block_on(async {
+                    tokio::select! {
+                        r = async { upstream.lock().await.wait_readable().await } => r.map(|_| Ready::Up),
+                        r = async { down.lock().await.wait_readable().await } => r.map(|_| Ready::Down),
+                    }
+                });
+                match ready {
+                    Ok(Ready::Up) => {}
+                    Ok(Ready::Down) => {
+                        let res = self.block_on(async {
+                            match recv_kind_client(&down).await {
+                                Ok(Some(FrameKind::StreamTokens)) => {
+                                    let (bid, toks) =
+                                        recv_stream_tokens_body_client(&down)
+                                            .await
+                                            .map_err(|e| format!("recv_stream_tokens: {e}"))?;
+                                    send_stream_tokens_upstream(&upstream, bid, &toks)
+                                        .await
+                                        .map_err(|e| format!("relay stream tokens: {e}"))
+                                }
+                                Ok(Some(other)) => Err(format!(
+                                    "expected StreamTokens from downstream, got {other:?}"
+                                )),
+                                Ok(None) => Err("downstream closed".into()),
+                                Err(e) => Err(format!("recv_kind (downstream): {e}")),
+                            }
+                        });
+                        if let Err(e) = res {
+                            warn!("worker reply relay failed: {e}");
+                            self.peer_disconnected = true;
+                        }
+                        return Vec::new();
+                    }
+                    Err(e) => {
+                        warn!("worker socket closed while idle: {e}");
+                        self.peer_disconnected = true;
+                        return Vec::new();
+                    }
+                }
+            }
+        }
         let kind = match self.block_on(recv_kind_server(&upstream)) {
             Ok(Some(k)) => k,
             Ok(None) => {
@@ -6857,24 +6908,18 @@ impl<R: StagedRunner> PipelineEngine<R> {
             .map_err(|e| format!("send_stream_tokens: {e}"))
         } else {
             let down = downstream.ok_or("mid rank missing downstream")?;
-            let deadline = Self::reply_deadline_prefill();
-            self.block_on(async {
-                send_stream_open(
-                    down,
-                    batch_id,
-                    slot,
-                    &sampling_cfg,
-                    &hidden,
-                    rows,
-                    hs as u32,
-                )
-                .await
-                .map_err(|e| format!("send_stream_open: {e}"))?;
-                let (bid, toks) = recv_stream_tokens_reply(down, deadline).await?;
-                send_stream_tokens_upstream(upstream, bid, &toks)
-                    .await
-                    .map_err(|e| format!("relay stream tokens: {e}"))
-            })
+            // Send on; the reply comes back through the readiness loop in
+            // `step_worker` and is relayed upstream there.
+            self.block_on(send_stream_open(
+                down,
+                batch_id,
+                slot,
+                &sampling_cfg,
+                &hidden,
+                rows,
+                hs as u32,
+            ))
+            .map_err(|e| format!("send_stream_open: {e}"))
         }
     }
 
@@ -6929,16 +6974,10 @@ impl<R: StagedRunner> PipelineEngine<R> {
                 .map_err(|e| format!("send_stream_tokens: {e}"))
         } else {
             let down = downstream.ok_or("mid rank missing downstream")?;
-            let deadline = Self::reply_deadline();
-            self.block_on(async {
-                send_stream_decode(down, batch_id, &rows, &hidden, hs as u32)
-                    .await
-                    .map_err(|e| format!("send_stream_decode: {e}"))?;
-                let (bid, toks) = recv_stream_tokens_reply(down, deadline).await?;
-                send_stream_tokens_upstream(upstream, bid, &toks)
-                    .await
-                    .map_err(|e| format!("relay stream tokens: {e}"))
-            })
+            self.block_on(send_stream_decode(
+                down, batch_id, &rows, &hidden, hs as u32,
+            ))
+            .map_err(|e| format!("send_stream_decode: {e}"))
         }
     }
 
