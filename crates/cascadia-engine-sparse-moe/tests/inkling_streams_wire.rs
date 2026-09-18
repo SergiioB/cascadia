@@ -210,3 +210,57 @@ async fn three_rank_multistream_matches_single_stage() {
         assert_eq!(g.len() as u32, MAX_TOKENS[i], "task {i}: token count");
     }
 }
+
+/// A last rank whose upstream dies hard (TCP reset, as when the previous
+/// rank's process is killed) must exit its step loop with an error so the
+/// supervisor rebuilds it, instead of spinning on `NotConnected` forever
+/// while the restarted upstream can never reconnect (the listener accepted
+/// exactly once).
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn last_rank_exits_after_upstream_reset() {
+    let Some(dir) = fixture() else { return };
+    let handle = tokio::runtime::Handle::current();
+    let mut server = ActivationServer::new("127.0.0.1", 0);
+    server.start().await.unwrap();
+    let port = server.port();
+    let server = Arc::new(Mutex::new(server));
+    let sc = server.clone();
+    let accept = tokio::spawn(async move { sc.lock().await.accept().await.unwrap() });
+    let upstream = tokio::net::TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+    accept.await.unwrap();
+
+    let r2 = InklingRunner::load_staged(&dir, 64, 2, 3, 3, 4, Some("eager".into()), None).unwrap();
+    let mut e2 = PipelineEngine::new(
+        r2,
+        None,
+        StageTransport {
+            upstream: Some(server),
+            downstream: None,
+        },
+        handle.clone(),
+        2,
+        3,
+        None,
+    );
+    let exited = Arc::new(AtomicBool::new(false));
+    let flag = exited.clone();
+    let worker = std::thread::spawn(move || {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+        while std::time::Instant::now() < deadline {
+            if e2.step().is_err() {
+                flag.store(true, Ordering::Relaxed);
+                return;
+            }
+        }
+    });
+    // Let the worker settle into its blocking receive, then kill the peer
+    // hard: linger 0 turns the close into a reset.
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    upstream.set_linger(Some(std::time::Duration::ZERO)).unwrap();
+    drop(upstream);
+    worker.join().unwrap();
+    assert!(
+        exited.load(Ordering::Relaxed),
+        "last rank kept stepping after its upstream reset; the supervisor can never rebuild it"
+    );
+}

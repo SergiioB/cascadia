@@ -1335,6 +1335,24 @@ fn even_moe_split(total_moe: u32, rank: u32, total: u32) -> (u32, u32) {
 /// first step after the link drops. After that the one-shot is spent so a
 /// re-poll (the relay loop has already exited on the first one) doesn't flood.
 /// Pure, for testing.
+/// Whether a failed upstream receive on a pipeline worker means the link is
+/// gone for good. The server reports `NotConnected` both before the previous
+/// rank has dialed in (keep waiting) and after a once-live socket was dropped
+/// (fatal: the listener accepts exactly once, so nothing reconnects — exit so
+/// the supervisor rebuilds the rank). A frame-start timeout consumed nothing
+/// and is retried; every other error comes off a live socket the transport
+/// has already dropped, or leaves it unusable.
+pub(crate) fn worker_recv_failure_is_fatal(
+    err: &cascadia_transport::TransportError,
+    upstream_seen: bool,
+) -> bool {
+    match err {
+        cascadia_transport::TransportError::NotConnected => upstream_seen,
+        cascadia_transport::TransportError::FrameStartTimeout(_) => false,
+        _ => true,
+    }
+}
+
 fn worker_should_report_disconnect(peer_disconnected: bool, already_reported: bool) -> bool {
     peer_disconnected && !already_reported
 }
@@ -5287,6 +5305,9 @@ pub struct PipelineEngine<R: StagedRunner> {
     rank: u32,
     total: u32,
     peer_disconnected: bool,
+    /// Set once a frame has arrived from the previous rank: after that, a
+    /// `NotConnected` upstream is a dropped link, not a rank that has yet to dial in.
+    upstream_seen: bool,
     disconnect_reported: bool,
     last_rank_history: Vec<i64>,
     last_rank_rng: u64,
@@ -5431,6 +5452,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
             rank,
             total,
             peer_disconnected: false,
+            upstream_seen: false,
             disconnect_reported: false,
             last_rank_history: Vec::new(),
             last_rank_rng: 0,
@@ -6777,8 +6799,20 @@ impl<R: StagedRunner> PipelineEngine<R> {
             }
         }
         let kind = match self.block_on(recv_kind_server(&upstream)) {
-            Ok(Some(k)) => k,
+            Ok(Some(k)) => {
+                self.upstream_seen = true;
+                k
+            }
             Ok(None) => {
+                self.peer_disconnected = true;
+                return Vec::new();
+            }
+            Err(e) if worker_recv_failure_is_fatal(&e, self.upstream_seen) => {
+                // The listener accepted exactly once, so nothing reconnects:
+                // latch, and the next step() exits the relay loop for the
+                // supervisor to rebuild this rank (the last rank has no
+                // downstream select to notice the drop any other way).
+                warn!("worker upstream link lost: {e}; exiting for supervisor rebuild");
                 self.peer_disconnected = true;
                 return Vec::new();
             }
@@ -7611,6 +7645,27 @@ mod tests {
         // The Err step() returns on that one report is connection-fatal, so
         // run_relay_loop exits ConnectionFatal.
         assert!(EngineError::NotConnected.is_connection_fatal());
+    }
+
+    /// The last rank has no downstream to select on, so a dropped upstream
+    /// surfaces only through recv_kind_server. NotConnected after the link
+    /// was live must be fatal (the listener never re-accepts, so the worker
+    /// would otherwise spin at the backoff rate forever — seen on a 4-box
+    /// pipeline when a middle rank restarted); the same error before the
+    /// previous rank dialed in is just "keep waiting", and a hard reset is
+    /// fatal either way.
+    #[test]
+    fn worker_recv_failure_fatal_only_after_link_was_live() {
+        use cascadia_transport::TransportError;
+        let reset = || TransportError::Io(std::io::Error::from(std::io::ErrorKind::ConnectionReset));
+        assert!(!worker_recv_failure_is_fatal(&TransportError::NotConnected, false));
+        assert!(worker_recv_failure_is_fatal(&TransportError::NotConnected, true));
+        assert!(!worker_recv_failure_is_fatal(
+            &TransportError::FrameStartTimeout(std::time::Duration::from_secs(1)),
+            true
+        ));
+        assert!(worker_recv_failure_is_fatal(&reset(), false));
+        assert!(worker_recv_failure_is_fatal(&reset(), true));
     }
 
     // -------- batched-prefill reply deadline (regression for the unbounded
