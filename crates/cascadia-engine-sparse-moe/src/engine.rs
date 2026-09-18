@@ -941,7 +941,7 @@ impl Builder for SparseMoEBuilder {
             let runtime_handle = tokio::runtime::Handle::try_current()
                 .map_err(|_| EngineError::Backend("Builder::build outside tokio context".into()))?;
             info!(rank, total, "built inkling engine");
-            return Ok(Box::new(PipelineEngine::new(
+            let mut engine = PipelineEngine::new(
                 runner,
                 self.tokenizer,
                 self.transport,
@@ -950,7 +950,21 @@ impl Builder for SparseMoEBuilder {
                 total,
                 // No per-rank KV-prefix cache on this family yet (follow-up).
                 None,
-            )));
+            );
+            // `CASCADIA_STREAMS=N`: decode up to N requests together (single
+            // stage). Off by default; the pipeline wire is a follow-up.
+            let streams = std::env::var("CASCADIA_STREAMS")
+                .ok()
+                .and_then(|v| v.parse::<usize>().ok())
+                .unwrap_or(0);
+            if streams > 0 {
+                if total > 1 {
+                    warn!(streams, "CASCADIA_STREAMS ignored: multi-stream decode is single-stage only for now");
+                } else {
+                    engine.enable_streams(streams);
+                }
+            }
+            return Ok(Box::new(engine));
         }
         if let Some(runner) = self.glm_runner {
             let total = self.config.total.max(1);
@@ -5271,6 +5285,38 @@ pub struct PipelineEngine<R: StagedRunner> {
     /// Rank 0 serves ONE task at a time (as the monolithic driver did): a new
     /// task is popped from `pending` only when this is `None`.
     active: Option<PipeActive>,
+    /// Multi-stream decode (single stage only for now): up to `stream_cap`
+    /// tasks decode together, one token each per `step`, the runner batching
+    /// their MoE rows. Empty / 0 = the one-task path above.
+    streams: Vec<StreamActive>,
+    stream_cap: usize,
+    /// New streams admitted (prefilled) per `step`, so a burst of prompts
+    /// cannot stall the streams already decoding for many prefills at once.
+    stream_admit_per_step: usize,
+    /// Aggregate-throughput window: tokens emitted and wall time since the
+    /// last multi-stream log line.
+    stream_log: (u64, Duration, u64),
+}
+
+/// One task inside the multi-stream single-stage scheduler: its slot in the
+/// runner, its own sampling state, and the token sampled but not yet emitted
+/// (`next`), mirroring `PipeActive` per stream.
+struct StreamActive {
+    id: TaskId,
+    slot: usize,
+    cfg: crate::sampling::SamplingConfig,
+    history: Vec<i64>,
+    rng: u64,
+    max_new: usize,
+    started: Instant,
+    prefill_s: f64,
+    decode_started: Instant,
+    prompt_len: usize,
+    next: i64,
+    /// Absolute position the next forward of this stream occupies.
+    pos: usize,
+    generated: Vec<u32>,
+    emitted: usize,
 }
 
 /// Rank-0 per-token streaming state: everything the decode loop threaded as
@@ -5335,7 +5381,266 @@ impl<R: StagedRunner> PipelineEngine<R> {
                 })
                 .unwrap_or(0),
             active: None,
+            streams: Vec::new(),
+            stream_cap: 0,
+            stream_admit_per_step: 1,
+            stream_log: (0, Duration::ZERO, 0),
         }
+    }
+
+    /// Enable multi-stream decode with up to `n` concurrent tasks (single
+    /// stage only). Returns the capacity actually configured (0 if the runner
+    /// cannot batch streams).
+    pub fn enable_streams(&mut self, n: usize) -> usize {
+        if self.total > 1 || n == 0 {
+            return 0;
+        }
+        if !self.runner.configure_streams(n) {
+            return 0;
+        }
+        self.stream_cap = self.runner.stream_capacity().min(n);
+        self.stream_admit_per_step = std::env::var("CASCADIA_STREAMS_ADMIT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|&v: &usize| v >= 1)
+            .unwrap_or(1);
+        info!(
+            streams = self.stream_cap,
+            admit_per_step = self.stream_admit_per_step,
+            "multi-stream decode enabled ({} single-stage)",
+            self.runner.arch_name()
+        );
+        self.stream_cap
+    }
+
+    /// Multi-stream single stage: admit up to `stream_admit_per_step` pending
+    /// tasks (prefill each, sample its first token), emit every active
+    /// stream's pending token, retire finished streams, then decode one token
+    /// for all survivors as one batch and sample their next tokens. Each
+    /// `step` therefore yields exactly one `Chunk::token` per active stream —
+    /// the runner fans them out by task id.
+    fn step_single_stage_streams(&mut self) -> Vec<(TaskId, Chunk)> {
+        let mut out: Vec<(TaskId, Chunk)> = Vec::new();
+        let step_started = Instant::now();
+        // ---- admission (prefill-first) ----
+        let mut admitted = 0usize;
+        while admitted < self.stream_admit_per_step
+            && self.streams.len() < self.stream_cap
+            && !self.pending.is_empty()
+        {
+            let task = self.pending.pop_front().expect("non-empty");
+            admitted += 1;
+            match self.admit_stream(task) {
+                Ok(()) => {}
+                Err((id, chunk)) => out.push((id, chunk)),
+            }
+        }
+        if self.streams.is_empty() {
+            return out;
+        }
+        // ---- emission: each stream's pending token, stop checks ----
+        let tok = self
+            .tokenizer
+            .as_ref()
+            .expect("multi-stream step needs a tokenizer");
+        let max_seq = self.runner.max_seq();
+        let eos: Vec<u32> = self.runner.eos_token_ids().to_vec();
+        let arch = self.runner.arch_name();
+        let mut finished: Vec<usize> = Vec::new();
+        for (i, st) in self.streams.iter_mut().enumerate() {
+            let t = st.next as u32;
+            st.generated.push(t);
+            st.history.push(st.next);
+            let full = tok.decode(&st.generated, true).unwrap_or_default();
+            let delta = utf8_safe_delta(&full, &mut st.emitted);
+            let mut c = Chunk::token(st.id.clone(), st.next, delta);
+            c.n_tokens = Some(1);
+            c.token_ids = vec![st.next];
+            out.push((st.id.clone(), c));
+            let n = st.generated.len();
+            let natural_stop = n >= st.max_new || eos.contains(&t);
+            // The cache cannot hold position `max_seq`: stop before forwarding
+            // there (the token sampled at the last in-range position is still
+            // emitted) and report `length`, as the one-task path does.
+            let cap_stop = !natural_stop && st.pos >= max_seq;
+            if natural_stop || cap_stop {
+                let mut chunk = Chunk::final_marker(st.id.clone(), String::new());
+                chunk.n_tokens = Some(0);
+                chunk.prompt_tokens = Some(st.prompt_len as u32);
+                chunk.finish_reason = Some(if cap_stop {
+                    FinishReason::Length
+                } else {
+                    finish_reason_for(n, st.max_new)
+                });
+                out.push((st.id.clone(), chunk));
+                let decode_s = st.decode_started.elapsed().as_secs_f64();
+                let steps = n.saturating_sub(1);
+                info!(
+                    task = %st.id,
+                    tokens = n,
+                    elapsed_s = st.started.elapsed().as_secs_f64(),
+                    prefill_s = st.prefill_s,
+                    decode_s,
+                    decode_steps = steps,
+                    decode_tok_s = if decode_s > 0.0 { steps as f64 / decode_s } else { 0.0 },
+                    "task done ({arch} multi-stream)"
+                );
+                finished.push(i);
+            }
+        }
+        for &i in finished.iter().rev() {
+            let st = self.streams.swap_remove(i);
+            self.runner.close_stream(st.slot);
+        }
+        if self.streams.is_empty() {
+            return out;
+        }
+        // ---- decode: one batched forward over every surviving stream ----
+        let hs = self.runner.hidden_size();
+        let slots: Vec<usize> = self.streams.iter().map(|s| s.slot).collect();
+        let mut hidden = Vec::with_capacity(slots.len() * hs);
+        for st in &self.streams {
+            debug_assert_eq!(st.pos, self.runner.stream_pos(st.slot));
+            hidden.extend(self.runner.embed_token(st.next as u32));
+        }
+        let rows = slots.len();
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let h = runner.decode_streams(hidden, &slots);
+            runner.head_logits_rows(&h, rows)
+        }));
+        let logits = match outcome {
+            Ok(l) => l,
+            Err(payload) => {
+                let msg = payload
+                    .downcast_ref::<String>()
+                    .cloned()
+                    .or_else(|| payload.downcast_ref::<&str>().map(|s| s.to_string()))
+                    .unwrap_or_else(|| "forward panicked".to_string());
+                warn!(error = %msg, streams = rows, "multi-stream forward failed; aborting the batch");
+                for st in self.streams.drain(..) {
+                    self.runner.close_stream(st.slot);
+                    out.push((st.id.clone(), Chunk::error(st.id, msg.clone())));
+                }
+                return out;
+            }
+        };
+        let vocab = logits.len() / rows;
+        for (i, st) in self.streams.iter_mut().enumerate() {
+            let l = &logits[i * vocab..(i + 1) * vocab];
+            st.next = crate::sampling::sample(l, &st.history, &st.cfg, &mut st.rng);
+            st.pos += 1;
+        }
+        // ---- aggregate log every ~16 steps ----
+        let (ref mut toks, ref mut wall, ref mut steps) = self.stream_log;
+        *toks += rows as u64;
+        *wall += step_started.elapsed();
+        *steps += 1;
+        if *steps >= 16 {
+            let secs = wall.as_secs_f64();
+            info!(
+                streams = rows,
+                steps = *steps,
+                step_ms = secs * 1e3 / *steps as f64,
+                aggregate_tok_s = if secs > 0.0 { *toks as f64 / secs } else { 0.0 },
+                "{arch} multi-stream decode"
+            );
+            self.stream_log = (0, Duration::ZERO, 0);
+        }
+        out
+    }
+
+    /// Tokenize, prefill and seed one task as a stream. On failure the task's
+    /// terminal chunk is returned instead.
+    fn admit_stream(&mut self, task: GenerationTask) -> Result<(), (TaskId, Chunk)> {
+        let started = Instant::now();
+        let Some(tok) = self.tokenizer.as_ref() else {
+            let e = Chunk::error(task.task_id.clone(), "engine has no tokenizer".to_string());
+            return Err((task.task_id, e));
+        };
+        let mut prompt_ids: Vec<u32> = match tok.encode(task.prompt.as_str(), true) {
+            Ok(enc) => enc.get_ids().to_vec(),
+            Err(e) => {
+                let c = Chunk::error(
+                    task.task_id.clone(),
+                    format!("tokenizer encode failed: {e}"),
+                );
+                return Err((task.task_id, c));
+            }
+        };
+        if prompt_ids.is_empty() {
+            let c = Chunk::final_marker(task.task_id.clone(), "");
+            return Err((task.task_id, c));
+        }
+        let max_seq = self.runner.max_seq();
+        if prompt_ids.len() > max_seq {
+            warn!(
+                task = %task.task_id,
+                prompt_tokens = prompt_ids.len(),
+                context_budget = max_seq,
+                "prompt exceeds context budget; dropping the tail (newest tokens)"
+            );
+            prompt_ids.truncate(max_seq);
+        }
+        let Some(slot) = self.runner.open_stream() else {
+            // Capacity is checked by the caller; a runner refusing anyway is a bug.
+            let c = Chunk::error(task.task_id.clone(), "no free stream slot".to_string());
+            return Err((task.task_id, c));
+        };
+        let hs = self.runner.hidden_size();
+        let rows = prompt_ids.len();
+        let mut hidden = Vec::with_capacity(rows * hs);
+        for &t in &prompt_ids {
+            hidden.extend(self.runner.embed_token(t));
+        }
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let h = runner.prefill_stream(slot, hidden, rows);
+            runner.head_logits(&h[(rows - 1) * hs..rows * hs])
+        }));
+        let logits = match outcome {
+            Ok(l) => l,
+            Err(payload) => {
+                let msg = payload
+                    .downcast_ref::<String>()
+                    .cloned()
+                    .or_else(|| payload.downcast_ref::<&str>().map(|s| s.to_string()))
+                    .unwrap_or_else(|| "forward panicked".to_string());
+                warn!(task = %task.task_id, error = %msg, "stream prefill failed; task aborted");
+                self.runner.close_stream(slot);
+                return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
+            }
+        };
+        let cfg = sampling_from_task(&task);
+        let mut rng = crate::sampling::init_rng(cfg.seed);
+        let history: Vec<i64> = Vec::new();
+        let next = crate::sampling::sample(&logits, &history, &cfg, &mut rng);
+        let prefill_s = started.elapsed().as_secs_f64();
+        info!(
+            task = %task.task_id,
+            slot,
+            prompt_tokens = rows,
+            prefill_s,
+            streams = self.streams.len() + 1,
+            "stream admitted"
+        );
+        self.streams.push(StreamActive {
+            id: task.task_id,
+            slot,
+            cfg,
+            history,
+            rng,
+            max_new: task.max_tokens.max(1) as usize,
+            started,
+            prefill_s,
+            decode_started: Instant::now(),
+            prompt_len: rows,
+            next,
+            pos: rows,
+            generated: Vec::new(),
+            emitted: 0,
+        });
+        Ok(())
     }
 
     /// Longest cached prompt prefix that is a STRICT prefix of `prompt` (length
@@ -6407,10 +6712,17 @@ impl<R: StagedRunner> Engine for PipelineEngine<R> {
         if self.active.as_ref().is_some_and(|a| &a.id == task_id) {
             self.active = None;
         }
+        if let Some(i) = self.streams.iter().position(|s| &s.id == task_id) {
+            let st = self.streams.swap_remove(i);
+            self.runner.close_stream(st.slot);
+        }
     }
 
     fn step(&mut self) -> EngineResult<Vec<(TaskId, Chunk)>> {
         if self.total <= 1 {
+            if self.stream_cap > 0 {
+                return Ok(self.step_single_stage_streams());
+            }
             return Ok(self.step_single_stage());
         }
         // step_first handles its own errors terminally (final-marker/error
