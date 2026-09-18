@@ -7,7 +7,7 @@ Per request: wall time, time to first token, tokens, steady-state tokens/s.
 Per round: aggregate tokens/s (all generated tokens over the round's wall time)
 and the sum of the per-stream steady-state rates.
 """
-import argparse, json, sys, time, threading, urllib.request
+import argparse, json, sys, time, threading, urllib.error, urllib.request
 
 PROMPTS = ["Explain in three sentences why the sky is blue.", "What is the capital of France? Answer in one word.",
            "Write two sentences about the Pacific Ocean.", "List three prime numbers and say why they are prime.",
@@ -24,7 +24,16 @@ def one(base, i, tokens, out):
     req = urllib.request.Request(f"{base}/v1/chat/completions", data=body, headers={"Content-Type": "application/json"})
     t0 = time.time(); first = last = None; n = 0; text = []
     try:
-        with urllib.request.urlopen(req, timeout=36000) as r:
+        r = None
+        for attempt in range(20):  # the API answers 503 while at capacity; back off and retry
+            try:
+                r = urllib.request.urlopen(req, timeout=36000)
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 503 or attempt == 19:
+                    raise
+                time.sleep(0.5 + 0.25 * attempt)
+        with r:
             for line in r:
                 line = line.strip()
                 if not line.startswith(b"data:"):

@@ -5,7 +5,7 @@ $e = @{}; Get-Content "$Prefix\rank.env" | Where-Object { $_ -match '^\s*([A-Za-
 $t = Get-ScheduledTask -TaskName CascadiaInkling -ErrorAction SilentlyContinue
 "task: " + $(if ($t) { $t.State } else { 'not installed' }) + "  worker process: " + ((Get-Process cascadia*, cascadia-ov -ErrorAction SilentlyContinue | Measure-Object).Count)
 "last log lines:"
-Get-Content "$Prefix\logs\worker.log", "$Prefix\logs\worker.log.err" -ErrorAction SilentlyContinue | Select-Object -Last 6 | ForEach-Object { ($_ -replace '\x1b\[[0-9;]*m', '').Substring(0, [Math]::Min(160, $_.Length)) }
+Get-Content "$Prefix\logs\worker.log", "$Prefix\logs\worker.log.err" -ErrorAction SilentlyContinue | Select-Object -Last 6 | ForEach-Object { $t = ($_ -replace '\x1b\[[0-9;]*m', ''); $t.Substring(0, [Math]::Min(160, $t.Length)) }
 if ($e.RANK -eq '0') { try { "api: " + (Invoke-WebRequest -Uri http://127.0.0.1:8000/v1/models -TimeoutSec 3 -UseBasicParsing).Content.Substring(0, 120) } catch { "api: not answering" } }
 $os = Get-CimInstance Win32_OperatingSystem
 "ram: free " + [math]::Round($os.FreePhysicalMemory/1MB, 1) + " GB of " + [math]::Round($os.TotalVisibleMemorySize/1MB, 1)
