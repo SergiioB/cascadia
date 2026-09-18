@@ -136,6 +136,15 @@ regime, and about the 12–15 ms the tate-07 whole-model profile showed for
 its cache-resident layers. TTFT halves as well (the prefill also runs from
 the cache).
 
+**The installed pipeline** (`deploy/inkling-fleet`: `install.ps1 -Rank 0`
+on delta from the SSD tree — side-by-side runtime, private Python, fused IR
+generated on the box in 27 s, scheduled task — with the three NUC ranks
+under a restart loop; `bench.py` from another box): 8.5 tok/s for one
+stream, 10.8 summed at 8 streams, 19.1 summed at 16 (13.5 tok/s
+aggregate including the 11 s mean time to first token). Same numbers as
+the hand-launched pipeline, from a box installed by the one command the
+venue will use.
+
 **Rank 0 on the iGPU** (delta's Arc B390 through the side-by-side OpenVINO
 2026.3.1 runtime: int8 attention IRs on its three layers with the Rust
 copies released, the int8 head IR, the fused MoE IR for layer 2 generated
