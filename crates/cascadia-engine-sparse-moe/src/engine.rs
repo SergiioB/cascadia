@@ -5377,7 +5377,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
     /// `CASCADIA_GLM5_PREFIX_CACHE`, preserving the env-only behaviour. This
     /// index must stay in lockstep with every rank's `SliceKvCache`, so the
     /// value threaded here is the same one handed to `StageOpts`.
-    fn new(
+    pub fn new(
         runner: R,
         tokenizer: Option<Tokenizer>,
         transport: StageTransport,
