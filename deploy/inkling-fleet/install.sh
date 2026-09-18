@@ -135,7 +135,7 @@ v="IP_$RANK"; MYIP="${!v}"
   echo "RANK=$RANK"; echo "TOTAL=$TOTAL"; echo "LAYER_START=$LO"; echo "LAYER_END=$HI"; echo "NEXT=${IP_NEXT:+$IP_NEXT:$((RELAY_PORT+RANK+1))}"
   echo "OVDIR=$OVDIR"
   echo "RAYON_NUM_THREADS=$(nproc)"
-  echo "CASCADIA_INKLING_MAX_SEQ=${MAX_SEQ:-1024}"; echo "CASCADIA_STREAMS=${STREAMS:-16}"
+  echo "CASCADIA_INKLING_MAX_SEQ=${MAX_SEQ:-1024}"; echo "CASCADIA_STREAMS=${STREAMS:-16}"; echo "CASCADIA_API_MAX_CONCURRENT=$(( ${STREAMS:-16} * 4 ))"
   # the tuned CPU read profile with the expert cache holding the whole slice
   cat <<'ENV'
 CASCADIA_INKLING_SERIAL_EXPERTS=0
