@@ -131,6 +131,12 @@ pub trait StagedRunner: Send + 'static {
         None
     }
 
+    /// Open a specific slot (a worker rank following rank 0's choice); the
+    /// slot's state is cleared even if it was busy. `false` if out of range.
+    fn open_stream_at(&mut self, _slot: usize) -> bool {
+        false
+    }
+
     /// Release a slot.
     fn close_stream(&mut self, _slot: usize) {}
 

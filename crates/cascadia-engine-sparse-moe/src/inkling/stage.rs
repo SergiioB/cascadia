@@ -281,6 +281,17 @@ impl StagedRunner for InklingRunner {
         self.streams[slot] = Some(0);
         Some(slot)
     }
+    fn open_stream_at(&mut self, slot: usize) -> bool {
+        if slot >= self.streams.len() {
+            return false;
+        }
+        for l in &mut self.layers {
+            l.select_slot(slot);
+            l.reset();
+        }
+        self.streams[slot] = Some(0);
+        true
+    }
     fn close_stream(&mut self, slot: usize) {
         if let Some(s) = self.streams.get_mut(slot) {
             *s = None;
