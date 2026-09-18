@@ -40,6 +40,9 @@ PYV=$($PY -c 'import sys;print("%d.%d"%sys.version_info[:2])' 2>/dev/null || ech
 NIC=$(ip -o link show | awk -F': ' '$2 !~ /lo|docker|veth|tailscale|wl/ {print $2; exit}')
 log "rank $RANK of $TOTAL on Ubuntu $VERSION_ID, ${RAM_GB} GB RAM, python $PYV, nic ${NIC:-?}, prefix $PREFIX"
 
+# ---------- 0. stop a rank that is already running here (re-install) ----------
+systemctl stop cascadia-inkling.service 2>/dev/null || true
+
 # ---------- 1. binary + OpenVINO runtime (side by side) ----------
 install -m 0755 "$HERE/bin/linux/cascadia" "$PREFIX/cascadia"
 ARCH="$HERE/runtime/openvino_genai_ubuntu24_2026.3.1.0_x86_64.tar.gz"

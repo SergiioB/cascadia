@@ -12,6 +12,8 @@ if ([int]$env:RANK -gt 0) { $args += @('--listen', ":$(9100 + [int]$env:RANK)") 
 if ($env:NEXT) { $args += @('--next', $env:NEXT) }
 if ([int]$env:RANK -eq 0) { $args += @('--api', ':8000') }
 while ($true) {
+  # this task is the only launcher for this prefix: a worker left behind by an earlier supervisor would hold the ports
+  Get-Process cascadia, cascadia-ov -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Prefix\*" } | Stop-Process -Force -ErrorAction SilentlyContinue
   $log = "$Prefix\logs\worker.log"
   if ((Test-Path $log) -and ((Get-Item $log).Length -gt 200MB)) { Move-Item $log "$Prefix\logs\worker.prev.log" -Force }
   $p = Start-Process -FilePath $exe -ArgumentList $args -PassThru -NoNewWindow -RedirectStandardOutput $log -RedirectStandardError "$log.err"

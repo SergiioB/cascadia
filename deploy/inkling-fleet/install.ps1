@@ -40,8 +40,14 @@ $ramGb = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemor
 Log "rank $Rank of $Total, $ramGb GB RAM, prefix $Prefix, model source $ModelSource"
 
 # ---------- 0. stop a rank that is already running here (re-install) ----------
+# Order matters: the task's run.ps1 loop relaunches its worker within 5 s, so end every
+# copy of the loop before the workers. Only processes under this prefix are touched;
+# other cascadia deployments on the box keep running.
+Stop-ScheduledTask -TaskName 'CascadiaInkling' -ErrorAction SilentlyContinue
 Unregister-ScheduledTask -TaskName 'CascadiaInkling' -Confirm:$false -ErrorAction SilentlyContinue
-Get-Process cascadia, cascadia-ov -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'run\.ps1' -and $_.CommandLine -match [regex]::Escape($Prefix) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Get-Process cascadia, cascadia-ov -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Prefix\*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+foreach ($i in 1..10) { if (-not (Get-Process cascadia, cascadia-ov -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$Prefix\*" })) { break }; Start-Sleep -Seconds 1 }
 Start-Sleep -Seconds 2
 
 # ---------- 1. binaries + OpenVINO runtime ----------
