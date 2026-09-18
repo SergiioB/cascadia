@@ -72,11 +72,11 @@ $m = Get-Content "$ModelSource\manifest.json" | ConvertFrom-Json
 $n = [int]$m.num_layers; $base = [math]::Floor($n / $Total); $rem = $n % $Total
 $Lo = [int]($Rank * $base + [math]::Min($Rank, $rem)); $Hi = [int]($Lo + $base + $(if ($Rank -lt $rem) { 1 } else { 0 }))
 $files = @('manifest.json', 'tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'chat_template.jinja', 'source_config.json')
-for ($l = $Lo; $l -lt $Hi; $l++) {
-  $L = '{0:d2}' -f [int]$l
-  $files += "shells\layer_$L.safetensors"
-  $files += Get-ChildItem "$ModelSource\experts\layer_$L" -File | ForEach-Object { "experts\layer_$L\$($_.Name)" }
-  if (Test-Path "$ModelSource\attn_ov\layer_$L") { $files += Get-ChildItem "$ModelSource\attn_ov\layer_$L" -Recurse -File | ForEach-Object { $_.FullName.Substring($ModelSource.Length + 1) } }
+for ($li = $Lo; $li -lt $Hi; $li++) {
+  $tag = '{0:d2}' -f [int]$li
+  $files += "shells\layer_$tag.safetensors"
+  $files += Get-ChildItem "$ModelSource\experts\layer_$tag" -File | ForEach-Object { "experts\layer_$tag\$($_.Name)" }
+  if (Test-Path "$ModelSource\attn_ov\layer_$tag") { $files += Get-ChildItem "$ModelSource\attn_ov\layer_$tag" -Recurse -File | ForEach-Object { $_.FullName.Substring($ModelSource.Length + 1) } }
 }
 if ($Rank -eq 0) { $files += 'embed.safetensors' }
 if ($Rank -eq $Total - 1) { $files += 'head.safetensors'; if (Test-Path "$ModelSource\head_ov") { $files += Get-ChildItem "$ModelSource\head_ov" -File | ForEach-Object { "head_ov\$($_.Name)" } } }
@@ -115,7 +115,7 @@ if ($GpuOk -and -not (Done 'pylib')) {
 $Fused = ''
 if ($GpuOk) {
   $maxFused = [int](Or $fleet['FUSED_LAYERS_WINDOWS'] 3)
-  $cands = @(); for ($l = $Lo; $l -lt $Hi; $l++) { if ($l -ge 2) { $cands += $l } }
+  $cands = @(); for ($li = $Lo; $li -lt $Hi; $li++) { if ($li -ge 2) { $cands += $li } }
   $Fused = ($cands | Select-Object -First $maxFused) -join ','
   if ($Fused -ne '' -and (Done 'pylib') -and -not (Done "fused:$Fused")) {
     Log "generating fused MoE IRs for layers $Fused (about a minute each)"
