@@ -5313,10 +5313,12 @@ pub struct PipelineEngine<R: StagedRunner> {
     /// Rank 0: id of the last stream frame sent (replies must echo it).
     stream_batch_seq: u32,
     /// Rank 0 of a pipeline: streams are split into this many groups, each
-    /// with its own micro-batch frame in flight, so every downstream rank
-    /// works on a different group's frame at once. Groups are serviced
-    /// round-robin, one per `step`, which keeps the single reply FIFO in
-    /// order. 1 = one frame in flight (no overlap).
+    /// with its own micro-batch frame in flight, so every rank works on a
+    /// different group's frame at once. Groups are serviced round-robin, one
+    /// per `step`, which keeps the single reply FIFO in order. 1 = one frame
+    /// in flight (no overlap). Pays off because a rank's cost per frame is a
+    /// fixed part plus a per-row part: G smaller frames in flight finish
+    /// sooner than one big one through R ranks in series.
     stream_groups: usize,
     /// Rank 0: frames sent and not yet answered, per group, in send order.
     stream_inflight: Vec<VecDeque<StreamInFlight>>,
@@ -5471,9 +5473,9 @@ impl<R: StagedRunner> PipelineEngine<R> {
             .and_then(|v| v.parse().ok())
             .filter(|&v: &usize| v >= 1)
             .unwrap_or(1);
-        // Frames in flight = downstream ranks, unless overridden; never more
-        // groups than slots.
-        let default_groups = (self.total.max(1) as usize).saturating_sub(1).max(1);
+        // Frames in flight = ranks (rank 0 computes too), unless overridden;
+        // never more groups than slots.
+        let default_groups = (self.total.max(1) as usize).max(1);
         self.stream_groups = std::env::var("CASCADIA_STREAMS_INFLIGHT")
             .ok()
             .and_then(|v| v.parse().ok())
