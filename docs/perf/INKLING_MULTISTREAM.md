@@ -75,6 +75,7 @@ one group vs four: same tokens, 1.5–2× less wall time.
 | `inkling_streams.rs` | streams decoded in a batch are bit-identical (logits and greedy ids) to each stream alone, including a stream admitted mid-flight and a slot reused after close; the single-sequence path is unchanged and still reproduces the HF reference ids |
 | `inkling_streams_wire.rs` | 3-rank loopback pipeline, 5 tasks over 3 slots (admission, finish, reuse): every task's tokens equal the single-stage engine's |
 | `inkling_streams_overlap.rs` | groups in flight overlap the ranks (above) |
+| `inkling_streams_wire.rs::last_rank_exits_after_upstream_reset` | a last rank whose upstream dies hard (TCP reset) exits its step loop for the supervisor instead of spinning on `NotConnected` (fails without the fix) |
 | local API run (`cascadia run`, fixture, `CASCADIA_STREAMS=4`) | four concurrent `/v1/completions` return exactly what the one-task path returns |
 | the crate's 439 tests | no regression |
 
@@ -207,7 +208,26 @@ with the promoted CPU read profile (`tools/inkling_autolab/ptl-profile.ps1`),
 `CASCADIA_STREAMS=<slots>` identical on every rank, and, where the iGPU is
 used, `CASCADIA_INKLING_OV_ATTN=1 CASCADIA_INKLING_OV_ATTN_DIR=attn_ov_int8
 CASCADIA_INKLING_OV_ATTN_DROP_RUST=1 CASCADIA_INKLING_OV_HEAD=1` (last rank).
-Start the last rank first, rank 0 last. The `cascadia-array` control plane
+Start the last rank first, rank 0 last (or in any order under a supervisor:
+ranks retry their downstream until it accepts).
+
+**Restarts.** A rank exits when a neighbour goes away, by design (the
+listener accepts exactly once, so a fresh process is the only clean
+reconnect), so every rank must run under a supervisor that relaunches it:
+the installers use systemd `Restart=always` and a scheduled-task loop.
+Restarting or re-installing one box therefore restarts the whole pipeline
+once; it settles in about five seconds plus load time, and requests made
+in that window get an error from rank 0. Two bugs found on the four-box
+bed while re-installing rank 0 are fixed on this branch: rank 0 kept
+serving errors on a dead downstream instead of exiting (`b7336add`), and
+the last rank spun forever on `worker recv_kind failed: not connected`
+after its upstream reset, so the restarted middle rank could never
+reconnect (`44f6b909`; it now latches the dropped link and exits like the
+other ranks). The Windows installer also had to stop the previous task's
+`run.ps1` loop before its worker, or the loop relaunched an orphan that held
+port 8000 (`9a33b412`).
+
+The `cascadia-array` control plane
 does exactly this for a ring of Windows boxes (bundled DHCP + mDNS, USB
 enrollment, artifact pull over LAN HTTP, reverse-order start, health polls);
 what it lacks for Inkling is the per-rank slice packaging, an env profile in

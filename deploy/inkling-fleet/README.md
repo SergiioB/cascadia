@@ -71,4 +71,9 @@ requests the pipeline serves; raise it on every box together.
   different `CASCADIA_STREAMS` than rank 0.
 - `no /dev/dri render node`: the kernel does not expose the Panther Lake
   iGPU; the rank runs on the CPU. Ubuntu 24.04 needs its HWE kernel (6.14+).
-- Re-running the installer is safe; it skips what is already done.
+- Re-running the installer is safe; it skips what is already done. It
+  restarts that box's rank, and every rank exits when a neighbour goes away
+  and comes back under its supervisor, so the whole pipeline restarts once
+  (about five seconds plus load time). Requests made in that window get an
+  error from rank 0; wait until `status` on the changed box shows one
+  worker that has been up for a minute before benchmarking.
