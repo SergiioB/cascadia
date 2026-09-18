@@ -5786,6 +5786,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
             hs as u32,
         )) {
             warn!(task = %task.task_id, "send_stream_open failed: {e}");
+            self.peer_disconnected = true;
             self.runner.close_stream(slot);
             return Err((
                 task.task_id.clone(),
@@ -5830,8 +5831,15 @@ impl<R: StagedRunner> PipelineEngine<R> {
     }
 
     /// Abort every stream (wire or forward failure): error chunks, slots
-    /// freed, in-flight bookkeeping cleared.
+    /// freed, in-flight bookkeeping cleared. A wire failure also latches
+    /// `peer_disconnected`: the downstream link does not reconnect, so rank 0
+    /// surfaces a connection-fatal error on its next step and the supervisor
+    /// (systemd, the scheduled task loop) restarts it to re-dial — the same
+    /// rebuild rule the worker ranks follow.
     fn fail_streams_into(&mut self, out: &mut Vec<(TaskId, Chunk)>, msg: String) {
+        if !msg.starts_with("forward panicked") && !msg.contains("stream reply") {
+            self.peer_disconnected = true;
+        }
         warn!(error = %msg, streams = self.streams.len(), "multi-stream pipeline failed; aborting all streams");
         for q in &mut self.stream_inflight {
             q.clear();
@@ -7386,7 +7394,20 @@ impl<R: StagedRunner> Engine for PipelineEngine<R> {
         // chunk on the driver), so rank 0 never surfaces an Err here.
         if self.rank == 0 {
             if self.stream_cap > 0 {
-                return Ok(self.step_streams());
+                let produced = self.step_streams();
+                if produced.is_empty()
+                    && worker_should_report_disconnect(
+                        self.peer_disconnected,
+                        self.disconnect_reported,
+                    )
+                {
+                    // The error chunks went out on the step that failed; now
+                    // hand the relay loop the connection-fatal error so the
+                    // stage is rebuilt (re-dials the downstream rank).
+                    self.disconnect_reported = true;
+                    return Err(EngineError::NotConnected);
+                }
+                return Ok(produced);
             }
             return Ok(self.step_first());
         }
