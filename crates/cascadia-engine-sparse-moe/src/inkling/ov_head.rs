@@ -138,7 +138,10 @@ impl OvHead {
             self.fallbacks.fetch_add(1, Ordering::Relaxed);
             return None;
         }
-        assert!(rows >= 1 && xs.len() % rows == 0, "OV head: xs/rows shape");
+        assert!(
+            rows >= 1 && xs.len().is_multiple_of(rows),
+            "OV head: xs/rows shape"
+        );
         let hidden = xs.len() / rows;
         let t0 = Instant::now();
         let mut g = self.rt.lock().expect("OV head lock");

@@ -5693,6 +5693,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
     /// Pipeline admission: tokenize, take a slot, run my layers over the
     /// prompt and send `StreamOpen` for group `g` without waiting; the first
     /// token arrives with the group's next turn.
+    #[allow(clippy::result_large_err)]
     fn admit_stream_pipeline(
         &mut self,
         task: GenerationTask,
@@ -5968,6 +5969,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
 
     /// Tokenize, prefill and seed one task as a stream. On failure the task's
     /// terminal chunk is returned instead.
+    #[allow(clippy::result_large_err)]
     fn admit_stream(&mut self, task: GenerationTask) -> Result<(), (TaskId, Chunk)> {
         let started = Instant::now();
         let Some(tok) = self.tokenizer.as_ref() else {
