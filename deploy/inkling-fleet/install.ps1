@@ -70,10 +70,10 @@ if (-not $CpuOnly) {
 # ---------- 3. model slice ----------
 $m = Get-Content "$ModelSource\manifest.json" | ConvertFrom-Json
 $n = [int]$m.num_layers; $base = [math]::Floor($n / $Total); $rem = $n % $Total
-$Lo = $Rank * $base + [math]::Min($Rank, $rem); $Hi = $Lo + $base + $(if ($Rank -lt $rem) { 1 } else { 0 })
+$Lo = [int]($Rank * $base + [math]::Min($Rank, $rem)); $Hi = [int]($Lo + $base + $(if ($Rank -lt $rem) { 1 } else { 0 }))
 $files = @('manifest.json', 'tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'chat_template.jinja', 'source_config.json')
 for ($l = $Lo; $l -lt $Hi; $l++) {
-  $L = '{0:d2}' -f $l
+  $L = '{0:d2}' -f [int]$l
   $files += "shells\layer_$L.safetensors"
   $files += Get-ChildItem "$ModelSource\experts\layer_$L" -File | ForEach-Object { "experts\layer_$L\$($_.Name)" }
   if (Test-Path "$ModelSource\attn_ov\layer_$L") { $files += Get-ChildItem "$ModelSource\attn_ov\layer_$L" -Recurse -File | ForEach-Object { $_.FullName.Substring($ModelSource.Length + 1) } }
