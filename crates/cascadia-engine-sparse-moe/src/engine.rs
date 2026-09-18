@@ -5311,6 +5311,16 @@ pub struct PipelineEngine<R: StagedRunner> {
     stream_samplers: HashMap<usize, StreamSampler>,
     /// Rank 0: id of the last stream frame sent (replies must echo it).
     stream_batch_seq: u32,
+    /// Rank 0 of a pipeline: streams are split into this many groups, each
+    /// with its own micro-batch frame in flight, so every downstream rank
+    /// works on a different group's frame at once. Groups are serviced
+    /// round-robin, one per `step`, which keeps the single reply FIFO in
+    /// order. 1 = one frame in flight (no overlap).
+    stream_groups: usize,
+    /// Rank 0: frames sent and not yet answered, per group, in send order.
+    stream_inflight: Vec<VecDeque<StreamInFlight>>,
+    /// Rank 0: rotation counter (`% stream_groups` = the group this step serves).
+    stream_step: u64,
     /// New streams admitted (prefilled) per `step`, so a burst of prompts
     /// cannot stall the streams already decoding for many prefills at once.
     stream_admit_per_step: usize,
@@ -5329,9 +5339,32 @@ struct StreamSampler {
     rng: u64,
 }
 
+/// A stream frame rank 0 has sent and is owed a `StreamTokens` reply for.
+struct StreamInFlight {
+    batch_id: u32,
+    /// Slots in row order (one for a `StreamOpen`).
+    slots: Vec<usize>,
+    open: bool,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum StreamState {
+    /// `StreamOpen` sent, first token not back yet (pipeline only).
+    Prefilling,
+    /// `next` holds a token to emit and forward.
+    Ready,
+    /// A decode frame carrying this stream is in flight (pipeline only).
+    InFlight,
+}
+
 struct StreamActive {
     id: TaskId,
     slot: usize,
+    /// Pipeline: the micro-batch group this stream rides in.
+    group: usize,
+    state: StreamState,
+    /// Cancelled while a frame was in flight: retire silently once it lands.
+    cancelled: bool,
     cfg: crate::sampling::SamplingConfig,
     history: Vec<i64>,
     rng: u64,
@@ -5413,6 +5446,9 @@ impl<R: StagedRunner> PipelineEngine<R> {
             stream_cap: 0,
             stream_samplers: HashMap::new(),
             stream_batch_seq: 0,
+            stream_groups: 1,
+            stream_inflight: Vec::new(),
+            stream_step: 0,
             stream_admit_per_step: 1,
             stream_log: (0, Duration::ZERO, 0),
         }
@@ -5434,15 +5470,354 @@ impl<R: StagedRunner> PipelineEngine<R> {
             .and_then(|v| v.parse().ok())
             .filter(|&v: &usize| v >= 1)
             .unwrap_or(1);
+        // Frames in flight = downstream ranks, unless overridden; never more
+        // groups than slots.
+        let default_groups = (self.total.max(1) as usize).saturating_sub(1).max(1);
+        self.stream_groups = std::env::var("CASCADIA_STREAMS_INFLIGHT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|&v: &usize| v >= 1)
+            .unwrap_or(default_groups)
+            .min(self.stream_cap)
+            .max(1);
+        self.stream_inflight = (0..self.stream_groups).map(|_| VecDeque::new()).collect();
         info!(
             streams = self.stream_cap,
             admit_per_step = self.stream_admit_per_step,
+            groups_in_flight = self.stream_groups,
             rank = self.rank,
             total = self.total,
             "multi-stream decode enabled ({})",
             self.runner.arch_name()
         );
         self.stream_cap
+    }
+
+    /// Rank 0 of a multi-stream pipeline: one group's turn. Receive the
+    /// group's outstanding replies (the oldest frames on the wire — groups
+    /// are serviced round-robin, so the single reply FIFO stays in order),
+    /// admit new streams into this group (their `StreamOpen` goes out now),
+    /// emit the group's ready tokens, retire finished streams, and send one
+    /// decode micro-batch for the survivors. With G groups and G frames in
+    /// flight, each downstream rank is busy on a different group's rows.
+    fn step_streams_pipeline(&mut self) -> Vec<(TaskId, Chunk)> {
+        let mut out: Vec<(TaskId, Chunk)> = Vec::new();
+        let step_started = Instant::now();
+        let groups = self.stream_groups.max(1);
+        let g = (self.stream_step % groups as u64) as usize;
+        self.stream_step += 1;
+        let Some(down) = self.transport.downstream.clone() else {
+            return self.fail_streams(out, "rank 0 missing downstream".into());
+        };
+        // ---- 1. replies for this group's frames ----
+        while let Some(f) = self.stream_inflight[g].pop_front() {
+            let deadline = if f.open {
+                Self::reply_deadline_prefill()
+            } else {
+                Self::reply_deadline() * groups as u32
+            };
+            let reply = self.block_on(recv_stream_tokens_reply(&down, deadline));
+            let (bid, toks) = match reply {
+                Ok(r) => r,
+                Err(e) => return self.fail_streams(out, e),
+            };
+            if bid != f.batch_id || toks.len() != f.slots.len() {
+                return self.fail_streams(
+                    out,
+                    format!(
+                        "stream reply mismatch: batch {bid} vs {}, {} rows vs {}",
+                        f.batch_id,
+                        toks.len(),
+                        f.slots.len()
+                    ),
+                );
+            }
+            for (&slot, &(wslot, token)) in f.slots.iter().zip(&toks) {
+                if wslot as usize != slot {
+                    return self.fail_streams(
+                        out,
+                        format!("stream reply row names slot {wslot}, expected {slot}"),
+                    );
+                }
+                if let Some(st) = self.streams.iter_mut().find(|s| s.slot == slot) {
+                    st.next = token;
+                    if !f.open {
+                        st.pos += 1;
+                    }
+                    st.state = StreamState::Ready;
+                }
+            }
+        }
+        // ---- 2. admissions into this group ----
+        let mut admitted = 0usize;
+        while admitted < self.stream_admit_per_step
+            && self.streams.len() < self.stream_cap
+            && !self.pending.is_empty()
+        {
+            let task = self.pending.pop_front().expect("non-empty");
+            admitted += 1;
+            if let Err((id, chunk)) = self.admit_stream_pipeline(task, g, &down) {
+                out.push((id, chunk));
+            }
+        }
+        // ---- 3. emission for this group's ready streams ----
+        let tok = self
+            .tokenizer
+            .as_ref()
+            .expect("multi-stream step needs a tokenizer");
+        let max_seq = self.runner.max_seq();
+        let eos: Vec<u32> = self.runner.eos_token_ids().to_vec();
+        let arch = self.runner.arch_name();
+        let mut finished: Vec<usize> = Vec::new();
+        for (i, st) in self.streams.iter_mut().enumerate() {
+            if st.group != g || st.state != StreamState::Ready {
+                continue;
+            }
+            if st.cancelled {
+                finished.push(i);
+                continue;
+            }
+            let t = st.next as u32;
+            st.generated.push(t);
+            let full = tok.decode(&st.generated, true).unwrap_or_default();
+            let delta = utf8_safe_delta(&full, &mut st.emitted);
+            let mut c = Chunk::token(st.id.clone(), st.next, delta);
+            c.n_tokens = Some(1);
+            c.token_ids = vec![st.next];
+            out.push((st.id.clone(), c));
+            let n = st.generated.len();
+            let natural_stop = n >= st.max_new || eos.contains(&t);
+            let cap_stop = !natural_stop && st.pos >= max_seq;
+            if natural_stop || cap_stop {
+                let mut chunk = Chunk::final_marker(st.id.clone(), String::new());
+                chunk.n_tokens = Some(0);
+                chunk.prompt_tokens = Some(st.prompt_len as u32);
+                chunk.finish_reason = Some(if cap_stop {
+                    FinishReason::Length
+                } else {
+                    finish_reason_for(n, st.max_new)
+                });
+                out.push((st.id.clone(), chunk));
+                let decode_s = st.decode_started.elapsed().as_secs_f64();
+                let steps = n.saturating_sub(1);
+                info!(
+                    task = %st.id,
+                    tokens = n,
+                    elapsed_s = st.started.elapsed().as_secs_f64(),
+                    prefill_s = st.prefill_s,
+                    decode_s,
+                    decode_steps = steps,
+                    decode_tok_s = if decode_s > 0.0 { steps as f64 / decode_s } else { 0.0 },
+                    "task done ({arch} multi-stream pipeline)"
+                );
+                finished.push(i);
+            }
+        }
+        for &i in finished.iter().rev() {
+            let st = self.streams.swap_remove(i);
+            self.runner.close_stream(st.slot);
+            if let Err(e) = self.block_on(send_stream_close(&down, st.slot as u32)) {
+                warn!(slot = st.slot, "stream close not relayed: {e}");
+            }
+        }
+        // ---- 4. one decode micro-batch for this group's survivors ----
+        let rows_idx: Vec<usize> = self
+            .streams
+            .iter()
+            .enumerate()
+            .filter(|(_, st)| st.group == g && st.state == StreamState::Ready)
+            .map(|(i, _)| i)
+            .collect();
+        if rows_idx.is_empty() {
+            return out;
+        }
+        let hs = self.runner.hidden_size();
+        let slots: Vec<usize> = rows_idx.iter().map(|&i| self.streams[i].slot).collect();
+        let wire_rows: Vec<(u32, u32)> = rows_idx
+            .iter()
+            .map(|&i| (self.streams[i].slot as u32, self.streams[i].pos as u32))
+            .collect();
+        let mut hidden = Vec::with_capacity(slots.len() * hs);
+        for &i in &rows_idx {
+            let st = &self.streams[i];
+            debug_assert_eq!(st.pos, self.runner.stream_pos(st.slot));
+            hidden.extend(self.runner.embed_token(st.next as u32));
+        }
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            runner.decode_streams(hidden, &slots)
+        }));
+        let h = match outcome {
+            Ok(h) => h,
+            Err(payload) => return self.fail_streams(out, panic_message(payload)),
+        };
+        self.stream_batch_seq = self.stream_batch_seq.wrapping_add(1);
+        let batch_id = self.stream_batch_seq;
+        if let Err(e) = self.block_on(send_stream_decode(
+            &down, batch_id, &wire_rows, &h, hs as u32,
+        )) {
+            return self.fail_streams(out, format!("send_stream_decode: {e}"));
+        }
+        for &i in &rows_idx {
+            self.streams[i].state = StreamState::InFlight;
+        }
+        self.stream_inflight[g].push_back(StreamInFlight {
+            batch_id,
+            slots,
+            open: false,
+        });
+        // ---- aggregate log ----
+        let rows = rows_idx.len();
+        let (ref mut toks, ref mut wall, ref mut steps) = self.stream_log;
+        *toks += rows as u64;
+        *wall += step_started.elapsed();
+        *steps += 1;
+        if *steps >= 16 * groups as u64 {
+            let secs = wall.as_secs_f64();
+            info!(
+                streams = self.streams.len(),
+                groups,
+                steps = *steps,
+                step_ms = secs * 1e3 / *steps as f64,
+                aggregate_tok_s = if secs > 0.0 { *toks as f64 / secs } else { 0.0 },
+                "{arch} multi-stream pipeline decode"
+            );
+            self.stream_log = (0, Duration::ZERO, 0);
+        }
+        out
+    }
+
+    /// Pipeline admission: tokenize, take a slot, run my layers over the
+    /// prompt and send `StreamOpen` for group `g` without waiting; the first
+    /// token arrives with the group's next turn.
+    fn admit_stream_pipeline(
+        &mut self,
+        task: GenerationTask,
+        g: usize,
+        down: &Arc<TokioMutex<ActivationClient>>,
+    ) -> Result<(), (TaskId, Chunk)> {
+        let started = Instant::now();
+        let Some(tok) = self.tokenizer.as_ref() else {
+            let e = Chunk::error(task.task_id.clone(), "engine has no tokenizer".to_string());
+            return Err((task.task_id, e));
+        };
+        let mut prompt_ids: Vec<u32> = match tok.encode(task.prompt.as_str(), true) {
+            Ok(enc) => enc.get_ids().to_vec(),
+            Err(e) => {
+                let c = Chunk::error(
+                    task.task_id.clone(),
+                    format!("tokenizer encode failed: {e}"),
+                );
+                return Err((task.task_id, c));
+            }
+        };
+        if prompt_ids.is_empty() {
+            let c = Chunk::final_marker(task.task_id.clone(), "");
+            return Err((task.task_id, c));
+        }
+        let max_seq = self.runner.max_seq();
+        if prompt_ids.len() > max_seq {
+            warn!(
+                task = %task.task_id,
+                prompt_tokens = prompt_ids.len(),
+                context_budget = max_seq,
+                "prompt exceeds context budget; dropping the tail (newest tokens)"
+            );
+            prompt_ids.truncate(max_seq);
+        }
+        let Some(slot) = self.runner.open_stream() else {
+            let c = Chunk::error(task.task_id.clone(), "no free stream slot".to_string());
+            return Err((task.task_id, c));
+        };
+        let hs = self.runner.hidden_size();
+        let rows = prompt_ids.len();
+        let mut hidden = Vec::with_capacity(rows * hs);
+        for &t in &prompt_ids {
+            hidden.extend(self.runner.embed_token(t));
+        }
+        let cfg = sampling_from_task(&task);
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            runner.prefill_stream(slot, hidden, rows)
+        }));
+        let h = match outcome {
+            Ok(h) => h,
+            Err(payload) => {
+                let msg = panic_message(payload);
+                warn!(task = %task.task_id, error = %msg, "stream prefill failed; task aborted");
+                self.runner.close_stream(slot);
+                return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
+            }
+        };
+        self.stream_batch_seq = self.stream_batch_seq.wrapping_add(1);
+        let batch_id = self.stream_batch_seq;
+        if let Err(e) = self.block_on(send_stream_open(
+            down,
+            batch_id,
+            slot as u32,
+            &cfg,
+            &h,
+            rows as u32,
+            hs as u32,
+        )) {
+            warn!(task = %task.task_id, "send_stream_open failed: {e}");
+            self.runner.close_stream(slot);
+            return Err((
+                task.task_id.clone(),
+                Chunk::error(task.task_id, format!("send_stream_open: {e}")),
+            ));
+        }
+        self.stream_inflight[g].push_back(StreamInFlight {
+            batch_id,
+            slots: vec![slot],
+            open: true,
+        });
+        let prefill_s = started.elapsed().as_secs_f64();
+        info!(
+            task = %task.task_id,
+            slot,
+            group = g,
+            prompt_tokens = rows,
+            rank0_prefill_s = prefill_s,
+            streams = self.streams.len() + 1,
+            "stream admitted (pipeline)"
+        );
+        self.streams.push(StreamActive {
+            id: task.task_id,
+            slot,
+            group: g,
+            state: StreamState::Prefilling,
+            cancelled: false,
+            cfg,
+            history: Vec::new(),
+            rng: 0,
+            max_new: task.max_tokens.max(1) as usize,
+            started,
+            prefill_s,
+            decode_started: Instant::now(),
+            prompt_len: rows,
+            next: -1,
+            pos: rows,
+            generated: Vec::new(),
+            emitted: 0,
+        });
+        Ok(())
+    }
+
+    /// Abort every stream (wire or forward failure): error chunks, slots
+    /// freed, in-flight bookkeeping cleared.
+    fn fail_streams(&mut self, mut out: Vec<(TaskId, Chunk)>, msg: String) -> Vec<(TaskId, Chunk)> {
+        warn!(error = %msg, streams = self.streams.len(), "multi-stream pipeline failed; aborting all streams");
+        for q in &mut self.stream_inflight {
+            q.clear();
+        }
+        for st in self.streams.drain(..) {
+            self.runner.close_stream(st.slot);
+            if !st.cancelled {
+                out.push((st.id.clone(), Chunk::error(st.id, msg.clone())));
+            }
+        }
+        out
     }
 
     /// Multi-stream single stage: admit up to `stream_admit_per_step` pending
@@ -5452,6 +5827,9 @@ impl<R: StagedRunner> PipelineEngine<R> {
     /// `step` therefore yields exactly one `Chunk::token` per active stream —
     /// the runner fans them out by task id.
     fn step_streams(&mut self) -> Vec<(TaskId, Chunk)> {
+        if self.total > 1 {
+            return self.step_streams_pipeline();
+        }
         let mut out: Vec<(TaskId, Chunk)> = Vec::new();
         let step_started = Instant::now();
         // ---- admission (prefill-first) ----
@@ -5548,82 +5926,23 @@ impl<R: StagedRunner> PipelineEngine<R> {
                 out.push((st.id.clone(), Chunk::error(st.id, msg.clone())));
             }
         };
-        if self.total > 1 {
-            // Pipeline: my layers, then the rows go down the wire and the last
-            // rank's sampled tokens come back.
-            let Some(down) = self.transport.downstream.clone() else {
-                fail_batch(self, &mut out, "rank 0 missing downstream".into());
-                return out;
-            };
-            let runner = &mut self.runner;
-            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                runner.decode_streams(hidden, &slots)
-            }));
-            let h = match outcome {
-                Ok(h) => h,
-                Err(payload) => {
-                    fail_batch(self, &mut out, panic_message(payload));
-                    return out;
-                }
-            };
-            let wire_rows: Vec<(u32, u32)> = self
-                .streams
-                .iter()
-                .map(|st| (st.slot as u32, st.pos as u32))
-                .collect();
-            self.stream_batch_seq = self.stream_batch_seq.wrapping_add(1);
-            let batch_id = self.stream_batch_seq;
-            let deadline = Self::reply_deadline();
-            let reply = self.block_on(async {
-                send_stream_decode(&down, batch_id, &wire_rows, &h, hs as u32)
-                    .await
-                    .map_err(|e| format!("send_stream_decode: {e}"))?;
-                recv_stream_tokens_reply(&down, deadline).await
-            });
-            let (bid, toks) = match reply {
-                Ok(r) => r,
-                Err(e) => {
-                    fail_batch(self, &mut out, e);
-                    return out;
-                }
-            };
-            if bid != batch_id || toks.len() != rows {
-                fail_batch(
-                    self,
-                    &mut out,
-                    format!(
-                        "stream reply mismatch: batch {bid} vs {batch_id}, {} rows vs {rows}",
-                        toks.len()
-                    ),
-                );
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let h = runner.decode_streams(hidden, &slots);
+            runner.head_logits_rows(&h, rows)
+        }));
+        let logits = match outcome {
+            Ok(l) => l,
+            Err(payload) => {
+                fail_batch(self, &mut out, panic_message(payload));
                 return out;
             }
-            for (st, &(slot, token)) in self.streams.iter_mut().zip(&toks) {
-                if slot as usize != st.slot {
-                    warn!(slot, expected = st.slot, "stream reply row out of order");
-                }
-                st.next = token;
-                st.pos += 1;
-            }
-        } else {
-            let runner = &mut self.runner;
-            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                let h = runner.decode_streams(hidden, &slots);
-                runner.head_logits_rows(&h, rows)
-            }));
-            let logits = match outcome {
-                Ok(l) => l,
-                Err(payload) => {
-                    fail_batch(self, &mut out, panic_message(payload));
-                    return out;
-                }
-            };
-            let vocab = logits.len() / rows;
-            for (i, st) in self.streams.iter_mut().enumerate() {
-                let l = &logits[i * vocab..(i + 1) * vocab];
-                st.next = crate::sampling::sample(l, &st.history, &st.cfg, &mut st.rng);
-                st.pos += 1;
-            }
+        };
+        let vocab = logits.len() / rows;
+        for (i, st) in self.streams.iter_mut().enumerate() {
+            let l = &logits[i * vocab..(i + 1) * vocab];
+            st.next = crate::sampling::sample(l, &st.history, &st.cfg, &mut st.rng);
+            st.pos += 1;
         }
         // ---- aggregate log every ~16 steps ----
         let (ref mut toks, ref mut wall, ref mut steps) = self.stream_log;
@@ -5690,83 +6009,21 @@ impl<R: StagedRunner> PipelineEngine<R> {
         let cfg = sampling_from_task(&task);
         let mut rng = crate::sampling::init_rng(cfg.seed);
         let history: Vec<i64> = Vec::new();
-        let next = if self.total > 1 {
-            // Pipeline: my layers, then StreamOpen down the wire; the last rank
-            // samples the first token and replies.
-            let Some(down) = self.transport.downstream.clone() else {
+        let runner = &mut self.runner;
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let h = runner.prefill_stream(slot, hidden, rows);
+            runner.head_logits(&h[(rows - 1) * hs..rows * hs])
+        }));
+        let logits = match outcome {
+            Ok(l) => l,
+            Err(payload) => {
+                let msg = panic_message(payload);
+                warn!(task = %task.task_id, error = %msg, "stream prefill failed; task aborted");
                 self.runner.close_stream(slot);
-                let c = Chunk::error(
-                    task.task_id.clone(),
-                    "rank 0 missing downstream".to_string(),
-                );
-                return Err((task.task_id, c));
-            };
-            let runner = &mut self.runner;
-            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                runner.prefill_stream(slot, hidden, rows)
-            }));
-            let h = match outcome {
-                Ok(h) => h,
-                Err(payload) => {
-                    let msg = panic_message(payload);
-                    warn!(task = %task.task_id, error = %msg, "stream prefill failed; task aborted");
-                    self.runner.close_stream(slot);
-                    return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
-                }
-            };
-            self.stream_batch_seq = self.stream_batch_seq.wrapping_add(1);
-            let batch_id = self.stream_batch_seq;
-            let deadline = Self::reply_deadline_prefill();
-            let reply = self.block_on(async {
-                send_stream_open(
-                    &down,
-                    batch_id,
-                    slot as u32,
-                    &cfg,
-                    &h,
-                    rows as u32,
-                    hs as u32,
-                )
-                .await
-                .map_err(|e| format!("send_stream_open: {e}"))?;
-                recv_stream_tokens_reply(&down, deadline).await
-            });
-            match reply {
-                Ok((bid, toks))
-                    if bid == batch_id && toks.len() == 1 && toks[0].0 as usize == slot =>
-                {
-                    toks[0].1
-                }
-                Ok((bid, toks)) => {
-                    let msg =
-                        format!("stream open reply mismatch: batch {bid} vs {batch_id}, {toks:?}");
-                    warn!(task = %task.task_id, "{msg}");
-                    self.runner.close_stream(slot);
-                    return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
-                }
-                Err(e) => {
-                    warn!(task = %task.task_id, error = %e, "stream open failed; task aborted");
-                    self.runner.close_stream(slot);
-                    return Err((task.task_id.clone(), Chunk::error(task.task_id, e)));
-                }
+                return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
             }
-        } else {
-            let runner = &mut self.runner;
-            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                let h = runner.prefill_stream(slot, hidden, rows);
-                runner.head_logits(&h[(rows - 1) * hs..rows * hs])
-            }));
-            let logits = match outcome {
-                Ok(l) => l,
-                Err(payload) => {
-                    let msg = panic_message(payload);
-                    warn!(task = %task.task_id, error = %msg, "stream prefill failed; task aborted");
-                    self.runner.close_stream(slot);
-                    return Err((task.task_id.clone(), Chunk::error(task.task_id, msg)));
-                }
-            };
-            crate::sampling::sample(&logits, &history, &cfg, &mut rng)
         };
+        let next = crate::sampling::sample(&logits, &history, &cfg, &mut rng);
         let prefill_s = started.elapsed().as_secs_f64();
         info!(
             task = %task.task_id,
@@ -5779,6 +6036,9 @@ impl<R: StagedRunner> PipelineEngine<R> {
         self.streams.push(StreamActive {
             id: task.task_id,
             slot,
+            group: 0,
+            state: StreamState::Ready,
+            cancelled: false,
             cfg,
             history,
             rng,
@@ -7036,8 +7296,15 @@ impl<R: StagedRunner> Engine for PipelineEngine<R> {
             self.active = None;
         }
         if let Some(i) = self.streams.iter().position(|s| &s.id == task_id) {
-            let st = self.streams.swap_remove(i);
-            self.runner.close_stream(st.slot);
+            if self.total > 1 {
+                // A pipeline stream may have a frame in flight whose reply names
+                // its slot: keep the bookkeeping until that lands, then retire
+                // it silently at its group's next turn.
+                self.streams[i].cancelled = true;
+            } else {
+                let st = self.streams.swap_remove(i);
+                self.runner.close_stream(st.slot);
+            }
         }
     }
 
