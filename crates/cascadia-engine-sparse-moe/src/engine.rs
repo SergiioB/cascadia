@@ -6756,6 +6756,10 @@ impl<R: StagedRunner> PipelineEngine<R> {
                         }
                         return Vec::new();
                     }
+                    // Upstream not accepted yet (the previous rank has not dialed
+                    // in): fall through to the blocking receive, which retries
+                    // with a backoff exactly as the one-task path does.
+                    Err(cascadia_transport::TransportError::NotConnected) => {}
                     Err(e) => {
                         warn!("worker socket closed while idle: {e}");
                         self.peer_disconnected = true;
