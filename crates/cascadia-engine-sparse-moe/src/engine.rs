@@ -5504,13 +5504,30 @@ impl<R: StagedRunner> PipelineEngine<R> {
     /// decode micro-batch for the survivors. With G groups and G frames in
     /// flight, each downstream rank is busy on a different group's rows.
     fn step_streams_pipeline(&mut self) -> Vec<(TaskId, Chunk)> {
+        // One `step` = one round over every group, so each active stream
+        // emits exactly one token per step (the runner's no-progress guard
+        // closes a task that sees three chunk-less steps). Between rounds
+        // every group's frame is in flight at once, which is the overlap.
         let mut out: Vec<(TaskId, Chunk)> = Vec::new();
+        let groups = self.stream_groups.max(1);
+        for g in 0..groups {
+            self.stream_step += 1;
+            let done = self.step_stream_group(g, &mut out);
+            if !done {
+                break;
+            }
+        }
+        out
+    }
+
+    /// Serve group `g` (see [`Self::step_streams_pipeline`]); `false` once
+    /// the streams were aborted.
+    fn step_stream_group(&mut self, g: usize, out: &mut Vec<(TaskId, Chunk)>) -> bool {
         let step_started = Instant::now();
         let groups = self.stream_groups.max(1);
-        let g = (self.stream_step % groups as u64) as usize;
-        self.stream_step += 1;
         let Some(down) = self.transport.downstream.clone() else {
-            return self.fail_streams(out, "rank 0 missing downstream".into());
+            self.fail_streams_into(out, "rank 0 missing downstream".into());
+            return false;
         };
         // ---- 1. replies for this group's frames ----
         while let Some(f) = self.stream_inflight[g].pop_front() {
@@ -5519,28 +5536,28 @@ impl<R: StagedRunner> PipelineEngine<R> {
             } else {
                 Self::reply_deadline() * groups as u32
             };
-            let reply = self.block_on(recv_stream_tokens_reply(&down, deadline));
-            let (bid, toks) = match reply {
+            let (bid, toks) = match self.block_on(recv_stream_tokens_reply(&down, deadline)) {
                 Ok(r) => r,
-                Err(e) => return self.fail_streams(out, e),
+                Err(e) => {
+                    self.fail_streams_into(out, e);
+                    return false;
+                }
             };
             if bid != f.batch_id || toks.len() != f.slots.len() {
-                return self.fail_streams(
-                    out,
-                    format!(
-                        "stream reply mismatch: batch {bid} vs {}, {} rows vs {}",
-                        f.batch_id,
-                        toks.len(),
-                        f.slots.len()
-                    ),
+                let msg = format!(
+                    "stream reply mismatch: batch {bid} vs {}, {} rows vs {}",
+                    f.batch_id,
+                    toks.len(),
+                    f.slots.len()
                 );
+                self.fail_streams_into(out, msg);
+                return false;
             }
             for (&slot, &(wslot, token)) in f.slots.iter().zip(&toks) {
                 if wslot as usize != slot {
-                    return self.fail_streams(
-                        out,
-                        format!("stream reply row names slot {wslot}, expected {slot}"),
-                    );
+                    let msg = format!("stream reply row names slot {wslot}, expected {slot}");
+                    self.fail_streams_into(out, msg);
+                    return false;
                 }
                 if let Some(st) = self.streams.iter_mut().find(|s| s.slot == slot) {
                     st.next = token;
@@ -5632,7 +5649,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
             .map(|(i, _)| i)
             .collect();
         if rows_idx.is_empty() {
-            return out;
+            return true;
         }
         let hs = self.runner.hidden_size();
         let slots: Vec<usize> = rows_idx.iter().map(|&i| self.streams[i].slot).collect();
@@ -5652,14 +5669,18 @@ impl<R: StagedRunner> PipelineEngine<R> {
         }));
         let h = match outcome {
             Ok(h) => h,
-            Err(payload) => return self.fail_streams(out, panic_message(payload)),
+            Err(payload) => {
+                self.fail_streams_into(out, panic_message(payload));
+                return false;
+            }
         };
         self.stream_batch_seq = self.stream_batch_seq.wrapping_add(1);
         let batch_id = self.stream_batch_seq;
         if let Err(e) = self.block_on(send_stream_decode(
             &down, batch_id, &wire_rows, &h, hs as u32,
         )) {
-            return self.fail_streams(out, format!("send_stream_decode: {e}"));
+            self.fail_streams_into(out, format!("send_stream_decode: {e}"));
+            return false;
         }
         for &i in &rows_idx {
             self.streams[i].state = StreamState::InFlight;
@@ -5687,7 +5708,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
             );
             self.stream_log = (0, Duration::ZERO, 0);
         }
-        out
+        true
     }
 
     /// Pipeline admission: tokenize, take a slot, run my layers over the
@@ -5810,7 +5831,7 @@ impl<R: StagedRunner> PipelineEngine<R> {
 
     /// Abort every stream (wire or forward failure): error chunks, slots
     /// freed, in-flight bookkeeping cleared.
-    fn fail_streams(&mut self, mut out: Vec<(TaskId, Chunk)>, msg: String) -> Vec<(TaskId, Chunk)> {
+    fn fail_streams_into(&mut self, out: &mut Vec<(TaskId, Chunk)>, msg: String) {
         warn!(error = %msg, streams = self.streams.len(), "multi-stream pipeline failed; aborting all streams");
         for q in &mut self.stream_inflight {
             q.clear();
@@ -5821,7 +5842,6 @@ impl<R: StagedRunner> PipelineEngine<R> {
                 out.push((st.id.clone(), Chunk::error(st.id, msg.clone())));
             }
         }
-        out
     }
 
     /// Multi-stream single stage: admit up to `stream_admit_per_step` pending
