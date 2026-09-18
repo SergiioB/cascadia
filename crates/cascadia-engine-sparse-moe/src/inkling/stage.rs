@@ -171,6 +171,19 @@ impl InklingRunner {
     }
 }
 
+impl InklingRunner {
+    /// Expert-cache counters summed over this rank's MoE layers.
+    pub fn expert_cache_stats_total(&self) -> super::ExpertCacheStats {
+        let mut total = super::ExpertCacheStats::default();
+        for l in &self.layers {
+            if let Some(m) = l.moe() {
+                total.add(m.expert_cache_stats());
+            }
+        }
+        total
+    }
+}
+
 impl StagedRunner for InklingRunner {
     fn arch_name(&self) -> &'static str {
         "inkling"

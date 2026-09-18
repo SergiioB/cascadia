@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 
 use super::read_buffers::ReadBuffer;
 
-#[derive(Clone, Copy, Default, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Default, serde::Serialize)]
 pub struct ExpertCacheStats {
     pub capacity_bytes: usize,
     pub retained_bytes: usize,
