@@ -78,9 +78,78 @@ one group vs four: same tokens, 1.5–2× less wall time.
 | local API run (`cascadia run`, fixture, `CASCADIA_STREAMS=4`) | four concurrent `/v1/completions` return exactly what the one-task path returns |
 | the crate's 439 tests | no regression |
 
-Not yet measured: real-model aggregate tok/s on hardware (tate-07 was
-unreachable at the time of writing; the single-box script is
-`t07_ms_serve.ps1` with `CASCADIA_STREAMS=1/4/8/16`), and a 12-box run.
+Measured on hardware below (four boxes). Not yet run: the 12-box fleet
+itself and a Linux iGPU rank (no Linux Panther Lake box was reachable; the
+installer's iGPU path is the same tools and IRs that ran on Windows).
+
+## Measured on four boxes (2026-09-18)
+
+Test bed: delta (192.168.0.122, 1 GbE) as rank 0 and the NUCs alpha, beta,
+charlie (2.5 GbE) as ranks 1–3 — all Core Ultra X7 358H, 32 GB, Windows 11
+— on the home LAN, CPU path only (no OpenVINO on the boxes), the real
+export sliced per rank (pushed from the miner over ssh), a manifest
+truncated to 11 layers so the pipeline is a complete model of layers 0–10
+whose words mean nothing but whose per-layer cost, wire and batching are
+the real thing. Ranks hold `[0,3) [3,5) [6,8) [9,11)` (rank 0: the two
+dense layers + one MoE + embed; two MoE layers per NUC; head on rank 3): a
+32 GB box cannot hold three MoE layers (23 GB) next to Windows.
+`CASCADIA_STREAMS=16`, four groups in flight, 32-token answers, load from
+the miner over the LAN (`lan_load.py`), rates from rank 0's log.
+
+**Plain memory-mapped experts (the OS page cache holds the slice):**
+
+| streams | per-stream tok/s | sum | client aggregate incl. TTFT | mean TTFT |
+|---|---|---|---|---|
+| 1 | 4.17 | 4.2 | 4.0 | 2.6 s |
+| 2 | 2.52 | 5.0 | 4.5 | 4.1 s |
+| 4 | 2.40 | 9.6 | 8.0 | 6.2 s |
+| 8 | 1.44 | 11.5 | 9.0 | 9.5 s |
+| 16 | 0.89 | 14.2 | 10.7 | 15.3 s |
+
+Steady windows reached 16.3 tok/s at 8 streams (225 ms per round of four
+groups). One stream costs 240 ms per token over 7 MoE + 2 dense layers,
+i.e. ~30 ms per MoE layer: the untuned mmap kernel regime (the same 30 ms
+the tate-07 layer dump measured for the CPU kernels). The overlap is real:
+16 streams deliver 3.4× the single stream's tokens.
+
+**The autolab's tuned read profile on the same ranks** first measured
+*slower* (1.5 tok/s single, 6.9 tok/s sum at 16 streams, TTFT 6–33 s):
+its unbuffered reads bypass the page cache and, until this branch, the
+batched MoE path — which every multi-stream decode step uses — never
+consulted the expert cache, so every step re-read every expert from NVMe.
+The batched path now looks up its unique experts once and admits misses
+after compute (`inkling_streams_cache.rs`: bit-identical to the eager
+reference, second pass hits). With that fix the tuned profile is the CPU
+configuration to deploy:
+
+| streams | per-stream tok/s | sum | client aggregate incl. TTFT | mean TTFT |
+|---|---|---|---|---|
+| 1 | 8.79 | 8.8 | 6.0 | 1.8 s |
+| 2 | 3.47 | 6.9 | 6.1 | 2.9 s |
+| 4 | 3.22 | 12.9 | 10.3 | 5.2 s |
+| 8 | 2.03 | 16.3 | 13.3 | 6.5 s |
+| 16 | 1.07 | 17.1 | 13.4 | 11.8 s |
+
+Steady windows reached 19–21 tok/s. One stream costs 114 ms per token over
+the 9 layers, ~14 ms per MoE layer including the hops — 2.1× the mmap
+regime, and about the 12–15 ms the tate-07 whole-model profile showed for
+its cache-resident layers. TTFT halves as well (the prefill also runs from
+the cache).
+
+**Rank 0 on the iGPU** (delta's Arc B390 through the side-by-side OpenVINO
+2026.3.1 runtime: int8 attention IRs on its three layers with the Rust
+copies released, the int8 head IR, the fused MoE IR for layer 2 generated
+on the box in 52 s; the NUC ranks unchanged): 8.4 tok/s single, 17.8 sum at
+16 streams, windows to 21.5, zero fallbacks. Rank 0 owns one MoE layer, so
+the pipeline's number barely moves; the point of the run is that the whole
+iGPU path — runtime install, IR generation, fused kernel, multi-stream
+frames — works on a Windows box that had nothing on it.
+
+**What a paged three-layer rank looks like**, for contrast (the first
+attempt, three MoE layers per NUC with the tuned profile at 8 GB of cache
+per layer, RAM oversubscribed): 1.25 tok/s single stream — 85 ms per MoE
+layer, exactly the 256 MB of expert bytes per token at the NVMe's 3 GB/s
+— and 5.6 tok/s sum at 16 streams. Residency is everything.
 
 ## What to expect on the 12-box pipeline
 
