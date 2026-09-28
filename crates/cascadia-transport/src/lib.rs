@@ -1078,6 +1078,27 @@ impl OwnedUnixSocket {
     }
 }
 
+/// `sockaddr_un.sun_path` size, including the trailing NUL.
+#[cfg(any(target_os = "linux", target_os = "android"))]
+const SUN_PATH_LEN: usize = 108;
+#[cfg(all(unix, not(any(target_os = "linux", target_os = "android"))))]
+const SUN_PATH_LEN: usize = 104;
+
+/// Reject a unix socket path that cannot fit in `sun_path`, with an error
+/// naming the limit (the raw OS error is a bare "invalid argument").
+#[cfg(unix)]
+fn check_unix_path_len(path: &std::path::Path) -> TransportResult<()> {
+    let len = path.as_os_str().len();
+    if len >= SUN_PATH_LEN {
+        return Err(TransportError::InvalidAddr(format!(
+            "unix:{} — path is {len} bytes, the limit on this platform is {} bytes",
+            path.display(),
+            SUN_PATH_LEN - 1
+        )));
+    }
+    Ok(())
+}
+
 /// Bind an owner-only (0600) unix listener at `path`. bind, chmod, THEN
 /// listen: until listen() every connect is refused, so there is no window
 /// in which another local user can reach the socket under a permissive
@@ -1149,6 +1170,7 @@ impl ActivationServer {
             }
             #[cfg(unix)]
             TransportAddr::Unix(path) => {
+                check_unix_path_len(path)?;
                 // Crash recovery: a socket file left by a killed previous
                 // run blocks bind with AddrInUse. Probe it with a connect:
                 // refused → stale, unlink and re-bind; accepted → a live
@@ -1401,9 +1423,11 @@ impl ActivationClient {
 
     /// Connect with retries until `timeout` elapses (mirrors the Python
     /// implementation's wait-for-peer behaviour during pipeline startup).
-    /// The retry loop is flavor-agnostic: a UDS downstream that hasn't
-    /// bound its socket yet fails with NotFound/ConnectionRefused and is
-    /// retried exactly like a TCP peer that isn't accepting yet.
+    /// A UDS downstream that hasn't bound its socket yet fails with
+    /// NotFound/ConnectionRefused and is retried exactly like a TCP peer
+    /// that isn't accepting yet; any other UDS error (overlong path,
+    /// permission denied, a non-directory path component) is deterministic
+    /// and fails fast instead of burning the whole timeout.
     pub async fn connect_with_timeout(&mut self, timeout: Duration) -> TransportResult<()> {
         self.target.check()?;
         // A unix target on a non-unix platform can never succeed — fail
@@ -1411,6 +1435,10 @@ impl ActivationClient {
         #[cfg(not(unix))]
         if let TransportAddr::Unix(path) = &self.target {
             return Err(TransportError::UnixUnsupported(path.display().to_string()));
+        }
+        #[cfg(unix)]
+        if let TransportAddr::Unix(path) = &self.target {
+            check_unix_path_len(path)?;
         }
         let start = Instant::now();
         let deadline = start + timeout;
@@ -1435,6 +1463,18 @@ impl ActivationClient {
                     return Ok(());
                 }
                 Err(err) => {
+                    // WouldBlock: the listener's backlog is momentarily full.
+                    if self.target.is_unix()
+                        && !matches!(
+                            err.kind(),
+                            io::ErrorKind::NotFound
+                                | io::ErrorKind::ConnectionRefused
+                                | io::ErrorKind::WouldBlock
+                        )
+                    {
+                        warn!(target = %self.target, error = %err, "unix connect failed (not retryable)");
+                        return Err(err.into());
+                    }
                     last_err = Some(err);
                     let now = Instant::now();
                     if now >= next_progress {
@@ -2577,6 +2617,67 @@ mod tests {
         );
         b.close().await;
         assert!(!sock_path.exists(), "B still unlinks its own socket");
+    }
+
+    /// A path too long for `sun_path` is a config error: both sides must
+    /// fail fast with InvalidAddr naming the limit, not retry for the whole
+    /// connect timeout.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_overlong_path_fails_fast() {
+        let long = PathBuf::from(format!("/tmp/{}.sock", "x".repeat(SUN_PATH_LEN)));
+        let addr = format!("unix:{}", long.display());
+
+        let mut server = ActivationServer::new(addr.clone(), 0);
+        let res = server.start().await;
+        assert!(
+            matches!(&res, Err(TransportError::InvalidAddr(m)) if m.contains("limit")),
+            "overlong bind path must fail InvalidAddr, got {res:?}"
+        );
+
+        let mut client = ActivationClient::new(addr, 0);
+        let t0 = Instant::now();
+        let res = client.connect_with_timeout(Duration::from_secs(10)).await;
+        assert!(
+            matches!(&res, Err(TransportError::InvalidAddr(_))),
+            "overlong connect path must fail InvalidAddr, got {res:?}"
+        );
+        assert!(
+            t0.elapsed() < Duration::from_secs(1),
+            "overlong path must fail fast, took {:?}",
+            t0.elapsed()
+        );
+    }
+
+    /// A permission-denied socket path is deterministic: the dialer must
+    /// surface it immediately instead of retrying for the whole timeout.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_connect_permission_denied_fails_fast() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = test_sock_path("noperm").with_extension("d");
+        let _ = std::fs::create_dir_all(&dir);
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o000)).unwrap();
+        // root ignores directory permissions — nothing to test there.
+        if std::fs::read_dir(&dir).is_ok() {
+            std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700)).unwrap();
+            let _ = std::fs::remove_dir(&dir);
+            return;
+        }
+        let mut client = ActivationClient::new(format!("unix:{}/s.sock", dir.display()), 0);
+        let t0 = Instant::now();
+        let res = client.connect_with_timeout(Duration::from_secs(10)).await;
+        let elapsed = t0.elapsed();
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let _ = std::fs::remove_dir(&dir);
+        assert!(
+            matches!(&res, Err(TransportError::Io(e)) if e.kind() == io::ErrorKind::PermissionDenied),
+            "expected Io(PermissionDenied), got {res:?}"
+        );
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "permission denied must fail fast, took {elapsed:?}"
+        );
     }
 
     /// A REGULAR file at the socket path must NOT be deleted — fail loud.
