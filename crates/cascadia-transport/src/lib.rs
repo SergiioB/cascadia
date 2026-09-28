@@ -1053,6 +1053,61 @@ impl OwnedUnixSocket {
             ino: md.ino(),
         })
     }
+
+    /// Unlink the path, but only while it still holds OUR inode — a file
+    /// another process re-bound at the same path is left alone.
+    fn unlink(self) {
+        use std::os::unix::fs::MetadataExt;
+        match std::fs::symlink_metadata(&self.path) {
+            Ok(md) if md.dev() == self.dev && md.ino() == self.ino => {
+                if let Err(e) = std::fs::remove_file(&self.path) {
+                    if e.kind() != io::ErrorKind::NotFound {
+                        warn!(path = %self.path.display(), error = %e, "failed to unlink unix socket");
+                    }
+                }
+            }
+            Ok(_) => warn!(
+                path = %self.path.display(),
+                "unix socket path was replaced by another file; not unlinking"
+            ),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+            Err(e) => {
+                warn!(path = %self.path.display(), error = %e, "failed to stat unix socket for unlink")
+            }
+        }
+    }
+}
+
+/// Bind an owner-only (0600) unix listener at `path`. bind, chmod, THEN
+/// listen: until listen() every connect is refused, so there is no window
+/// in which another local user can reach the socket under a permissive
+/// umask. Any failure after bind unlinks the file it created.
+#[cfg(unix)]
+fn bind_unix_owner_only(path: &std::path::Path) -> io::Result<(UnixListener, OwnedUnixSocket)> {
+    use socket2::{Domain, SockAddr, Socket, Type};
+    use std::os::unix::fs::PermissionsExt;
+    let sock = Socket::new(Domain::UNIX, Type::STREAM, None)?;
+    sock.bind(&SockAddr::unix(path)?)?;
+    let owned = match OwnedUnixSocket::record(path) {
+        Ok(owned) => owned,
+        Err(e) => {
+            let _ = std::fs::remove_file(path);
+            return Err(e);
+        }
+    };
+    let listen = move || -> io::Result<UnixListener> {
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+        sock.listen(1024)?; // tokio's UnixListener::bind backlog
+        sock.set_nonblocking(true)?;
+        UnixListener::from_std(std::os::fd::OwnedFd::from(sock).into())
+    };
+    match listen() {
+        Ok(listener) => Ok((listener, owned)),
+        Err(e) => {
+            owned.unlink();
+            Err(e)
+        }
+    }
 }
 
 impl ActivationServer {
@@ -1137,13 +1192,11 @@ impl ActivationServer {
                     Err(e) if e.kind() == io::ErrorKind::NotFound => {}
                     Err(e) => return Err(e.into()),
                 }
-                let listener = UnixListener::bind(path)?;
                 // Owner-only: the socket is an unauthenticated pipeline
                 // endpoint; other users on a shared box must not reach it.
-                use std::os::unix::fs::PermissionsExt;
-                std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+                let (listener, owned) = bind_unix_owner_only(path)?;
                 self.actual_port = 0;
-                self.owned_unix_path = Some(OwnedUnixSocket::record(path)?);
+                self.owned_unix_path = Some(owned);
                 self.listener = Some(ActivationListener::Unix(listener));
                 info!(path = %path.display(), "ActivationServer listening (unix)");
             }
@@ -1288,32 +1341,14 @@ impl ActivationServer {
 
     /// Remove the unix socket file this server bound (no-op for TCP or if
     /// already unlinked). Idempotent; called from `close()` and `Drop`.
-    /// Only unlinks if the path still holds OUR inode — a file another
-    /// process re-bound at the same path is left alone. A kill/Ctrl-C
-    /// skips `Drop` (relay ranks install no signal handler), so the file
-    /// can outlive the process; the next `start()` reclaims it.
+    /// Only unlinks if the path still holds OUR inode (see
+    /// [`OwnedUnixSocket::unlink`]). A kill/Ctrl-C skips `Drop` (relay
+    /// ranks install no signal handler), so the file can outlive the
+    /// process; the next `start()` reclaims it.
     #[cfg(unix)]
     fn unlink_owned_unix_socket(&mut self) {
-        use std::os::unix::fs::MetadataExt;
-        let Some(owned) = self.owned_unix_path.take() else {
-            return;
-        };
-        match std::fs::symlink_metadata(&owned.path) {
-            Ok(md) if md.dev() == owned.dev && md.ino() == owned.ino => {
-                if let Err(e) = std::fs::remove_file(&owned.path) {
-                    if e.kind() != io::ErrorKind::NotFound {
-                        warn!(path = %owned.path.display(), error = %e, "failed to unlink unix socket");
-                    }
-                }
-            }
-            Ok(_) => warn!(
-                path = %owned.path.display(),
-                "unix socket path was replaced by another file; not unlinking"
-            ),
-            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
-            Err(e) => {
-                warn!(path = %owned.path.display(), error = %e, "failed to stat unix socket for unlink")
-            }
+        if let Some(owned) = self.owned_unix_path.take() {
+            owned.unlink();
         }
     }
 
