@@ -2027,18 +2027,20 @@ mod tests {
     /// SAME socket reads the token once it arrives.
     #[tokio::test]
     async fn recv_token_frame_start_timeout_is_nonfatal_then_retryable() {
+        recv_token_frame_start_timeout_case(None).await;
+    }
+
+    /// UDS twin of `recv_token_frame_start_timeout_is_nonfatal_then_retryable`.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_recv_token_frame_start_timeout_is_nonfatal_then_retryable() {
+        recv_token_frame_start_timeout_case(Some("tokstart")).await;
+    }
+
+    async fn recv_token_frame_start_timeout_case(uds_tag: Option<&str>) {
         let _g = TIMEOUT_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
         set_activation_timeout_secs(1); // bounds the body read; frame-start uses the explicit arg
-        let mut server = ActivationServer::new("127.0.0.1", 0);
-        server.start().await.unwrap();
-        let port = server.port();
-        let h = tokio::spawn(async move {
-            server.accept().await.unwrap();
-            server
-        });
-        let mut client = ActivationClient::new("127.0.0.1", port);
-        client.connect().await.unwrap();
-        let mut server = h.await.unwrap();
+        let (mut server, mut client) = connected_pair(uds_tag).await;
 
         // 1) silent peer → bounded frame-start times out NON-fatally; socket kept.
         let t0 = Instant::now();
@@ -2090,21 +2092,23 @@ mod tests {
     /// socket the engine cannot re-dial.
     #[tokio::test]
     async fn recv_token_partial_header_still_honors_the_overall_deadline() {
+        recv_token_partial_header_case(None).await;
+    }
+
+    /// UDS twin of `recv_token_partial_header_still_honors_the_overall_deadline`.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_recv_token_partial_header_still_honors_the_overall_deadline() {
+        recv_token_partial_header_case(Some("tokhdr")).await;
+    }
+
+    async fn recv_token_partial_header_case(uds_tag: Option<&str>) {
         let _g = TIMEOUT_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
         // Deliberately LARGE relative to the deadline: if any phase escapes the
         // overall deadline it runs for this long instead, which the bound below
         // catches. Pre-fix this test observed ~recv_timeout, not ~deadline.
         set_activation_timeout_secs(30);
-        let mut server = ActivationServer::new("127.0.0.1", 0);
-        server.start().await.unwrap();
-        let port = server.port();
-        let h = tokio::spawn(async move {
-            server.accept().await.unwrap();
-            server
-        });
-        let mut client = ActivationClient::new("127.0.0.1", port);
-        client.connect().await.unwrap();
-        let mut server = h.await.unwrap();
+        let (mut server, mut client) = connected_pair(uds_tag).await;
 
         // 4 of the HEADER_SIZE bytes, then silence forever.
         server.send_raw(&[0u8; 4]).await.unwrap();
@@ -2288,28 +2292,29 @@ mod tests {
     /// a late completion of that frame must never be read back as valid.
     #[tokio::test]
     async fn mid_frame_stall_is_connection_fatal() {
+        mid_frame_stall_case(None).await;
+    }
+
+    /// UDS twin of `mid_frame_stall_is_connection_fatal`.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_mid_frame_stall_is_connection_fatal() {
+        mid_frame_stall_case(Some("stall")).await;
+    }
+
+    async fn mid_frame_stall_case(uds_tag: Option<&str>) {
         let _g = TIMEOUT_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
         set_activation_timeout_secs(1);
         // Keep the frame-start ceiling well above the recv timeout so the
         // first read (the header) is NOT what fires — we want the mid-frame
         // deadline to be the trigger.
         set_frame_idle_ceiling_secs(60);
-        let mut server = ActivationServer::new("127.0.0.1", 0);
-        server.start().await.unwrap();
-        let port = server.port();
-        let mut peer = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
-        server.accept().await.unwrap();
+        let (mut server, mut peer) = server_with_raw_peer(uds_tag).await;
 
         // Send a complete, valid header for an 8-byte f32 [1,1,2] payload,
         // then stall — never send the payload. recv_exact_frame_start reads
         // the header, recv_tensor then blocks in recv_exact for the body.
-        let mut header = [0u8; HEADER_SIZE];
-        header[0..4].copy_from_slice(&8u32.to_be_bytes()); // payload_len
-        header[4..8].copy_from_slice(&(DType::F32 as u32).to_be_bytes());
-        header[8..12].copy_from_slice(&1u32.to_be_bytes());
-        header[12..16].copy_from_slice(&1u32.to_be_bytes());
-        header[16..20].copy_from_slice(&2u32.to_be_bytes());
-        peer.write_all(&header).await.unwrap();
+        peer.write_all(&f32_1x2_header()).await.unwrap();
         peer.flush().await.unwrap();
 
         let first = server.recv().await;
@@ -2335,6 +2340,115 @@ mod tests {
         assert!(
             start.elapsed() < Duration::from_millis(500),
             "recv after mid-frame stall must fail fast (socket already dropped)"
+        );
+    }
+
+    /// A valid header for an 8-byte f32 [1,1,2] payload.
+    fn f32_1x2_header() -> [u8; HEADER_SIZE] {
+        let mut header = [0u8; HEADER_SIZE];
+        header[0..4].copy_from_slice(&8u32.to_be_bytes()); // payload_len
+        header[4..8].copy_from_slice(&(DType::F32 as u32).to_be_bytes());
+        header[8..12].copy_from_slice(&1u32.to_be_bytes());
+        header[12..16].copy_from_slice(&1u32.to_be_bytes());
+        header[16..20].copy_from_slice(&2u32.to_be_bytes());
+        header
+    }
+
+    /// Started server's address: a UDS temp path when `uds_tag` is set,
+    /// else TCP loopback on an ephemeral port.
+    async fn started_server(uds_tag: Option<&str>) -> (ActivationServer, TransportAddr) {
+        let addr = match uds_tag {
+            #[cfg(unix)]
+            Some(tag) => {
+                let path = test_sock_path(tag);
+                let _ = std::fs::remove_file(&path);
+                TransportAddr::Unix(path)
+            }
+            #[cfg(not(unix))]
+            Some(_) => unreachable!("UDS tests are cfg(unix)"),
+            None => TransportAddr::Tcp {
+                host: "127.0.0.1".into(),
+                port: 0,
+            },
+        };
+        let mut server = ActivationServer::for_addr(addr.clone());
+        server.start().await.unwrap();
+        let addr = match addr {
+            TransportAddr::Tcp { host, .. } => TransportAddr::Tcp {
+                host,
+                port: server.port(),
+            },
+            unix => unix,
+        };
+        (server, addr)
+    }
+
+    /// Server + connected `ActivationClient` over UDS or TCP (see
+    /// [`started_server`]).
+    async fn connected_pair(uds_tag: Option<&str>) -> (ActivationServer, ActivationClient) {
+        let (mut server, addr) = started_server(uds_tag).await;
+        let h = tokio::spawn(async move {
+            server.accept().await.unwrap();
+            server
+        });
+        let mut client = ActivationClient::for_addr(addr);
+        client.connect().await.unwrap();
+        (h.await.unwrap(), client)
+    }
+
+    /// Server + a raw (framing-free) peer stream over UDS or TCP, for tests
+    /// that need to write partial frames.
+    async fn server_with_raw_peer(uds_tag: Option<&str>) -> (ActivationServer, ActivationStream) {
+        let (mut server, addr) = started_server(uds_tag).await;
+        let peer = match &addr {
+            TransportAddr::Tcp { host, port } => {
+                ActivationStream::Tcp(TcpStream::connect((host.as_str(), *port)).await.unwrap())
+            }
+            #[cfg(unix)]
+            TransportAddr::Unix(path) => {
+                ActivationStream::Unix(UnixStream::connect(path).await.unwrap())
+            }
+            #[cfg(not(unix))]
+            TransportAddr::Unix(_) => unreachable!("UDS tests are cfg(unix)"),
+        };
+        server.accept().await.unwrap();
+        (server, peer)
+    }
+
+    /// Real peer death over UDS: the peer sends a header and half the body,
+    /// then its socket is dropped. The server's recv must fail (not hang to
+    /// the recv timeout, not yield a frame), and so must the next one.
+    ///
+    /// A clean mid-frame EOF surfaces as `SocketClosed`, which is classified
+    /// non-fatal (the socket is kept) — safe, because an EOF'd stream can
+    /// never deliver a late frame; the next recv just hits EOF again.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_peer_death_mid_frame_fails_fast() {
+        let (mut server, mut peer) = server_with_raw_peer(Some("death")).await;
+        peer.write_all(&f32_1x2_header()).await.unwrap();
+        peer.write_all(&[0, 0, 128, 63]).await.unwrap(); // 4 of 8 body bytes
+        peer.flush().await.unwrap();
+        drop(peer);
+
+        let t0 = Instant::now();
+        let first = server.recv().await;
+        let second = server.recv().await;
+        let elapsed = t0.elapsed();
+        assert!(
+            matches!(first, Err(TransportError::SocketClosed)),
+            "peer death mid-frame must fail SocketClosed, got {first:?}"
+        );
+        assert!(
+            matches!(
+                second,
+                Err(TransportError::SocketClosed | TransportError::NotConnected)
+            ),
+            "recv after peer death must keep failing, got {second:?}"
+        );
+        assert!(
+            elapsed < Duration::from_secs(2),
+            "peer death must fail fast, not wait out the recv timeout: {elapsed:?}"
         );
     }
 
