@@ -2089,11 +2089,13 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
             tick.tick().await;
             // Snapshot just (id, host, port) — no full NodeInfo clone — and
             // probe all peers concurrently with join_all rather than an
-            // unbounded tokio::spawn per peer per tick.
+            // unbounded tokio::spawn per peer per tick. Port-0 peers are
+            // in-host unix stages (#17): no TCP endpoint, so dialing
+            // `host:0` every tick would only ever fail.
             let peers: Vec<(String, String, u16)> = topology_for_probe
                 .nodes()
                 .into_iter()
-                .filter(|n| n.node_id != self_id_for_probe)
+                .filter(|n| n.node_id != self_id_for_probe && discover::has_tcp_relay(n.port))
                 .map(|n| (n.node_id, n.host, n.port))
                 .collect();
             let results = futures::future::join_all(
