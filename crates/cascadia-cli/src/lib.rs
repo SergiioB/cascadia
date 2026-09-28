@@ -17,6 +17,7 @@ use cascadia_engine_openvino::{
 };
 use cascadia_engine_sparse_moe::{SparseMoEBuilder, SparseMoEBuilderConfig};
 use cascadia_runner::Runner;
+use cascadia_transport::TransportAddr;
 use cascadia_types::{GenerationTask, PeerEndpoint, PeerLayout, ShardSpec};
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::Shell;
@@ -1018,26 +1019,24 @@ fn cmd_engines() -> Result<()> {
 
 /// Unix-domain-socket address form (#17): `unix:/path.sock`, an absolute
 /// path, or a `.sock`-suffixed name. Valid for --listen/--next (in-host
-/// pipeline hand-offs); NOT for --api (HTTP stays TCP).
+/// pipeline hand-offs); NOT for --api (HTTP stays TCP). The rule itself is
+/// owned by the transport (`TransportAddr`).
 fn is_unix_addr(s: &str) -> bool {
-    s.starts_with("unix:") || s.starts_with('/') || s.ends_with(".sock")
+    TransportAddr::from_host_port(s, 0).is_unix()
 }
 
 fn parse_addr(s: &str, default_host: &str) -> Result<(String, u16)> {
     // A UDS address travels whole in the host slot with port 0 — the
-    // transport layer classifies it (TransportAddr::from_host_port).
-    // Recognized before the colon split: "unix:/tmp/x.sock" would
-    // otherwise split at its last ':' and fail the port parse.
-    if is_unix_addr(s) {
-        return Ok((s.to_string(), 0));
+    // transport layer classifies it again (TransportAddr::from_host_port).
+    // Parsing through TransportAddr rejects an empty `unix:` path here,
+    // up front, instead of at bind/connect time.
+    match s.parse::<TransportAddr>()? {
+        TransportAddr::Unix(_) => Ok((s.to_string(), 0)),
+        TransportAddr::Tcp { host, port } if host.is_empty() => {
+            Ok((default_host.to_string(), port))
+        }
+        TransportAddr::Tcp { host, port } => Ok((host, port)),
     }
-    if let Some(port) = s.strip_prefix(':') {
-        return Ok((default_host.to_string(), port.parse().context("port")?));
-    }
-    let (h, p) = s
-        .rsplit_once(':')
-        .ok_or_else(|| anyhow!("address must be host:port (got {s:?})"))?;
-    Ok((h.to_string(), p.parse().context("port")?))
 }
 
 /// Pick the OV plugin's CACHE_DIR for this worker.

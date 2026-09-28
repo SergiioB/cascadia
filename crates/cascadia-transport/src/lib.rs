@@ -208,21 +208,46 @@ impl TransportAddr {
     /// `unix:`-prefixed, absolute-path, or `.sock`-suffixed hosts are UDS
     /// (the port is ignored); anything else is TCP, byte-for-byte the
     /// historical behavior.
+    ///
+    /// Infallible for the existing constructor seams: a bare `unix:` yields
+    /// an empty path that [`check`](Self::check) rejects at bind/connect.
     pub fn from_host_port(host: &str, port: u16) -> Self {
-        if let Some(path) = host.strip_prefix("unix:") {
-            TransportAddr::Unix(PathBuf::from(path))
-        } else if host.starts_with('/') || host.ends_with(".sock") {
-            TransportAddr::Unix(PathBuf::from(host))
-        } else {
-            TransportAddr::Tcp {
+        match unix_path(host) {
+            Some(path) => TransportAddr::Unix(PathBuf::from(path)),
+            None => TransportAddr::Tcp {
                 host: host.to_string(),
                 port,
-            }
+            },
         }
     }
 
     pub fn is_unix(&self) -> bool {
         matches!(self, TransportAddr::Unix(_))
+    }
+
+    /// Reject an address [`from_host_port`](Self::from_host_port) accepts
+    /// but no socket can use: an empty unix path (`unix:`). Without this a
+    /// client would retry the ENOENT for its whole connect timeout.
+    pub fn check(&self) -> TransportResult<()> {
+        match self {
+            TransportAddr::Unix(path) if path.as_os_str().is_empty() => {
+                Err(TransportError::InvalidAddr(self.to_string()))
+            }
+            _ => Ok(()),
+        }
+    }
+}
+
+/// The single unix-vs-TCP classification rule (#17): `unix:`-prefixed,
+/// absolute-path, or `.sock`-suffixed strings are UDS. Returns the path
+/// (empty for a bare `unix:`), or `None` for TCP.
+fn unix_path(s: &str) -> Option<&str> {
+    if let Some(path) = s.strip_prefix("unix:") {
+        Some(path)
+    } else if s.starts_with('/') || s.ends_with(".sock") {
+        Some(s)
+    } else {
+        None
     }
 }
 
@@ -230,14 +255,11 @@ impl std::str::FromStr for TransportAddr {
     type Err = TransportError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(path) = s.strip_prefix("unix:") {
+        if let Some(path) = unix_path(s) {
             if path.is_empty() {
                 return Err(TransportError::InvalidAddr(s.to_string()));
             }
             return Ok(TransportAddr::Unix(PathBuf::from(path)));
-        }
-        if s.starts_with('/') || s.ends_with(".sock") {
-            return Ok(TransportAddr::Unix(PathBuf::from(s)));
         }
         let (host, port) = s
             .rsplit_once(':')
@@ -1034,6 +1056,7 @@ impl ActivationServer {
     }
 
     pub async fn start(&mut self) -> TransportResult<()> {
+        self.addr.check()?;
         match &self.addr {
             TransportAddr::Tcp { host, port } => {
                 let listener = TcpListener::bind((host.as_str(), *port)).await?;
@@ -1276,6 +1299,7 @@ impl ActivationClient {
     /// bound its socket yet fails with NotFound/ConnectionRefused and is
     /// retried exactly like a TCP peer that isn't accepting yet.
     pub async fn connect_with_timeout(&mut self, timeout: Duration) -> TransportResult<()> {
+        self.target.check()?;
         // A unix target on a non-unix platform can never succeed — fail
         // fast instead of burning the whole connect timeout retrying.
         #[cfg(not(unix))]
@@ -2268,6 +2292,30 @@ mod tests {
                 port: 9100
             }
         );
+        // A bare `unix:` classifies as unix (never as a TCP host named
+        // "unix:") but fails check() before any bind/connect.
+        let empty = TransportAddr::from_host_port("unix:", 0);
+        assert!(empty.is_unix());
+        assert!(matches!(empty.check(), Err(TransportError::InvalidAddr(_))));
+        assert!(TransportAddr::from_host_port("/tmp/x.sock", 0)
+            .check()
+            .is_ok());
+    }
+
+    #[tokio::test]
+    async fn empty_unix_path_fails_fast_at_start_and_connect() {
+        let mut server = ActivationServer::new("unix:", 0);
+        assert!(matches!(
+            server.start().await,
+            Err(TransportError::InvalidAddr(_))
+        ));
+        let mut client = ActivationClient::new("unix:", 0);
+        let start = Instant::now();
+        assert!(matches!(
+            client.connect_with_timeout(Duration::from_secs(5)).await,
+            Err(TransportError::InvalidAddr(_))
+        ));
+        assert!(start.elapsed() < Duration::from_secs(1), "must not retry");
     }
 
     // --- Unix-domain-socket transport (#17) --------------------------------
