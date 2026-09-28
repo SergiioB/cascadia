@@ -1025,10 +1025,34 @@ pub struct ActivationServer {
     client: Option<ActivationStream>,
     accepted_peer: Option<String>,
     actual_port: u16,
-    /// Unix socket path this server bound and therefore OWNS — unlinked on
+    /// Unix socket this server bound and therefore OWNS — unlinked on
     /// [`close`](Self::close) and on `Drop` so a crash-restart can re-bind.
     #[cfg(unix)]
-    owned_unix_path: Option<PathBuf>,
+    owned_unix_path: Option<OwnedUnixSocket>,
+}
+
+/// A bound unix socket path plus the (dev, ino) of the file our bind
+/// created. Unlink is by name, so without the identity check a server
+/// whose file was replaced (another process unlinked it and re-bound the
+/// same path) would delete that OTHER process's live socket on close.
+#[cfg(unix)]
+struct OwnedUnixSocket {
+    path: PathBuf,
+    dev: u64,
+    ino: u64,
+}
+
+#[cfg(unix)]
+impl OwnedUnixSocket {
+    fn record(path: &std::path::Path) -> io::Result<Self> {
+        use std::os::unix::fs::MetadataExt;
+        let md = std::fs::symlink_metadata(path)?;
+        Ok(Self {
+            path: path.to_path_buf(),
+            dev: md.dev(),
+            ino: md.ino(),
+        })
+    }
 }
 
 impl ActivationServer {
@@ -1070,16 +1094,42 @@ impl ActivationServer {
             }
             #[cfg(unix)]
             TransportAddr::Unix(path) => {
-                // Crash recovery: a stale socket file from a previous run
-                // blocks bind with AddrInUse — unlink it first. ONLY a
-                // socket file: refusing to delete a regular file/dir at a
+                // Crash recovery: a socket file left by a killed previous
+                // run blocks bind with AddrInUse. Probe it with a connect:
+                // refused → stale, unlink and re-bind; accepted → a live
+                // peer owns it, fail AddrInUse rather than hijack it. ONLY
+                // a socket file: refusing to delete a regular file/dir at a
                 // mistyped path beats silently destroying user data.
                 match std::fs::symlink_metadata(path) {
                     Ok(md) => {
                         use std::os::unix::fs::FileTypeExt;
                         if md.file_type().is_socket() {
-                            std::fs::remove_file(path)?;
-                            info!(path = %path.display(), "unlinked stale unix socket");
+                            match std::os::unix::net::UnixStream::connect(path) {
+                                Ok(_) => {
+                                    return Err(io::Error::new(
+                                        io::ErrorKind::AddrInUse,
+                                        format!(
+                                            "unix socket {} is in use: another process is \
+                                             listening on it",
+                                            path.display()
+                                        ),
+                                    )
+                                    .into());
+                                }
+                                Err(e) if e.kind() == io::ErrorKind::ConnectionRefused => {
+                                    match std::fs::remove_file(path) {
+                                        Ok(()) => info!(
+                                            path = %path.display(),
+                                            "unlinked stale unix socket"
+                                        ),
+                                        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+                                        Err(e) => return Err(e.into()),
+                                    }
+                                }
+                                // Vanished between stat and probe — just bind.
+                                Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+                                Err(e) => return Err(e.into()),
+                            }
                         } else {
                             return Err(TransportError::NotASocketFile(path.display().to_string()));
                         }
@@ -1093,7 +1143,7 @@ impl ActivationServer {
                 use std::os::unix::fs::PermissionsExt;
                 std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
                 self.actual_port = 0;
-                self.owned_unix_path = Some(path.clone());
+                self.owned_unix_path = Some(OwnedUnixSocket::record(path)?);
                 self.listener = Some(ActivationListener::Unix(listener));
                 info!(path = %path.display(), "ActivationServer listening (unix)");
             }
@@ -1237,12 +1287,33 @@ impl ActivationServer {
     }
 
     /// Remove the unix socket file this server bound (no-op for TCP or if
-    /// already unlinked). Idempotent; called from `close()` and `Drop` so
-    /// graceful shutdown and panics both leave no stale socket behind.
+    /// already unlinked). Idempotent; called from `close()` and `Drop`.
+    /// Only unlinks if the path still holds OUR inode — a file another
+    /// process re-bound at the same path is left alone. A kill/Ctrl-C
+    /// skips `Drop` (relay ranks install no signal handler), so the file
+    /// can outlive the process; the next `start()` reclaims it.
     #[cfg(unix)]
     fn unlink_owned_unix_socket(&mut self) {
-        if let Some(path) = self.owned_unix_path.take() {
-            let _ = std::fs::remove_file(&path);
+        use std::os::unix::fs::MetadataExt;
+        let Some(owned) = self.owned_unix_path.take() else {
+            return;
+        };
+        match std::fs::symlink_metadata(&owned.path) {
+            Ok(md) if md.dev() == owned.dev && md.ino() == owned.ino => {
+                if let Err(e) = std::fs::remove_file(&owned.path) {
+                    if e.kind() != io::ErrorKind::NotFound {
+                        warn!(path = %owned.path.display(), error = %e, "failed to unlink unix socket");
+                    }
+                }
+            }
+            Ok(_) => warn!(
+                path = %owned.path.display(),
+                "unix socket path was replaced by another file; not unlinking"
+            ),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+            Err(e) => {
+                warn!(path = %owned.path.display(), error = %e, "failed to stat unix socket for unlink")
+            }
         }
     }
 
@@ -2392,10 +2463,12 @@ mod tests {
     async fn uds_stale_socket_is_unlinked_and_rebound() {
         let sock_path = test_sock_path("stale");
         let _ = std::fs::remove_file(&sock_path);
-        // Simulate the crash: bind a socket, then leak the file by
+        // Simulate the crash: bind a socket, close the listening fd (the
+        // kernel does this when a process dies), then leak the file by
         // mem::forgetting the server (Drop would unlink it).
         let mut first = ActivationServer::new(format!("unix:{}", sock_path.display()), 0);
         first.start().await.unwrap();
+        drop(first.listener.take());
         std::mem::forget(first);
         assert!(sock_path.exists(), "precondition: stale socket file left");
 
@@ -2406,6 +2479,69 @@ mod tests {
             .expect("stale socket must be unlinked and re-bound");
         second.close().await;
         let _ = std::fs::remove_file(&sock_path);
+    }
+
+    /// A LIVE socket at the path (another stage still listening) must not
+    /// be unlinked and hijacked: the second bind fails with AddrInUse and
+    /// the first server keeps its socket.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_live_socket_is_not_hijacked() {
+        let sock_path = test_sock_path("live");
+        let _ = std::fs::remove_file(&sock_path);
+        let addr = format!("unix:{}", sock_path.display());
+        let mut first = ActivationServer::new(addr.clone(), 0);
+        first.start().await.unwrap();
+
+        let mut second = ActivationServer::new(addr.clone(), 0);
+        let res = second.start().await;
+        assert!(
+            matches!(&res, Err(TransportError::Io(e)) if e.kind() == io::ErrorKind::AddrInUse),
+            "binding over a live socket must fail AddrInUse, got {res:?}"
+        );
+        drop(second);
+        assert!(sock_path.exists(), "the live socket file must survive");
+
+        // The first server is still reachable. Its backlog holds the
+        // (already-closed) liveness probe first; drain it, then the real
+        // client's connection follows.
+        first.accept().await.unwrap();
+        let h = tokio::spawn(async move {
+            first.accept().await.unwrap();
+            let got = first.recv_raw(2).await.unwrap();
+            first.close().await;
+            got
+        });
+        let mut client = ActivationClient::new(addr, 0);
+        client
+            .connect_with_timeout(Duration::from_secs(2))
+            .await
+            .unwrap();
+        client.send_raw(&[4, 2]).await.unwrap();
+        assert_eq!(h.await.unwrap(), vec![4, 2]);
+    }
+
+    /// If the path is replaced by another server's socket (A's file
+    /// unlinked, B re-binds the path), dropping A must NOT delete B's file.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_drop_does_not_unlink_a_replaced_socket() {
+        let sock_path = test_sock_path("replaced");
+        let _ = std::fs::remove_file(&sock_path);
+        let addr = format!("unix:{}", sock_path.display());
+        let mut a = ActivationServer::new(addr.clone(), 0);
+        a.start().await.unwrap();
+        std::fs::remove_file(&sock_path).unwrap();
+        let mut b = ActivationServer::new(addr, 0);
+        b.start().await.unwrap();
+
+        drop(a);
+        assert!(
+            sock_path.exists(),
+            "dropping A must not unlink B's socket at the same path"
+        );
+        b.close().await;
+        assert!(!sock_path.exists(), "B still unlinks its own socket");
     }
 
     /// A REGULAR file at the socket path must NOT be deleted — fail loud.
