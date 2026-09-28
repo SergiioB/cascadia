@@ -1,4 +1,5 @@
-//! TCP-based activation tensor relay between pipeline stages.
+//! Byte-stream (TCP or Unix domain socket) activation tensor relay between
+//! pipeline stages.
 //!
 //! Wire format (big-endian, identical to `cascadia/worker/transport.py`):
 //!
@@ -442,7 +443,9 @@ pub async fn send_tensor<W: AsyncWrite + Unpin>(
 
 /// Payload burst size for paced sends (bytes). Env-tunable via
 /// CASCADIA_SEND_BURST_BYTES; default 0 = pacing OFF (it did not resolve the
-/// observed DERP frame loss — kept as an experiment knob).
+/// observed DERP frame loss — kept as an experiment knob). The knob is
+/// process-wide: if set, it also paces Unix-socket links, so leave it unset
+/// for in-host UDS chains (it is a DERP/relay-path workaround).
 fn send_burst_bytes() -> usize {
     use std::sync::OnceLock;
     static V: OnceLock<usize> = OnceLock::new();
@@ -784,7 +787,9 @@ fn clamp_frame_idle_ceiling(
 ///   leaving a half-consumed frame on the wire that the next recv would read
 ///   as a corrupt header.
 /// * peer crash — a process dying hard sends TCP RST (and a send/half-close
-///   races as BrokenPipe/ConnectionAborted/UnexpectedEof). These surface as
+///   races as BrokenPipe/ConnectionAborted/UnexpectedEof; on a Unix socket
+///   a crashed peer shows up as EOF/EPIPE/ECONNRESET, classified the
+///   same way). These surface as
 ///   `Io(ConnectionReset | BrokenPipe | ConnectionAborted | UnexpectedEof)`;
 ///   the socket is dead, so drop it now and let the next call fail fast with
 ///   [`TransportError::NotConnected`] (the dominant dead-peer case).

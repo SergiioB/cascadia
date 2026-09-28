@@ -124,9 +124,17 @@ cascadia worker --rank 1 --total 2 --model <DIR> --listen unix:/tmp/cascadia-1.s
 cascadia worker --rank 0 --total 2 --model <DIR> --next unix:/tmp/cascadia-1.sock --api :8416
 ```
 
-Address forms recognized for `--listen`/`--next`: `unix:/path.sock`
-(explicit), an absolute path, or any `.sock`-suffixed path. The wire format
-is identical to TCP; the two stages must simply agree on the path.
+Address forms recognized for `--listen`/`--next` (and for each entry of
+`--ep-workers`, the Inkling expert-parallel driver's worker list):
+`unix:/path.sock` (explicit), an absolute path, or any `.sock`-suffixed path.
+The wire format is identical to TCP; the two stages must simply agree on the
+path.
+
+`/tmp` is used above for brevity. For real deployments put the socket in a
+private directory — `$XDG_RUNTIME_DIR` or a `0700` directory you own — so
+other local users can't plant or race a file at that path. The path must fit
+in `sun_path` (104 bytes on macOS, 108 on Linux); a longer one is rejected at
+startup with a clear error.
 
 Measured round-trip latency vs `127.0.0.1` TCP (Apple Silicon macOS, release
 build, `cargo test -p cascadia-transport --release --test uds_vs_tcp_bench --
@@ -141,15 +149,25 @@ Notes:
 
 - Unix only (Linux/macOS). On Windows a `unix:` address fails fast with a
   clear error; use TCP there.
-- The socket file is created mode `0600` (owner-only) and unlinked on
-  shutdown; a stale socket left by a crash is unlinked and re-bound
-  automatically. A **non-socket** file at the path is never deleted — the
-  worker refuses to start instead.
+- The socket file is set to mode `0600` (owner-only) before the listener
+  accepts any connection.
+- Existing file at the `--listen` path: a socket nothing is listening on
+  (left by a crash) is reclaimed — unlinked and re-bound. A socket another
+  live process is listening on is **not** touched: the new worker refuses to
+  start with an address-in-use error. A **non-socket** file is never
+  deleted — the worker refuses to start instead.
+- On a clean close (or when the server is dropped) the worker unlinks the
+  socket file, but only if the path still refers to the socket it bound
+  (inode check), so it never removes a successor's socket. Relay ranks
+  (every rank without `--api`) install no SIGTERM/SIGINT handler, so `kill`
+  or Ctrl-C ends them without that cleanup and the file is left behind; it
+  is reclaimed by the stale-socket path above on the next start.
 - `--api` stays TCP; unix addresses are for the inter-stage activation
   relay only.
 - Cross-host topology probing doesn't apply: a UDS-listening stage
-  advertises no TCP relay port over mDNS, so the dashboard's latency matrix
-  skips it (in-host links aren't cross-host topology).
+  advertises no TCP relay port over mDNS (port `0`), peers don't
+  latency-probe it, and `cascadia discover` labels it as an in-host unix
+  link rather than suggesting a `--next host:port` for it.
 
 ### Layer split
 
@@ -177,7 +195,7 @@ a few each. MiniMax-M2 `sparse-moe` only.
 | `--ov-execution-mode <MODE>` | — | `ACCURACY` / `PERFORMANCE`. |
 | `--prefix-cache-gb <GB>` | min(16, RAM/4) | `qwen35` only, single-process (`--total 1`): byte budget of the chain-state prefix cache; a Qwen3.8-27B snapshot is ~130 KB per context token as serialised (1.2 GB at 8 K, 4.45 GB at 32 K). `0` disables. See [qwen3.8.md](architectures/qwen3.8.md). |
 | `--api-max-body-mb <MB>` | `1` | Largest `/v1/chat/completions` body (MiB); the rendered prompt is capped alike. Was a fixed 64 KiB / 32 KiB (~8K tokens) before. `qwen35` additionally rejects prompts at or past `max_position_embeddings` (413). |
-| `--ep-workers <host:port,...>` | — | `sparse-moe` (Inkling) expert-parallel **driver**: dispatch each MoE layer's selected experts to these running workers; this rank runs every layer's attention/router locally and holds no expert weights. Implies `--total 1`. Start the workers first. |
+| `--ep-workers <host:port,...>` | — | `sparse-moe` (Inkling) expert-parallel **driver**: dispatch each MoE layer's selected experts to these running workers (each entry may also be a [unix socket](#unix-domain-sockets) `unix:/path.sock`); this rank runs every layer's attention/router locally and holds no expert weights. Implies `--total 1`. Start the workers first. |
 | `--ep-worker-index <N>` / `--ep-worker-count <W>` | — | `sparse-moe` (Inkling) expert-parallel **worker**: serve expert shard N of W (experts with `id % W == N`, shared experts included) for every MoE layer on `--listen`; no API, no attention, no sequence state. |
 
 **`--ov-cache-dir` is on by default and matters.** For `ov-genai`, `ov-runtime`,
