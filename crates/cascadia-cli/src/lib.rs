@@ -1818,6 +1818,18 @@ fn validate_worker_runtime_flags(args: &WorkerArgs) -> Result<()> {
     Ok(())
 }
 
+/// HTTP must stay TCP: reject a unix --api up-front, before any engine
+/// work, rather than failing the TcpListener bind minutes later.
+fn check_api_addr_is_tcp(api: Option<&str>) -> Result<()> {
+    if api.is_some_and(is_unix_addr) {
+        return Err(anyhow!(
+            "--api must be a TCP address (host:port); unix socket addresses are \
+             supported only for --listen/--next (in-host pipeline hand-offs)"
+        ));
+    }
+    Ok(())
+}
+
 async fn cmd_worker(args: WorkerArgs) -> Result<()> {
     if args.rank >= args.total {
         return Err(anyhow!(
@@ -1890,14 +1902,7 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
         "cascadia worker starting"
     );
 
-    // HTTP must stay TCP: reject a unix --api up-front, before any engine
-    // work, rather than failing the TcpListener bind minutes later.
-    if args.api.as_deref().is_some_and(is_unix_addr) {
-        return Err(anyhow!(
-            "--api must be a TCP address (host:port); unix socket addresses are \
-             supported only for --listen/--next (in-host pipeline hand-offs)"
-        ));
-    }
+    check_api_addr_is_tcp(args.api.as_deref())?;
 
     let (listen_host, listen_port) = parse_addr(&args.listen, "0.0.0.0")?;
     let listen_is_unix = is_unix_addr(&listen_host);
@@ -3665,5 +3670,74 @@ mod tests {
             };
             assert_eq!(args.engine, EngineKind::Qwen36Moe, "--engine {spelling}");
         }
+    }
+
+    /// --listen/--next/--api address forms (#17). `unix:/tmp/x.sock` is the
+    /// case a plain last-colon split used to break.
+    #[test]
+    fn parse_addr_accepts_tcp_and_unix_forms() {
+        let cases = [
+            ("unix:/tmp/x.sock", "unix:/tmp/x.sock", 0),
+            ("/abs/x.sock", "/abs/x.sock", 0),
+            ("stage.sock", "stage.sock", 0),
+            (":9100", "0.0.0.0", 9100),
+            ("host:9100", "host", 9100),
+        ];
+        for (input, host, port) in cases {
+            let got = parse_addr(input, "0.0.0.0").unwrap_or_else(|e| panic!("{input}: {e}"));
+            assert_eq!(got, (host.to_string(), port), "{input}");
+        }
+    }
+
+    #[test]
+    fn parse_addr_rejects_bad_forms() {
+        for input in ["unix:", "justahost", "host:notaport"] {
+            assert!(parse_addr(input, "0.0.0.0").is_err(), "{input}");
+        }
+    }
+
+    /// A worker's HTTP API must stay TCP; this runs before engine work.
+    #[test]
+    fn worker_rejects_unix_api_addr() {
+        for api in ["unix:/x.sock", "/x.sock", "x.sock"] {
+            let err = check_api_addr_is_tcp(Some(api)).unwrap_err().to_string();
+            assert!(err.contains("--api must be a TCP address"), "{api}: {err}");
+        }
+        assert!(check_api_addr_is_tcp(Some("0.0.0.0:8000")).is_ok());
+        assert!(check_api_addr_is_tcp(None).is_ok());
+    }
+
+    /// --ep-workers may mix an in-host unix worker with a TCP one.
+    #[test]
+    fn ep_workers_parse_mixed_unix_and_tcp() {
+        let cli = Cli::try_parse_from([
+            "cascadia",
+            "worker",
+            "--rank",
+            "0",
+            "--total",
+            "1",
+            "--model",
+            "m",
+            "--ep-workers",
+            "unix:/a.sock,10.0.0.2:9100",
+        ])
+        .expect("parse worker argv");
+        let Command::Worker(args) = cli.cmd else {
+            panic!("expected worker subcommand");
+        };
+        let workers = args
+            .ep_workers
+            .iter()
+            .map(|w| parse_addr(w, "127.0.0.1"))
+            .collect::<Result<Vec<_>>>()
+            .expect("parse --ep-workers");
+        assert_eq!(
+            workers,
+            vec![
+                ("unix:/a.sock".to_string(), 0),
+                ("10.0.0.2".to_string(), 9100)
+            ]
+        );
     }
 }
