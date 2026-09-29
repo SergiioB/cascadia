@@ -1035,22 +1035,26 @@ pub struct ActivationServer {
 /// created. Unlink is by name, so without the identity check a server
 /// whose file was replaced (another process unlinked it and re-bound the
 /// same path) would delete that OTHER process's live socket on close.
+/// Also holds the path's ownership lock (see [`lock_unix_socket_path`]),
+/// released only after the unlink.
 #[cfg(unix)]
 struct OwnedUnixSocket {
     path: PathBuf,
     dev: u64,
     ino: u64,
+    lock: std::fs::File,
 }
 
 #[cfg(unix)]
 impl OwnedUnixSocket {
-    fn record(path: &std::path::Path) -> io::Result<Self> {
+    fn record(path: &std::path::Path, lock: std::fs::File) -> io::Result<Self> {
         use std::os::unix::fs::MetadataExt;
         let md = std::fs::symlink_metadata(path)?;
         Ok(Self {
             path: path.to_path_buf(),
             dev: md.dev(),
             ino: md.ino(),
+            lock,
         })
     }
 
@@ -1075,6 +1079,9 @@ impl OwnedUnixSocket {
                 warn!(path = %self.path.display(), error = %e, "failed to stat unix socket for unlink")
             }
         }
+        // Release ownership only once the socket file is gone, so a server
+        // that takes the lock next never races our unlink.
+        drop(self.lock);
     }
 }
 
@@ -1099,17 +1106,58 @@ fn check_unix_path_len(path: &std::path::Path) -> TransportResult<()> {
     Ok(())
 }
 
+/// Take the exclusive ownership lock for a unix socket path: an flock on
+/// `<path>.lock`, held for the server's lifetime and released by the kernel
+/// when the process dies. A held lock means a live server owns the path
+/// (fail AddrInUse); a free one means any socket file there is stale.
+///
+/// Liveness is decided by the lock rather than by a probe connect because
+/// a probe that reaches a live server lands in its accept queue, and
+/// engines accept their upstream exactly once — a server still waiting for
+/// its upstream would take the (already-closed) probe as that upstream and
+/// die on its first recv. The lock file is left in place on close; it is
+/// empty and reused by the next server on the same path.
+#[cfg(unix)]
+fn lock_unix_socket_path(path: &std::path::Path) -> TransportResult<std::fs::File> {
+    use std::os::unix::fs::OpenOptionsExt;
+    let mut lock_path = path.as_os_str().to_owned();
+    lock_path.push(".lock");
+    let lock = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .mode(0o600)
+        .open(&lock_path)?;
+    match lock.try_lock() {
+        Ok(()) => Ok(lock),
+        Err(std::fs::TryLockError::WouldBlock) => Err(io::Error::new(
+            io::ErrorKind::AddrInUse,
+            format!(
+                "unix socket {} is in use: another process holds {}",
+                path.display(),
+                std::path::Path::new(&lock_path).display()
+            ),
+        )
+        .into()),
+        Err(std::fs::TryLockError::Error(e)) => Err(e.into()),
+    }
+}
+
 /// Bind an owner-only (0600) unix listener at `path`. bind, chmod, THEN
 /// listen: until listen() every connect is refused, so there is no window
 /// in which another local user can reach the socket under a permissive
 /// umask. Any failure after bind unlinks the file it created.
 #[cfg(unix)]
-fn bind_unix_owner_only(path: &std::path::Path) -> io::Result<(UnixListener, OwnedUnixSocket)> {
+fn bind_unix_owner_only(
+    path: &std::path::Path,
+    lock: std::fs::File,
+) -> io::Result<(UnixListener, OwnedUnixSocket)> {
     use socket2::{Domain, SockAddr, Socket, Type};
     use std::os::unix::fs::PermissionsExt;
     let sock = Socket::new(Domain::UNIX, Type::STREAM, None)?;
     sock.bind(&SockAddr::unix(path)?)?;
-    let owned = match OwnedUnixSocket::record(path) {
+    let owned = match OwnedUnixSocket::record(path, lock) {
         Ok(owned) => owned,
         Err(e) => {
             let _ = std::fs::remove_file(path);
@@ -1171,39 +1219,23 @@ impl ActivationServer {
             #[cfg(unix)]
             TransportAddr::Unix(path) => {
                 check_unix_path_len(path)?;
-                // Crash recovery: a socket file left by a killed previous
-                // run blocks bind with AddrInUse. Probe it with a connect:
-                // refused → stale, unlink and re-bind; accepted → a live
-                // peer owns it, fail AddrInUse rather than hijack it. ONLY
-                // a socket file: refusing to delete a regular file/dir at a
-                // mistyped path beats silently destroying user data.
+                // Only one live server may own the path: the lock decides
+                // (see `lock_unix_socket_path` for why not a probe connect).
+                let lock = lock_unix_socket_path(path)?;
+                // Crash recovery: with the lock held, a socket file left by
+                // a killed previous run is stale by construction — unlink
+                // and re-bind. ONLY a socket file: refusing to delete a
+                // regular file/dir at a mistyped path beats silently
+                // destroying user data.
                 match std::fs::symlink_metadata(path) {
                     Ok(md) => {
                         use std::os::unix::fs::FileTypeExt;
                         if md.file_type().is_socket() {
-                            match std::os::unix::net::UnixStream::connect(path) {
-                                Ok(_) => {
-                                    return Err(io::Error::new(
-                                        io::ErrorKind::AddrInUse,
-                                        format!(
-                                            "unix socket {} is in use: another process is \
-                                             listening on it",
-                                            path.display()
-                                        ),
-                                    )
-                                    .into());
-                                }
-                                Err(e) if e.kind() == io::ErrorKind::ConnectionRefused => {
-                                    match std::fs::remove_file(path) {
-                                        Ok(()) => info!(
-                                            path = %path.display(),
-                                            "unlinked stale unix socket"
-                                        ),
-                                        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
-                                        Err(e) => return Err(e.into()),
-                                    }
-                                }
-                                // Vanished between stat and probe — just bind.
+                            match std::fs::remove_file(path) {
+                                Ok(()) => info!(
+                                    path = %path.display(),
+                                    "unlinked stale unix socket"
+                                ),
                                 Err(e) if e.kind() == io::ErrorKind::NotFound => {}
                                 Err(e) => return Err(e.into()),
                             }
@@ -1216,7 +1248,7 @@ impl ActivationServer {
                 }
                 // Owner-only: the socket is an unauthenticated pipeline
                 // endpoint; other users on a shared box must not reach it.
-                let (listener, owned) = bind_unix_owner_only(path)?;
+                let (listener, owned) = bind_unix_owner_only(path, lock)?;
                 self.actual_port = 0;
                 self.owned_unix_path = Some(owned);
                 self.listener = Some(ActivationListener::Unix(listener));
@@ -2652,12 +2684,13 @@ mod tests {
     async fn uds_stale_socket_is_unlinked_and_rebound() {
         let sock_path = test_sock_path("stale");
         let _ = std::fs::remove_file(&sock_path);
-        // Simulate the crash: bind a socket, close the listening fd (the
-        // kernel does this when a process dies), then leak the file by
-        // mem::forgetting the server (Drop would unlink it).
+        // Simulate the crash: bind a socket, then close the listening fd and
+        // release the path lock (the kernel does both when a process dies)
+        // while leaking the socket file (Drop would unlink it).
         let mut first = ActivationServer::new(format!("unix:{}", sock_path.display()), 0);
         first.start().await.unwrap();
         drop(first.listener.take());
+        drop(first.owned_unix_path.take().map(|owned| owned.lock));
         std::mem::forget(first);
         assert!(sock_path.exists(), "precondition: stale socket file left");
 
@@ -2691,10 +2724,10 @@ mod tests {
         drop(second);
         assert!(sock_path.exists(), "the live socket file must survive");
 
-        // The first server is still reachable. Its backlog holds the
-        // (already-closed) liveness probe first; drain it, then the real
-        // client's connection follows.
-        first.accept().await.unwrap();
+        // The first server is still reachable, and the refused second bind
+        // left nothing in its backlog: its single accept() — engines accept
+        // their upstream exactly once — gets the real client, not a phantom
+        // connection that would read as a dead upstream.
         let h = tokio::spawn(async move {
             first.accept().await.unwrap();
             let got = first.recv_raw(2).await.unwrap();
@@ -2710,27 +2743,45 @@ mod tests {
         assert_eq!(h.await.unwrap(), vec![4, 2]);
     }
 
-    /// If the path is replaced by another server's socket (A's file
-    /// unlinked, B re-binds the path), dropping A must NOT delete B's file.
+    /// If the path is replaced behind our back (A's file unlinked, some
+    /// other listener that bypasses the path lock re-binds it), dropping A
+    /// must NOT delete that listener's file.
     #[cfg(unix)]
     #[tokio::test]
     async fn uds_drop_does_not_unlink_a_replaced_socket() {
         let sock_path = test_sock_path("replaced");
         let _ = std::fs::remove_file(&sock_path);
         let addr = format!("unix:{}", sock_path.display());
-        let mut a = ActivationServer::new(addr.clone(), 0);
+        let mut a = ActivationServer::new(addr, 0);
         a.start().await.unwrap();
         std::fs::remove_file(&sock_path).unwrap();
-        let mut b = ActivationServer::new(addr, 0);
-        b.start().await.unwrap();
+        let foreign = std::os::unix::net::UnixListener::bind(&sock_path).unwrap();
 
         drop(a);
         assert!(
             sock_path.exists(),
-            "dropping A must not unlink B's socket at the same path"
+            "dropping A must not unlink a foreign socket at the same path"
         );
+        drop(foreign);
+        let _ = std::fs::remove_file(&sock_path);
+    }
+
+    /// The path lock is released on close: a new server can take over a
+    /// path whose previous owner shut down cleanly.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn uds_path_lock_released_on_close() {
+        let sock_path = test_sock_path("relock");
+        let _ = std::fs::remove_file(&sock_path);
+        let addr = format!("unix:{}", sock_path.display());
+        let mut a = ActivationServer::new(addr.clone(), 0);
+        a.start().await.unwrap();
+        a.close().await;
+        let mut b = ActivationServer::new(addr, 0);
+        b.start()
+            .await
+            .expect("a closed server must release the path lock");
         b.close().await;
-        assert!(!sock_path.exists(), "B still unlinks its own socket");
     }
 
     /// A path too long for `sun_path` is a config error: both sides must

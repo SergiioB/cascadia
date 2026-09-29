@@ -151,11 +151,14 @@ Notes:
   clear error; use TCP there.
 - The socket file is set to mode `0600` (owner-only) before the listener
   accepts any connection.
-- Existing file at the `--listen` path: a socket nothing is listening on
-  (left by a crash) is reclaimed — unlinked and re-bound. A socket another
-  live process is listening on is **not** touched: the new worker refuses to
-  start with an address-in-use error. A **non-socket** file is never
-  deleted — the worker refuses to start instead.
+- Ownership of the `--listen` path is an flock on `<path>.lock`, held for
+  the worker's lifetime and released by the kernel when it exits (however it
+  exits). While another worker holds it, a new worker refuses to start with
+  an address-in-use error and leaves the live socket alone. With the lock
+  free, a socket file left at the path (by a crash) is stale and is reclaimed
+  — unlinked and re-bound. A **non-socket** file is never deleted — the
+  worker refuses to start instead. The empty `.lock` file stays next to the
+  socket and is reused by the next worker on that path.
 - On a clean close (or when the server is dropped) the worker unlinks the
   socket file, but only if the path still refers to the socket it bound
   (inode check), so it never removes a successor's socket. Relay ranks
