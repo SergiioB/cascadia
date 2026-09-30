@@ -349,9 +349,13 @@ def drop_cache(paths):
 def find_elastic_so(binpath):
     """Built interposer next to the binary (target/release/build/...)."""
     d = os.path.dirname(os.path.abspath(binpath))
-    hits = sorted(glob.glob(os.path.join(
-        d, "build", "cascadia-elastic-*", "out", "libcascadia_elastic.so")))
-    return hits[-1] if hits else None
+    hits = glob.glob(os.path.join(
+        d, "build", "cascadia-elastic-*", "out", "libcascadia_elastic.so"))
+    # Newest by mtime, not sorted()[-1]: cargo keys the build dir on a hash of
+    # the crate inputs, so editing elastic_unix.c leaves the previous .so in
+    # place next to the new one. Picking the lexicographically last path loads
+    # a stale interposer (it silently ran an unfixed hook for a whole C1 leg).
+    return max(hits, key=os.path.getmtime) if hits else None
 
 
 def stop_by_pid(pid):
