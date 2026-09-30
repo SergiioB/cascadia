@@ -77,7 +77,11 @@ pub struct ElasticOpts {
 
 impl Default for ElasticOpts {
     fn default() -> Self {
-        Self { min_mb: 1, pool_mb: 8192, dir: None }
+        Self {
+            min_mb: 1,
+            pool_mb: 8192,
+            dir: None,
+        }
     }
 }
 
@@ -184,8 +188,9 @@ fn activate_impl(opts: &ElasticOpts) -> Result<Activation, ActivateError> {
     }
 
     // Build argv as C strings.
-    let c_exe = std::ffi::CString::new(exe.as_os_str().as_bytes())
-        .map_err(|e| ActivateError::Exec(std::io::Error::new(std::io::ErrorKind::InvalidInput, e)))?;
+    let c_exe = std::ffi::CString::new(exe.as_os_str().as_bytes()).map_err(|e| {
+        ActivateError::Exec(std::io::Error::new(std::io::ErrorKind::InvalidInput, e))
+    })?;
     let c_args: Vec<std::ffi::CString> = args
         .iter()
         .map(|a| std::ffi::CString::new(a.as_bytes()).unwrap_or_default())

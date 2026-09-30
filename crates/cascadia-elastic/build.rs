@@ -33,7 +33,9 @@ fn main() {
             .arg(&so)
             .arg("src/elastic_unix.c")
             .args(["-ldl", "-lpthread"]);
-        let status = cmd.status().expect("failed to spawn C compiler for elastic shim");
+        let status = cmd
+            .status()
+            .expect("failed to spawn C compiler for elastic shim");
         assert!(status.success(), "elastic shim compile failed: {status}");
     } else {
         std::fs::write(&so, b"").unwrap(); // placeholder; never LD_PRELOADed
