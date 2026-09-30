@@ -185,7 +185,15 @@ static int pool_put(void *base, size_t total, int fd) {
  * is closed immediately after mmap in every path. */
 
 static void *big_alloc2(size_t size, int want_zero) {
-    size_t total = PAGE + ((size + PAGE - 1) & ~(PAGE - 1));
+    /* One extra page of tail slack. glibc always leaves a partial page
+     * after a large user region (its 16-byte chunk header forces the mmap
+     * to round up), and vectorised callers rely on that implicitly:
+     * oneDNN JIT repack kernels read up to 64 B past the logical end of a
+     * tensor. A page-multiple request would otherwise end flush against an
+     * unmapped page, and the over-read faults. Measured on a 27B export at
+     * the 1 MB threshold: SIGSEGV in a JIT vmovups 0x40(%r10) with the
+     * fault address exactly at the mapping end. */
+    size_t total = PAGE + ((size + PAGE - 1) & ~(PAGE - 1)) + PAGE;
     void *base = pool_take(total);
     if (base) {                          /* reuse WITHOUT zeroing (D-015) */
         hdr_t *h = (hdr_t *)base;
