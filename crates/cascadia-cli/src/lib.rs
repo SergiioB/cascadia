@@ -1023,19 +1023,27 @@ pub fn activate_elastic_if_requested(cli: &Cli) {
         eprintln!("cascadia: elastic posture active (min={min_mb}MB pool={pool_mb}MB)");
         return;
     }
-    let opts = cascadia_elastic::ElasticOpts { min_mb, pool_mb, dir: None };
+    let opts = cascadia_elastic::ElasticOpts {
+        min_mb,
+        pool_mb,
+        dir: None,
+    };
     match cascadia_elastic::activate(&opts) {
         // On Linux success execv never returns; AlreadyActive is handled above.
         Ok(cascadia_elastic::Activation::AlreadyActive) => {}
         // Windows in-process hook installed this call.
         Ok(cascadia_elastic::Activation::Activated) => {
-            eprintln!("cascadia: elastic posture active (in-process; min={min_mb}MB pool={pool_mb}MB)");
+            eprintln!(
+                "cascadia: elastic posture active (in-process; min={min_mb}MB pool={pool_mb}MB)"
+            );
         }
         Ok(cascadia_elastic::Activation::UnsupportedPlatform(why)) => {
             eprintln!("cascadia: --elastic interposer unavailable on this build: {why}");
         }
         Err(e) => {
-            eprintln!("cascadia: --elastic activation failed ({e}); continuing without the interposer");
+            eprintln!(
+                "cascadia: --elastic activation failed ({e}); continuing without the interposer"
+            );
         }
     }
 }
@@ -3407,10 +3415,7 @@ mod ov_property_tests {
     #[test]
     fn ov_config_passthrough_forwards_arbitrary_keys() {
         let mut args = args_for("CPU");
-        args.ov_config = vec![
-            "ENABLE_MMAP=YES".into(),
-            "KV_CACHE_PRECISION=u8".into(),
-        ];
+        args.ov_config = vec!["ENABLE_MMAP=YES".into(), "KV_CACHE_PRECISION=u8".into()];
         let props = ov_perf_properties(&args);
         assert_eq!(prop(&props, "ENABLE_MMAP"), Some("YES"));
         assert_eq!(prop(&props, "KV_CACHE_PRECISION"), Some("u8"));
@@ -3422,10 +3427,7 @@ mod ov_property_tests {
         let mut args = args_for("CPU");
         args.ov_config = vec!["DEVICE_PROPERTIES=CPU:NUM_STREAMS=4".into()];
         let props = ov_perf_properties(&args);
-        assert_eq!(
-            prop(&props, "DEVICE_PROPERTIES"),
-            Some("CPU:NUM_STREAMS=4")
-        );
+        assert_eq!(prop(&props, "DEVICE_PROPERTIES"), Some("CPU:NUM_STREAMS=4"));
     }
 
     #[test]
@@ -3438,10 +3440,7 @@ mod ov_property_tests {
         let props = ov_perf_properties(&args);
         assert_eq!(prop(&props, "NUM_STREAMS"), Some("8"));
         // and only once — the typed entry was removed, not shadowed.
-        assert_eq!(
-            props.iter().filter(|(k, _)| k == "NUM_STREAMS").count(),
-            1
-        );
+        assert_eq!(props.iter().filter(|(k, _)| k == "NUM_STREAMS").count(), 1);
     }
 
     #[test]
