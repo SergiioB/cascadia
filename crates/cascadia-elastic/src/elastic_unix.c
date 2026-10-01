@@ -46,6 +46,8 @@
 #include <sys/vfs.h>
 #include <linux/magic.h>
 #include <unistd.h>
+#include <limits.h>
+#include <sys/sysmacros.h>
 
 #define PAGE 4096UL
 #define MAGIC 0xE1A571CA110CULL
@@ -136,6 +138,50 @@ static void do_init(void) {
                 " pages cannot be written back, so --elastic gives NO OOM"
                 " protection. Point ELASTIC_DIR at a disk-backed dir"
                 " (ext4/xfs).\n", g_dir);
+    /* Same warning, different failure mode: on a rotational device the
+     * mechanism still works, but the page-ins are seek-bound, so "slow but
+     * alive" degrades into "dead". Decode re-reads every weight on every
+     * token, so a dropped page is re-read inside the decode loop; and two
+     * co-tenant models interleave their reads, which on a 7200 rpm disk
+     * collapses to ~1-2 MB/s. The reference backing (WD SN770 NVMe) measures
+     * 3.3 GB/s direct. Warn rather than refuse: the posture is still correct,
+     * it is the device that is wrong. */
+    {
+        struct stat sb;
+        if (stat(g_dir, &sb) == 0) {
+            int rot = -1;
+            char p[PATH_MAX + 32];
+            snprintf(p, sizeof p, "/sys/dev/block/%u:%u/queue/rotational",
+                     (unsigned)major(sb.st_dev), (unsigned)minor(sb.st_dev));
+            FILE *rf = fopen(p, "r");
+            if (!rf) {
+                /* A partition keeps its queue on the parent disk: resolve the
+                 * sysfs node and step up one directory. */
+                char real[PATH_MAX];
+                snprintf(p, sizeof p, "/sys/dev/block/%u:%u",
+                         (unsigned)major(sb.st_dev), (unsigned)minor(sb.st_dev));
+                if (realpath(p, real)) {
+                    char *slash = strrchr(real, '/');
+                    if (slash) {
+                        *slash = '\0';
+                        snprintf(p, sizeof p, "%s/queue/rotational", real);
+                        rf = fopen(p, "r");
+                    }
+                }
+            }
+            if (rf) {
+                if (fscanf(rf, "%d", &rot) != 1) rot = -1;
+                fclose(rf);
+            }
+            if (rot == 1)
+                fprintf(stderr,
+                        "cascadia: elastic WARNING: backing dir %s is on a"
+                        " rotational device — page-ins are seek-bound, so"
+                        " --elastic thrashes instead of degrading under"
+                        " pressure. Point ELASTIC_DIR at an SSD/NVMe.\n",
+                        g_dir);
+        }
+    }
 }
 static inline void ensure_init(void) { pthread_once(&init_once, do_init); }
 
