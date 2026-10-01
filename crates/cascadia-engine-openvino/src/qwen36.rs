@@ -619,9 +619,15 @@ impl Builder for Qwen36Builder {
             max_ctx = ?self.max_ctx,
             "qwen35 prefix cache"
         );
+        let stages = self.stages.ok_or(EngineError::NotLoaded)?;
+        let stage_inputs: Vec<Vec<String>> = stages
+            .iter()
+            .map(|s| s.input_names().map_err(map_ov))
+            .collect::<EngineResult<Vec<_>>>()?;
         Ok(Box::new(Qwen36Engine {
             emb: self.emb,
-            stages: self.stages.ok_or(EngineError::NotLoaded)?,
+            stages,
+            stage_inputs,
             tokenizer: self.tokenizer,
             eos: self.eos,
             max_tokens_default: self.max_tokens_default,
@@ -742,6 +748,12 @@ pub struct Qwen36Engine {
     /// Rank 0 only in pipeline mode.
     emb: Option<Runtime>,
     stages: Vec<Runtime>,
+    /// Cached `input_names()` per stage. The IR's input list is fixed for the
+    /// life of a loaded model, so re-querying it on every chain pass costs one
+    /// shim call plus a `Vec<String>` allocation per input, per stage, per
+    /// token. Cached once at construction; `stages` is never replaced after
+    /// load (only iterated mutably), so the cache cannot go stale.
+    stage_inputs: Vec<Vec<String>>,
     /// Rank 0 only in pipeline mode.
     tokenizer: Option<Tokenizer>,
     eos: Option<u32>,
@@ -995,9 +1007,12 @@ impl Qwen36Engine {
         let zeros_embeds = vec![0f32; n * width];
         let first_global = self.rank == 0;
         let mut hidden: Vec<f32> = embeds.to_vec();
-        for (j, st) in self.stages.iter_mut().enumerate() {
-            let names = st.input_names().map_err(map_ov)?;
-            for name in &names {
+        // Disjoint field borrows: drive the stages while reading the cached
+        // input list. The list is fixed for the life of the loaded model.
+        let Qwen36Engine { stages, stage_inputs, .. } = self;
+        for (j, st) in stages.iter_mut().enumerate() {
+            let names = &stage_inputs[j];
+            for name in names {
                 match name.as_str() {
                     "stage_hidden" => st
                         .set_input(name, DType::F32, &[1, n, width], &le_bytes_f32(&hidden))
@@ -3168,6 +3183,7 @@ mod tests {
         Qwen36Engine {
             emb: None,
             stages: Vec::new(),
+            stage_inputs: Vec::new(),
             tokenizer: None,
             eos: None,
             max_tokens_default: 256,
