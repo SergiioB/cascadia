@@ -1251,16 +1251,6 @@ fn warn_ignored_ov_perf_flags(args: &WorkerArgs) {
         );
     }
 
-    // qwen35 compiles with a fixed plugin config and receives no OV perf
-    // properties (some hints break its IRs — see qwen36.rs). If the user set
-    // general hints, warn they won't take effect on this engine.
-    if matches!(args.engine, EngineKind::Qwen36Moe) && !ov_perf_properties(args).is_empty() {
-        tracing::warn!(
-            "ignoring --ov-* performance flags: the qwen35 engine compiles \
-             with a fixed plugin config and does not apply them"
-        );
-    }
-
     // The prefix cache lives in the qwen35 engine; no other builder has
     // anywhere to put a budget, so an explicit --prefix-cache-gb would be
     // dropped on the floor and the operator would keep measuring cold TTFTs.
@@ -1589,6 +1579,7 @@ fn build_builder(args: &WorkerArgs, prefix_cache_bytes: usize) -> Result<Box<dyn
             if let Some(group) = &args.ov_dyn_quant_group {
                 b = b.with_dyn_quant_group(group);
             }
+            b = b.with_ov_properties(ov_perf_properties(args));
             info!(
                 prefix_cache_gib = prefix_cache_bytes >> 30,
                 "qwen35 prefix-cache budget"
@@ -3271,6 +3262,7 @@ mod ov_property_tests {
             EngineKind::Gemma4,
             EngineKind::OvDistSpec,
             EngineKind::SparseMoe,
+            EngineKind::Qwen36Moe,
         ] {
             let mut args = args_for_engine("NPU.0", engine);
             args.npu_prefill_chunk_size = Some(512);
@@ -3295,6 +3287,15 @@ mod ov_property_tests {
         args.ov_performance_mode = Some(OvPerformanceMode::Latency);
         let props = ov_perf_properties(&args);
         assert_eq!(prop(&props, "PERFORMANCE_HINT"), Some("LATENCY"));
+    }
+
+    #[test]
+    fn general_hints_apply_on_qwen35_engine() {
+        // The qwen35 builder forwards these via `with_ov_properties`.
+        let mut args = args_for_engine("GPU", EngineKind::Qwen36Moe);
+        args.ov_num_threads = Some(8);
+        let props = ov_perf_properties(&args);
+        assert_eq!(prop(&props, "INFERENCE_NUM_THREADS"), Some("8"));
     }
 }
 
