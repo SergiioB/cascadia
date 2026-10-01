@@ -17,6 +17,9 @@ Guards, so a pass means something:
 - the backing dir must be disk-backed: on tmpfs the pages cannot be written
   back, so the posture gives no survival benefit even though `RssAnon` still
   collapses (measured: tmpfs backing dies at the same caps as stock);
+- the interposer `.so` is selected by **mtime**, not lexicographic order: cargo
+  leaves the previous build's `.so` beside the new one, and picking the wrong
+  one silently measures an unpatched hook (this cost a whole C1 leg once);
 - the pressure and co-tenancy legs verify `memory.max` was actually applied to
   the scope before trusting the result, and read `memory.events` for `oom_kill`;
 - C1 refuses a model pair under 8× apart and C4 refuses a budget outside
@@ -51,26 +54,52 @@ Opt-in legs, same box:
   budget), both tenants served their solo text, `memory.max` verified on the
   scope. Naive 2× provisioning for these two is ~3 GB committed. (With the
   stock 1 MB threshold the same pair passes at 1600 MB — floors 178 + 528 MB.)
-- **C1 floor independence — 2.1× band, criterion ≤1.5× not yet met**: with
-  the interposer's mmap leg + fd-free pool, `MALLOC_ARENA_MAX=1` and
-  `ELASTIC_MIN_KB=256`, the gemma-26b settled floor drops 527 → 172 MB and
-  the 1.5B leg to 81 MB — band 2.11× across a 16.4× scale gap. History at
-  the stock 1 MB threshold: 178 vs 531 MB (2.98×); other pairs:
-  Qwen3.8-27B-int4 at `--elastic-min-mb 16` — 883 vs 4480 MB (5.07×);
-  Muse-Glimmer-30B-int4 at 16 — 883 vs 7036 MB (7.97×). The residual after
-  the mmap leg is model-width-scaling engine-internal state (oneDNN/MoE),
-  below any allocator threshold. The check itself is fail-closed and
-  reports the band it measured.
+- **C1 floor independence — FAILS at ~3×; the residual is identified and is
+  not reachable by allocator interposition.** Swept 2026-09-30 over
+  Qwen2.5-1.5B vs Qwen3.8-27B (17.1× scale), B70, backing on ext4:
+
+  | threshold | 1.5B | 27B | band |
+  |---|---|---|---|
+  | 16 MB | 883 MB | 4480 MB | 5.07× |
+  | 1 MB | 178 MB | 597 MB | 3.35× |
+  | 256 KB | 85 MB | 256 MB | 3.01× |
+  | 64 KB | 62 MB | 212 MB | 3.41× |
+  | 4 KB + `MALLOC_MMAP_THRESHOLD_` | 61 MB | 206 MB | 3.39× |
+  | 64 KB + `MALLOC_MMAP_THRESHOLD_` | 67 MB | 224 MB | 3.36× |
+
+  The band is pinned at ~3× whatever the threshold: the residual does not
+  respond to the allocator. An `strace` of `mmap` during the 27B load closes
+  it — of every mapping ≥1 MB, the ones that escape the hook are **all 69
+  thread stacks** (`MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK`, 400 MB). The
+  read-only anonymous mappings (70 of them, 7.3 GB) carry no resident pages,
+  and forcing glibc off `brk` (`MALLOC_MMAP_THRESHOLD_`) changes nothing.
+  Stacks are excluded deliberately: file-backing a stack breaks guard pages,
+  growth and unwinding. That is memory no allocator interposer can or should
+  redirect, so ≤1.5× is not reachable by this approach. The check is
+  fail-closed and reports the band it measured — the correct behaviour.
+
+  History, same box: gemma-26b vs 1.5B with `MALLOC_ARENA_MAX=1` +
+  `ELASTIC_MIN_KB=256` — 172 vs 81 MB (2.11× across a 16.4× gap); stock 1 MB
+  threshold 178 vs 531 MB (2.98×); Muse-Glimmer-30B-int4 at 16 MB —
+  883 vs 7036 MB (7.97×). All well above criterion; same root cause.
 
 ## Large models and `--elastic-min-mb`
 
-Against multi-GB exports (27B-class) the `run` default threshold of 1 MB
-file-backs some 1–16 MB engine-internal allocations too, and the process dies
-with SIGSEGV during load (reproduced on B70, pool on and off alike; hook inerts
-fine, `--elastic-min-mb 16` serves). `--elastic-min-mb 16` (weights-only
-threshold) is the validated setting for C1's large leg today; the mechanism
-itself is unaffected at small scales. The escape hatches (`--elastic-min-mb`,
-`--elastic-so`) are env-driven and need no binary rebuild.
+The 1 MB default now loads 27B-class exports. It did not before: the process
+died with SIGSEGV during load because `big_alloc` ended each mapping flush
+against the following unmapped page (`PAGE + round_up(size)`), so a request
+whose size was an exact multiple of `PAGE` had zero slack behind it. Heap
+allocators never have that shape — glibc's 16-byte header forces the block to
+round up to a further page — and oneDNN's vectorised kernels read up to 64
+bytes past the end of a buffer on the assumption that the slack is there.
+dmesg gave the mechanism directly: `error 4` (read, page not present) at a
+page-aligned address, with the faulting instruction `vmovups 0x40(%r10),%ymm6`
+inside JIT-generated AVX2 code. `ELASTIC_MMAP=0` crashed identically, which
+localised it to the malloc leg. Fixed with one page of tail slack
+(`3438921`, mirrored in the Windows leg). `--elastic-min-mb 16` is still a
+valid weights-only setting, but it is no longer needed to survive load. The
+escape hatches (`--elastic-min-mb`, `--elastic-so`) remain env-driven with no
+rebuild required.
 
 ## Platform scope
 
