@@ -17,6 +17,7 @@ use cascadia_engine_openvino::{
 };
 use cascadia_engine_sparse_moe::{SparseMoEBuilder, SparseMoEBuilderConfig};
 use cascadia_runner::Runner;
+use cascadia_transport::TransportAddr;
 use cascadia_types::{GenerationTask, PeerEndpoint, PeerLayout, ShardSpec};
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::Shell;
@@ -1016,14 +1017,26 @@ fn cmd_engines() -> Result<()> {
     Ok(())
 }
 
+/// Unix-domain-socket address form (#17): `unix:/path.sock`, an absolute
+/// path, or a `.sock`-suffixed name. Valid for --listen/--next (in-host
+/// pipeline hand-offs); NOT for --api (HTTP stays TCP). The rule itself is
+/// owned by the transport (`TransportAddr`).
+fn is_unix_addr(s: &str) -> bool {
+    TransportAddr::from_host_port(s, 0).is_unix()
+}
+
 fn parse_addr(s: &str, default_host: &str) -> Result<(String, u16)> {
-    if let Some(port) = s.strip_prefix(':') {
-        return Ok((default_host.to_string(), port.parse().context("port")?));
+    // A UDS address travels whole in the host slot with port 0 — the
+    // transport layer classifies it again (TransportAddr::from_host_port).
+    // Parsing through TransportAddr rejects an empty `unix:` path here,
+    // up front, instead of at bind/connect time.
+    match s.parse::<TransportAddr>()? {
+        TransportAddr::Unix(_) => Ok((s.to_string(), 0)),
+        TransportAddr::Tcp { host, port } if host.is_empty() => {
+            Ok((default_host.to_string(), port))
+        }
+        TransportAddr::Tcp { host, port } => Ok((host, port)),
     }
-    let (h, p) = s
-        .rsplit_once(':')
-        .ok_or_else(|| anyhow!("address must be host:port (got {s:?})"))?;
-    Ok((h.to_string(), p.parse().context("port")?))
 }
 
 /// Pick the OV plugin's CACHE_DIR for this worker.
@@ -1805,6 +1818,18 @@ fn validate_worker_runtime_flags(args: &WorkerArgs) -> Result<()> {
     Ok(())
 }
 
+/// HTTP must stay TCP: reject a unix --api up-front, before any engine
+/// work, rather than failing the TcpListener bind minutes later.
+fn check_api_addr_is_tcp(api: Option<&str>) -> Result<()> {
+    if api.is_some_and(is_unix_addr) {
+        return Err(anyhow!(
+            "--api must be a TCP address (host:port); unix socket addresses are \
+             supported only for --listen/--next (in-host pipeline hand-offs)"
+        ));
+    }
+    Ok(())
+}
+
 async fn cmd_worker(args: WorkerArgs) -> Result<()> {
     if args.rank >= args.total {
         return Err(anyhow!(
@@ -1877,7 +1902,10 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
         "cascadia worker starting"
     );
 
+    check_api_addr_is_tcp(args.api.as_deref())?;
+
     let (listen_host, listen_port) = parse_addr(&args.listen, "0.0.0.0")?;
+    let listen_is_unix = is_unix_addr(&listen_host);
 
     let upstream = if is_first {
         None
@@ -1932,31 +1960,40 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
     // dashboard demo. If the engine already bound the port, `bind`
     // fails with AddrInUse and we silently step aside (the engine's
     // listener handles probes identically at the TCP layer).
+    //
+    // A unix --listen has no TCP relay port: binding 0.0.0.0:0 here would
+    // grab a meaningless ephemeral port, so skip it (the node also
+    // advertises port 0 via mDNS — cross-host latency probes don't apply
+    // to an in-host UDS stage).
     let probe_addr = format!("0.0.0.0:{listen_port}");
-    match tokio::net::TcpListener::bind(&probe_addr).await {
-        Ok(listener) => {
-            info!(addr = %probe_addr, "probe listener bound");
-            tokio::spawn(async move {
-                loop {
-                    match listener.accept().await {
-                        Ok(_) => {
-                            // Drop the connection immediately — the
-                            // probe only needs the connect handshake.
-                        }
-                        Err(e) => {
-                            tracing::debug!(error = %e, "probe accept failed");
-                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    if listen_is_unix {
+        tracing::debug!("unix --listen; skipping TCP probe listener");
+    } else {
+        match tokio::net::TcpListener::bind(&probe_addr).await {
+            Ok(listener) => {
+                info!(addr = %probe_addr, "probe listener bound");
+                tokio::spawn(async move {
+                    loop {
+                        match listener.accept().await {
+                            Ok(_) => {
+                                // Drop the connection immediately — the
+                                // probe only needs the connect handshake.
+                            }
+                            Err(e) => {
+                                tracing::debug!(error = %e, "probe accept failed");
+                                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            }
                         }
                     }
-                }
-            });
-        }
-        Err(e) => {
-            tracing::debug!(
-                error = %e,
-                addr = %probe_addr,
-                "probe listener could not bind; engine likely owns the port"
-            );
+                });
+            }
+            Err(e) => {
+                tracing::debug!(
+                    error = %e,
+                    addr = %probe_addr,
+                    "probe listener could not bind; engine likely owns the port"
+                );
+            }
         }
     }
 
@@ -2052,11 +2089,13 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
             tick.tick().await;
             // Snapshot just (id, host, port) — no full NodeInfo clone — and
             // probe all peers concurrently with join_all rather than an
-            // unbounded tokio::spawn per peer per tick.
+            // unbounded tokio::spawn per peer per tick. Port-0 peers are
+            // in-host unix stages (#17): no TCP endpoint, so dialing
+            // `host:0` every tick would only ever fail.
             let peers: Vec<(String, String, u16)> = topology_for_probe
                 .nodes()
                 .into_iter()
-                .filter(|n| n.node_id != self_id_for_probe)
+                .filter(|n| n.node_id != self_id_for_probe && discover::has_tcp_relay(n.port))
                 .map(|n| (n.node_id, n.host, n.port))
                 .collect();
             let results = futures::future::join_all(
@@ -3633,5 +3672,74 @@ mod tests {
             };
             assert_eq!(args.engine, EngineKind::Qwen36Moe, "--engine {spelling}");
         }
+    }
+
+    /// --listen/--next/--api address forms (#17). `unix:/tmp/x.sock` is the
+    /// case a plain last-colon split used to break.
+    #[test]
+    fn parse_addr_accepts_tcp_and_unix_forms() {
+        let cases = [
+            ("unix:/tmp/x.sock", "unix:/tmp/x.sock", 0),
+            ("/abs/x.sock", "/abs/x.sock", 0),
+            ("stage.sock", "stage.sock", 0),
+            (":9100", "0.0.0.0", 9100),
+            ("host:9100", "host", 9100),
+        ];
+        for (input, host, port) in cases {
+            let got = parse_addr(input, "0.0.0.0").unwrap_or_else(|e| panic!("{input}: {e}"));
+            assert_eq!(got, (host.to_string(), port), "{input}");
+        }
+    }
+
+    #[test]
+    fn parse_addr_rejects_bad_forms() {
+        for input in ["unix:", "justahost", "host:notaport"] {
+            assert!(parse_addr(input, "0.0.0.0").is_err(), "{input}");
+        }
+    }
+
+    /// A worker's HTTP API must stay TCP; this runs before engine work.
+    #[test]
+    fn worker_rejects_unix_api_addr() {
+        for api in ["unix:/x.sock", "/x.sock", "x.sock"] {
+            let err = check_api_addr_is_tcp(Some(api)).unwrap_err().to_string();
+            assert!(err.contains("--api must be a TCP address"), "{api}: {err}");
+        }
+        assert!(check_api_addr_is_tcp(Some("0.0.0.0:8000")).is_ok());
+        assert!(check_api_addr_is_tcp(None).is_ok());
+    }
+
+    /// --ep-workers may mix an in-host unix worker with a TCP one.
+    #[test]
+    fn ep_workers_parse_mixed_unix_and_tcp() {
+        let cli = Cli::try_parse_from([
+            "cascadia",
+            "worker",
+            "--rank",
+            "0",
+            "--total",
+            "1",
+            "--model",
+            "m",
+            "--ep-workers",
+            "unix:/a.sock,10.0.0.2:9100",
+        ])
+        .expect("parse worker argv");
+        let Command::Worker(args) = cli.cmd else {
+            panic!("expected worker subcommand");
+        };
+        let workers = args
+            .ep_workers
+            .iter()
+            .map(|w| parse_addr(w, "127.0.0.1"))
+            .collect::<Result<Vec<_>>>()
+            .expect("parse --ep-workers");
+        assert_eq!(
+            workers,
+            vec![
+                ("unix:/a.sock".to_string(), 0),
+                ("10.0.0.2".to_string(), 9100)
+            ]
+        );
     }
 }

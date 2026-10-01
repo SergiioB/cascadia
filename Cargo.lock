@@ -298,6 +298,7 @@ dependencies = [
  "cascadia-ov-genai-shim",
  "cascadia-runner",
  "cascadia-topology",
+ "cascadia-transport",
  "cascadia-types",
  "clap",
  "clap_complete",
