@@ -105,8 +105,24 @@ rebuild required.
 
 The checks are engine-independent: the interposer sits below the engine and
 intercepts libc allocation, so they apply to any engine that allocates through
-`malloc`. This suite is Linux-only as written (`/proc`, systemd cgroups). The
-Windows hook (PR #132, Detours) is verified separately — 1329 → 223 MB private
-commit on Lunar Lake, gate line confirmed — but a Windows port of these checks
-needs a private-bytes witness (psapi working-set counters) and a Job Object for
-the pressure legs.
+`malloc`. `test_elastic.py` (this file's sibling) is Linux-only as written —
+`/proc` and systemd cgroups.
+
+**Windows: `test_elastic_win.py`.** Same three questions, different witnesses:
+
+| | Linux (`test_elastic.py`) | Windows (`test_elastic_win.py`) |
+|---|---|---|
+| memory witness | `RssAnon` from `/proc/<pid>/status` | `PagefileUsage` from `GetProcessMemoryInfo` (psapi) — the private commit |
+| working set | `RssFile` for contrast | `WorkingSetSize`, **context only** — it does not drop without pressure (measured 3098 → 3114 MB) |
+| pressure leg | cgroup v2 `MemoryMax` | Job Object `JOB_OBJECT_LIMIT_PROCESS_MEMORY` (opt-in, `--pressure-mb`) |
+| hook install | `LD_PRELOAD` of the built `.so` | in-process Detours, compiled in when `DETOURS_DIR` was set at build |
+
+Checks: **W1** gate line, **W2** output identity, **W3** elasticity witness on
+the private commit, **W4** pressure survival (opt-in). A run without the gate
+line is invalid, not a pass — and note that cargo caches the build fingerprint,
+so after building Detours you need `cargo clean -p cascadia-elastic` or the hook
+silently stays compiled out.
+
+Reference run (2026-10-01, HunterLaptopSergio, Qwen2.5-1.5B-int8-ov, CPU):
+**W1/W2/W3 PASS** — private commit 1646 → 171 MB (10% of stock), working set
+3098 → 3114 MB, output byte-identical.
