@@ -8,7 +8,16 @@
 //! QWEN36_SHARDS=C:\cascadia\models\qwen36-shards-2stage \
 //!   cargo test -p cascadia-engine-openvino --features openvino \
 //!   --test qwen36_parity -- --ignored qwen36_greedy_parity
-//! QWEN38_SHARDS=C:\cascadia\models\qwen38-shards-2stage \
+//! QWEN38_SHARDS=C:\cascadia\models\qwen38-shards-2stage
+//!
+//! NOTE (platform scope of the goldens). These goldens were blessed on one
+//! machine, and greedy decode is sensitive enough that a different oneDNN
+//! kernel set picks a different token at a near-tie. On B70/Linux the whole
+//! model and the shard chain agree 64/64 with each other but only 7/64 with
+//! the committed qwen38 golden -- i.e. the golden is platform-specific, not
+//! the engine. Before treating a failure here as a regression, check the
+//! shard chain against the whole model on the same box:
+//! `tools/qwen36_surgery/probe_engine_parity_linux.py`. \
 //!   cargo test -p cascadia-engine-openvino --features openvino \
 //!   --test qwen36_parity -- --ignored qwen38_greedy_parity
 //! ```
