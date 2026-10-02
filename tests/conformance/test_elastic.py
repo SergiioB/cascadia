@@ -180,7 +180,7 @@ def chat(port, prompt, max_tokens, timeout=900):
 
 def launch(binpath, model, port, elastic, env, logpath, memmax_mb=None,
            unit=None, min_mb=None, so=None):
-    cmd = [binpath, "run", model, "--device", "CPU", "--api", f"0.0.0.0:{port}"]
+    cmd = [binpath, "run", model, "--device", "CPU", "--api", f"127.0.0.1:{port}"]
     if elastic:
         cmd.append("--elastic")
         # Research escape hatches over the CLI's fixed (1 MB, pool on) defaults,
@@ -215,7 +215,7 @@ def launch_fleet(binpath, specs, env, logpath, memmax_mb, unit,
     """
     parts = []
     for model, port, elastic in specs:
-        c = [binpath, "run", model, "--device", "CPU", "--api", f"0.0.0.0:{port}"]
+        c = [binpath, "run", model, "--device", "CPU", "--api", f"127.0.0.1:{port}"]
         if elastic:
             c.append("--elastic")
         parts.append(f"{shlex.join(c)} > {logpath}.{port} 2>&1 &")
@@ -554,7 +554,8 @@ def main():
             stop(proc, ps)
         with open(plog) as f:
             ptxt = f.read()
-        if st == "up":
+        stock_survived = st == "up"
+        if stock_survived:
             log(f"  stock @ {cap} MB: survived the cap - it is above stock's "
                 f"knee on this box; the contrast is not demonstrated")
         elif "Failed to" in ptxt:
@@ -595,16 +596,27 @@ def main():
                     m = re.search(r"oom_kill\s+(\d+)", ev or "")
                     if m and int(m.group(1)) > 0:
                         detail = f"oom_kill fired: {(ev or '').strip()[:160]}"
+                    elif stock_survived:
+                        # Elastic served, but so did stock: the cap sits above
+                        # stock's knee on this box, so survival demonstrates
+                        # nothing. Fail closed and say what to do instead of
+                        # recording a vacuous PASS.
+                        detail = (f"inconclusive: stock also served under {cap} MB "
+                                  f"(cap above stock's knee); lower --pressure-mb "
+                                  f"until the stock leg dies")
                     else:
                         ok = True
                         detail = (f"served {ntok} tok in {dt:.1f}s under {cap} MB; "
-                                  f"memory.max={mmax}")
+                                  f"memory.max={mmax}; stock died at this cap")
         except Exception as e:
             detail = f"generation failed: {type(e).__name__}: {e}"
         finally:
             lf.close()
             stop(proc, pe)
+        checks.setdefault("C3 pressure survival", {})
         record("C3 pressure survival", ok, detail)
+        checks["C3 pressure survival"]["stock_survived"] = stock_survived
+        checks["C3 pressure survival"]["cap_mb"] = cap
 
     # --- C1: floor independence (optional, --scale-model) -------------------
     if a.scale_model:

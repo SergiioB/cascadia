@@ -7,8 +7,8 @@ server and read the process's own memory split:
 |---|---|---|
 | C2 output identity | stock vs `--elastic`, temperature 0 | byte-identical |
 | C5 elasticity witness | `RssAnon` split (`/proc/<pid>/status`) | anon collapses vs stock while file-backed grows |
-| C1 floor independence (opt-in, `--scale-model M2`) | settled committed memory at two model scales ≥8× apart (file-size ratio, fail-closed) | both floors in one band |
-| C3 pressure survival (opt-in, `--pressure-mb N`) | serve under a cgroup `MemoryMax` cap, swap off | correct text, no OOM kill |
+| C1 floor independence (opt-in, `--scale-model M2`) | settled committed memory at two model scales ≥8× apart (file-size ratio, fail-closed) | both floors within 1.5× of each other AND the large-model floor under 256 MB |
+| C3 pressure survival (opt-in, `--pressure-mb N`) | serve under a cgroup `MemoryMax` cap, swap off | correct text, no OOM kill, **and the stock leg died at the same cap** (otherwise the check is recorded as inconclusive, not PASS) |
 | C4 co-tenancy (opt-in, `--coten-models A,B,… --coten-budget-mb N`) | N co-resident servers under **one** fleet `MemoryMax`, budget above the sum of their elastic floors and far below naive N× provisioning | every tenant serves its solo-verified text |
 
 Guards, so a pass means something:

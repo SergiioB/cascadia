@@ -350,7 +350,15 @@ def main():
         record(False, "W3 elasticity witness", "could not read process memory")
 
     # W4 — pressure leg (opt-in)
-    if a.pressure_mb:
+    if a.pressure_mb and mem_stock and a.pressure_mb * MB >= mem_stock[0]:
+        # A cap at or above stock's own private commit proves nothing: stock
+        # would have served under it too. Fail closed rather than record a
+        # vacuous PASS, and say what cap would be meaningful.
+        record(False, "W4 pressure survival",
+               "inconclusive: cap %d MB is not below stock's private commit "
+               "(%.0f MB); pick --pressure-mb below that" %
+               (a.pressure_mb, mem_stock[0] / MB))
+    elif a.pressure_mb:
         kill(p)
         lf.close()
         cap = a.pressure_mb * MB
