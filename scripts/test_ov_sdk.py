@@ -86,5 +86,35 @@ class Candidates(unittest.TestCase):
             ov_sdk.candidate_urls("2026.4.1.0", "plan9", None)
 
 
+class Sha256Sidecar(unittest.TestCase):
+    H = "41b934976445c188301bf6f0631bb009989c16f9d288352dd477136157c0199b"
+
+    def test_matching_name_is_used(self):
+        h, why = ov_sdk.parse_sha256_sidecar(f"{self.H}  openvino_genai_ubuntu22_2026.4.1.0_x86_64.tar.gz\n",
+                                             "openvino_genai_ubuntu22_2026.4.1.0_x86_64.tar.gz")
+        self.assertEqual((h, why), (self.H, None))
+        # sha256sum's binary-mode marker and upper-case hex are fine too
+        h, _ = ov_sdk.parse_sha256_sidecar(f"{self.H.upper()} *openvino_genai_windows_2026.4.1.0_x86_64.zip",
+                                           "openvino_genai_windows_2026.4.1.0_x86_64.zip")
+        self.assertEqual(h, self.H)
+
+    def test_hash_only_is_used(self):
+        h, why = ov_sdk.parse_sha256_sidecar(self.H, "anything.tar.gz")
+        self.assertEqual((h, why), (self.H, None))
+
+    def test_sidecar_for_another_file_is_ignored_not_trusted(self):
+        # What Intel serves for 2026.5.0.0beta1 (observed 2026-10-02): the
+        # sidecar names the dev20260917 nightly and its hash matches nothing.
+        h, why = ov_sdk.parse_sha256_sidecar(f"{self.H}  openvino_genai_ubuntu22_2026.5.0.0.dev20260917_x86_64.tar.gz",
+                                             "openvino_genai_ubuntu22_2026.5.0.0beta1_x86_64.tar.gz")
+        self.assertIsNone(h)
+        self.assertIn("different file", why)
+
+    def test_placeholder_page_is_no_checksum(self):
+        h, why = ov_sdk.parse_sha256_sidecar("<html><body>not found</body></html>", "x.tar.gz")
+        self.assertIsNone(h)
+        self.assertIn("no published", why)
+
+
 if __name__ == "__main__":
     unittest.main()

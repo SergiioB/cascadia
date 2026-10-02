@@ -171,19 +171,37 @@ def _download(url: str, dest_path: str) -> None:
         shutil.copyfileobj(r, out, length=1 << 20)
 
 
-def _expected_sha256(url: str) -> str | None:
-    """Intel publishes '<archive>.sha256' beside every archive; use it when present."""
+def parse_sha256_sidecar(text: str, archive_basename: str) -> tuple[str | None, str | None]:
+    """(hash, reason-it-was-ignored) from a '<archive>.sha256' sidecar's text.
+
+    The sidecar is sha256sum output: "<hex>  <file name>". It is only a
+    checksum of OUR download when the file name it carries is the archive we
+    fetched. Intel's beta sidecars have been seen naming a different file
+    (2026.5.0.0beta1's say "…2026.5.0.0.dev20260917…" with a hash that matches
+    neither), so a name mismatch means "no usable checksum", not "corrupt".
+    A placeholder HTML page (missing sidecar) has no 64-hex token at all.
+    """
+    tok = text.split()[0] if text.strip() else ""
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", tok):
+        return None, "no published .sha256 for this archive"
+    rest = text.strip().split(None, 1)
+    name = rest[1].strip().lstrip("*") if len(rest) > 1 else ""
+    if name and os.path.basename(name.replace("\\", "/")) != archive_basename:
+        return None, f"published .sha256 names a different file ({name}); not used"
+    return tok.lower(), None
+
+
+def _expected_sha256(url: str) -> tuple[str | None, str | None]:
+    """Intel publishes '<archive>.sha256' beside every archive; use it when it is really ours."""
     try:
         req = urllib.request.Request(url + ".sha256", headers={"User-Agent": "cascadia-ov-sdk"})
         with urllib.request.urlopen(req, timeout=30) as r:
             if r.status != 200:
-                return None
-            text = r.read(4096).decode("utf-8", "replace").strip()
-    except (urllib.error.URLError, OSError):
-        return None
-    # "<hex>  <name>" or "<hex> *<name>"; a placeholder HTML page has no hex token.
-    tok = text.split()[0] if text else ""
-    return tok.lower() if re.fullmatch(r"[0-9a-fA-F]{64}", tok) else None
+                return None, "no published .sha256 for this archive"
+            text = r.read(4096).decode("utf-8", "replace")
+    except (urllib.error.URLError, OSError) as e:
+        return None, f"could not read the published .sha256 ({e})"
+    return parse_sha256_sidecar(text, url.rsplit("/", 1)[1])
 
 
 def _sha256(path: str) -> str:
@@ -236,14 +254,14 @@ def fetch(version: str, os_name: str, dist: str | None, dest: str, force: bool) 
     with tempfile.TemporaryDirectory(prefix="ov_sdk_dl_") as td:
         archive = os.path.join(td, url.rsplit("/", 1)[1])
         _download(url, archive)
-        want = _expected_sha256(url)
+        want, why_not = _expected_sha256(url)
         if want:
             got = _sha256(archive)
             if got != want:
                 raise SystemExit(f"ov_sdk: sha256 mismatch for {url}\n  published {want}\n  downloaded {got}")
             print("ov_sdk: sha256 verified", file=sys.stderr)
         else:
-            print("ov_sdk: no published .sha256 for this archive; skipping checksum", file=sys.stderr)
+            print(f"ov_sdk: {why_not}; skipping checksum", file=sys.stderr)
         _extract_stripped(archive, dest)
     if not os.path.isdir(os.path.join(dest, "runtime", "include")):
         raise SystemExit(f"ov_sdk: {dest} has no runtime/include/ after extraction — not an SDK archive?")
