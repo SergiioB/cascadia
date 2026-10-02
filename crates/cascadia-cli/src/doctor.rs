@@ -224,7 +224,7 @@ fn check_ov_version(r: &mut Report) {
     match cascadia_ov_genai_shim::ov_version() {
         Ok(v) => {
             let built = format!(
-                "built against GenAI {} (core {})",
+                "built against GenAI {}, core {}",
                 v.built_genai, v.built_core
             );
             if v.genai_skew() {
