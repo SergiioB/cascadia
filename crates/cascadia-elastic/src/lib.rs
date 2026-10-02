@@ -53,10 +53,13 @@ use std::ffi::OsString;
 /// Env marker set on the child so the re-exec happens at most once.
 const GUARD: &str = "CASCADIA_ELASTIC_ACTIVE";
 /// Env var the interposer reads for its threshold, in MB.
+#[cfg(target_os = "linux")]
 const MIN_MB: &str = "ELASTIC_MIN_MB";
 /// Env var the interposer reads for the retained-mapping pool cap, in MB.
+#[cfg(target_os = "linux")]
 const POOL_MB: &str = "ELASTIC_POOL_MB";
 /// Env var the interposer reads for the backing directory.
+#[cfg(target_os = "linux")]
 const DIR: &str = "ELASTIC_DIR";
 
 /// The interposer shared library, embedded at build time (empty on non-Unix).
@@ -140,7 +143,7 @@ pub fn is_active() -> bool {
     std::env::var_os(GUARD).is_some()
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 fn activate_impl(opts: &ElasticOpts) -> Result<Activation, ActivateError> {
     use std::os::unix::ffi::OsStrExt;
     use std::os::unix::fs::OpenOptionsExt;
@@ -230,8 +233,9 @@ fn activate_impl(opts: &ElasticOpts) -> Result<Activation, ActivateError> {
     }
 }
 
-// Windows WITHOUT the hook (DETOURS_DIR unset at build).
-#[cfg(all(not(unix), not(all(windows, elastic_win_hook))))]
+// Windows WITHOUT the hook (DETOURS_DIR unset at build), and every non-Linux
+// unix (macOS has no LD_PRELOAD; the interposer is not built there).
+#[cfg(all(not(target_os = "linux"), not(all(windows, elastic_win_hook))))]
 fn activate_impl(_opts: &ElasticOpts) -> Result<Activation, ActivateError> {
     let _ = ELASTIC_SO;
     Ok(Activation::UnsupportedPlatform(
@@ -266,7 +270,7 @@ pub fn ov_memory_props() -> Vec<(String, String)> {
     ]
 }
 
-#[cfg(all(unix, test))]
+#[cfg(all(target_os = "linux", test))]
 mod tests {
     use super::*;
 

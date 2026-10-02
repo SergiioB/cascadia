@@ -46,6 +46,8 @@
 #include <sys/vfs.h>
 #include <linux/magic.h>
 #include <unistd.h>
+#include <limits.h>
+#include <sys/sysmacros.h>
 
 #define PAGE 4096UL
 #define MAGIC 0xE1A571CA110CULL
@@ -136,6 +138,74 @@ static void do_init(void) {
                 " pages cannot be written back, so --elastic gives NO OOM"
                 " protection. Point ELASTIC_DIR at a disk-backed dir"
                 " (ext4/xfs).\n", g_dir);
+    /* Same warning, different failure mode: on a rotational device the
+     * mechanism still works, but the page-ins are seek-bound, so "slow but
+     * alive" degrades into "dead". Decode re-reads every weight on every
+     * token, so a dropped page is re-read inside the decode loop; and two
+     * co-tenant models interleave their reads, which on a 7200 rpm disk
+     * collapses to ~1-2 MB/s. The reference backing (WD SN770 NVMe) measures
+     * 3.3 GB/s direct. Warn rather than refuse: the posture is still correct,
+     * it is the device that is wrong.
+     *
+     * Allocation-free on purpose. This runs inside do_init, and the malloc
+     * hook does not check g_in_init (only mmap does), so any fopen/realpath
+     * here would malloc, re-enter the hook and deadlock on pthread_once.
+     * open/read/readlink/write allocate nothing. */
+    {
+        struct stat sb;
+        if (stat(g_dir, &sb) == 0) {
+            int rot = -1, fd = -1;
+            char p[PATH_MAX + 64];
+            char real[PATH_MAX];
+            snprintf(p, sizeof p, "/sys/dev/block/%u:%u/queue/rotational",
+                     (unsigned)major(sb.st_dev), (unsigned)minor(sb.st_dev));
+            fd = open(p, O_RDONLY);
+            if (fd < 0) {
+                /* A partition carries no queue: resolve the sysfs node and
+                 * step up one directory to the parent disk. readlink returns
+                 * the RAW target, which for these nodes is relative (../../…),
+                 * so it has to be re-anchored under the link's own directory
+                 * before it can be opened. (Using realpath here would malloc,
+                 * re-enter the hook and deadlock — hence the manual splice.) */
+                snprintf(p, sizeof p, "/sys/dev/block/%u:%u",
+                         (unsigned)major(sb.st_dev), (unsigned)minor(sb.st_dev));
+                ssize_t n = readlink(p, real, sizeof real - 1);
+                if (n > 0) {
+                    char abs[PATH_MAX + 32], *slash;
+                    real[n] = '\0';
+                    snprintf(abs, sizeof abs, "/sys/dev/block/%s", real);
+                    slash = strrchr(abs, '/');
+                    if (slash) {
+                        *slash = '\0';
+                        snprintf(p, sizeof p, "%s/queue/rotational", abs);
+                        fd = open(p, O_RDONLY);
+                    }
+                }
+            }
+            if (fd >= 0) {
+                char b[8];
+                ssize_t n = read(fd, b, sizeof b - 1);
+                close(fd);
+                if (n > 0) {
+                    b[n] = '\0';
+                    rot = (b[0] == '1');
+                }
+            }
+            if (rot == 1) {
+                char msg[PATH_MAX + 256];
+                int m = snprintf(msg, sizeof msg,
+                                 "cascadia: elastic WARNING: backing dir %s is on a"
+                                 " rotational device \u2014 page-ins are seek-bound, so"
+                                 " --elastic thrashes instead of degrading under"
+                                 " pressure. Point ELASTIC_DIR at an SSD/NVMe.\n",
+                                 g_dir);
+                if (m > 0)
+                    (void)!write(STDERR_FILENO, msg,
+                                 (size_t)((size_t)m < sizeof msg ? (size_t)m
+                                                                 : sizeof msg - 1));
+            }
+        }
+    }
 }
 static inline void ensure_init(void) { pthread_once(&init_once, do_init); }
 

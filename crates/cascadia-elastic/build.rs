@@ -1,6 +1,6 @@
 //! Build the elastic allocator interposer for the target OS.
 //!
-//! * **Linux/macOS** — compile `src/elastic_unix.c` into a standalone
+//! * **Linux** — compile `src/elastic_unix.c` into a standalone
 //!   `libcascadia_elastic.so` in `OUT_DIR`. The Rust side embeds it with
 //!   `include_bytes!` and `LD_PRELOAD`s it via a one-shot re-exec.
 //! * **Windows** — if `DETOURS_DIR` points at a built Microsoft Detours
@@ -26,7 +26,9 @@ fn main() {
     // Always produce the embedded-.so path so `include_bytes!` resolves.
     let so = out.join("libcascadia_elastic.so");
 
-    if target_os == "linux" || target_os == "macos" {
+    // The interposer is Linux-only (O_TMPFILE, statfs magics, /sys/dev/block, LD_PRELOAD);
+    // every other target gets the empty placeholder and reports UnsupportedPlatform.
+    if target_os == "linux" {
         let compiler = cc::Build::new().get_compiler();
         let mut cmd = compiler.to_command();
         cmd.args(["-O2", "-fPIC", "-shared", "-o"])

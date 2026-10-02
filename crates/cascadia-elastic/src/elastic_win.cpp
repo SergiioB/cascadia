@@ -112,7 +112,15 @@ static HANDLE make_temp_file(void) {
 }
 
 static void* big_alloc(size_t size, int want_zero) {
-    size_t total = PAGE + ((size + PAGE - 1) & ~(PAGE - 1));
+    // Header page, rounded payload, PLUS one page of tail slack. The slack is
+    // not decoration: the UCRT's own heap always leaves slack after a block
+    // (its header rounds the request up to a page boundary), and vectorised
+    // kernels read up to 64 bytes past the end of a buffer on the assumption
+    // that this is safe. Without the slack, a request whose size is an exact
+    // multiple of PAGE ends flush against the end of the view and that
+    // over-read faults -- the Windows twin of the SIGSEGV fixed on the Unix
+    // leg. Keep the two legs in step.
+    size_t total = PAGE + ((size + PAGE - 1) & ~(PAGE - 1)) + PAGE;
 
     void* base = pool_take(total);
     if (base) {
