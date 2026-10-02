@@ -17,7 +17,7 @@ After any install, run **`cascadia doctor`** — it checks your toolchain and te
 Each [GitHub Release](https://github.com/labscommunity/cascadia/releases) ships self-contained bundles with the OpenVINO runtime included — no SDK install, no `INTEL_OPENVINO_DIR`:
 
 - **Windows** — `cascadia-<ver>-windows-x86_64.zip`: unzip, run `cascadia.exe doctor`. Needs only a current Intel graphics driver (the OpenCL/GPU runtime ships inside it).
-- **Linux** — `cascadia-<ver>-linux-x86_64.tar.gz`: untar, run `./cascadia doctor`. Bundled libraries load from `lib/` beside the binary. Needs glibc 2.35+ (Ubuntu 22.04 or newer) and, for GPU inference, the Intel GPU runtime stack below (the bundle has no scripts — use the `apt-get` block, or `scripts/setup-openvino.sh` from a source checkout).
+- **Linux** — `cascadia-<ver>-linux-x86_64.tar.gz`: untar, run `./cascadia doctor`. Bundled libraries load from `lib/` beside the binary. Needs glibc 2.35+ (Ubuntu 22.04 or newer), the OpenCL ICD loader even for CPU-only use (`sudo apt install ocl-icd-libopencl1` — `libopenvino_genai.so` imports `libOpenCL.so.1`, so without it the binary does not start) and, for GPU inference, the Intel GPU runtime stack below (the bundle has no scripts — use the `apt-get` block, or `scripts/setup-openvino.sh` from a source checkout).
 
 The binary is not installed on your PATH — run it as `./cascadia` from the unpacked directory, or add that directory to PATH.
 
