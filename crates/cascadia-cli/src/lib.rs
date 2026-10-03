@@ -1243,6 +1243,57 @@ fn device_is_npu(device: &str) -> bool {
     device.trim().to_ascii_uppercase().starts_with("NPU")
 }
 
+/// True when `device` targets an OpenVINO GPU plugin (e.g. "GPU", "GPU.0",
+/// "BATCH:GPU", or a MULTI:/HETERO: list mentioning GPU). On Windows WDDM
+/// iGPUs the plugin allocates device memory from the shared system-memory
+/// pool, outside the CRT heap the elastic interposer hooks (see
+/// docs/engines/elastic-devices.md for the measured table).
+fn device_is_gpu(device: &str) -> bool {
+    let d = device.trim().to_ascii_uppercase();
+    if d.starts_with("GPU") || d.starts_with("BATCH:GPU") {
+        return true;
+    }
+    // MULTI:GPU.1,CPU / HETERO:GPU,CPU / GPU,GPU.1 — any comma-separated
+    // token that starts with GPU counts.
+    d.split(|c| c == ',' || c == ':')
+        .any(|tok| tok.trim().starts_with("GPU"))
+}
+
+/// Advisory `cmd_worker` logs when `--elastic` is combined with a GPU or NPU
+/// device target. Measured (docs/engines/elastic-devices.md): on Windows the
+/// Detours UCRT hook does not cover the device-side allocations these plugin
+/// paths make — on an Arc 140T iGPU the weights+KV land in WDDM shared
+/// memory, and on an Intel AI Boost NPU in driver-managed device memory —
+/// so the interposer only covers host-side buffers there. Pure function so
+/// the CLI tests can pin the behavior without spawning a worker.
+fn elastic_device_note(args: &WorkerArgs) -> Option<&'static str> {
+    if !args.elastic {
+        return None;
+    }
+    if device_is_npu(&args.device) {
+        return Some(concat!(
+            "--elastic on an NPU device: the allocator interposer does not ",
+            "cover NPU driver-managed device memory, so it only affects ",
+            "host-side buffers (measured: peak private commit within 2% of ",
+            "stock on an Intel AI Boost NPU); the seeded OV knobs ",
+            "(ENABLE_MMAP=YES, CACHE_MODE=OPTIMIZE_SIZE) still apply. ",
+            "See docs/engines/elastic-devices.md"
+        ));
+    }
+    if device_is_gpu(&args.device) {
+        return Some(concat!(
+            "--elastic on a GPU device: on Windows WDDM iGPUs the weights ",
+            "and KV land in shared system memory outside the CRT heap the ",
+            "hook covers, so the interposer does not cut the device-side ",
+            "footprint (measured on an Arc 140T: peak shared GPU memory ",
+            "within ~25% of stock, and file-backed mappings can add host ",
+            "overhead); the seeded OV knobs still apply. ",
+            "See docs/engines/elastic-devices.md"
+        ));
+    }
+    None
+}
+
 /// Translate the `--ov-*` / `--npu-*` performance flags on `args` into the
 /// `(key, value)` OpenVINO plugin properties fed to the OV engine builders.
 /// General hints apply to any engine; the NPU-only knobs are emitted only for
@@ -2046,6 +2097,14 @@ async fn cmd_worker(args: WorkerArgs) -> Result<()> {
         model = %args.model,
         "cascadia worker starting"
     );
+
+    // --elastic is a CPU-path lever (ramlab exp 198/199). On GPU/NPU device
+    // targets the plugin's device-side allocations bypass the CRT heap, so
+    // say so up front instead of letting the operator believe the posture
+    // covers them. Measured table: docs/engines/elastic-devices.md.
+    if let Some(note) = elastic_device_note(&args) {
+        warn!("{}", note);
+    }
 
     check_api_addr_is_tcp(args.api.as_deref())?;
 
@@ -3376,6 +3435,42 @@ mod ov_property_tests {
             prop(&ov_perf_properties(&args), "ALLOW_AUTO_BATCHING"),
             None
         );
+    }
+
+    #[test]
+    fn device_is_gpu_matches_gpu_plugins_only() {
+        assert!(device_is_gpu("GPU"));
+        assert!(device_is_gpu(" gpu.0 "));
+        assert!(device_is_gpu("BATCH:GPU"));
+        assert!(device_is_gpu("MULTI:GPU.1,CPU"));
+        assert!(device_is_gpu("HETERO:GPU,CPU"));
+        assert!(!device_is_gpu("CPU"));
+        assert!(!device_is_gpu("NPU"));
+        assert!(!device_is_gpu("AUTO:NPU,CPU"));
+    }
+
+    #[test]
+    fn elastic_device_note_targets_device_paths() {
+        let mut args = args_for("CPU");
+        args.elastic = true;
+        assert!(elastic_device_note(&args).is_none(),
+            "CPU is the measured path — no note");
+        for device in ["GPU", "GPU.0", "NPU", "NPU.1"] {
+            let mut a = args_for(device);
+            a.elastic = true;
+            let note = elastic_device_note(&a)
+                .unwrap_or_else(|| panic!("expected a note for {device}"));
+            assert!(note.contains("docs/engines/elastic-devices.md"));
+        }
+    }
+
+    #[test]
+    fn elastic_device_note_silent_without_flag() {
+        for device in ["GPU", "NPU"] {
+            let a = args_for(device);
+            assert!(elastic_device_note(&a).is_none(),
+                "no note without --elastic on {device}");
+        }
     }
 
     #[test]

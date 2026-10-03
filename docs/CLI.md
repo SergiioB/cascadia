@@ -201,7 +201,7 @@ a few each. MiniMax-M2 `sparse-moe` only.
 | `--ep-workers <host:port,...>` | — | `sparse-moe` (Inkling) expert-parallel **driver**: dispatch each MoE layer's selected experts to these running workers (each entry may also be a [unix socket](#unix-domain-sockets) `unix:/path.sock`); this rank runs every layer's attention/router locally and holds no expert weights. Implies `--total 1`. Start the workers first. |
 | `--ep-worker-index <N>` / `--ep-worker-count <W>` | — | `sparse-moe` (Inkling) expert-parallel **worker**: serve expert shard N of W (experts with `id % W == N`, shared experts included) for every MoE layer on `--listen`; no API, no attention, no sequence state. |
 | `--ov-config <KEY=VALUE>` | — | Raw OV plugin property passthrough, repeatable. See below. |
-| `--elastic` | off | Elastic memory posture (Linux; file-backed big allocations). See below. |
+| `--elastic` | off | Elastic memory posture (CPU path; file-backed big allocations). See below + [elastic-devices.md](engines/elastic-devices.md). |
 | `--elastic-min-mb <MB>` | 1 | Elastic threshold; 16 = weights-only, zero speed cost. |
 | `--elastic-pool-mb <MB>` | 8192 | Elastic retained-mapping pool cap (0 = off). |
 
@@ -229,6 +229,14 @@ oneDNN's dirty repacked copies (D-004) — so `--elastic` still asserts
 `ENABLE_MMAP=YES` to keep the weight blob clean but relies on the interposer for
 the cut. The Windows hook is compiled in only when `cascadia-elastic` was built
 with `DETOURS_DIR` set; otherwise `--elastic` reports inactive there.
+
+**`--elastic` is a CPU-path lever.** On GPU and NPU `--device` targets the
+plugin's device-side allocations bypass the CRT heap: on a Windows WDDM iGPU the
+weights and KV land in shared system memory (measured on an Arc 140T: peak
+private commit and shared GPU memory both went *up* with `--elastic`), and on an
+NPU they are driver-managed (measured on an Intel AI Boost: no measurable
+change). The worker logs a warning when the two are combined. Full measured
+table and where memory lands per path: [elastic-devices.md](engines/elastic-devices.md).
 
 **`--ov-cache-dir` is on by default and matters.** For `ov-genai`, `ov-runtime`,
 `gemma4` and `sparse-moe`, leaving it unset defaults to

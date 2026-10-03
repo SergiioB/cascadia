@@ -9,6 +9,8 @@ OpenVINO pipeline engines are documented here:
   over pre-exported per-stage shards.
 - [`ov-dist-spec.md`](./ov-dist-spec.md) — multi-stage distributed
   speculative decoding with mask-based KV rewind.
+- [`elastic-devices.md`](./elastic-devices.md) — what `--elastic` does and
+  does not cover on iGPU/NPU device targets, with the measured table.
 
 The remaining engines are documented with their model families under
 [`../architectures/`](../architectures/):
