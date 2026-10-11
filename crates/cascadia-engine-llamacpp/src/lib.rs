@@ -841,10 +841,13 @@ impl SpawnedChild {
     /// deadline hits. Raw TcpStream — this runs on a tokio worker where
     /// reqwest::blocking cannot (nested runtime panics); the SSE reader
     /// is a plain thread.
-    fn wait_healthy(&mut self, timeout: Duration) -> Result<(), String> {
+    fn wait_healthy(&mut self, timeout: Duration, abort: &AtomicBool) -> Result<(), String> {
         let port = self.port;
         let t0 = Instant::now();
         loop {
+            if abort.load(Ordering::Relaxed) {
+                return Err("llama-server load aborted (engine closed)".into());
+            }
             if let Ok(Some(st)) = self.child.try_wait() {
                 return Err(format!("llama-server exited during load: {st}"));
             }
@@ -854,7 +857,13 @@ impl SpawnedChild {
             if t0.elapsed() > timeout {
                 return Err(format!("llama-server health timeout ({timeout:?})"));
             }
-            std::thread::sleep(Duration::from_secs(2));
+            // 2 s between probes, in steps so an abort lands within 100 ms
+            for _ in 0..20 {
+                if abort.load(Ordering::Relaxed) {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(100));
+            }
         }
     }
 
@@ -901,11 +910,13 @@ fn tail_lines(tail: &StderrTail, n: usize) -> String {
 /// engine's crash respawn. xe copy-engine resets hang the load path
 /// intermittently; the next attempt on a fresh port nearly always
 /// succeeds. `load_retries` extra attempts follow the first failure
-/// (child exit or health timeout).
+/// (child exit or health timeout). `abort` ends the attempt loop early; the
+/// half-loaded child is killed by `SpawnedChild::drop`.
 fn spawn_and_healthy(
     cfg: &LlamaCppConfig,
     tail: &StderrTail,
     slines: &StreamLines,
+    abort: &AtomicBool,
 ) -> Result<SpawnedChild, String> {
     let timeout = cfg
         .load_timeout
@@ -913,6 +924,9 @@ fn spawn_and_healthy(
     let attempts = 1 + cfg.load_retries;
     let mut last_err = String::new();
     for attempt in 1..=attempts {
+        if abort.load(Ordering::Relaxed) {
+            return Err("llama-server load aborted (engine closed)".into());
+        }
         if attempt > 1 {
             tracing::warn!(
                 attempt,
@@ -923,7 +937,7 @@ fn spawn_and_healthy(
             std::thread::sleep(Duration::from_secs(3));
         }
         match SpawnedChild::spawn(cfg, tail, slines)
-            .and_then(|mut s| s.wait_healthy(timeout).map(|()| s))
+            .and_then(|mut s| s.wait_healthy(timeout, abort).map(|()| s))
         {
             Ok(s) => {
                 tracing::info!(port = s.port, "llama-server ready");
@@ -991,8 +1005,13 @@ impl Builder for LlamaCppBuilder {
                  for `--device none` (the host interposer still applies)"
             );
         }
-        let spawned = spawn_and_healthy(&self.cfg, &self.stderr_tail, &self.stream_lines)
-            .map_err(EngineError::Backend)?;
+        let spawned = spawn_and_healthy(
+            &self.cfg,
+            &self.stderr_tail,
+            &self.stream_lines,
+            &AtomicBool::new(false),
+        )
+        .map_err(EngineError::Backend)?;
         self.spawned = Some(spawned);
 
         let mut evs = vec![
@@ -1032,6 +1051,7 @@ impl Builder for LlamaCppBuilder {
             active: None,
             rx: None,
             respawn: None,
+            closing: Arc::new(AtomicBool::new(false)),
             last_chunk_at: Instant::now(),
             cancelled: Arc::new(AtomicBool::new(false)),
             socket: None,
@@ -1064,6 +1084,9 @@ pub struct LlamaCppEngine {
     /// A child reload running on a helper thread after a crash. The next
     /// queued task gets progress markers until it resolves.
     respawn: Option<Receiver<Result<SpawnedChild, String>>>,
+    /// Set by `close()`: an in-flight respawn stops loading and its child
+    /// is killed instead of running on after the engine is gone.
+    closing: Arc<AtomicBool>,
     /// When the active task last produced a real chunk (or started): the
     /// 300 s stall limit is measured against this, not against one blocking
     /// receive, so `step()` can poll briefly and let the runtime thread go.
@@ -1086,12 +1109,13 @@ impl LlamaCppEngine {
     fn start_respawn(&mut self) {
         self.proc.stderr_drain = None;
         let cfg = self.cfg.clone();
+        let abort = self.closing.clone();
         let (tx, rx) = channel();
         self.respawn = Some(rx);
         std::thread::Builder::new()
             .name("llamacpp-respawn".into())
             .spawn(move || {
-                let r = spawn_and_healthy(&cfg, &Default::default(), &Default::default());
+                let r = spawn_and_healthy(&cfg, &Default::default(), &Default::default(), &abort);
                 let _ = tx.send(r);
             })
             .expect("spawn llamacpp respawn thread");
@@ -1578,7 +1602,9 @@ impl Engine for LlamaCppEngine {
         // helper thread (it may take the full load timeout); the queue head
         // gets progress markers so its stream stays alive meanwhile.
         if let Some(rrx) = &self.respawn {
-            match rrx.try_recv() {
+            // wait briefly like the normal path does: returning at once
+            // would make the runtime re-poll step() in a hot loop
+            match rrx.recv_timeout(STEP_POLL) {
                 Ok(Ok(spawned)) => {
                     tracing::info!(port = spawned.port, "llama-server respawned");
                     self.base = format!("http://127.0.0.1:{}", spawned.port);
@@ -1598,7 +1624,7 @@ impl Engine for LlamaCppEngine {
                     }
                     return Ok(vec![]);
                 }
-                Err(std::sync::mpsc::TryRecvError::Empty) => {
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
                     let tid = self
                         .active
                         .clone()
@@ -1608,7 +1634,7 @@ impl Engine for LlamaCppEngine {
                         None => vec![],
                     });
                 }
-                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
                     // respawn thread died before answering; a task pickup
                     // below starts a fresh attempt
                     self.respawn = None;
@@ -1730,6 +1756,7 @@ impl Engine for LlamaCppEngine {
     }
 
     fn close(&mut self) {
+        self.closing.store(true, Ordering::Relaxed);
         self.cancelled.store(true, Ordering::Relaxed);
         if let Some(s) = self.socket.take() {
             let _ = s.shutdown(std::net::Shutdown::Both);
@@ -2430,6 +2457,7 @@ mod unix_tests {
             active: None,
             rx: None,
             respawn: None,
+            closing: Arc::new(AtomicBool::new(false)),
             last_chunk_at: Instant::now(),
             cancelled: Arc::new(AtomicBool::new(false)),
             socket: None,
@@ -2837,5 +2865,56 @@ mod unix_tests {
         let err = b.load(dummy_shard()).await.err().unwrap().to_string();
         assert!(t0.elapsed() < Duration::from_secs(20));
         assert!(err.contains("health timeout"), "{err}");
+    }
+
+    /// close() during a respawn stops the reload: the half-loaded child is
+    /// killed promptly instead of loading on for the whole health timeout,
+    /// and step() waits between polls rather than spinning.
+    #[test]
+    fn close_aborts_an_in_flight_respawn() {
+        let dir = tempfile::tempdir().unwrap();
+        let pidfile = dir.path().join("pid");
+        // never becomes healthy; records its pid so the test can see it die
+        let bin = write_script(
+            dir.path(),
+            "llama-server",
+            &format!(
+                "#!/bin/sh\necho $$ > {}\nexec sleep 60\n",
+                pidfile.display()
+            ),
+        );
+        let mut engine = test_engine(1);
+        let mut cfg = cfg_for(bin, 3);
+        cfg.load_timeout = Some(Duration::from_secs(60));
+        engine.cfg = Arc::new(cfg);
+        engine.proc.child.kill().unwrap();
+        engine.proc.child.wait().unwrap();
+        engine.submit(chat_task()).unwrap();
+        assert!(engine.step().unwrap()[0].1.is_progress());
+        // a parked step() must block ~STEP_POLL, not return at once
+        let t = Instant::now();
+        assert!(engine.step().unwrap()[0].1.is_progress());
+        assert!(t.elapsed() >= STEP_POLL / 2, "{:?}", t.elapsed());
+        let deadline = Instant::now() + Duration::from_secs(10);
+        let pid: i32 = loop {
+            if let Some(p) = std::fs::read_to_string(&pidfile)
+                .ok()
+                .and_then(|s| s.trim().parse().ok())
+            {
+                break p;
+            }
+            assert!(Instant::now() < deadline, "respawn child never started");
+            std::thread::sleep(Duration::from_millis(50));
+        };
+        engine.close();
+        let deadline = Instant::now() + Duration::from_secs(3);
+        // kill(pid, 0) fails once the child is killed and reaped
+        while unsafe { libc::kill(pid, 0) } == 0 {
+            assert!(
+                Instant::now() < deadline,
+                "respawn child {pid} still alive after close()"
+            );
+            std::thread::sleep(Duration::from_millis(50));
+        }
     }
 }
