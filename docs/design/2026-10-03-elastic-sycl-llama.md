@@ -1,5 +1,9 @@
 # sycl-llama engine + `--elastic` device-side mapping — 2026-10-03
 
+> Superseded in part: the child no longer inherits Cascadia's host-elastic
+> interposer. The current environment contract is in
+> [docs/engines/sycl-llama.md](../engines/sycl-llama.md).
+
 ## What this is
 
 `crates/cascadia-engine-llamacpp` — a subprocess-backed engine. Cascadia's
@@ -45,9 +49,10 @@ cascadia worker --engine sycl-llama \
   --elastic            # -> GGML_STREAM_WEIGHTS=1 on the child
 ```
 
-The host allocator interposer is not activated for `sycl-llama`. The child
-receives `GGML_STREAM_WEIGHTS=1`, while Cascadia's host-elastic variables and
-preload are removed. Unrelated user preloads are preserved.
+The host `--elastic` interposer still activates on the cascadia process as
+usual (orthogonal: file-backed host pages). The child inherits `LD_PRELOAD`,
+so its host-side allocations get the same posture — the two layers are
+additive, not conflicting.
 
 ## What's wired vs not
 
@@ -75,7 +80,7 @@ preload are removed. Unrelated user preloads are preserved.
 - [x] live e2e: `cascadia run --engine sycl-llama --elastic` served
       Qwen3.8-27B correctly through the cascadia API at ~3.2 GB VRAM
       (kernel vram_mm), Qwen2.5-1.5B at ~0.8 GB; child env confirms
-      GGML_STREAM_WEIGHTS=1; the current child excludes the host interposer.
+      GGML_STREAM_WEIGHTS=1 + inherited LD_PRELOAD
 - [x] measured conformance (partial): committed-VRAM floor via kernel
       `vram_mm` (27B: 15.91->3.22 GiB; 1.5B: 1.46->0.79 GiB; 35B-A3B:
       21.68->2.70 GiB); --elastic off runs resident and leaves the child

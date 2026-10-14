@@ -61,7 +61,7 @@ for GPU selection, weight budgets, limitations and runtime setup.
 
 ## Stub mode (no OpenVINO)
 
-The fast path. Builds on macOS / Linux / Windows with nothing but Rust. The OpenVINO-backed engines return a clean runtime error; the `mock` engine works, so you can exercise the full API, transport, and multi-stage plumbing.
+The fast path. Builds on macOS / Linux / Windows with nothing but Rust. The OpenVINO-backed engines return a clean runtime error; the `mock` engine works, so you can exercise the full API, transport, and multi-stage plumbing. The same build also runs `sycl-llama` once a patched `llama-server` is available (see above).
 
 ```bash
 rustup default stable        # need 1.89+

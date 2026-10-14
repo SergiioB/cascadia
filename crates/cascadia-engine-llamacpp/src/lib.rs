@@ -1059,6 +1059,7 @@ impl Builder for LlamaCppBuilder {
             proc: spawned,
             pending: Vec::new(),
             active: None,
+            active_retry: None,
             rx: None,
             respawn: None,
             closing: Arc::new(AtomicBool::new(false)),
@@ -1090,6 +1091,10 @@ pub struct LlamaCppEngine {
     proc: SpawnedChild,
     pending: Vec<GenerationTask>,
     active: Option<TaskId>,
+    /// The request behind `active`, kept until its first child response so a
+    /// request sent to a child that died just before pickup can be retried
+    /// on the respawned child. Cleared once anything arrives from the child.
+    active_retry: Option<GenerationTask>,
     rx: Option<Receiver<EngineResult<(TaskId, Chunk)>>>,
     /// A child reload running on a helper thread after a crash. The next
     /// queued task gets progress markers until it resolves.
@@ -1109,6 +1114,37 @@ impl LlamaCppEngine {
     /// The child process has exited (also reaps the zombie).
     fn child_dead(&mut self) -> bool {
         self.proc.exited()
+    }
+
+    /// After a failed request: give a just-killed child a moment to become
+    /// waitable, so a connect refused by a dying child is told apart from a
+    /// failure of a live one.
+    fn child_died_soon(&mut self) -> bool {
+        let deadline = Instant::now() + Duration::from_millis(500);
+        loop {
+            if self.proc.exited() {
+                return true;
+            }
+            if Instant::now() >= deadline {
+                return false;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    /// Put the unanswered active request back at the head of the queue and
+    /// reload the child; the request waits on progress markers meanwhile.
+    fn requeue_unstarted(&mut self) -> Vec<(TaskId, Chunk)> {
+        let task = self.active_retry.take().expect("requeue without a request");
+        let tid = task.task_id.clone();
+        self.active = None;
+        self.rx = None;
+        if let Some(s) = self.socket.take() {
+            let _ = s.shutdown(std::net::Shutdown::Both);
+        }
+        self.pending.insert(0, task);
+        self.start_respawn();
+        vec![(tid.clone(), Chunk::progress(tid))]
     }
 
     /// Reload the model into a fresh child on a helper thread — the load
@@ -1689,6 +1725,7 @@ impl Engine for LlamaCppEngine {
                     return Ok(vec![(tid.clone(), Chunk::progress(tid))]);
                 }
                 self.active = Some(task.task_id.clone());
+                self.active_retry = Some(task.clone());
                 self.pending.remove(0);
                 self.start_stream(task);
             } else {
@@ -1704,9 +1741,14 @@ impl Engine for LlamaCppEngine {
         // chunk.
         let mut out = Vec::new();
         let mut done = false;
+        // A request failure before the child answered anything; decided after
+        // the receiver borrow ends (see below).
+        let mut unstarted_failure = None;
         if let Some(rx) = &self.rx {
             match rx.recv_timeout(STEP_POLL) {
+                Ok(Err(e)) if self.active_retry.is_some() => unstarted_failure = Some(e),
                 Ok(item) => {
+                    self.active_retry = None;
                     self.last_chunk_at = Instant::now();
                     // A reader-thread failure becomes a final error chunk on
                     // the active task (the API maps it to a 5xx) rather than
@@ -1754,8 +1796,22 @@ impl Engine for LlamaCppEngine {
                 }
             }
         }
+        if let Some(e) = unstarted_failure {
+            // Nothing has reached the client and the child is gone: the
+            // request hit a dying child between the death check at pickup
+            // and the connect. Requeue it for the respawn instead of failing
+            // a request that never started.
+            if self.child_died_soon() {
+                return Ok(self.requeue_unstarted());
+            }
+            self.active_retry = None;
+            let tid = self.active.clone().unwrap_or_default();
+            out.push((tid.clone(), Chunk::error(tid, e.to_string())));
+            done = true;
+        }
         if done {
             self.active = None;
+            self.active_retry = None;
             self.rx = None;
             // Shut the request socket down so the SSE reader thread wakes
             // from read_line() now instead of lingering until the child's
@@ -1764,8 +1820,13 @@ impl Engine for LlamaCppEngine {
                 let _ = s.shutdown(std::net::Shutdown::Both);
             }
         }
-        // Child died mid-stream?
+        // Child died mid-stream? A request it never answered is retried on
+        // the respawned child; one with output already sent fails.
         if self.active.is_some() && self.proc.exited() {
+            if self.active_retry.is_some() {
+                out.extend(self.requeue_unstarted());
+                return Ok(out);
+            }
             let tid = self.active.take().unwrap();
             let mut c = Chunk::token(tid.clone(), 0, "");
             c.is_final = true;
@@ -1788,6 +1849,7 @@ impl Engine for LlamaCppEngine {
                 let _ = s.shutdown(std::net::Shutdown::Both);
             }
             self.active = None;
+            self.active_retry = None;
             self.rx = None;
         }
     }
@@ -2607,6 +2669,7 @@ mod unix_tests {
             },
             pending: Vec::new(),
             active: None,
+            active_retry: None,
             rx: None,
             respawn: None,
             closing: Arc::new(AtomicBool::new(false)),
@@ -3014,6 +3077,39 @@ mod unix_tests {
                 .contains("respawn failed"),
             "{last:?}"
         );
+    }
+
+    /// A child that is still alive at pickup but dies before answering: the
+    /// request must go to the respawned child, not fail with the dying
+    /// child's connect refusal. The reload here cannot succeed, so the task
+    /// ends with the respawn error — proof that it was requeued.
+    #[test]
+    fn request_racing_child_death_is_requeued_for_respawn() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = write_script(dir.path(), "llama-server", "#!/bin/sh\nexit 1\n");
+        let port = std::net::TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port(); // listener dropped: connects are refused
+        let mut engine = test_engine(port);
+        engine.cfg = Arc::new(cfg_for(bin, 0));
+        engine.proc.child.kill().unwrap();
+        engine.proc.child.wait().unwrap();
+        engine.proc.child = Command::new("sleep").arg("0.3").spawn().unwrap();
+        engine.submit(chat_task()).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(15);
+        let last = loop {
+            let batch = engine.step().unwrap();
+            if let Some((_, c)) = batch.iter().find(|(_, c)| c.is_final) {
+                break c.clone();
+            }
+            assert!(Instant::now() < deadline, "request never resolved");
+            std::thread::sleep(Duration::from_millis(20));
+        };
+        let error = last.error.as_deref().unwrap_or("");
+        assert!(error.contains("respawn failed"), "{last:?}");
+        assert!(!error.contains("connect"), "{last:?}");
     }
 
     #[tokio::test]
