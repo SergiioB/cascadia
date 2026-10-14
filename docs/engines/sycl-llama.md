@@ -97,6 +97,19 @@ curl http://127.0.0.1:8080/v1/models
 curl http://127.0.0.1:8080/v1/chat/completions -H 'Content-Type: application/json' -d \
   '{"model":"model.gguf","messages":[{"role":"user","content":"hi"}]}'
 ```
+For a standalone Linux child bundle, install `patchelf`, source oneAPI, then run:
+
+```bash
+scripts/package-llama-stream.sh ~/llama-stream llama-sycl.tar.gz
+tar -xzf llama-sycl.tar.gz
+export CASCADIA_LLAMA_BIN="$PWD/cascadia-llama-sycl/llama-server"
+```
+
+Packaging includes dependencies of the selected SYCL runtime and its plugins,
+then checks the staged executable without `LD_LIBRARY_PATH`. Missing runtime
+dependencies or failed relocation stop packaging. The host still provides the
+Intel GPU driver, Level Zero/OpenCL loaders and standard OS libraries.
+
 
 `--device` defaults to `GPU`, which maps to `SYCL0` — no flag needed on a
 one-GPU box.
@@ -324,6 +337,11 @@ runs within 2.5% of the median). Chart: [fig17](../perf/sycl-elastic/fig17_mtp.p
   so streaming and non-streaming clients get the same structured
   `tool_calls` the API produces for other engines. Multimodal parts are not
   plumbed; `prompt` remains the fallback for non-chat engines.
+The API uses the child's final completion-token count when available, including
+reasoning and tool generation that does not appear as visible content. Tool-enabled
+streams buffer their output before emitting structured calls; they include a final
+usage event when `stream_options.include_usage` is true.
+
 
 ## Doctor
 

@@ -13,10 +13,9 @@
 //! `--elastic` on this engine maps to `GGML_STREAM_WEIGHTS=1` on the child —
 //! device-side O1: weights are never resident on the GPU, they are pread from
 //! the GGUF into a fixed slot pool per forward pass. This is NOT the
-//! host-heap interposer (`cascadia-elastic`); that posture still applies to
-//! the child's host allocations via inherited LD_PRELOAD when the parent was
-//! launched with --elastic. The two mechanisms are orthogonal and additive:
-//! file-backed host pages + never-resident device weights.
+//! host-heap interposer (`cascadia-elastic`); that posture applies separately
+//! when the parent is explicitly launched with the preload library. The
+//! file-backed host pages and device streaming are independent mechanisms.
 //!
 //! Known bounds (measured 2026-10-03, experiments/2026-10-03-elasticity-matrix):
 //! decode scales as ~8.1 GB/s / model_GB; KV is still reserved (O2 open);
@@ -398,14 +397,20 @@ pub fn resolve_llama_bin(
     if let Some(p) = flag {
         let pb = PathBuf::from(p);
         if pb.is_file() {
-            return Ok(pb);
+            return std::path::absolute(&pb)
+                .map_err(|e| format!("--llama-bin {p}: cannot resolve absolute path: {e}"));
         }
         return Err(format!("--llama-bin {p}: no such file"));
     }
     if let Some(v) = env.filter(|v| !v.is_empty()) {
         let pb = PathBuf::from(&v);
         if pb.is_file() {
-            return Ok(pb);
+            return std::path::absolute(&pb).map_err(|e| {
+                format!(
+                    "CASCADIA_LLAMA_BIN={}: cannot resolve absolute path: {e}",
+                    pb.display()
+                )
+            });
         }
         return Err(format!("CASCADIA_LLAMA_BIN={}: no such file", pb.display()));
     }
@@ -418,7 +423,12 @@ pub fn resolve_llama_bin(
         for dir in std::env::split_paths(&paths) {
             let cand = dir.join(name);
             if cand.is_file() {
-                return Ok(cand);
+                return std::path::absolute(&cand).map_err(|e| {
+                    format!(
+                        "PATH candidate {}: cannot resolve absolute path: {e}",
+                        cand.display()
+                    )
+                });
             }
         }
     }
@@ -1306,14 +1316,15 @@ impl LlamaCppEngine {
             for block in st.tool_call_blocks() {
                 send(Ok((
                     tid.clone(),
-                    Chunk::token(tid.clone(), st.token_id, block),
+                    Chunk::token(tid.clone(), st.token_id, block).with_n_tokens(0),
                 )));
             }
             if !st.sent_final && st.finish_reason.is_some() {
-                let mut c = Chunk::token(tid.clone(), st.token_id, "");
-                c.is_final = true;
+                let mut c = Chunk::final_marker(tid.clone(), "").with_n_tokens(0);
+                c.token_id = st.token_id;
                 c.finish_reason = st.finish_reason;
-                c.prompt_tokens = st.prompt_tokens;
+                c.prompt_tokens = st.prompt_tokens.or(st.timings_prompt_tokens);
+                c.completion_tokens = st.completion_tokens.or(st.predicted_tokens);
                 send(Ok((tid.clone(), c)));
             }
         });
@@ -1439,6 +1450,9 @@ struct SseState {
     token_id: i64,
     finish_reason: Option<FinishReason>,
     prompt_tokens: Option<u32>,
+    timings_prompt_tokens: Option<u32>,
+    completion_tokens: Option<u32>,
+    predicted_tokens: Option<u32>,
     sent_final: bool,
     /// OpenAI `delta.tool_calls` fragments accumulated by call index.
     tool_calls: std::collections::BTreeMap<u64, ToolCallParts>,
@@ -1492,13 +1506,14 @@ fn handle_sse_line(
         for block in st.tool_call_blocks() {
             send(Ok((
                 tid.clone(),
-                Chunk::token(tid.clone(), st.token_id, block),
+                Chunk::token(tid.clone(), st.token_id, block).with_n_tokens(0),
             )));
         }
-        let mut c = Chunk::token(tid.clone(), st.token_id, "");
-        c.is_final = true;
+        let mut c = Chunk::final_marker(tid.clone(), "").with_n_tokens(0);
+        c.token_id = st.token_id;
         c.finish_reason = st.finish_reason;
-        c.prompt_tokens = st.prompt_tokens;
+        c.prompt_tokens = st.prompt_tokens.or(st.timings_prompt_tokens);
+        c.completion_tokens = st.completion_tokens.or(st.predicted_tokens);
         st.sent_final = true;
         send(Ok((tid.clone(), c)));
         return false;
@@ -1521,10 +1536,32 @@ fn handle_sse_line(
     }
     // stream_options usage tail (empty choices) or a timings block on a
     // content chunk — either can carry the prompt token count.
-    if let Some(n) = v["usage"]["prompt_tokens"].as_u64() {
-        st.prompt_tokens = Some(n as u32);
-    } else if let Some(n) = v["timings"]["prompt_n"].as_u64() {
-        st.prompt_tokens = Some(n as u32);
+    if let Some(n) = v["usage"]["prompt_tokens"]
+        .as_u64()
+        .and_then(|n| u32::try_from(n).ok())
+    {
+        st.prompt_tokens = Some(n);
+    }
+    if let Some(n) = v["timings"]["prompt_n"]
+        .as_u64()
+        .and_then(|n| u32::try_from(n).ok())
+    {
+        st.timings_prompt_tokens = Some(n);
+    }
+    // A content event can represent several tokens, or no visible content
+    // at all (thinking/tools). Never count SSE events as model tokens.
+    // Keep the primary usage separate so later timings cannot overwrite it.
+    if let Some(n) = v["usage"]["completion_tokens"]
+        .as_u64()
+        .and_then(|n| u32::try_from(n).ok())
+    {
+        st.completion_tokens = Some(n);
+    }
+    if let Some(n) = v["timings"]["predicted_n"]
+        .as_u64()
+        .and_then(|n| u32::try_from(n).ok())
+    {
+        st.predicted_tokens = Some(n);
     }
     let text = v["choices"][0]["delta"]["content"]
         .as_str()
@@ -1578,7 +1615,7 @@ fn handle_sse_line(
         }
         return true;
     }
-    let c = Chunk::token(tid.clone(), st.token_id, text.to_string());
+    let c = Chunk::token(tid.clone(), st.token_id, text.to_string()).with_n_tokens(0);
     st.token_id += 1;
     send(Ok((tid.clone(), c)));
     true
@@ -1797,6 +1834,7 @@ mod tests {
         let c = out[0].as_ref().unwrap().1.clone();
         assert_eq!(c.text, "Hello");
         assert!(!c.is_final);
+        assert_eq!(c.token_count(), 0, "an SSE fragment is not one model token");
     }
 
     #[test]
@@ -1934,7 +1972,7 @@ mod tests {
         assert!(go);
         assert_eq!(out.len(), 1);
         let (go, out) = collect(
-            r#"data: {"choices":[],"usage":{"prompt_tokens":42,"completion_tokens":1}}"#,
+            r#"data: {"choices":[],"usage":{"prompt_tokens":42,"completion_tokens":38}}"#,
             &tid,
             &mut st,
         );
@@ -1945,6 +1983,8 @@ mod tests {
         let c = out[0].as_ref().unwrap().1.clone();
         assert!(c.is_final);
         assert_eq!(c.prompt_tokens, Some(42));
+        assert_eq!(c.completion_tokens, Some(38));
+        assert_eq!(c.token_count(), 0);
         assert_eq!(c.finish_reason, Some(FinishReason::Stop));
     }
 
@@ -1953,12 +1993,69 @@ mod tests {
         let tid = "t1".to_string();
         let mut st = SseState::default();
         let (_go, _out) = collect(
-            r#"data: {"choices":[{"text":"x","finish_reason":"stop"}],"timings":{"prompt_n":7}}"#,
+            r#"data: {"choices":[{"text":"x","finish_reason":"stop"}],"timings":{"prompt_n":7,"predicted_n":38}}"#,
             &tid,
             &mut st,
         );
         let (_go, out) = collect("data: [DONE]", &tid, &mut st);
         assert_eq!(out[0].as_ref().unwrap().1.prompt_tokens, Some(7));
+        assert_eq!(out[0].as_ref().unwrap().1.completion_tokens, Some(38));
+    }
+
+    #[test]
+    fn sse_thinking_and_tools_use_primary_usage_not_event_counts() {
+        let tid = "t".to_owned();
+        let mut st = SseState::default();
+        let mut total = 0;
+        for line in [
+            r#"data: {"choices":[{"delta":{"reasoning_content":"hidden thinking"}}]}"#,
+            r#"data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"get_weather","arguments":"{}"}}]}}]}"#,
+            r#"data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}],"timings":{"predicted_n":37}}"#,
+            r#"data: {"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":38}}"#,
+            r#"data: {"choices":[],"timings":{"prompt_n":99,"predicted_n":39}}"#,
+        ] {
+            let (go, out) = collect(line, &tid, &mut st);
+            assert!(go);
+            for (_, chunk) in out.into_iter().map(Result::unwrap) {
+                chunk.accumulate_tokens(&mut total);
+                assert_eq!(chunk.completion_tokens, None);
+            }
+        }
+        assert_eq!(
+            total, 0,
+            "no total is invented before successful completion"
+        );
+        let (_, out) = collect("data: [DONE]", &tid, &mut st);
+        assert_eq!(out.len(), 2);
+        assert!(out[0].as_ref().unwrap().1.text.contains("get_weather"));
+        assert_eq!(out[1].as_ref().unwrap().1.prompt_tokens, Some(10));
+        for (_, chunk) in out.into_iter().map(Result::unwrap) {
+            chunk.accumulate_tokens(&mut total);
+        }
+        assert_eq!(total, 38);
+    }
+
+    #[test]
+    fn sse_without_authoritative_usage_does_not_fabricate_total() {
+        let tid = "t".to_owned();
+        let mut st = SseState::default();
+        let (_, out) = collect(
+            r#"data: {"choices":[{"delta":{"content":"partial"}}]}"#,
+            &tid,
+            &mut st,
+        );
+        assert_eq!(out[0].as_ref().unwrap().1.completion_tokens, None);
+        assert_eq!(out[0].as_ref().unwrap().1.token_count(), 0);
+        let (_, out) = collect("data: [DONE]", &tid, &mut st);
+        assert_eq!(out[0].as_ref().unwrap().1.completion_tokens, None);
+        let mut st = SseState::default();
+        collect(
+            r#"data: {"choices":[],"timings":{"predicted_n":12}}"#,
+            &tid,
+            &mut st,
+        );
+        let (_, out) = collect(r#"data: {"error":{"message":"cancelled"}}"#, &tid, &mut st);
+        assert_eq!(out[0].as_ref().unwrap().1.completion_tokens, None);
     }
 
     /// A literal `"error": null` is not an error object; a real one ends
@@ -1983,6 +2080,7 @@ mod tests {
         let c = &out[0].as_ref().unwrap().1;
         assert!(c.is_final);
         assert_eq!(c.error.as_deref(), Some("slot overhead exceeded"));
+        assert_eq!(c.completion_tokens, None);
     }
 
     #[test]
@@ -2196,6 +2294,60 @@ mod tests {
         // an explicit path that does not exist errors instead of falling through
         assert!(resolve_llama_bin(Some("/nonexistent/bin"), env, None)
             .is_err_and(|e| e.contains("--llama-bin")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn relative_binary_sources_launch_exact_selected_file() {
+        use std::os::unix::fs::PermissionsExt;
+        let cwd = std::env::current_dir().unwrap();
+        let dir = tempfile::Builder::new()
+            .prefix("relative-llama-")
+            .tempdir_in(&cwd)
+            .unwrap();
+        let bin = dir.path().join("llama-server");
+        std::fs::write(&bin, "#!/bin/sh\nprintf 'exact-selected-binary'\n").unwrap();
+        std::fs::set_permissions(&bin, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let relative = bin.strip_prefix(&cwd).unwrap();
+        let relative_dir = dir.path().strip_prefix(&cwd).unwrap();
+        for resolved in [
+            resolve_llama_bin(Some(relative.to_str().unwrap()), None, None).unwrap(),
+            resolve_llama_bin(None, Some(relative.as_os_str().to_owned()), None).unwrap(),
+            resolve_llama_bin(None, None, Some(relative_dir.as_os_str().to_owned())).unwrap(),
+        ] {
+            assert!(resolved.is_absolute());
+            let output = Command::new(resolved)
+                .env("PATH", "/nonexistent")
+                .output()
+                .unwrap();
+            assert!(output.status.success());
+            assert_eq!(output.stdout, b"exact-selected-binary");
+        }
+        // A bare filename passes is_file(), but Command would search PATH
+        // rather than this working directory if resolution left it relative.
+        let mut bare = tempfile::Builder::new()
+            .prefix("bare-llama-")
+            .tempfile_in(&cwd)
+            .unwrap();
+        bare.write_all(b"#!/bin/sh\nprintf 'exact-bare-binary'\n")
+            .unwrap();
+        bare.as_file()
+            .set_permissions(std::fs::Permissions::from_mode(0o755))
+            .unwrap();
+        let bare = bare.into_temp_path(); // close the writable fd before exec
+        let resolved = resolve_llama_bin(
+            Some(bare.file_name().unwrap().to_str().unwrap()),
+            None,
+            None,
+        )
+        .unwrap();
+        assert!(resolved.is_absolute());
+        let output = Command::new(resolved)
+            .env("PATH", "/nonexistent")
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert_eq!(output.stdout, b"exact-bare-binary");
     }
 
     #[test]
@@ -2516,6 +2668,12 @@ mod unix_tests {
         assert!(last.is_final);
         assert_eq!(last.finish_reason, Some(FinishReason::Stop));
         assert_eq!(last.prompt_tokens, Some(11));
+        assert_eq!(last.completion_tokens, Some(2));
+        let mut count = 0;
+        for (_, chunk) in &chunks {
+            chunk.accumulate_tokens(&mut count);
+        }
+        assert_eq!(count, 2);
         server.join().unwrap();
     }
 
@@ -2755,6 +2913,8 @@ mod unix_tests {
         engine.submit(task).unwrap();
         let first = engine.step().unwrap();
         assert_eq!(first[0].1.text, "Hello");
+        assert_eq!(first[0].1.completion_tokens, None);
+        assert_eq!(first[0].1.token_count(), 0);
         engine.cancel(&tid);
         assert!(engine.step().unwrap().is_empty());
         drop(engine);

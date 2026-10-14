@@ -601,6 +601,8 @@ impl Runner {
             model: self.model_label(),
             submitted_at: Instant::now(),
             last_chunk_at: None,
+            first_output_recorded: false,
+            generated_tokens: 0,
             metrics_finalized: false,
             closing: self.closing.clone(),
         }
@@ -760,8 +762,15 @@ pub struct ChunkStream {
     model: Arc<str>,
     /// When the task was submitted — the zero point for TTFT and duration.
     submitted_at: Instant,
-    /// When the previous chunk was delivered (inter-token latency).
+    /// First visible output (or known token) has recorded TTFT. SSE text
+    /// fragments can establish this without being model-token samples.
+    first_output_recorded: bool,
+    /// When the previous token-bearing chunk was delivered.
     last_chunk_at: Option<Instant>,
+    /// Observed tokens, replaced by a successful final chunk's authoritative
+    /// total. Publish once at termination: a counter cannot subtract legacy
+    /// fragment estimates if the final model-token count is smaller.
+    generated_tokens: u32,
     /// A terminal outcome (completed / failed / cancelled / teardown) has
     /// been recorded; guards exactly-once accounting between the
     /// final-chunk paths, the cancel path, and `Drop`.
@@ -781,6 +790,7 @@ impl ChunkStream {
         }
         let now = Instant::now();
         if chunk.error.is_some() {
+            self.record_generated_tokens();
             cascadia_metrics::TASKS_FAILED_TOTAL
                 .with_label_values(&[&self.model])
                 .inc();
@@ -790,29 +800,28 @@ impl ChunkStream {
             self.metrics_finalized = true;
             return;
         }
-        // Same convention as the API's usage accounting (Chunk::token_count):
-        // `n_tokens` is authoritative when set; otherwise one token per
-        // non-empty chunk, so the empty final markers contribute 0.
+        chunk.accumulate_tokens(&mut self.generated_tokens);
         let n = chunk.token_count();
-        // Only token-bearing chunks are timing samples: the separate empty
-        // final marker most engines emit would otherwise add one artificial
-        // inter-token gap per generation (and a zero-token generation would
-        // record a bogus TTFT).
+        // Visible SSE output establishes TTFT even when its model-token
+        // boundaries are unknown. Empty prefill/terminal markers do not.
+        if !self.first_output_recorded && (n > 0 || !chunk.text.is_empty()) {
+            cascadia_metrics::GENERATION_TTFT_SECONDS
+                .with_label_values(&[&self.model])
+                .observe((now - self.submitted_at).as_secs_f64());
+            self.first_output_recorded = true;
+        }
+        // Unknown-count text fragments must not masquerade as per-token
+        // latency samples. Only known token-bearing chunks establish gaps.
         if n > 0 {
-            match self.last_chunk_at {
-                None => cascadia_metrics::GENERATION_TTFT_SECONDS
+            if let Some(prev) = self.last_chunk_at {
+                cascadia_metrics::GENERATION_INTER_TOKEN_SECONDS
                     .with_label_values(&[&self.model])
-                    .observe((now - self.submitted_at).as_secs_f64()),
-                Some(prev) => cascadia_metrics::GENERATION_INTER_TOKEN_SECONDS
-                    .with_label_values(&[&self.model])
-                    .observe((now - prev).as_secs_f64()),
+                    .observe((now - prev).as_secs_f64());
             }
             self.last_chunk_at = Some(now);
-            cascadia_metrics::TOKENS_GENERATED_TOTAL
-                .with_label_values(&[&self.model])
-                .inc_by(n as u64);
         }
         if chunk.is_final {
+            self.record_generated_tokens();
             if let Some(p) = chunk.prompt_tokens {
                 cascadia_metrics::TOKENS_PROMPT_TOTAL
                     .with_label_values(&[&self.model])
@@ -839,6 +848,13 @@ impl ChunkStream {
                 .observe((now - self.submitted_at).as_secs_f64());
             self.metrics_finalized = true;
         }
+    }
+
+    /// Called only behind the terminal metrics guard, before it is set.
+    fn record_generated_tokens(&self) {
+        cascadia_metrics::TOKENS_GENERATED_TOTAL
+            .with_label_values(&[&self.model])
+            .inc_by(self.generated_tokens as u64);
     }
 
     /// Terminal failure of OUR stream: close the buffers entry, build the
@@ -894,6 +910,7 @@ impl ChunkStream {
             self.record_teardown_metrics();
             return;
         }
+        self.record_generated_tokens();
         cascadia_metrics::TASKS_CANCELLED_TOTAL
             .with_label_values(&[&self.model])
             .inc();
@@ -916,6 +933,7 @@ impl ChunkStream {
         if self.metrics_finalized {
             return;
         }
+        self.record_generated_tokens();
         cascadia_metrics::GENERATION_DURATION_SECONDS
             .with_label_values(&[&self.model, "teardown"])
             .observe(self.submitted_at.elapsed().as_secs_f64());
@@ -928,6 +946,7 @@ impl Stream for ChunkStream {
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Chunk>> {
         let this = self.get_mut();
+        let mut stepped = false;
         loop {
             if this.done {
                 return Poll::Ready(None);
@@ -956,6 +975,16 @@ impl Stream for ChunkStream {
                         return Poll::Ready(Some(chunk));
                     }
                 }
+            }
+
+            // One engine round per poll, even when it only advances another
+            // task. A delayed consumer must not let its queued sibling spin
+            // through foreign progress forever on this async worker. Drain
+            // our buffer above first, then yield with a wake so this stream
+            // can keep driving the queue without waiting for that consumer.
+            if stepped {
+                cx.waker().wake_by_ref();
+                return Poll::Pending;
             }
 
             // 2) Drive the engine one step. An Err is terminal for the
@@ -1032,6 +1061,7 @@ impl Stream for ChunkStream {
                 drop(guard);
                 result
             };
+            stepped = true;
             let Some(step_result) = step_result else {
                 return this.fail_teardown();
             };
@@ -1142,8 +1172,8 @@ impl Stream for ChunkStream {
 
             // 3) Everything this round produced — including our own chunks —
             //    is already in its owner's buffer, so loop and let step 1 hand
-            //    ours back in FIFO order. Terminal/TTFT accounting rides that
-            //    same drain, so metrics stay delivery-timed.
+            //    ours back in FIFO order (or yield if only foreign work landed).
+            //    Terminal/TTFT accounting rides that same delivery-timed drain.
             //
             //    Returning our chunk straight from the step instead would jump
             //    it ahead of anything another stream buffered for us while we
@@ -2223,6 +2253,126 @@ mod tests {
         assert_eq!(last_text, "done");
     }
 
+    /// A FIFO engine serving A while B is queued. A keeps making zero-token
+    /// progress until an unrelated timer releases it. The finite fallback
+    /// makes the pre-fix test fail without hanging or waiting eight seconds.
+    struct QueuedProgressEngine {
+        tasks: VecDeque<TaskId>,
+        timer_fired: Arc<AtomicBool>,
+        foreign_steps: usize,
+    }
+
+    impl Engine for QueuedProgressEngine {
+        fn warmup(&mut self) {}
+        fn submit(&mut self, task: GenerationTask) -> Result<(), EngineError> {
+            self.tasks.push_back(task.task_id);
+            Ok(())
+        }
+        fn cancel(&mut self, task_id: &TaskId) {
+            self.tasks.retain(|id| id != task_id);
+        }
+        fn step(&mut self) -> Result<Vec<(TaskId, Chunk)>, EngineError> {
+            let Some(id) = self.tasks.front().cloned() else {
+                return Ok(Vec::new());
+            };
+            if id == "a" && !self.timer_fired.load(Ordering::SeqCst) {
+                self.foreign_steps += 1;
+                if self.foreign_steps <= 64 {
+                    return Ok(vec![(
+                        id.clone(),
+                        Chunk::token(id, 0, String::new()).with_n_tokens(0),
+                    )]);
+                }
+                self.tasks.pop_front();
+                return Ok(vec![(id.clone(), Chunk::error(id, "timer starved"))]);
+            }
+            self.tasks.pop_front();
+            let chunk = if self.timer_fired.load(Ordering::SeqCst) {
+                Chunk::final_marker(&id, "done")
+            } else {
+                Chunk::error(&id, "timer starved")
+            };
+            Ok(vec![(id, chunk)])
+        }
+    }
+
+    struct QueuedProgressBuilder(Arc<AtomicBool>);
+
+    #[async_trait::async_trait]
+    impl Builder for QueuedProgressBuilder {
+        async fn connect(&mut self, _peers: PeerLayout) -> Result<(), EngineError> {
+            Ok(())
+        }
+        async fn load(
+            &mut self,
+            _shard: ShardSpec,
+        ) -> Result<cascadia_engine::LoadStream, EngineError> {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+        fn build(self: Box<Self>) -> Result<Box<dyn Engine>, EngineError> {
+            Ok(Box::new(QueuedProgressEngine {
+                tasks: VecDeque::new(),
+                timer_fired: self.0,
+                foreign_steps: 0,
+            }))
+        }
+    }
+
+    #[tokio::test]
+    async fn queued_stream_yields_foreign_progress_to_unrelated_timer() {
+        let timer_fired = Arc::new(AtomicBool::new(false));
+        let runner = Runner::new(Box::new(QueuedProgressBuilder(timer_fired.clone())));
+        runner
+            .start(
+                PeerLayout::single_stage(),
+                ShardSpec::single_stage("runner-queue-timer", "CPU"),
+            )
+            .await
+            .unwrap();
+        let mut a = runner.generate(GenerationTask::new("a", "x")).unwrap();
+        assert!(!a.next().await.unwrap().is_final);
+        let mut b = runner.generate(GenerationTask::new("b", "x")).unwrap();
+
+        // Poll B first on this single-thread runtime. An already-due timer
+        // still needs a chance to be polled; the old loop served all foreign
+        // progress and exhausted the fixture before ever giving it that turn.
+        let deadline = tokio::time::Instant::now() - std::time::Duration::from_secs(1);
+        let (b_chunk, ()) = tokio::time::timeout(std::time::Duration::from_secs(1), async {
+            tokio::join!(
+                biased;
+                b.next(),
+                async {
+                    tokio::time::sleep_until(deadline).await;
+                    timer_fired.store(true, Ordering::SeqCst);
+                }
+            )
+        })
+        .await
+        .expect("queued stream must wake itself after yielding foreign progress");
+        let b_chunk = b_chunk.expect("queued task must complete after the timer releases A");
+        assert!(b_chunk.is_final);
+        assert!(b_chunk.error.is_none(), "timer was starved: {b_chunk:?}");
+        assert!(b.next().await.is_none());
+
+        // A's consumer was delayed throughout B's poll. Its buffered progress
+        // and completion must remain intact, in order, without a false stall.
+        let mut saw_progress = false;
+        let mut saw_final = false;
+        while let Some(chunk) = a.next().await {
+            assert!(
+                chunk.error.is_none(),
+                "A lost its queue progress: {chunk:?}"
+            );
+            if chunk.is_final {
+                saw_final = true;
+            } else {
+                assert!(!saw_final);
+                saw_progress = true;
+            }
+        }
+        assert!(saw_progress && saw_final);
+    }
+
     /// Engine that emits a chunk for EVERY in-flight task on every step — the
     /// shape continuous batching introduces, and the one no engine had before
     /// it. Chunks are numbered so a consumer can tell order from content.
@@ -2520,6 +2670,140 @@ mod tests {
             .await
             .unwrap();
         runner
+    }
+
+    struct UsageSequenceEngine(VecDeque<Chunk>);
+
+    impl Engine for UsageSequenceEngine {
+        fn warmup(&mut self) {}
+        fn submit(&mut self, _task: GenerationTask) -> Result<(), EngineError> {
+            Ok(())
+        }
+        fn step(&mut self) -> Result<Vec<(TaskId, Chunk)>, EngineError> {
+            Ok(self
+                .0
+                .pop_front()
+                .map(|chunk| vec![(chunk.task_id.clone(), chunk)])
+                .unwrap_or_default())
+        }
+    }
+
+    fn usage_sequence_runner(model: &str, chunks: Vec<Chunk>) -> Runner {
+        Runner {
+            builder: Mutex::new(None),
+            slot: Arc::new(EngineSlot::new(Some(Box::new(UsageSequenceEngine(
+                chunks.into(),
+            ))))),
+            model: Mutex::new(Some(Arc::from(model))),
+            closing: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    #[tokio::test]
+    async fn authoritative_completion_metrics_replace_observed_counts_once() {
+        // Authoritative totals can be greater OR smaller than provisional
+        // fragment counts, and already include any token on the final chunk.
+        for (model, partial, final_tokens, authoritative, gaps) in [
+            ("runner-usage-zero-fragments", 0, 0, 38, 0),
+            ("runner-usage-overestimated-fragments", 1, 0, 1, 1),
+            ("runner-usage-authoritative-zero", 1, 0, 0, 1),
+            ("runner-usage-final-included", 2, 3, 7, 2),
+        ] {
+            let mut final_chunk = Chunk::final_marker("usage", "last").with_n_tokens(final_tokens);
+            final_chunk.completion_tokens = Some(authoritative);
+            let runner = usage_sequence_runner(
+                model,
+                vec![
+                    Chunk::token("usage", 0, "first").with_n_tokens(partial),
+                    Chunk::token("usage", 1, "second").with_n_tokens(partial),
+                    final_chunk,
+                ],
+            );
+            let mut stream = runner.generate(GenerationTask::new("usage", "x")).unwrap();
+            while let Some(chunk) = stream.next().await {
+                assert!(chunk.error.is_none());
+            }
+            drop(stream);
+            assert_eq!(
+                cascadia_metrics::TOKENS_GENERATED_TOTAL
+                    .with_label_values(&[model])
+                    .get(),
+                authoritative as u64,
+                "final usage must replace, not add to, partial counts"
+            );
+            assert_eq!(
+                cascadia_metrics::GENERATION_TTFT_SECONDS
+                    .with_label_values(&[model])
+                    .get_sample_count(),
+                1,
+                "zero-count text fragments must still record first delivery"
+            );
+            assert_eq!(
+                cascadia_metrics::GENERATION_INTER_TOKEN_SECONDS
+                    .with_label_values(&[model])
+                    .get_sample_count(),
+                gaps,
+                "unknown-count fragments must not become token-latency samples"
+            );
+            assert_eq!(
+                cascadia_metrics::GENERATION_DURATION_SECONDS
+                    .with_label_values(&[model, "stop"])
+                    .get_sample_count(),
+                1
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn aborted_generation_metrics_publish_only_observed_tokens_once() {
+        for (model, outcome, partial) in [
+            ("runner-usage-error", "error", 2),
+            ("runner-usage-cancel", "cancelled", 2),
+            ("runner-usage-teardown", "teardown", 2),
+            ("runner-usage-unknown-cancel", "cancelled", 0),
+        ] {
+            // A failed terminal chunk must never override partial generation
+            // with a claimed successful completion total.
+            let mut error = Chunk::error("usage", "failed");
+            error.completion_tokens = Some(999);
+            let runner = usage_sequence_runner(
+                model,
+                vec![
+                    Chunk::token("usage", 0, "partial").with_n_tokens(partial),
+                    error,
+                ],
+            );
+            let mut stream = runner.generate(GenerationTask::new("usage", "x")).unwrap();
+            assert!(!stream.next().await.unwrap().is_final);
+            match outcome {
+                "error" => {
+                    assert!(stream.next().await.unwrap().error.is_some());
+                    assert!(stream.next().await.is_none());
+                }
+                "teardown" => {
+                    runner.close();
+                    assert!(stream.next().await.unwrap().error.is_some());
+                    assert!(stream.next().await.is_none());
+                }
+                _ => {
+                    runner.cancel(&"usage".to_string());
+                    assert!(stream.next().await.is_none());
+                }
+            }
+            drop(stream);
+            assert_eq!(
+                cascadia_metrics::TOKENS_GENERATED_TOTAL
+                    .with_label_values(&[model])
+                    .get(),
+                partial as u64
+            );
+            assert_eq!(
+                cascadia_metrics::GENERATION_DURATION_SECONDS
+                    .with_label_values(&[model, outcome])
+                    .get_sample_count(),
+                1
+            );
+        }
     }
 
     #[tokio::test]

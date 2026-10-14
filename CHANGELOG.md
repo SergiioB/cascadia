@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+* **sycl-llama:** preserve the child's completion-token usage, including reasoning and tool generation; include requested usage in streaming tool responses.
+* **runner:** yield when a queued stream produces another task's chunks, so a delayed consumer cannot block an async worker.
+* **sycl-llama:** execute the exact validated binary for relative paths.
+* **packaging:** include SYCL plugin dependencies and verify the relocated child without the oneAPI build environment.
+
+### Documentation
+
+* Add the GGUF installation path and correct no-OpenVINO and host-interposer guidance.
+
 ## [0.2.5](https://github.com/labscommunity/cascadia/compare/v0.2.4...v0.2.5) (2026-10-01)
 
 

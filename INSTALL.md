@@ -1,14 +1,15 @@
 # Installing Cascadia
 
-Three ways to run Cascadia, depending on what you want:
+Choose an installation path for your engine:
 
 | Goal | How | Needs |
 | --- | --- | --- |
 | Run it on Intel hardware | **Prebuilt bundle** (below) | an Intel driver; (Linux GPU) the runtime stack |
 | Try it / develop / CI | **Stub mode** build | Rust only |
 | Build real inference yourself | **OpenVINO mode** build | Rust + C++ toolchain + OpenVINO GenAI SDK + (Linux) GPU runtime |
+| Run GGUF models on Intel GPUs | **SYCL llama.cpp build** (below) | Rust + Intel oneAPI + patched `llama-server` + Intel GPU driver |
 
-After any install, run **`cascadia doctor`** — it checks your toolchain and tells you whether OpenVINO can actually see your GPU (a step that fails silently otherwise).
+After any install, run **`cascadia doctor`**. Its OpenVINO and sycl-llama sections check their separate runtime prerequisites.
 
 ---
 
@@ -34,6 +35,27 @@ Because OpenVINO's C++ ABI is not stable across releases, the runtime cannot be 
 Version strings are Intel's archive versions exactly as they appear in the file names on <https://storage.openvinotoolkit.org/repositories/openvino_genai/packages/>: `2026.4.1.0`, `2026.5.0.0beta1`, `2026.5.0.0.dev20260925`.
 
 Python is not needed for inference. It is needed only for `cascadia shard` — which works from the prebuilt binary too: the Python exporters are compiled into it and extracted at run time (see "Export-time Python" below).
+
+---
+
+## GGUF inference with sycl-llama
+
+This engine works in the default Rust build; it does not require OpenVINO.
+Install Intel oneAPI and the Intel GPU driver first, then build both executables:
+
+```bash
+cargo install --path crates/cascadia --locked
+scripts/build-llama-stream.sh ~/llama-stream
+source /opt/intel/oneapi/setvars.sh
+export CASCADIA_LLAMA_BIN=~/llama-stream/build/bin/llama-server
+cascadia doctor
+cascadia run /path/to/model.gguf --engine sycl-llama --elastic --api 127.0.0.1:8080
+```
+
+The existing OpenVINO release bundles do not include this child executable.
+On Windows, use `scripts\build-llama-stream-windows.bat` from a VS 2022 Developer
+Command Prompt with Intel oneAPI installed. See [the engine guide](docs/engines/sycl-llama.md)
+for GPU selection, weight budgets, limitations and runtime setup.
 
 ---
 
