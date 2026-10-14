@@ -12,11 +12,12 @@
 //! `step()` turns are buffered for their owners, and vice versa.
 
 use std::collections::{HashMap, VecDeque};
+use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use cascadia_engine::{Builder, Engine, EngineError};
 use cascadia_types::{Chunk, FinishReason, GenerationTask, PeerLayout, ShardSpec, TaskId};
@@ -28,6 +29,11 @@ use tracing::{info, warn};
 /// chunks for *any* task, it returns rather than block forever on a
 /// misbehaving engine.
 const MAX_CONSECUTIVE_EMPTY_STEPS: usize = 3;
+
+/// Delay before a stream that only advanced another task polls again. Long
+/// enough to let a busy runtime worker park and drive timers and I/O; short
+/// relative to an engine step.
+const FOREIGN_YIELD: Duration = Duration::from_millis(1);
 
 /// Cool-off `run_relay_loop` applies after a `step()` returns `Err`, so a
 /// persistently-failing engine (dead peer, bad-frame flood, black-holed
@@ -605,6 +611,7 @@ impl Runner {
             generated_tokens: 0,
             metrics_finalized: false,
             closing: self.closing.clone(),
+            foreign_yield: None,
         }
     }
 
@@ -779,6 +786,11 @@ pub struct ChunkStream {
     /// slot, so an abandoned generation is attributed to the shutdown
     /// rather than to the client regardless of poll/drop ordering.
     closing: Arc<AtomicBool>,
+    /// Wakes this stream after a step that only advanced another task. An
+    /// immediate self-wake keeps the stream runnable forever, and a busy
+    /// Tokio worker then services timers and I/O only every few dozen polls
+    /// (each poll may block in `step()`), so unrelated timers starve.
+    foreign_yield: Option<Pin<Box<tokio::time::Sleep>>>,
 }
 
 impl ChunkStream {
@@ -946,6 +958,7 @@ impl Stream for ChunkStream {
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Chunk>> {
         let this = self.get_mut();
+        this.foreign_yield = None;
         let mut stepped = false;
         loop {
             if this.done {
@@ -983,6 +996,16 @@ impl Stream for ChunkStream {
             // our buffer above first, then yield with a wake so this stream
             // can keep driving the queue without waiting for that consumer.
             if stepped {
+                // Suspend on a short timer instead of waking immediately, so
+                // the worker can park and drive timers and I/O between
+                // steps. Outside a Tokio runtime, fall back to a plain wake.
+                if tokio::runtime::Handle::try_current().is_ok() {
+                    let mut timer = Box::pin(tokio::time::sleep(FOREIGN_YIELD));
+                    if timer.as_mut().poll(cx).is_pending() {
+                        this.foreign_yield = Some(timer);
+                        return Poll::Pending;
+                    }
+                }
                 cx.waker().wake_by_ref();
                 return Poll::Pending;
             }
@@ -2253,9 +2276,11 @@ mod tests {
         assert_eq!(last_text, "done");
     }
 
-    /// A FIFO engine serving A while B is queued. A keeps making zero-token
-    /// progress until an unrelated timer releases it. The finite fallback
-    /// makes the pre-fix test fail without hanging or waiting eight seconds.
+    /// A FIFO engine serving A while B is queued. Like the llama.cpp bridge,
+    /// each step blocks briefly while A makes zero-token progress until an
+    /// unrelated runtime timer releases it. A stream that self-wakes after
+    /// every foreign step keeps the worker busy, so the timer driver runs
+    /// only every few dozen polls and the finite fallback reports starvation.
     struct QueuedProgressEngine {
         tasks: VecDeque<TaskId>,
         timer_fired: Arc<AtomicBool>,
@@ -2276,8 +2301,9 @@ mod tests {
                 return Ok(Vec::new());
             };
             if id == "a" && !self.timer_fired.load(Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_millis(5));
                 self.foreign_steps += 1;
-                if self.foreign_steps <= 64 {
+                if self.foreign_steps <= 32 {
                     return Ok(vec![(
                         id.clone(),
                         Chunk::token(id, 0, String::new()).with_n_tokens(0),
@@ -2318,7 +2344,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn queued_stream_yields_foreign_progress_to_unrelated_timer() {
         let timer_fired = Arc::new(AtomicBool::new(false));
         let runner = Runner::new(Box::new(QueuedProgressBuilder(timer_fired.clone())));
@@ -2333,23 +2359,24 @@ mod tests {
         assert!(!a.next().await.unwrap().is_final);
         let mut b = runner.generate(GenerationTask::new("b", "x")).unwrap();
 
-        // Poll B first on this single-thread runtime. An already-due timer
-        // still needs a chance to be polled; the old loop served all foreign
-        // progress and exhausted the fixture before ever giving it that turn.
-        let deadline = tokio::time::Instant::now() - std::time::Duration::from_secs(1);
-        let (b_chunk, ()) = tokio::time::timeout(std::time::Duration::from_secs(1), async {
-            tokio::join!(
-                biased;
-                b.next(),
-                async {
-                    tokio::time::sleep_until(deadline).await;
-                    timer_fired.store(true, Ordering::SeqCst);
-                }
-            )
-        })
-        .await
-        .expect("queued stream must wake itself after yielding foreign progress");
-        let b_chunk = b_chunk.expect("queued task must complete after the timer releases A");
+        // B and an unrelated timer share the runtime's only worker. The timer
+        // is due after 20 ms; A's consumer stays delayed while B drives A.
+        let timer = {
+            let timer_fired = timer_fired.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(20)).await;
+                timer_fired.store(true, Ordering::SeqCst);
+            })
+        };
+        let queued = tokio::spawn(async move {
+            let chunk = tokio::time::timeout(Duration::from_secs(2), b.next()).await;
+            (chunk, b)
+        });
+        let (b_chunk, mut b) = queued.await.unwrap();
+        let b_chunk = b_chunk
+            .expect("queued stream must wake itself after yielding foreign progress")
+            .expect("queued task must complete after the timer releases A");
+        timer.await.unwrap();
         assert!(b_chunk.is_final);
         assert!(b_chunk.error.is_none(), "timer was starved: {b_chunk:?}");
         assert!(b.next().await.is_none());
