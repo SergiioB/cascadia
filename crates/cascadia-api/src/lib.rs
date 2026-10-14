@@ -5355,7 +5355,7 @@ mod tests {
     async fn oversized_tool_turns_get_413() {
         // max_prompt_bytes small enough that the rendered prompt passes but
         // the tool-result turn does not — content + tool fields must count.
-        let mut runner = Runner::new(Box::new(MockBuilder::new()));
+        let runner = Runner::new(Box::new(MockBuilder::new()));
         runner
             .start(
                 PeerLayout::single_stage(),

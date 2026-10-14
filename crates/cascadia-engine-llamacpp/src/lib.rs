@@ -717,9 +717,10 @@ struct SpawnedChild {
     child: Child,
     stderr_drain: Option<std::thread::JoinHandle<()>>,
     /// Windows: the kill-on-close job the child is assigned to at spawn
-    /// (see `ChildJob`).
+    /// (see `ChildJob`). Held only so it closes, and kills the child, when
+    /// this value drops.
     #[cfg(windows)]
-    job: Option<ChildJob>,
+    _job: Option<ChildJob>,
 }
 
 impl SpawnedChild {
@@ -843,7 +844,7 @@ impl SpawnedChild {
             child,
             stderr_drain,
             #[cfg(windows)]
-            job,
+            _job: job,
         })
     }
 
@@ -2665,7 +2666,7 @@ mod unix_tests {
                 child: Command::new("sleep").arg("60").spawn().unwrap(),
                 stderr_drain: None,
                 #[cfg(windows)]
-                job: None,
+                _job: None,
             },
             pending: Vec::new(),
             active: None,
