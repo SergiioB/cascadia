@@ -71,8 +71,16 @@ add_library() {
 
 # ldd output is checked rather than piped into a subshell: a missing plugin
 # dependency must abort packaging, not just produce an incomplete archive.
+# Only this object's own DT_NEEDED entries are followed. Dependencies of host
+# libraries (for example OpenSSL's libzstd) stay host-provided; every bundled
+# object is inspected in turn, so the bundled closure is still complete.
 inspect_dependencies() {
-    local file="$1" mode="$2" listing line need resolved real
+    local file="$1" mode="$2" listing line need resolved real dynamic
+    local -A direct=()
+    dynamic="$(readelf -d "$file")" || fail "cannot inspect $file"
+    while read -r need; do
+        [ -n "$need" ] && direct[$need]=1
+    done < <(awk '/\(NEEDED\)/ {gsub(/[\[\]]/, "", $5); print $5}' <<< "$dynamic")
     if [ "$mode" = source ]; then
         listing="$(ldd "$file" 2>&1)" || fail "cannot resolve $file: $listing"
     else
@@ -91,6 +99,7 @@ inspect_dependencies() {
         else
             continue
         fi
+        [ -n "${direct[$need]+present}" ] || continue
         is_host_library "$need" && continue
         if [ "$mode" = source ]; then
             add_library "$resolved"
