@@ -33,7 +33,7 @@ if (Get-Command cl.exe -ErrorAction SilentlyContinue) {
     Write-Host "  'Developer Command Prompt for VS 2022'."
 }
 
-# The SDK release bundles ship is pinned once, as OV_VERSION in release.yml;
+# The SDK the release bundles ship is pinned once, as OV_VERSION in release.yml;
 # read it from there (relative to this script, so any cwd works).
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $ovVersion = '<OV_VERSION from .github/workflows/release.yml>'
@@ -49,7 +49,7 @@ if ($env:INTEL_OPENVINO_DIR -and (Test-Path (Join-Path $env:INTEL_OPENVINO_DIR '
 } else {
     Write-Host "INTEL_OPENVINO_DIR: not set / not valid"
     Write-Host "  Fetch the OpenVINO GenAI SDK (2026.2+; releases bundle $ovVersion) and set it, e.g.:"
-    Write-Host "    `$env:INTEL_OPENVINO_DIR = python $(Join-Path $repoRoot 'scripts\ov_sdk.py') fetch $ovVersion --dest C:\openvino\$ovVersion"
+    Write-Host "    `$env:INTEL_OPENVINO_DIR = python `"$(Join-Path $repoRoot 'scripts\ov_sdk.py')`" fetch $ovVersion --dest `"C:\openvino\$ovVersion`""
     Write-Host "  (any published version works, e.g. 2026.5.0.0beta1 — see INSTALL.md)"
 }
 
