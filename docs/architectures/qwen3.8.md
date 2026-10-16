@@ -214,6 +214,9 @@ bundles now pin 2026.4.1.0, which this table has not been re-measured on):
 convert_tokenizer /path/to/Qwen3.8-27B-int4-ov --with-detokenizer -o /path/to/Qwen3.8-27B-int4-ov
 ```
 
+On a 2026.4.1.0 bundle, if `pipeline_create_vlm` still throws on Intel's IR,
+run the same command.
+
 Exports made with the 2026.3 toolchain (the recipe above) need nothing.
 
 **Q3 — context capacity** (weights resident, growing synthetic prompt).
