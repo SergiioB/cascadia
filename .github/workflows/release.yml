@@ -496,6 +496,8 @@ jobs:
       TAG: ${{ inputs.tag || github.ref_name }}
       VER: ${{ needs.plan.outputs.ver }}
       REQUESTED: ${{ inputs.ov_version }}
+      VERSIONS: ${{ needs.plan.outputs.versions }}
+      DEFAULT: ${{ needs.plan.outputs.default }}
     steps:
       - name: Verify assets and drop the pre-release badge
         env:
@@ -522,5 +524,20 @@ jobs:
               *) echo "::error::expected default bundle $a on $TAG, found: $assets"; exit 1 ;;
             esac
           done
+          # A failed variant leg leaves the run green, so name what it didn't ship.
+          if [ -z "${REQUESTED:-}" ]; then
+            for v in $(jq -r '.[]' <<< "$VERSIONS"); do
+              [ "$v" = "$DEFAULT" ] && continue
+              for a in "cascadia-$VER-linux-x86_64-ov$v.tar.gz" "cascadia-$VER-windows-x86_64-ov$v.zip"; do
+                case " $assets " in
+                  *" $a "*) ;;
+                  *)
+                    echo "::warning::variant bundle $a is missing on $TAG"
+                    echo "- variant bundle \`$a\` is missing on $TAG" >> "$GITHUB_STEP_SUMMARY"
+                    ;;
+                esac
+              done
+            done
+          fi
           gh release edit "$TAG" --prerelease=false --latest
           echo "release $TAG promoted"
