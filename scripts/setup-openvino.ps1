@@ -1,4 +1,4 @@
-# setup-openvino.ps1 — Windows OpenVINO GPU readiness check.
+# setup-openvino.ps1 - Windows OpenVINO GPU readiness check.
 #
 # On Windows the OpenCL runtime ships INSIDE the Intel graphics driver,
 # so there's no separate runtime stack to apt-install (unlike Linux).
@@ -50,7 +50,7 @@ if ($env:INTEL_OPENVINO_DIR -and (Test-Path (Join-Path $env:INTEL_OPENVINO_DIR '
     Write-Host "INTEL_OPENVINO_DIR: not set / not valid"
     Write-Host "  Fetch the OpenVINO GenAI SDK (2026.2+; releases bundle $ovVersion) and set it, e.g.:"
     Write-Host "    `$env:INTEL_OPENVINO_DIR = python `"$(Join-Path $repoRoot 'scripts\ov_sdk.py')`" fetch $ovVersion --dest `"C:\openvino\$ovVersion`""
-    Write-Host "  (any published version works, e.g. 2026.5.0.0beta1 — see INSTALL.md)"
+    Write-Host "  (any published version works, e.g. 2026.5.0.0beta1 - see INSTALL.md)"
 }
 
 Write-Host "`nNext:"
