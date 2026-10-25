@@ -525,14 +525,17 @@ jobs:
           set "VS2022INSTALLDIR=C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
           scripts\build-llama-stream-windows.bat "%RUNNER_TEMP%\llama-stream"
 
-      - name: Package bundle (relocated server runs without oneAPI on PATH)
+      - name: Package bundle (static import closure; no GPU on hosted runners)
         id: pkg
         shell: cmd
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
           call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" || exit /b 1
           set "NAME=cascadia-llama-sycl-%VER%-windows-x86_64"
-          powershell -NoProfile -ExecutionPolicy Bypass -File scripts\package-llama-stream-windows.ps1 "%RUNNER_TEMP%\llama-stream" "%RUNNER_TEMP%\%NAME%.zip" || exit /b 1
+          REM Hosted runners have no Intel GPU: the SYCL runtime aborts at startup
+          REM without one (even for --version), so only the static import walk runs
+          REM here. A GPU box runs the staged server (see the packager's header).
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts\package-llama-stream-windows.ps1 "%RUNNER_TEMP%\llama-stream" "%RUNNER_TEMP%\%NAME%.zip" -NoRunCheck || exit /b 1
           echo asset=%RUNNER_TEMP%\%NAME%.zip>> "%GITHUB_OUTPUT%"
 
       - name: Upload bundle to release
