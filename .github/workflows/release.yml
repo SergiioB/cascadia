@@ -482,6 +482,76 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # ── Patched llama-server (SYCL, weight streaming) for windows. The oneAPI
+  #    toolchain compiles it; the zip carries the SYCL/MKL runtime beside
+  #    llama-server.exe, so the target box needs only the Intel GPU driver and
+  #    the VC++ redistributable (scripts/package-llama-stream-windows.ps1).
+  build-sycl-llama-windows:
+    name: windows-x86_64 (sycl-llama child)
+    needs: [plan, ensure-release]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.plan.outputs.dry_run == 'true' || needs.ensure-release.result == 'success') }}
+    runs-on: windows-2022
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      VER: ${{ needs.plan.outputs.ver }}
+      DRY_RUN: ${{ needs.plan.outputs.dry_run }}
+      # DPC++/C++ compiler + oneMKL (the SYCL backend's BLAS). URL and install
+      # steps follow Intel's own CI (github.com/oneapi-src/oneapi-ci,
+      # scripts/install_windows.bat).
+      ONEAPI_INSTALLER: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/728c4418-1b40-47a9-ad51-31530fb27c94/intel-oneapi-toolkit-2026.2.0.661_offline.exe
+      ONEAPI_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common:intel.oneapi.win.mkl.devel
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          persist-credentials: false
+
+      - name: Install oneAPI DPC++ + oneMKL, ninja
+        shell: cmd
+        run: |
+          curl.exe --fail --output "%RUNNER_TEMP%\oneapi.exe" --url "%ONEAPI_INSTALLER%" --retry 5 --retry-delay 5 || exit /b 1
+          start /b /wait "" "%RUNNER_TEMP%\oneapi.exe" -s -x -f "%RUNNER_TEMP%\oneapi" --log "%RUNNER_TEMP%\oneapi-extract.log"
+          del "%RUNNER_TEMP%\oneapi.exe"
+          "%RUNNER_TEMP%\oneapi\bootstrapper.exe" -s --action install --components=%ONEAPI_COMPONENTS% --eula=accept -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0 --log-dir="%RUNNER_TEMP%\oneapi-logs" || exit /b 1
+          rd /s /q "%RUNNER_TEMP%\oneapi"
+          choco install ninja -y --no-progress || exit /b 1
+
+      - name: Build patched llama-server
+        shell: cmd
+        run: |
+          set "VS2022INSTALLDIR=C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          scripts\build-llama-stream-windows.bat "%RUNNER_TEMP%\llama-stream"
+
+      - name: Package bundle (relocated server runs without oneAPI on PATH)
+        id: pkg
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" || exit /b 1
+          set "NAME=cascadia-llama-sycl-%VER%-windows-x86_64"
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts\package-llama-stream-windows.ps1 "%RUNNER_TEMP%\llama-stream" "%RUNNER_TEMP%\%NAME%.zip" || exit /b 1
+          echo asset=%RUNNER_TEMP%\%NAME%.zip>> "%GITHUB_OUTPUT%"
+
+      - name: Upload bundle to release
+        if: ${{ env.DRY_RUN != 'true' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload $env:TAG "${{ steps.pkg.outputs.asset }}" --clobber
+
+      - name: Keep bundle as a workflow artifact (dry run)
+        if: ${{ env.DRY_RUN == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bundle-sycl-llama-windows-x86_64
+          path: ${{ steps.pkg.outputs.asset }}
+          if-no-files-found: error
+          retention-days: 7
+
   # ── Promote once both bundles are attached: a release only loses its
   #    pre-release badge when its binaries are verifiably present.
   promote:

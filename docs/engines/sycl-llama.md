@@ -111,6 +111,22 @@ then checks the staged executable without `LD_LIBRARY_PATH`. Missing runtime
 dependencies or failed relocation stop packaging. The host still provides the
 Intel GPU driver, Level Zero/OpenCL loaders and standard OS libraries.
 
+Windows equivalent, from a Developer Command Prompt (`vcvars64.bat`, for
+`dumpbin`) with oneAPI `setvars.bat` called:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\package-llama-stream-windows.ps1 C:\llama-stream llama-sycl.zip
+REM unzip, then:
+set CASCADIA_LLAMA_BIN=%CD%\cascadia-llama-sycl\llama-server.exe
+```
+
+The zip holds `llama-server.exe` with the SYCL, oneMKL and Unified Runtime
+DLLs beside it. Packaging runs the staged server with only `System32` on
+`PATH` (`--version`, `--list-devices`) and fails if a DLL is missing or a patch
+marker is gone. The target box needs the Intel GPU driver and the VC++
+redistributable; `HOST-DEPENDENCIES.txt` in the zip lists every DLL taken
+from the host.
+
 
 `--device` defaults to `GPU`, which maps to `SYCL0` — no flag needed on a
 one-GPU box.
