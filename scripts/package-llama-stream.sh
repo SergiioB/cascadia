@@ -88,6 +88,11 @@ inspect_dependencies() {
     fi
     while IFS= read -r line; do
         if [[ "$line" == *"=> not found"* ]]; then
+            # Host libraries are destination-provided, so a packaging box
+            # without the GPU stack (a CI runner) must not fail here.
+            missing="${line%%=> not found*}"
+            missing="${missing//[[:space:]]/}"
+            is_host_library "$missing" && continue
             fail "unresolved dependency in $file: $line"
         fi
         if [[ "$line" =~ ^[[:space:]]*([^[:space:]]+)[[:space:]]+\=\>[[:space:]]+(.*)[[:space:]]+\(0x[[:xdigit:]]+\) ]]; then

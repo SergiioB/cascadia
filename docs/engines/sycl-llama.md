@@ -121,11 +121,13 @@ set CASCADIA_LLAMA_BIN=%CD%\cascadia-llama-sycl\llama-server.exe
 ```
 
 The zip holds `llama-server.exe` with the SYCL, oneMKL and Unified Runtime
-DLLs beside it. Packaging runs the staged server with only `System32` on
-`PATH` (`--version`, `--list-devices`) and fails if a DLL is missing or a patch
-marker is gone. The target box needs the Intel GPU driver and the VC++
-redistributable; `HOST-DEPENDENCIES.txt` in the zip lists every DLL taken
-from the host.
+DLLs beside it. Packaging on a GPU box runs the staged server with only
+`System32` on `PATH` (`--version`, `--list-devices`) and fails if a DLL is
+missing or a patch marker is gone; release zips are built on a GPU-less CI
+runner, which passes `-NoRunCheck` and checks the import closure statically
+only, so they carry no `VERSION.txt` or `DEVICES.txt`. The target box needs
+the Intel GPU driver and the VC++ redistributable; `HOST-DEPENDENCIES.txt` in
+the zip lists every DLL taken from the host.
 
 
 `--device` defaults to `GPU`, which maps to `SYCL0` — no flag needed on a

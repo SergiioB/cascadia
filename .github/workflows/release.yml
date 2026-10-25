@@ -658,10 +658,14 @@ jobs:
             want=" cascadia-$VER-linux-x86_64.tar.gz cascadia-$VER-windows-x86_64.zip "
           else
             want=""
-            case "$assets" in
-              *linux-x86_64*windows-x86_64*|*windows-x86_64*linux-x86_64*) ;;
-              *) echo "::error::expected both linux and windows bundles on $TAG, found: $assets"; exit 1 ;;
-            esac
+            # Match the OpenVINO bundles by their exact prefix: the
+            # sycl-llama assets also carry linux-x86_64/windows-x86_64.
+            for a in "cascadia-$VER-linux-x86_64" "cascadia-$VER-windows-x86_64"; do
+              case " $assets " in
+                *" $a"*) ;;
+                *) echo "::error::expected a $a bundle on $TAG, found: $assets"; exit 1 ;;
+              esac
+            done
           fi
           for a in $want; do
             case " $assets " in
@@ -684,5 +688,16 @@ jobs:
               done
             done
           fi
+          # The sycl-llama legs ship extra assets and stay non-blocking until
+          # each has produced a release once; name what they didn't ship.
+          for a in "cascadia-llama-sycl-$VER-linux-x86_64.tar.gz" "cascadia-llama-sycl-$VER-windows-x86_64.zip"; do
+            case " $assets " in
+              *" $a "*) ;;
+              *)
+                echo "::warning::sycl-llama bundle $a is missing on $TAG"
+                echo "- sycl-llama bundle \`$a\` is missing on $TAG" >> "$GITHUB_STEP_SUMMARY"
+                ;;
+            esac
+          done
           gh release edit "$TAG" --prerelease=false --latest
           echo "release $TAG promoted"
