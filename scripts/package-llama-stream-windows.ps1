@@ -58,7 +58,17 @@ function Find-OneApiFile([string]$name) {
 }
 
 $urLoader = Find-OneApiFile "ur_loader.dll"
-if (-not $urLoader) { Fail "ur_loader.dll not on PATH or under the oneAPI roots - install the DPC++ runtime (intel.oneapi.win.cpp-dpcpp-common) or call setvars.bat first" }
+if (-not $urLoader) {
+    # Say what the install actually contains instead of failing blind: a
+    # toolkit without the DPC++ runtime DLLs looks identical to a PATH problem.
+    $bin = Join-Path $env:ONEAPI_ROOT "compiler\latest\bin"
+    if (Test-Path -LiteralPath $bin) {
+        Write-Output ("compiler\latest\bin DLLs: " + ((Get-ChildItem -LiteralPath $bin -Filter *.dll -ErrorAction SilentlyContinue | Select-Object -First 25 -ExpandProperty Name) -join ", "))
+    } else {
+        Write-Output "compiler\latest\bin does not exist under $env:ONEAPI_ROOT"
+    }
+    Fail "ur_loader.dll not on PATH or under the oneAPI roots - install the DPC++ runtime (intel.oneapi.win.cpp-dpcpp-common) or call setvars.bat first"
+}
 $runtimeDir = Split-Path -Parent $urLoader
 Write-Output "oneAPI runtime dir: $runtimeDir"
 $mklCore = Find-OneApiFile "mkl_core.3.dll"

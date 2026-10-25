@@ -498,11 +498,16 @@ jobs:
       TAG: ${{ inputs.tag || github.ref_name }}
       VER: ${{ needs.plan.outputs.ver }}
       DRY_RUN: ${{ needs.plan.outputs.dry_run }}
-      # DPC++/C++ compiler + oneMKL (the SYCL backend's BLAS). URL and install
-      # steps follow Intel's own CI (github.com/oneapi-src/oneapi-ci,
-      # scripts/install_windows.bat).
-      ONEAPI_INSTALLER: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/728c4418-1b40-47a9-ad51-31530fb27c94/intel-oneapi-toolkit-2026.2.0.661_offline.exe
-      ONEAPI_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common:intel.oneapi.win.mkl.devel
+      # DPC++/C++ compiler + oneMKL (the SYCL backend's BLAS) + oneTBB.
+      # Same bundle, component list and version llama.cpp's own release job
+      # uses (ggml-org/llama.cpp .github/workflows/release.yml, windows-sycl),
+      # which is the only CI-proven way to get the UR runtime DLLs
+      # (ur_loader.dll, ur_win_proxy_loader.dll, ur_adapter_*.dll) on Windows.
+      # The 2026.2 toolkit offline installer installs DPC++ headers and import
+      # libraries but no UR runtime DLLs at all - measured in dry run
+      # 40230737422.
+      ONEAPI_INSTALLER: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a51104eb-6f4a-4a0e-9dae-1b81b0c81ae1/intel-deep-learning-essentials-2026.1.4.16_offline.exe
+      ONEAPI_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common:intel.oneapi.win.mkl.devel:intel.oneapi.win.tbb.devel
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
