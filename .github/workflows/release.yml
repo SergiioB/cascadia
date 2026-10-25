@@ -596,15 +596,20 @@ jobs:
           # environment (Actions bash runs without -u, which setvars.sh needs).
           source /opt/intel/oneapi/setvars.sh --force >/dev/null
           name="cascadia-llama-sycl-${VER}-linux-x86_64"
-          scripts/package-llama-stream.sh "$RUNNER_TEMP/llama-stream" "$RUNNER_TEMP/$name.tar.gz"
+          # No Intel GPU on the runner: the staged server cannot be executed.
+          scripts/package-llama-stream.sh "$RUNNER_TEMP/llama-stream" "$RUNNER_TEMP/$name.tar.gz" --no-run-check
           echo "asset=$RUNNER_TEMP/$name.tar.gz" >> "$GITHUB_OUTPUT"
 
       - name: Smoke-test the bundle (linkage closed, stream markers present)
         run: |
           tar -xzf "${{ steps.pkg.outputs.asset }}" -C "$RUNNER_TEMP"
           cd "$RUNNER_TEMP/cascadia-llama-sycl"
-          if env -u LD_LIBRARY_PATH ldd ./llama-server | grep "not found"; then
-            echo "::error::bundle has unresolved libraries"; exit 1
+          # Host libraries are destination-provided and absent on the runner
+          # (same list as is_host_library in the packager).
+          host='lib(OpenCL|ze_loader|ze_intel_gpu|igdrcl|igc|c|m|mvec|pthread|dl|rt|resolv|util|gcc_s|stdc\+\+|z|numa|ssl|crypto)\.so'
+          missing="$(env -u LD_LIBRARY_PATH ldd ./llama-server | grep 'not found' | grep -Ev "$host" || true)"
+          if [ -n "$missing" ]; then
+            echo "::error::bundle has unresolved libraries: $missing"; exit 1
           fi
           grep -l GGML_STREAM_WEIGHTS ./libggml-base.so* >/dev/null \
             || { echo "::error::GGML_STREAM_WEIGHTS marker missing"; exit 1; }

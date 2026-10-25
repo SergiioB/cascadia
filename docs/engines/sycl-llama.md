@@ -108,8 +108,12 @@ export CASCADIA_LLAMA_BIN="$PWD/cascadia-llama-sycl/llama-server"
 
 Packaging includes dependencies of the selected SYCL runtime and its plugins,
 then checks the staged executable without `LD_LIBRARY_PATH`. Missing runtime
-dependencies or failed relocation stop packaging. The host still provides the
-Intel GPU driver, Level Zero/OpenCL loaders and standard OS libraries.
+dependencies or failed relocation stop packaging; host libraries (OpenCL/Level
+Zero loaders, glibc, libstdc++) are expected on the destination and may be
+absent on the builder. The host still provides the Intel GPU driver, Level
+Zero/OpenCL loaders and standard OS libraries. A builder with no Intel GPU
+must pass `--no-run-check`: the staged server aborts on startup without a
+device, even for `--version`. The release job does exactly that.
 
 Windows equivalent, from a Developer Command Prompt (`vcvars64.bat`, for
 `dumpbin`) with oneAPI `setvars.bat` called:

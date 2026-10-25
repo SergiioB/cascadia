@@ -33,10 +33,40 @@ $server = Join-Path $binDir "llama-server.exe"
 if (-not (Test-Path $server)) { Fail "$server missing - run build-llama-stream-windows.bat first" }
 $dumpbin = (Get-Command dumpbin.exe -ErrorAction SilentlyContinue).Source
 if (-not $dumpbin) { Fail "dumpbin.exe not on PATH - call vcvars64.bat first" }
-$runtimeDir = $env:PATH -split ';' | Where-Object { $_ -and (Test-Path (Join-Path $_ "ur_loader.dll")) } | Select-Object -First 1
-if (-not $runtimeDir) { Fail "ur_loader.dll not on PATH - call oneAPI setvars.bat first" }
-$mklDir = $env:PATH -split ';' | Where-Object { $_ -and (Test-Path (Join-Path $_ "mkl_core.3.dll")) } | Select-Object -First 1
-if (-not $mklDir) { Fail "mkl_core.3.dll not on PATH - call oneAPI setvars.bat first" }
+
+# setvars.bat normally puts the runtime on PATH, but the offline installer does
+# not have to (observed on a 2026.2 windows-2022 runner, where ur_loader.dll
+# sat under the oneAPI root and no PATH entry had it). Look on PATH first, then
+# under the oneAPI roots, preferring a "latest" component tree.
+function Find-OneApiFile([string]$name) {
+    foreach ($dir in ($env:PATH -split ';' | Where-Object { $_ })) {
+        $candidate = Join-Path $dir $name
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return (Resolve-Path -LiteralPath $candidate).Path }
+    }
+    $roots = @(
+        $env:ONEAPI_ROOT,
+        $(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles "Intel\oneAPI" }),
+        $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} "Intel\oneAPI" })
+    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) }
+    foreach ($root in $roots) {
+        $hit = Get-ChildItem -LiteralPath $root -Filter $name -File -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object -Property @{ Expression = { $_.FullName -notmatch '[\\/]latest[\\/]' } }, FullName |
+            Select-Object -First 1
+        if ($hit) { return $hit.FullName }
+    }
+    return $null
+}
+
+$urLoader = Find-OneApiFile "ur_loader.dll"
+if (-not $urLoader) { Fail "ur_loader.dll not on PATH or under the oneAPI roots - install the DPC++ runtime (intel.oneapi.win.cpp-dpcpp-common) or call setvars.bat first" }
+$runtimeDir = Split-Path -Parent $urLoader
+Write-Output "oneAPI runtime dir: $runtimeDir"
+$mklCore = Find-OneApiFile "mkl_core.3.dll"
+if (-not $mklCore) { Fail "mkl_core.3.dll not on PATH or under the oneAPI roots - install oneMKL (intel.oneapi.win.mkl.devel) or call setvars.bat first" }
+$mklDir = Split-Path -Parent $mklCore
+Write-Output "oneMKL dir: $mklDir"
+# Resolve imports against the trees we just found, PATH or not.
+$env:PATH = "$runtimeDir;$mklDir;$env:PATH"
 
 # The GPU driver owns these; a bundled copy would shadow the driver's own.
 $hostNames = '^(ze_loader|ze_intel_gpu.*|ze_tracing_layer|ze_validation_layer|OpenCL|intelocl.*|igdrcl.*|igc.*|msvcp\d+.*|vcruntime\d+.*|concrt\d+|vcomp\d+|ucrtbase.*)\.dll$'
