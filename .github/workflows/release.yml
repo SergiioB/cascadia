@@ -508,6 +508,7 @@ jobs:
       # 40230737422.
       ONEAPI_INSTALLER: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a51104eb-6f4a-4a0e-9dae-1b81b0c81ae1/intel-deep-learning-essentials-2026.1.4.16_offline.exe
       ONEAPI_COMPONENTS: intel.oneapi.win.cpp-dpcpp-common:intel.oneapi.win.mkl.devel:intel.oneapi.win.tbb.devel
+      LEVEL_ZERO_SDK_URL: https://github.com/oneapi-src/level-zero/releases/download/v1.33.1/level-zero-win-sdk-1.33.1.zip
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -523,6 +524,18 @@ jobs:
           "%RUNNER_TEMP%\oneapi\bootstrapper.exe" -s --action install --components=%ONEAPI_COMPONENTS% --eula=accept -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0 --log-dir="%RUNNER_TEMP%\oneapi-logs" || exit /b 1
           rd /s /q "%RUNNER_TEMP%\oneapi"
           choco install ninja -y --no-progress || exit /b 1
+
+      # Without headers + ze_loader.lib the SYCL backend silently builds with
+      # GGML_SYCL_SUPPORT_LEVEL_ZERO_API off ("Level Zero loader or headers not
+      # found, Level Zero support disabled"), which is not the binary that was
+      # verified on the B70. Same SDK the llama.cpp release job uses.
+      - name: Install Level Zero SDK
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "$env:LEVEL_ZERO_SDK_URL" -OutFile "$env:RUNNER_TEMP\level-zero.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\level-zero.zip" -DestinationPath "C:\level-zero-sdk" -Force
+          if (-not (Test-Path "C:\level-zero-sdk\include\level_zero\ze_api.h")) { throw "Level Zero SDK headers missing" }
+          "LEVEL_ZERO_V1_SDK_PATH=C:\level-zero-sdk" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Build patched llama-server
         shell: cmd
@@ -590,6 +603,17 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/oneapi.list
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp intel-oneapi-mkl-devel patchelf
+
+      # Same reason as the Windows leg: without headers + libze_loader the
+      # backend builds with Level Zero support disabled, which is not the
+      # binary that was verified on the B70.
+      - name: Install Level Zero SDK
+        run: |
+          cd "$RUNNER_TEMP"
+          wget -q "https://github.com/oneapi-src/level-zero/releases/download/v1.33.1/libze1_1.33.1%2Bu22.04_amd64.deb" -O libze1.deb
+          wget -q "https://github.com/oneapi-src/level-zero/releases/download/v1.33.1/libze-dev_1.33.1%2Bu22.04_amd64.deb" -O libze-dev.deb
+          sudo apt-get install -y ./libze1.deb ./libze-dev.deb
+          test -f /usr/include/level_zero/ze_api.h || { echo "::error::Level Zero headers missing"; exit 1; }
 
       - name: Build patched llama-server
         run: scripts/build-llama-stream.sh "$RUNNER_TEMP/llama-stream"
